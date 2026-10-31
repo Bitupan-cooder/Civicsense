@@ -1,0 +1,177 @@
+@import "tailwindcss";
+@import "@fontsource/anton";
+@import "@fontsource-variable/archivo";
+
+:root {
+  /* Main Surfaces: Skin Tone & Crisp White */
+  --skin: #F5E8DC;
+  --skin-light: #FAF2EB;
+  --skin-dark: #E6D4C3;
+  --white: #FFFFFF;
+
+  /* Light Vibrant Greens */
+  --kiwi: #9ABC05;         /* Kiwi Green (#9ABC05 from user swatch) */
+  --lime: #B5F800;         /* Bright Neon Lime (#B5F800 from user poster) */
+  --green-light: #1EA854;  /* Light Civic Leaf Green for text and headings */
+  --green-deep: #1EA854;   /* Light Civic Leaf Green */
+  --green-civic: #1EA854;  /* Light Civic Leaf Green */
+  --blue: #0036FF;         /* Electric Blue (#0036FF from user image) */
+
+  /* Scale unit: 1u = 100vw / 1507 on desktop */
+  --u: calc(100vw / 1507);
+  --side: calc(121 * var(--u));
+  --nav: calc(84 * var(--u));
+  
+  /* Hairline Column and Frame Rules */
+  --rule-green: rgba(30, 168, 84, 0.25);
+  --rule-blue: rgba(0, 54, 255, 0.28);
+  --rule-lime: rgba(181, 248, 0, 0.55);
+  --rule-kiwi: rgba(154, 188, 5, 0.4);
+
+  /* Font Stacks */
+  --font-serif: "Palatino Linotype", "Iowan Old Style", "Book Antiqua", Palatino, Georgia, serif;
+  --font-anton: 'Anton', sans-serif;
+  --font-archivo: 'Archivo Variable', sans-serif;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --u: calc(100vw / 1300);
+    --side: 22px;
+    --nav: 56px;
+  }
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-archivo);
+  background-color: var(--skin-light);
+  color: var(--green-deep);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  overflow-x: hidden;
+  background-color: var(--skin-light);
+  color: var(--green-deep);
+  min-height: 100vh;
+}
+
+/* Custom Noise Overlay */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.06;
+  mix-blend-mode: multiply;
+}
+
+/* Typography Utility Classes */
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-serif-italic {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+.font-anton {
+  font-family: var(--font-anton);
+}
+
+.font-archivo {
+  font-family: var(--font-archivo);
+}
+
+.label-mono-tracking {
+  font-size: calc(11 * var(--u));
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 767px) {
+  .label-mono-tracking {
+    font-size: 10px;
+  }
+}
+
+/* 3D Scene Preservation Helpers */
+.scene-3d-root {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* Pulsing Status Dot in Vibrant Kiwi / Lime */
+.pulsing-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #9ABC05;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.pulsing-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  background-color: rgba(181, 248, 0, 0.45);
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+/* Sharp square theme rules */
+button, input, select, textarea {
+  border-radius: 0px !important;
+  font-family: inherit;
+}
+
+/* Focus states */
+.focus-ring-blue:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.focus-ring-green:focus-visible {
+  outline: 2px solid var(--kiwi);
+  outline-offset: 2px;
+}
+
+.focus-ring-lime:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 2px;
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
