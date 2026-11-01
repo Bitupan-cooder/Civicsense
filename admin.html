@@ -521,8 +521,94 @@
     .chip-p4 { background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
     .chip-open { background: #fef3c7; color: #92400e; }
     .chip-ip { background: #e0f2fe; color: #0369a1; }
-    .chip-resolved { background: #dcfce7; color: #15803d; }
+    .chip-resolved { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
     .chip-escalated { background: #fef08a; color: #854d0e; }
+
+    .chip-submitted { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+    .chip-under_verification { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+    .chip-accepted { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+    .chip-in_progress { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .chip-rejected { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+
+    .chip-vis-admin { background: #fdf4ff; color: #86198f; border: 1px solid #f0abfc; }
+    .chip-vis-dept { background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; }
+    .chip-vis-social { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+
+    .pill-id-pending { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; }
+    .pill-id-verified { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; }
+    .pill-id-not_valid { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; }
+
+    .filter-select-pill {
+      height: 38px;
+      padding: 0 14px;
+      border: 1.5px solid var(--line);
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-family: inherit;
+      font-weight: 600;
+      color: #3b5035;
+      background: #ffffff;
+      outline: none;
+      cursor: pointer;
+    }
+    .filter-select-pill:focus {
+      border-color: var(--olive);
+      box-shadow: 0 0 0 3px rgba(26,122,58,.14);
+    }
+
+    .modal-box-large {
+      background: #ffffff;
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 820px;
+      max-height: 90vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 48px rgba(0,0,0,0.2);
+    }
+    .modal-head {
+      background: #ffffff;
+      border-bottom: 1.5px solid var(--line);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .modal-body {
+      padding: 24px;
+      background: var(--bg);
+    }
+    .modal-foot {
+      padding: 16px 24px;
+      border-top: 1.5px solid var(--line);
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .timeline-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      margin-top: 10px;
+    }
+    .timeline-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 16px;
+    }
 
     .ticket-meta-row {
       display: flex;
@@ -1032,15 +1118,39 @@
     <!-- FILTER & SEARCH BAR -->
     <div class="toolbar-bar">
       <div class="filter-pills-group" id="filterGroup">
-        <button class="filter-pill-btn active" onclick="setFilter('all')">All Tickets (<span id="cAll">0</span>)</button>
-        <button class="filter-pill-btn" onclick="setFilter('pending')">Awaiting Action (<span id="cPending">0</span>)</button>
-        <button class="filter-pill-btn" onclick="setFilter('in_progress')">In Progress / Solving (<span id="cIp">0</span>)</button>
-        <button class="filter-pill-btn" onclick="setFilter('resolved')">Resolved (<span id="cResolved">0</span>)</button>
+        <button type="button" class="filter-pill-btn active" onclick="setFilter('all')">All (<span id="cAll">0</span>)</button>
+        <button type="button" class="filter-pill-btn" onclick="setFilter('submitted')">Submitted (<span id="cSubmitted">0</span>)</button>
+        <button type="button" class="filter-pill-btn" onclick="setFilter('accepted')">Accepted (<span id="cAccepted">0</span>)</button>
+        <button type="button" class="filter-pill-btn" onclick="setFilter('in_progress')">In Progress (<span id="cIp">0</span>)</button>
+        <button type="button" class="filter-pill-btn" onclick="setFilter('resolved')">Resolved (<span id="cResolved">0</span>)</button>
+        <button type="button" class="filter-pill-btn" onclick="setFilter('rejected')">Rejected (<span id="cRejected">0</span>)</button>
       </div>
 
-      <div class="search-input-wrap">
-        <svg class="search-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input type="text" class="search-input-pill" placeholder="Search by Ticket ID, place, or keywords..." oninput="handleSearch(this.value)" />
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <select id="categoryFilter" class="filter-select-pill" onchange="handleCategoryFilter(this.value)">
+          <option value="all">All Categories</option>
+          <option value="Hostel">Hostel</option>
+          <option value="Electricity">Electricity</option>
+          <option value="Water">Water</option>
+          <option value="Sanitation">Sanitation</option>
+          <option value="Internet">Internet &amp; IT</option>
+          <option value="Library">Library</option>
+          <option value="Safety">Safety &amp; Security</option>
+          <option value="Academic">Academic</option>
+          <option value="General">General</option>
+        </select>
+
+        <select id="dateFilter" class="filter-select-pill" onchange="handleDateFilter(this.value)">
+          <option value="all">All Dates</option>
+          <option value="today">Today</option>
+          <option value="week">Past 7 Days</option>
+          <option value="month">Past 30 Days</option>
+        </select>
+
+        <div class="search-input-wrap">
+          <svg class="search-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" id="adminSearchInput" class="search-input-pill" placeholder="Search by Ticket ID, student, title..." oninput="handleSearch(this.value)" />
+        </div>
       </div>
     </div>
 
@@ -1049,6 +1159,174 @@
 
   </main>
   </div><!-- /#authenticatedWorkspace -->
+
+  <!-- ══════════ COMPLAINT FULL DOCKET MODAL ══════════ -->
+  <div class="modal-overlay hidden" id="complaintDetailModal">
+    <div class="modal-box-large">
+      <div class="modal-head">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span class="ticket-id-tag" id="modalDocketId">#CS-0000</span>
+          <h2 style="font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;" id="modalDocketTitle">Complaint Title</h2>
+        </div>
+        <button type="button" onclick="closeDocketModal()" style="background:none;border:none;color:#4a6142;font-size:22px;font-weight:700;cursor:pointer;padding:4px 8px;">&times;</button>
+      </div>
+
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:18px;">
+        <!-- Status & Categorization Meta Bar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#ffffff;padding:12px 16px;border-radius:12px;border:1px solid var(--line);">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span id="modalDocketStatus" class="chip">Status</span>
+            <span id="modalDocketVisibility" class="chip">Visibility</span>
+            <span id="modalDocketCategory" class="chip" style="background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;">Category</span>
+          </div>
+          <div style="font-size:12px;color:#64748b;" id="modalDocketDate">Submitted: --</div>
+        </div>
+
+        <!-- Student & Assigned Unit Grid -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:14px;">
+          <div style="background:#ffffff;padding:14px 18px;border-radius:14px;border:1px solid var(--line);">
+            <div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px;">Student Reporter</div>
+            <div style="font-size:14px;font-weight:700;color:var(--ink);" id="modalStudentName">--</div>
+            <div style="font-size:12.5px;color:#4b5563;margin-top:2px;" id="modalStudentEmail">--</div>
+          </div>
+
+          <div style="background:#ffffff;padding:14px 18px;border-radius:14px;border:1px solid var(--line);">
+            <div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px;">Assigned Redressal Unit</div>
+            <div style="font-size:14px;font-weight:700;color:var(--ink);" id="modalAssignedUnit">--</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px;" id="modalUnitJurisdiction">Jurisdiction verified</div>
+          </div>
+        </div>
+
+        <!-- Student ID Card Section -->
+        <div style="background:#ffffff;padding:16px 20px;border-radius:14px;border:1.5px solid var(--line);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:12.5px;font-weight:700;color:var(--ink);">Student Institutional ID Card</span>
+              <span id="modalIdCardStatusBadge" class="pill-id-pending">Pending</span>
+            </div>
+            <button type="button" class="btn-outline" style="height:30px;font-size:11.5px;padding:0 12px;" onclick="viewStudentIdFromDocket()">
+              View Student ID Card
+            </button>
+          </div>
+          <p style="font-size:12px;color:#51684c;line-height:1.45;margin-bottom:10px;">
+            Institutional enrollment verification required prior to formal acceptance.
+          </p>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn" style="height:28px;font-size:11.5px;padding:0 12px;background:var(--olive);" onclick="verifyIdFromDocket('verified')">Mark ID as Verified</button>
+            <button type="button" class="btn-outline btn-red" style="height:28px;font-size:11.5px;padding:0 12px;" onclick="verifyIdFromDocket('not_valid')">Mark ID as Not Valid</button>
+          </div>
+        </div>
+
+        <!-- Description Box -->
+        <div style="background:#ffffff;padding:16px 20px;border-radius:14px;border:1px solid var(--line);">
+          <div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:8px;">Grievance Narrative</div>
+          <div style="font-size:13.5px;color:var(--ink);line-height:1.6;white-space:pre-wrap;" id="modalDocketDescription">--</div>
+        </div>
+
+        <!-- Evidence Attachments Box -->
+        <div style="background:#ffffff;padding:16px 20px;border-radius:14px;border:1px solid var(--line);" id="modalEvidenceSection">
+          <div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:8px;">Evidence Attachments (Authenticated Cloudinary)</div>
+          <div id="modalEvidenceList" style="display:flex;gap:10px;flex-wrap:wrap;">
+            <span style="font-size:12px;color:#64748b;">No evidence files attached to this complaint.</span>
+          </div>
+        </div>
+
+        <!-- Resolution History Timeline -->
+        <div style="background:#ffffff;padding:16px 20px;border-radius:14px;border:1px solid var(--line);">
+          <div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:8px;">Status Timeline &amp; Remarks History</div>
+          <div class="timeline-list" id="modalTimelineList">
+            <div style="font-size:12px;color:#64748b;">No history entries available.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-foot" id="modalDocketActions">
+        <button type="button" class="btn-outline" onclick="closeDocketModal()">Close</button>
+        <button type="button" class="btn-outline btn-red" id="modalActionRejectBtn" onclick="promptActionFromDocket('rejected')">Reject Grievance</button>
+        <button type="button" class="btn-outline" id="modalActionAcceptBtn" onclick="promptActionFromDocket('accepted')">Accept Grievance</button>
+        <button type="button" class="btn" id="modalActionProgressBtn" onclick="promptActionFromDocket('in_progress')">Update Progress</button>
+        <button type="button" class="btn btn-blue" id="modalActionResolveBtn" onclick="promptActionFromDocket('resolved')">Mark Resolved</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ STUDENT ID CARD PREVIEW MODAL ══════════ -->
+  <div class="modal-overlay hidden" id="idCardModal">
+    <div class="auth-box" style="max-width:580px;">
+      <div class="modal-head" style="background:#ffffff;">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink);">Student Identity Card Verification</div>
+          <div style="font-size:12px;color:#51684c;" id="idCardModalStudentInfo">Student: --</div>
+        </div>
+        <button type="button" onclick="closeIdCardModal()" style="background:none;border:none;color:#4a6142;font-size:22px;font-weight:700;cursor:pointer;">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="idCardLoading" style="text-align:center;padding:36px;font-size:13px;color:#51684c;">
+          <div style="width:24px;height:24px;border:2.5px solid var(--line);border-top-color:var(--olive);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 10px;"></div>
+          Fetching authenticated signed ID card from Cloudinary...
+        </div>
+
+        <div id="idCardViewerContainer" style="display:none;">
+          <div style="background:#ffffff;padding:8px;border-radius:12px;border:1.5px solid var(--line);text-align:center;margin-bottom:16px;">
+            <img id="idCardImagePreview" src="" alt="Student ID Card Preview" style="max-width:100%;max-height:360px;object-fit:contain;border-radius:8px;" />
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;background:#ffffff;padding:10px 14px;border-radius:10px;border:1px solid var(--line);">
+            <span style="font-size:12.5px;color:#334155;font-weight:600;">Current Card Status:</span>
+            <span id="idCardPreviewStatusPill" class="pill-id-pending">Pending</span>
+          </div>
+
+          <div style="display:flex;gap:10px;">
+            <button type="button" class="btn" style="flex:1;background:var(--olive);" onclick="submitIdCardReview('verified')">
+              Mark ID as Verified
+            </button>
+            <button type="button" class="btn-outline btn-red" style="flex:1;" onclick="submitIdCardReview('not_valid')">
+              Mark ID as Not Valid
+            </button>
+          </div>
+        </div>
+
+        <div id="idCardErrorContainer" style="display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:12px 14px;border-radius:8px;font-size:12.5px;line-height:1.45;"></div>
+      </div>
+
+      <div class="modal-foot">
+        <button type="button" class="btn-outline" onclick="closeIdCardModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ ACTION REMARK / REASON PROMPT MODAL ══════════ -->
+  <div class="modal-overlay hidden" id="workflowActionModal">
+    <div class="auth-box" style="max-width:520px;">
+      <div class="modal-head" style="background:#ffffff;">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink);" id="actionModalTitle">Action Title</div>
+          <div style="font-size:12px;color:#51684c;" id="actionModalSubtitle">Subheading</div>
+        </div>
+        <button type="button" onclick="closeWorkflowModal()" style="background:none;border:none;color:#4a6142;font-size:22px;font-weight:700;cursor:pointer;">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="actionModalNotice" style="background:#f8faf4;border-left:3px solid var(--olive);padding:8px 12px;border-radius:0 6px 6px 0;font-size:12px;color:#35532d;margin-bottom:14px;line-height:1.45;">
+          Notice text
+        </div>
+
+        <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:0.02em;margin-bottom:6px;" id="actionModalInputLabel">
+          Official Remark
+        </label>
+        <textarea id="actionRemarkInput" rows="4" style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;box-sizing:border-box;outline:none;" placeholder="Enter official remark..."></textarea>
+        <div style="font-size:11px;color:#64748b;margin-top:4px;" id="actionCharHint">Minimum required characters: 5</div>
+
+        <div id="actionModalErr" style="display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:600;margin-top:10px;line-height:1.4;"></div>
+      </div>
+
+      <div class="modal-foot">
+        <button type="button" class="btn-outline" onclick="closeWorkflowModal()">Cancel</button>
+        <button type="button" class="btn" id="actionModalSubmitBtn" onclick="submitWorkflowAction()">Confirm Action</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ══════════ AUTH MODAL OVERLAY (MATCHING INDEX.HTML .MODAL) ══════════ -->
   <div class="modal-overlay hidden" id="authModal">
@@ -1402,19 +1680,17 @@
       }
     ];
 
-    function getComplaints() {
-      var raw = localStorage.getItem('civic_complaints');
-      if (!raw) {
-        localStorage.setItem('civic_complaints', JSON.stringify(SEED));
-        return SEED;
-      }
-      try {
-        var parsed = JSON.parse(raw);
-        return Array.isArray(parsed) && parsed.length > 0 ? parsed : SEED;
-      } catch (e) {
-        return SEED;
-      }
-    }
+    var allComplaints = [];
+    var currentOfficial = null;
+    var currentProfile = null;
+    var activeFilter = 'all';
+    var activeCategory = 'all';
+    var activeDate = 'all';
+    var searchQuery = '';
+    var activeDocketComplaint = null;
+    var activeTargetUserId = null;
+    var workflowModalState = { complaintId: null, status: null, minChars: 0 };
+    var gateRole = 'department';
 
     function escapeHtml(str) {
       if (!str) return '';
@@ -1426,35 +1702,37 @@
         .replace(/'/g, '&#39;');
     }
 
-    function saveComplaints(c) {
-      localStorage.setItem('civic_complaints', JSON.stringify(c));
-    }
-
-    function saveOne(c) {
-      var all = getComplaints();
-      for (var i = 0; i < all.length; i++) {
-        if (all[i].id === c.id) {
-          all[i] = c;
-          break;
-        }
+    function formatDate(iso) {
+      if (!iso) return '--';
+      try {
+        var d = new Date(iso);
+        return d.toLocaleDateString('en-IN', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (e) {
+        return String(iso);
       }
-      saveComplaints(all);
-      renderDashboard();
     }
 
-    function getById(id) {
-      var all = getComplaints();
-      for (var i = 0; i < all.length; i++) {
-        if (all[i].id === id) return all[i];
+    function formatRelative(iso) {
+      if (!iso) return '';
+      try {
+        var diff = Date.now() - new Date(iso).getTime();
+        var min = Math.floor(diff / 60000);
+        if (min < 1) return 'Just now';
+        if (min < 60) return min + 'm ago';
+        var hr = Math.floor(min / 60);
+        if (hr < 24) return hr + 'h ago';
+        var days = Math.floor(hr / 24);
+        return days + 'd ago';
+      } catch (e) {
+        return '';
       }
-      return null;
     }
-
-    var currentOfficial = null;
-    var authMode = 'department';
-
-    var currentOfficial = null;
-    var gateRole = 'department';
 
     async function initAuth() {
       var gate = document.getElementById('authGateContainer');
@@ -1508,6 +1786,7 @@
         if (workspace) workspace.style.display = 'block';
 
         applyAuthenticatedProfile(profile);
+        await loadOfficialComplaints();
 
         if (profile.must_change_password) {
           CivicAuth.ensurePasswordChangeModal();
@@ -1578,6 +1857,7 @@
         document.getElementById('authenticatedWorkspace').style.display = 'block';
 
         applyAuthenticatedProfile(profile);
+        await loadOfficialComplaints();
         showToast('Welcome, ' + profile.name, 'success');
 
         if (profile.must_change_password) {
@@ -1593,6 +1873,7 @@
 
     function applyAuthenticatedProfile(profile) {
       if (!profile) return;
+      currentProfile = profile;
       var roleMode = profile.role === 'administration' ? 'admin' : profile.role === 'social_service' ? 'social' : 'dept_head';
       currentMode = roleMode;
       currentOfficial = {
@@ -1608,7 +1889,6 @@
       };
 
       updateHeaderUI();
-      renderDashboard();
     }
 
     function updateHeaderUI() {
@@ -1677,7 +1957,7 @@
         currentOfficial.mode = mode;
       }
       updateHeaderUI();
-      renderDashboard();
+      renderOfficialDashboard();
     }
 
     async function logoutAdmin() {
@@ -1691,7 +1971,34 @@
         var pwInput = document.getElementById('gatePassword');
         if (emailInput) emailInput.value = '';
         if (pwInput) pwInput.value = '';
+        allComplaints = [];
         showToast('Logged out of official console.', 'info');
+      }
+    }
+
+    // ── DATA LOADING & FILTERING ──
+    async function loadOfficialComplaints() {
+      var stack = document.getElementById('ticketsStack');
+      if (stack) {
+        stack.innerHTML = '<div style="background:#ffffff;border:1.5px solid var(--line);border-radius:18px;padding:36px;text-align:center;color:#4a6142;">' +
+          '<div style="width:24px;height:24px;border:2.5px solid var(--line);border-top-color:var(--olive);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 10px;"></div>' +
+          'Loading official grievance queue from database...' +
+          '</div>';
+      }
+
+      try {
+        var complaints = await CivicAuth.fetchOfficialComplaints();
+        allComplaints = complaints || [];
+        renderOfficialDashboard();
+      } catch (err) {
+        console.error('Failed to load official complaints:', err);
+        if (stack) {
+          stack.innerHTML = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:18px;padding:32px;text-align:center;color:#991b1b;">' +
+            '<h3 style="font-size:15px;font-weight:700;margin-bottom:6px;">Unable to load complaints</h3>' +
+            '<p style="font-size:12.5px;line-height:1.45;">' + escapeHtml(err.message || 'Database connection error.') + '</p>' +
+            '<button type="button" class="btn" style="margin-top:14px;height:32px;font-size:12px;" onclick="loadOfficialComplaints()">Retry</button>' +
+            '</div>';
+        }
       }
     }
 
@@ -1700,118 +2007,148 @@
       var buttons = document.querySelectorAll('#filterGroup .filter-pill-btn');
       buttons.forEach(function(b) { b.classList.remove('active'); });
       if (event && event.target) event.target.classList.add('active');
-      renderDashboard();
+      renderOfficialDashboard();
+    }
+
+    function handleCategoryFilter(cat) {
+      activeCategory = cat || 'all';
+      renderOfficialDashboard();
+    }
+
+    function handleDateFilter(dateVal) {
+      activeDate = dateVal || 'all';
+      renderOfficialDashboard();
     }
 
     function handleSearch(val) {
-      searchQuery = val.toLowerCase().trim();
-      renderDashboard();
+      searchQuery = (val || '').toLowerCase().trim();
+      renderOfficialDashboard();
     }
 
-    function renderDashboard() {
-      var all = getComplaints();
+    function renderOfficialDashboard() {
+      var filtered = allComplaints.slice();
 
-      var modeTickets = all;
-      if (currentOfficial.mode === 'dept_head') {
-        modeTickets = all.filter(function(c) {
-          if (c.cat === currentOfficial.departmentId) return true;
-          if (c.dept && c.dept.toLowerCase().includes(currentOfficial.departmentId)) return true;
-          return false;
+      // Category filter
+      if (activeCategory && activeCategory !== 'all') {
+        filtered = filtered.filter(function (c) {
+          return (c.category || '').toLowerCase() === activeCategory.toLowerCase();
         });
-        if (modeTickets.length === 0) modeTickets = all;
       }
 
-      renderKpis(modeTickets, all);
+      // Date filter
+      if (activeDate === 'today') {
+        var startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        filtered = filtered.filter(function (c) {
+          return new Date(c.created_at) >= startOfToday;
+        });
+      } else if (activeDate === 'week') {
+        var weekAgo = Date.now() - 7 * 86400 * 1000;
+        filtered = filtered.filter(function (c) {
+          return new Date(c.created_at).getTime() >= weekAgo;
+        });
+      } else if (activeDate === 'month') {
+        var monthAgo = Date.now() - 30 * 86400 * 1000;
+        filtered = filtered.filter(function (c) {
+          return new Date(c.created_at).getTime() >= monthAgo;
+        });
+      }
 
-      var displayTickets = modeTickets.filter(function(c) {
-        if (activeFilter === 'pending') {
-          return c.status === 'open' || c.status === 'submitted' || !c.status;
-        } else if (activeFilter === 'in_progress') {
-          return c.status === 'in_progress' || c.status === 'solving' || c.status === 'investigating' || c.status === 'escalated';
-        } else if (activeFilter === 'resolved') {
-          return c.status === 'resolved' || c.status === 'closed';
-        }
-        return true;
-      });
+      // Status filter
+      if (activeFilter === 'submitted') {
+        filtered = filtered.filter(function (c) {
+          return c.status === 'submitted' || c.status === 'under_verification';
+        });
+      } else if (activeFilter === 'accepted') {
+        filtered = filtered.filter(function (c) {
+          return c.status === 'accepted';
+        });
+      } else if (activeFilter === 'in_progress') {
+        filtered = filtered.filter(function (c) {
+          return c.status === 'in_progress';
+        });
+      } else if (activeFilter === 'resolved') {
+        filtered = filtered.filter(function (c) {
+          return c.status === 'resolved';
+        });
+      } else if (activeFilter === 'rejected') {
+        filtered = filtered.filter(function (c) {
+          return c.status === 'rejected';
+        });
+      }
 
+      // Text search query
       if (searchQuery) {
-        displayTickets = displayTickets.filter(function(c) {
-          var text = (c.id + ' ' + (c.title||'') + ' ' + (c.desc||'') + ' ' + (c.location||'') + ' ' + (c.dept||'') + ' ' + (c.cat||'')).toLowerCase();
-          return text.includes(searchQuery);
+        filtered = filtered.filter(function (c) {
+          var corpus = [
+            c.id,
+            c.title,
+            c.description,
+            c.category,
+            c.visibility,
+            c.status,
+            c.student ? c.student.name : '',
+            c.student ? c.student.email : '',
+            c.target_unit ? c.target_unit.unit_name : ''
+          ].join(' ').toLowerCase();
+          return corpus.indexOf(searchQuery) !== -1;
         });
       }
 
+      // Update counters
       var cAll = document.getElementById('cAll');
-      var cPending = document.getElementById('cPending');
+      var cSubmitted = document.getElementById('cSubmitted');
+      var cAccepted = document.getElementById('cAccepted');
       var cIp = document.getElementById('cIp');
       var cResolved = document.getElementById('cResolved');
+      var cRejected = document.getElementById('cRejected');
 
-      if (cAll) cAll.textContent = modeTickets.length;
-      if (cPending) cPending.textContent = modeTickets.filter(function(c){ return c.status === 'open' || c.status === 'submitted' || !c.status; }).length;
-      if (cIp) cIp.textContent = modeTickets.filter(function(c){ return c.status === 'in_progress' || c.status === 'solving' || c.status === 'investigating' || c.status === 'escalated'; }).length;
-      if (cResolved) cResolved.textContent = modeTickets.filter(function(c){ return c.status === 'resolved' || c.status === 'closed'; }).length;
+      if (cAll) cAll.textContent = allComplaints.length;
+      if (cSubmitted) cSubmitted.textContent = allComplaints.filter(function (c) { return c.status === 'submitted' || c.status === 'under_verification'; }).length;
+      if (cAccepted) cAccepted.textContent = allComplaints.filter(function (c) { return c.status === 'accepted'; }).length;
+      if (cIp) cIp.textContent = allComplaints.filter(function (c) { return c.status === 'in_progress'; }).length;
+      if (cResolved) cResolved.textContent = allComplaints.filter(function (c) { return c.status === 'resolved'; }).length;
+      if (cRejected) cRejected.textContent = allComplaints.filter(function (c) { return c.status === 'rejected'; }).length;
 
+      // Update KPI cards
+      renderKpis(filtered, allComplaints);
+
+      // Render cards
       var stack = document.getElementById('ticketsStack');
       if (!stack) return;
       stack.innerHTML = '';
 
-      if (displayTickets.length === 0) {
-        stack.innerHTML = '<div style="background:#fff;border:1.5px dashed var(--line);border-radius:20px;padding:48px 24px;text-align:center;color:#64748b">' +
-          '' +
-          '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px">No complaints found in this view</h3>' +
-          '<p style="font-size:13px;color:#51684c">New reports filed via CivicSense appear here immediately.</p>' +
+      if (filtered.length === 0) {
+        stack.innerHTML = '<div style="background:#ffffff;border:1.5px dashed var(--line);border-radius:20px;padding:48px 24px;text-align:center;color:#64748b;">' +
+          '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px;">No complaints match the selected criteria</h3>' +
+          '<p style="font-size:13px;color:#51684c;">Adjust your search or filter settings to view other grievances.</p>' +
           '</div>';
         return;
       }
 
-      displayTickets.forEach(function(c) {
+      filtered.forEach(function (c) {
         stack.appendChild(createTicketCard(c));
       });
     }
 
-    function renderKpis(modeTickets, allTickets) {
+    function renderKpis(filtered, all) {
       var grid = document.getElementById('kpiRow');
       if (!grid) return;
       grid.innerHTML = '';
 
-      var kpis = [];
-      if (currentOfficial.mode === 'dept_head') {
-        var activeCount = modeTickets.filter(function(c){ return c.status !== 'resolved' && c.status !== 'closed'; }).length;
-        var crewsCount = modeTickets.filter(function(c){ return c.fieldCrew; }).length;
-        var resolvedCount = modeTickets.filter(function(c){ return c.status === 'resolved' || c.status === 'closed'; }).length;
+      var total = all.length;
+      var pending = all.filter(function (c) { return c.status === 'submitted' || c.status === 'under_verification'; }).length;
+      var active = all.filter(function (c) { return c.status === 'accepted' || c.status === 'in_progress'; }).length;
+      var resolved = all.filter(function (c) { return c.status === 'resolved'; }).length;
 
-        kpis = [
-          { val: modeTickets.length, lbl: 'Total in Department Queue', color: 'var(--olive)' },
-          { val: activeCount, lbl: 'Awaiting Action / Solving', color: '#b45309' },
-          { val: crewsCount, lbl: 'Field Maintenance Crews Out', color: 'var(--green)' },
-          { val: resolvedCount, lbl: 'Cases Resolved & Stamped', color: 'var(--olive)' }
-        ];
-      } else if (currentOfficial.mode === 'admin') {
-        var needsReview = allTickets.filter(function(c){ return c.aiAnalysis && (c.aiAnalysis.needs_review || c.aiAnalysis.confidence < 0.6); }).length;
-        var p1Count = allTickets.filter(function(c){ return c.urgency === 'Immediate Hazard' || (c.aiAnalysis && c.aiAnalysis.priority === 1); }).length;
-        var sensitiveCount = allTickets.filter(function(c){ return c.aiAnalysis && c.aiAnalysis.sensitive; }).length;
+      var kpis = [
+        { val: total, lbl: 'Total Grievances in Queue', color: 'var(--olive)' },
+        { val: pending, lbl: 'Awaiting Verification & Review', color: '#b45309' },
+        { val: active, lbl: 'Under Active Remediation', color: 'var(--blue)' },
+        { val: resolved, lbl: 'Resolved & Signed Off', color: 'var(--green)' }
+      ];
 
-        kpis = [
-          { val: allTickets.length, lbl: 'University-Wide Logged Cases', color: 'var(--blue)' },
-          { val: needsReview, lbl: 'Held for Admin Review Queue', color: '#9333ea' },
-          { val: p1Count, lbl: 'High-Risk Urgent Hazards', color: '#dc2626' },
-          { val: sensitiveCount, lbl: 'Proctorial Confidential Vault', color: 'var(--olive)' }
-        ];
-      } else if (currentOfficial.mode === 'social') {
-        var copiedToGs = allTickets.length;
-        var slaBreaches = allTickets.filter(function(c){ return Date.now() - (c.ts || Date.now()) > 48 * 3600 * 1000 && c.status !== 'resolved'; }).length;
-        var endorsed = allTickets.filter(function(c){ return c.dusuEndorsement; }).length;
-        var verified = allTickets.filter(function(c){ return c.studentVerified || c.groundVerification; }).length;
-
-        kpis = [
-          { val: copiedToGs, lbl: 'Complaints Copied to DUSU GS', color: 'var(--blue)' },
-          { val: slaBreaches, lbl: 'SLA Breaches (>48h Unresolved)', color: '#dc2626' },
-          { val: endorsed, lbl: 'Council Endorsed Issues', color: '#f59e0b' },
-          { val: verified, lbl: 'Ground Student Verifications', color: 'var(--green)' }
-        ];
-      }
-
-      kpis.forEach(function(k) {
+      kpis.forEach(function (k) {
         var card = document.createElement('div');
         card.className = 'kpi-card';
         card.style.setProperty('--kpi-col', k.color);
@@ -1822,428 +2159,448 @@
 
     function createTicketCard(c) {
       var card = document.createElement('div');
-      var isSensitive = c.aiAnalysis && c.aiAnalysis.sensitive;
-      var isEscalated = c.status === 'escalated';
-      var isNeedsReview = c.aiAnalysis && (c.aiAnalysis.needs_review || c.aiAnalysis.confidence < 0.6);
+      card.className = 'ticket-card';
 
-      card.className = 'ticket-card' + (isSensitive ? ' sensitive' : '') + (isEscalated ? ' escalated' : '') + (isNeedsReview ? ' needs-review' : '');
+      // Status chip
+      var statusChip = '<span class="chip chip-submitted">Submitted</span>';
+      if (c.status === 'under_verification') statusChip = '<span class="chip chip-under_verification">Under Verification</span>';
+      else if (c.status === 'accepted') statusChip = '<span class="chip chip-accepted">Accepted</span>';
+      else if (c.status === 'in_progress') statusChip = '<span class="chip chip-in_progress">In Progress</span>';
+      else if (c.status === 'resolved') statusChip = '<span class="chip chip-resolved">Resolved</span>';
+      else if (c.status === 'rejected') statusChip = '<span class="chip chip-rejected">Rejected</span>';
 
-      var statusBadge = '';
-      if (c.status === 'resolved' || c.status === 'closed') {
-        statusBadge = '<span class="chip chip-resolved">Resolved</span>';
-      } else if (c.status === 'in_progress' || c.status === 'solving') {
-        statusBadge = '<span class="chip chip-ip">In Progress (Crew Deployed)</span>';
-      } else if (c.status === 'escalated') {
-        statusBadge = '<span class="chip chip-escalated">Escalated to GS</span>';
-      } else {
-        statusBadge = '<span class="chip chip-open">Pending Action</span>';
+      // Visibility chip
+      var visChip = '<span class="chip chip-vis-dept">Department Specific</span>';
+      if (c.visibility === 'social_service') visChip = '<span class="chip chip-vis-social">Campus (Social Service)</span>';
+      else if (c.visibility === 'administration') visChip = '<span class="chip chip-vis-admin">Administration Vault</span>';
+
+      // ID Card pill
+      var idCardPill = '<span class="pill-id-pending">ID Pending Review</span>';
+      if (c.idCard && c.idCard.status === 'verified') {
+        idCardPill = '<span class="pill-id-verified">ID Verified</span>';
+      } else if (c.idCard && c.idCard.status === 'not_valid') {
+        idCardPill = '<span class="pill-id-not_valid">ID Not Valid</span>';
       }
 
-      var priorityBadge = '<span class="chip chip-p4">P4 · Low</span>';
-      if (c.urgency === 'Immediate Hazard' || (c.aiAnalysis && c.aiAnalysis.priority === 1)) {
-        priorityBadge = '<span class="chip chip-p1">P1 Urgent Hazard</span>';
-      } else if (c.urgency === 'High' || (c.aiAnalysis && c.aiAnalysis.priority === 2)) {
-        priorityBadge = '<span class="chip chip-p2">P2 High Priority</span>';
-      } else if (c.urgency === 'Medium' || (c.aiAnalysis && c.aiAnalysis.priority === 3)) {
-        priorityBadge = '<span class="chip chip-p3">P3 · Medium</span>';
-      }
+      // Evidence pill
+      var evidenceCount = (c.evidence && c.evidence.length) || 0;
+      var evidenceBadge = evidenceCount > 0
+        ? '<span style="font-size:11.5px;font-weight:600;color:var(--olive);background:var(--pill);padding:2px 8px;border-radius:999px;">' + evidenceCount + ' Evidence Attachment(s)</span>'
+        : '';
 
-      var conf = c.aiAnalysis && c.aiAnalysis.confidence ? Math.round(c.aiAnalysis.confidence * 100) : 95;
-      var accuracyPill = '<span class="accuracy-pill">' + conf + '% AI Confidence</span>';
+      var studentName = c.student ? c.student.name : 'Registered Student';
+      var studentEmail = c.student ? c.student.email : '';
+      var unitName = c.target_unit ? (c.target_unit.unit_name || c.target_unit.name) : (c.visibility === 'department' ? 'Assigned Department' : 'General Campus');
 
-      var isSolved = c.status === 'resolved' || c.status === 'closed';
-      var isSolving = c.status === 'in_progress' || c.status === 'solving' || !!c.fieldCrew || isSolved;
-      var isUnderstood = c.understood || c.status === 'acknowledged' || isSolving || isSolved;
-
-      var stepperHtml = '<div class="stepper-track">' +
-        '<span class="stepper-node done">1. Report Lodged</span>' +
-        '<span class="stepper-arrow">→</span>' +
-        '<span class="stepper-node ' + (isUnderstood ? 'done' : '') + '">2. Problem Understood</span>' +
-        '<span class="stepper-arrow">→</span>' +
-        '<span class="stepper-node ' + (isSolved ? 'done' : (isSolving ? 'active done' : '')) + '">3. Solving</span>' +
-        '<span class="stepper-arrow">→</span>' +
-        '<span class="stepper-node ' + (isSolved ? 'done' : '') + '">4. Solved</span>' +
-        '</div>';
-
-      var checklistHtml =
-        '<div class="admin-checklist-wrap">' +
-          '<div class="admin-checklist-title">Resolution Workflow Checklist</div>' +
-          '<div class="admin-checklist-row">' +
-            '<button type="button" class="chk-btn ' + (isUnderstood ? 'chk-done' : 'chk-active') + '" onclick="opChecklistStep(&quot;' + c.id + '&quot;, &quot;understood&quot;)">' +
-              '<span class="chk-indicator">' + (isUnderstood ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M20 6L9 17l-5-5"/></svg>' : '1') + '</span>' +
-              '<span>Problem Understood</span>' +
-            '</button>' +
-            '<button type="button" class="chk-btn ' + (isSolved ? 'chk-done' : (isSolving ? 'chk-active' : '')) + '" onclick="opChecklistStep(&quot;' + c.id + '&quot;, &quot;solving&quot;)">' +
-              '<span class="chk-indicator">' + (isSolving ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M20 6L9 17l-5-5"/></svg>' : '2') + '</span>' +
-              '<span>Solving</span>' +
-            '</button>' +
-            '<button type="button" class="chk-btn ' + (isSolved ? 'chk-done' : '') + '" onclick="opChecklistStep(&quot;' + c.id + '&quot;, &quot;solved&quot;)">' +
-              '<span class="chk-indicator">' + (isSolved ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M20 6L9 17l-5-5"/></svg>' : '3') + '</span>' +
-              '<span>Solved</span>' +
-            '</button>' +
-          '</div>' +
-        '</div>';
-
-      var crewCalloutHtml = '';
-      if (c.fieldCrew) {
-        crewCalloutHtml = '<div class="crew-info-bar">' +
-          '<span style="font-size:12px;font-weight:700;">Crew:</span>' +
-          '<div><strong>Field Crew Active:</strong> ' + c.fieldCrew.crewName + ' · ETA: ' + c.fieldCrew.eta + ' (Dispatched by ' + (c.fieldCrew.dispatchedBy || 'Dept Head') + ')</div>' +
-          '</div>';
-      }
-
-      var endorsementHtml = '';
-      if (c.dusuEndorsement) {
-        endorsementHtml = '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:9px 14px;font-size:12.5px;color:#1e40af;margin-bottom:14px">' +
-          '<strong>DUSU Council Endorsement:</strong> ' + c.dusuEndorsement.note + ' <small style="opacity:.85">(' + c.dusuEndorsement.endorsedBy + ')</small>' +
-          '</div>';
-      }
-
-      var actionsHtml = '';
-      if (currentOfficial.mode === 'dept_head') {
-        actionsHtml = '<div class="ticket-actions-row">' +
-          '<button class="btn" style="height:32px;font-size:12px;padding:0 14px;" onclick="opDispatchCrew(&quot;' + c.id + '&quot;)">Dispatch Field Crew</button>' +
-          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opSetStatus(&quot;' + c.id + '&quot;, &quot;resolved&quot;)">Mark Resolved</button>' +
-          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opPostReply(&quot;' + c.id + '&quot;)">Post Official Update</button>' +
-          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="openPublicTracker(&quot;' + c.id + '&quot;)">Student View</button>' +
-          '</div>';
-      } else if (currentOfficial.mode === 'admin') {
-        actionsHtml = '<div class="ticket-actions-row">' +
-          '<button class="btn btn-blue" style="height:32px;font-size:12px;padding:0 14px;" onclick="opReassignDept(&quot;' + c.id + '&quot;)">Reassign Solver Desk</button>' +
-          '<button class="btn-outline btn-amber" style="height:32px;font-size:12px;padding:0 14px;" onclick="opOverridePriority(&quot;' + c.id + '&quot;)">Override Priority</button>' +
-          (isSensitive ? '<button class="btn-outline btn-red" style="height:32px;font-size:12px;padding:0 14px;" onclick="opConfidentialInquiry(&quot;' + c.id + '&quot;)">Proctorial Inquiry</button>' : '') +
-          '<button class="btn" style="height:32px;font-size:12px;padding:0 14px;" onclick="opSetStatus(&quot;' + c.id + '&quot;, &quot;resolved&quot;)">Official Sign-Off</button>' +
-          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opPostReply(&quot;' + c.id + '&quot;)">Post Note</button>' +
-          '</div>';
-      } else if (currentOfficial.mode === 'social') {
-        actionsHtml = '<div class="ticket-actions-row">' +
-          '<button class="btn btn-blue" style="height:32px;font-size:12px;padding:0 14px;" onclick="opEscalateToRegistrar(&quot;' + c.id + '&quot;)">Escalate to Registrar</button>' +
-          '<button class="btn-outline btn-amber" style="height:32px;font-size:12px;padding:0 14px;" onclick="opEndorseCouncil(&quot;' + c.id + '&quot;)">Add Endorsement</button>' +
-          '<button class="btn" style="height:32px;font-size:12px;padding:0 14px;" onclick="opVerifyStudent(&quot;' + c.id + '&quot;)">Student Ground Verification</button>' +
-          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opPostReply(&quot;' + c.id + '&quot;)">Council Remark</button>' +
-          '</div>';
+      // Workflow action buttons
+      var workflowButtons = '';
+      if (c.status === 'submitted' || c.status === 'under_verification') {
+        workflowButtons += '<button type="button" class="btn" style="height:32px;font-size:12px;padding:0 12px;background:var(--olive);" onclick="promptWorkflowAction(&quot;' + c.id + '&quot;, &quot;accepted&quot;)">Accept Grievance</button>';
+        workflowButtons += '<button type="button" class="btn-outline btn-red" style="height:32px;font-size:12px;padding:0 12px;" onclick="promptWorkflowAction(&quot;' + c.id + '&quot;, &quot;rejected&quot;)">Reject</button>';
+      } else if (c.status === 'accepted') {
+        workflowButtons += '<button type="button" class="btn" style="height:32px;font-size:12px;padding:0 12px;background:var(--olive);" onclick="promptWorkflowAction(&quot;' + c.id + '&quot;, &quot;in_progress&quot;)">Start Remediation</button>';
+        workflowButtons += '<button type="button" class="btn-outline btn-red" style="height:32px;font-size:12px;padding:0 12px;" onclick="promptWorkflowAction(&quot;' + c.id + '&quot;, &quot;rejected&quot;)">Reject</button>';
+      } else if (c.status === 'in_progress') {
+        workflowButtons += '<button type="button" class="btn-outline" style="height:32px;font-size:12px;padding:0 12px;" onclick="promptWorkflowAction(&quot;' + c.id + '&quot;, &quot;in_progress&quot;)">Log Progress Remark</button>';
+        workflowButtons += '<button type="button" class="btn btn-blue" style="height:32px;font-size:12px;padding:0 12px;" onclick="promptWorkflowAction(&quot;' + c.id + '&quot;, &quot;resolved&quot;)">Mark Resolved</button>';
+      } else if (c.status === 'resolved') {
+        workflowButtons += '<span style="font-size:12px;color:var(--olive);font-weight:700;">Remediation Complete</span>';
+      } else if (c.status === 'rejected') {
+        workflowButtons += '<span style="font-size:12px;color:#991b1b;font-weight:700;">Grievance Rejected</span>';
       }
 
       card.innerHTML =
         '<div class="ticket-card-header">' +
           '<div class="ticket-title-row">' +
-            '<span class="ticket-id-tag">' + c.id + '</span>' +
-            '<h3 class="ticket-heading">' + (c.title || 'Campus Issue') + '</h3>' +
+            '<span class="ticket-id-tag">#CS-' + c.id.slice(0, 8).toUpperCase() + '</span>' +
+            '<h3 class="ticket-heading">' + escapeHtml(c.title) + '</h3>' +
           '</div>' +
-          '<div class="ticket-badges-group">' + priorityBadge + statusBadge + '</div>' +
+          '<div class="ticket-badges-group">' +
+            '<span class="chip" style="background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;">' + escapeHtml(c.category) + '</span>' +
+            visChip +
+            statusChip +
+            idCardPill +
+          '</div>' +
         '</div>' +
 
         '<div class="ticket-meta-row">' +
-          '<span>Location: ' + (c.location || 'Dibrugarh University Campus') + '</span>' +
-          '<span>Assigned: <strong>' + (c.dept || 'Department Desk') + '</strong></span>' +
-          '<span>Reported: ' + new Date(c.ts || Date.now()).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + '</span>' +
+          '<span>Student: <strong>' + escapeHtml(studentName) + '</strong> (' + escapeHtml(studentEmail) + ')</span>' +
+          '<span>·</span>' +
+          '<span>Unit: <strong>' + escapeHtml(unitName) + '</strong></span>' +
+          '<span>·</span>' +
+          '<span>Submitted: ' + formatDate(c.created_at) + ' (' + formatRelative(c.created_at) + ')</span>' +
+          (evidenceBadge ? '<span>·</span>' + evidenceBadge : '') +
         '</div>' +
 
-        '<div class="ai-snapshot-card">' +
-          '<div class="ai-snapshot-top">' +
-            '<span>Reported Grievance</span>' +
-            accuracyPill +
-          '</div>' +
-          '<div class="ai-english-summary" style="font-size:13px;color:#1e293b;line-height:1.5;">' + escapeHtml(c.desc || (c.aiAnalysis && c.aiAnalysis.summary_en) || 'No description provided.') + '</div>' +
+        '<div style="background:#fafcf8;border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--ink);line-height:1.5;">' +
+          escapeHtml(c.description) +
         '</div>' +
 
-        stepperHtml +
-        checklistHtml +
-        crewCalloutHtml +
-        endorsementHtml +
-        actionsHtml;
+        '<div class="ticket-actions-row">' +
+          '<button type="button" class="btn" style="height:32px;font-size:12px;padding:0 14px;" onclick="openDocketModal(&quot;' + c.id + '&quot;)">Open Docket &amp; History</button>' +
+          '<button type="button" class="btn-outline" style="height:32px;font-size:12px;padding:0 12px;" onclick="openIdCardModal(&quot;' + c.student_id + '&quot;, &quot;' + escapeHtml(studentName) + '&quot;, &quot;' + escapeHtml(studentEmail) + '&quot;)">View Student ID Card</button>' +
+          workflowButtons +
+        '</div>';
 
       return card;
     }
 
-    function opChecklistStep(id, step) {
-      var c = getById(id);
-      if (!c) return;
+    // ── COMPLAINT FULL DOCKET MODAL ──
+    function openDocketModal(complaintId) {
+      var complaint = allComplaints.find(function (c) { return c.id === complaintId; });
+      if (!complaint) return;
 
-      if (step === 'understood') {
-        c.understood = true;
-        if (c.status === 'open' || c.status === 'submitted' || !c.status) {
-          c.status = 'acknowledged';
-        }
-        if (!c.routeHistory) c.routeHistory = [];
-        c.routeHistory.push({
-          id: 'm_' + Date.now(),
-          ts: Date.now(),
-          stage: 'Problem Understood',
-          actor: currentOfficial.name,
-          role: currentOfficial.roleTitle,
-          note: 'Department authority reviewed the issue, verified scope and accepted remediation responsibilities.'
-        });
-        saveOne(c);
-        showToast('Ticket #' + id + ': Problem understood by ' + currentOfficial.name + '.', 'success');
-      } else if (step === 'solving') {
-        c.understood = true;
-        c.status = 'in_progress';
-        c.solving = true;
-        if (!c.fieldCrew) {
-          c.fieldCrew = {
-            crewName: currentOfficial.departmentName + ' Rapid Response Crew',
-            eta: 'Within 4 hours',
-            dispatchedAt: Date.now(),
-            dispatchedBy: currentOfficial.name
+      activeDocketComplaint = complaint;
+
+      document.getElementById('modalDocketId').textContent = '#CS-' + complaint.id.slice(0, 8).toUpperCase();
+      document.getElementById('modalDocketTitle').textContent = complaint.title;
+      document.getElementById('modalDocketDescription').textContent = complaint.description;
+      document.getElementById('modalDocketDate').textContent = 'Submitted: ' + formatDate(complaint.created_at) + ' (' + formatRelative(complaint.created_at) + ')';
+
+      // Status chip
+      var statusEl = document.getElementById('modalDocketStatus');
+      statusEl.className = 'chip chip-' + complaint.status;
+      statusEl.textContent = complaint.status.replace('_', ' ').toUpperCase();
+
+      // Visibility chip
+      var visEl = document.getElementById('modalDocketVisibility');
+      visEl.className = 'chip chip-vis-' + (complaint.visibility === 'administration' ? 'admin' : complaint.visibility === 'social_service' ? 'social' : 'dept');
+      visEl.textContent = complaint.visibility === 'social_service' ? 'Campus (Social Service)' : complaint.visibility === 'administration' ? 'Administration Vault' : 'Department Specific';
+
+      // Category chip
+      document.getElementById('modalDocketCategory').textContent = complaint.category;
+
+      // Student and Unit
+      var studentName = complaint.student ? complaint.student.name : 'Registered Student';
+      var studentEmail = complaint.student ? complaint.student.email : 'No email';
+      document.getElementById('modalStudentName').textContent = studentName;
+      document.getElementById('modalStudentEmail').textContent = studentEmail;
+
+      var unitName = complaint.target_unit ? (complaint.target_unit.unit_name || complaint.target_unit.name) : (complaint.visibility === 'department' ? 'Target Department' : 'General Campus Desk');
+      document.getElementById('modalAssignedUnit').textContent = unitName;
+
+      // ID Card Badge in modal
+      var idStatusBadge = document.getElementById('modalIdCardStatusBadge');
+      var idStatus = complaint.idCard ? complaint.idCard.status : 'pending';
+      idStatusBadge.className = 'pill-id-' + idStatus;
+      idStatusBadge.textContent = idStatus === 'verified' ? 'ID Verified' : idStatus === 'not_valid' ? 'ID Not Valid' : 'ID Pending Review';
+
+      // Evidence files
+      var evList = document.getElementById('modalEvidenceList');
+      evList.innerHTML = '';
+      if (complaint.evidence && complaint.evidence.length > 0) {
+        complaint.evidence.forEach(function (ev, index) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'btn-outline';
+          btn.style.height = '30px';
+          btn.style.fontSize = '12px';
+          btn.style.padding = '0 12px';
+          btn.textContent = 'View Attachment ' + (index + 1);
+          btn.onclick = function () {
+            viewEvidenceAttachment(complaint.id, ev.cloudinary_public_id);
           };
-        }
-        if (!c.routeHistory) c.routeHistory = [];
-        c.routeHistory.push({
-          id: 'm_' + Date.now(),
-          ts: Date.now(),
-          stage: 'Solving (Crew Dispatched)',
-          actor: currentOfficial.name,
-          role: currentOfficial.roleTitle,
-          note: 'Field maintenance crew engaged. On-site repairs and troubleshooting underway.'
+          evList.appendChild(btn);
         });
-        saveOne(c);
-        showToast('Ticket #' + id + ': Switched to Solving. Field crew active.', 'success');
-      } else if (step === 'solved') {
-        c.understood = true;
-        c.status = 'resolved';
-        c.resolvedAt = Date.now();
-        if (!c.routeHistory) c.routeHistory = [];
-        c.routeHistory.push({
-          id: 'm_' + Date.now(),
-          ts: Date.now(),
-          stage: 'Solved & Verified',
-          actor: currentOfficial.name,
-          role: currentOfficial.roleTitle,
-          note: 'Issue completely resolved, verified on-site, and signed off by department.'
-        });
-        saveOne(c);
-        showToast('Ticket #' + id + ': Marked Solved & Verified.', 'success');
+      } else {
+        evList.innerHTML = '<span style="font-size:12.5px;color:#64748b;">No evidence files attached to this grievance.</span>';
       }
 
-      renderDashboard();
+      // History Timeline
+      var timelineList = document.getElementById('modalTimelineList');
+      timelineList.innerHTML = '';
+      if (complaint.history && complaint.history.length > 0) {
+        complaint.history.forEach(function (h) {
+          var item = document.createElement('div');
+          item.className = 'timeline-item';
+
+          var actorName = h.actor ? (h.actor.name + ' (' + (h.actor.unit_name || h.actor.role) + ')') : 'Authorized Official';
+          var statusName = (h.status || '').replace('_', ' ').toUpperCase();
+
+          item.innerHTML =
+            '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">' +
+              '<span class="chip chip-' + h.status + '" style="font-size:10.5px;">' + statusName + '</span>' +
+              '<span style="font-size:11.5px;color:#64748b;">' + formatDate(h.created_at) + ' (' + formatRelative(h.created_at) + ')</span>' +
+            '</div>' +
+            '<div style="font-size:12.5px;color:var(--ink);font-weight:600;">' + escapeHtml(actorName) + '</div>' +
+            (h.remark ? '<div style="font-size:12.5px;color:#334155;background:#f8faf6;padding:8px 12px;border-radius:8px;border:1px solid var(--line);margin-top:2px;">' + escapeHtml(h.remark) + '</div>' : '');
+
+          timelineList.appendChild(item);
+        });
+      } else {
+        timelineList.innerHTML = '<div style="font-size:12.5px;color:#64748b;">No previous remarks logged. Initial submission status recorded.</div>';
+      }
+
+      // Footer action buttons setup
+      var rejectBtn = document.getElementById('modalActionRejectBtn');
+      var acceptBtn = document.getElementById('modalActionAcceptBtn');
+      var progressBtn = document.getElementById('modalActionProgressBtn');
+      var resolveBtn = document.getElementById('modalActionResolveBtn');
+
+      if (rejectBtn) rejectBtn.style.display = (complaint.status !== 'resolved' && complaint.status !== 'rejected') ? 'inline-flex' : 'none';
+      if (acceptBtn) acceptBtn.style.display = (complaint.status === 'submitted' || complaint.status === 'under_verification') ? 'inline-flex' : 'none';
+      if (progressBtn) progressBtn.style.display = (complaint.status === 'accepted' || complaint.status === 'in_progress') ? 'inline-flex' : 'none';
+      if (resolveBtn) resolveBtn.style.display = (complaint.status === 'in_progress') ? 'inline-flex' : 'none';
+
+      document.getElementById('complaintDetailModal').classList.remove('hidden');
     }
 
-    function opDispatchCrew(id) {
-      opChecklistStep(id, 'solving');
+    function closeDocketModal() {
+      document.getElementById('complaintDetailModal').classList.add('hidden');
+      activeDocketComplaint = null;
     }
 
-    function opSetStatus(id, status) {
-      if (status === 'resolved') {
-        opChecklistStep(id, 'solved');
+    function viewStudentIdFromDocket() {
+      if (!activeDocketComplaint) return;
+      var name = activeDocketComplaint.student ? activeDocketComplaint.student.name : 'Student';
+      var email = activeDocketComplaint.student ? activeDocketComplaint.student.email : '';
+      openIdCardModal(activeDocketComplaint.student_id, name, email);
+    }
+
+    async function verifyIdFromDocket(status) {
+      if (!activeDocketComplaint) return;
+      await submitIdCardReview(status, activeDocketComplaint.student_id);
+    }
+
+    function promptActionFromDocket(targetStatus) {
+      if (!activeDocketComplaint) return;
+      promptWorkflowAction(activeDocketComplaint.id, targetStatus);
+    }
+
+    // ── STUDENT ID CARD VIEWER MODAL ──
+    async function openIdCardModal(userId, studentName, studentEmail) {
+      activeTargetUserId = userId;
+      var modal = document.getElementById('idCardModal');
+      var loading = document.getElementById('idCardLoading');
+      var viewer = document.getElementById('idCardViewerContainer');
+      var errBox = document.getElementById('idCardErrorContainer');
+      var info = document.getElementById('idCardModalStudentInfo');
+
+      if (info) info.textContent = 'Student: ' + (studentName || 'Registered Student') + (studentEmail ? ' · ' + studentEmail : '');
+      if (loading) loading.style.display = 'block';
+      if (viewer) viewer.style.display = 'none';
+      if (errBox) errBox.style.display = 'none';
+      if (modal) modal.classList.remove('hidden');
+
+      try {
+        var res = await CivicAuth.getViewableIdCardUrl(userId);
+        if (loading) loading.style.display = 'none';
+        if (viewer) viewer.style.display = 'block';
+
+        var img = document.getElementById('idCardImagePreview');
+        if (img) img.src = res.signedUrl;
+
+        var statusPill = document.getElementById('idCardPreviewStatusPill');
+        if (statusPill) {
+          statusPill.className = 'pill-id-' + (res.status || 'pending');
+          statusPill.textContent = res.status === 'verified' ? 'ID Verified' : res.status === 'not_valid' ? 'ID Not Valid' : 'ID Pending Verification';
+        }
+      } catch (err) {
+        if (loading) loading.style.display = 'none';
+        if (errBox) {
+          errBox.style.display = 'block';
+          errBox.textContent = err.message || 'Failed to load signed ID card from Cloudinary.';
+        }
+      }
+    }
+
+    function closeIdCardModal() {
+      var modal = document.getElementById('idCardModal');
+      if (modal) modal.classList.add('hidden');
+      activeTargetUserId = null;
+    }
+
+    async function submitIdCardReview(status, explicitUserId) {
+      var targetId = explicitUserId || activeTargetUserId;
+      if (!targetId) return;
+
+      try {
+        await CivicAuth.reviewStudentIdCard(targetId, status);
+        showToast('Student ID card successfully marked as ' + status.toUpperCase(), 'success');
+
+        // Update local memory
+        allComplaints.forEach(function (c) {
+          if (c.student_id === targetId) {
+            if (!c.idCard) c.idCard = {};
+            c.idCard.status = status;
+          }
+        });
+
+        // Update active modal badges
+        var previewPill = document.getElementById('idCardPreviewStatusPill');
+        if (previewPill) {
+          previewPill.className = 'pill-id-' + status;
+          previewPill.textContent = status === 'verified' ? 'ID Verified' : 'ID Not Valid';
+        }
+        var docketBadge = document.getElementById('modalIdCardStatusBadge');
+        if (docketBadge) {
+          docketBadge.className = 'pill-id-' + status;
+          docketBadge.textContent = status === 'verified' ? 'ID Verified' : 'ID Not Valid';
+        }
+
+        renderOfficialDashboard();
+      } catch (err) {
+        showToast(err.message || 'Failed to update student ID card verification status.', 'error');
+      }
+    }
+
+    // ── WORKFLOW REMARK / REASON PROMPT MODAL ──
+    function promptWorkflowAction(complaintId, targetStatus) {
+      workflowModalState = {
+        complaintId: complaintId,
+        status: targetStatus,
+        minChars: 0
+      };
+
+      var titleEl = document.getElementById('actionModalTitle');
+      var subEl = document.getElementById('actionModalSubtitle');
+      var noticeEl = document.getElementById('actionModalNotice');
+      var labelEl = document.getElementById('actionModalInputLabel');
+      var hintEl = document.getElementById('actionCharHint');
+      var input = document.getElementById('actionRemarkInput');
+      var errBox = document.getElementById('actionModalErr');
+      var submitBtn = document.getElementById('actionModalSubmitBtn');
+
+      if (input) input.value = '';
+      if (errBox) errBox.style.display = 'none';
+
+      if (targetStatus === 'rejected') {
+        titleEl.textContent = 'Reject Campus Grievance';
+        subEl.textContent = 'Mandatory justification required for audit log';
+        noticeEl.innerHTML = '<strong>Institutional Rule:</strong> Rejection requires an explicit official reason (minimum 5 characters). This justification is permanently recorded in the university activity log and visible to the student.';
+        labelEl.textContent = 'Mandatory Rejection Reason';
+        hintEl.textContent = 'Minimum required characters: 5';
+        workflowModalState.minChars = 5;
+        if (submitBtn) { submitBtn.textContent = 'Confirm Rejection'; submitBtn.className = 'btn btn-red'; }
+      } else if (targetStatus === 'resolved') {
+        titleEl.textContent = 'Mark Grievance Resolved';
+        subEl.textContent = 'Formal remediation sign-off';
+        noticeEl.innerHTML = '<strong>Resolution Sign-Off:</strong> Provide a closing note summarizing the remediation work completed on campus (minimum 5 characters).';
+        labelEl.textContent = 'Mandatory Resolution Closing Note';
+        hintEl.textContent = 'Minimum required characters: 5';
+        workflowModalState.minChars = 5;
+        if (submitBtn) { submitBtn.textContent = 'Sign Off & Resolve'; submitBtn.className = 'btn btn-blue'; }
+      } else if (targetStatus === 'in_progress') {
+        titleEl.textContent = 'Update Remediation Progress';
+        subEl.textContent = 'Log dispatch or milestone update';
+        noticeEl.innerHTML = '<strong>Progress Logging:</strong> Record active work, maintenance crew dispatch, or inspection findings (minimum 3 characters).';
+        labelEl.textContent = 'Remediation Milestone Remark';
+        hintEl.textContent = 'Minimum required characters: 3';
+        workflowModalState.minChars = 3;
+        if (submitBtn) { submitBtn.textContent = 'Log Progress Update'; submitBtn.className = 'btn'; }
+      } else if (targetStatus === 'accepted') {
+        titleEl.textContent = 'Accept Campus Grievance';
+        subEl.textContent = 'Acknowledge scope & responsibility';
+        noticeEl.innerHTML = '<strong>Department Acceptance:</strong> Confirms that this authority has verified the issue and accepted remediation jurisdiction.';
+        labelEl.textContent = 'Official Acceptance Note (Optional)';
+        hintEl.textContent = 'Optional remark (default note applied if empty)';
+        workflowModalState.minChars = 0;
+        if (submitBtn) { submitBtn.textContent = 'Accept Grievance'; submitBtn.className = 'btn'; }
+      }
+
+      document.getElementById('workflowActionModal').classList.remove('hidden');
+    }
+
+    function closeWorkflowModal() {
+      var modal = document.getElementById('workflowActionModal');
+      if (modal) modal.classList.add('hidden');
+      workflowModalState = { complaintId: null, status: null, minChars: 0 };
+    }
+
+    async function submitWorkflowAction() {
+      if (!workflowModalState.complaintId || !workflowModalState.status) return;
+
+      var input = document.getElementById('actionRemarkInput');
+      var errBox = document.getElementById('actionModalErr');
+      var submitBtn = document.getElementById('actionModalSubmitBtn');
+      var remark = (input ? input.value : '').trim();
+
+      if (workflowModalState.minChars > 0 && remark.length < workflowModalState.minChars) {
+        if (errBox) {
+          errBox.style.display = 'block';
+          errBox.textContent = 'Please enter at least ' + workflowModalState.minChars + ' characters for this action.';
+        }
         return;
       }
-      var c = getById(id);
-      if (!c) return;
-      c.status = status;
-      if (!c.routeHistory) c.routeHistory = [];
-      c.routeHistory.push({
-        id: 'm_' + Date.now(),
-        ts: Date.now(),
-        stage: 'Status: ' + status,
-        actor: currentOfficial.name,
-        role: currentOfficial.roleTitle,
-        note: 'Official status calibrated to ' + status + '.'
-      });
-      saveOne(c);
-      renderDashboard();
-      showToast('Ticket #' + id + ' status updated to ' + status.toUpperCase() + '.', 'success');
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Recording action...';
+      }
+
+      try {
+        await CivicAuth.updateComplaintWorkflow(
+          workflowModalState.complaintId,
+          workflowModalState.status,
+          remark || (workflowModalState.status === 'accepted' ? 'Grievance accepted by department authority.' : null)
+        );
+
+        showToast('Complaint #' + workflowModalState.complaintId.slice(0, 8).toUpperCase() + ' status calibrated to ' + workflowModalState.status.toUpperCase(), 'success');
+
+        closeWorkflowModal();
+        await loadOfficialComplaints();
+
+        // If docket modal was open, refresh it
+        if (activeDocketComplaint && activeDocketComplaint.id === workflowModalState.complaintId) {
+          openDocketModal(workflowModalState.complaintId);
+        }
+      } catch (err) {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Confirm Action';
+        }
+        if (errBox) {
+          errBox.style.display = 'block';
+          errBox.textContent = err.message || 'Failed to update workflow.';
+        }
+      }
     }
 
-    function opPostReply(id) {
-      var c = getById(id);
-      if (!c) return;
-      var note = 'Department update: Works underway on site by ' + currentOfficial.name + '.';
-      if (!c.replies) c.replies = [];
-      c.replies.push({
-        id: 'r_' + Date.now(),
-        complaintId: id,
-        author: currentOfficial.name + ' (' + currentOfficial.departmentName + ')',
-        role: currentOfficial.roleTitle,
-        message: note,
-        ts: Date.now()
-      });
-      if (!c.routeHistory) c.routeHistory = [];
-      c.routeHistory.push({
-        id: 'm_' + Date.now(),
-        ts: Date.now(),
-        stage: 'Official Statement Posted',
-        actor: currentOfficial.name,
-        role: currentOfficial.roleTitle,
-        note: note
-      });
-      saveOne(c);
-      renderDashboard();
-      showToast('Official update note posted to ticket #' + id + '.', 'info');
+    // ── EVIDENCE ATTACHMENT VIEWER ──
+    async function viewEvidenceAttachment(complaintId, publicId) {
+      try {
+        var res = await CivicAuth.getViewableEvidenceUrl(complaintId, publicId);
+        if (res && res.signedUrl) {
+          window.open(res.signedUrl, '_blank', 'noopener,noreferrer');
+        } else {
+          showToast('Unable to open evidence preview URL.', 'error');
+        }
+      } catch (err) {
+        showToast(err.message || 'Access denied to complaint evidence file.', 'error');
+      }
     }
 
-    function opReassignDept(id) {
-      var c = getById(id);
-      if (!c) return;
-      var depts = [
-        { name: 'PHE & Facilities Operations Depot', cat: 'water' },
-        { name: 'Electrical Maintenance & Substation Desk', cat: 'electricity' },
-        { name: 'Estates & Clean Campus Desk', cat: 'sanitation' },
-        { name: 'Hostels & Housing Board', cat: 'hostel' },
-        { name: 'CCSA IT & Campus Network Operations', cat: 'internet' },
-        { name: 'Central Library Support Directorate', cat: 'library' },
-        { name: 'Proctorial Command & Security House', cat: 'safety' }
-      ];
-      var currentIdx = depts.findIndex(function(d){ return d.name === c.dept; });
-      var nextIdx = (currentIdx + 1) % depts.length;
-      var target = depts[nextIdx];
-
-      c.dept = target.name;
-      c.cat = target.cat;
-      if (c.aiAnalysis) c.aiAnalysis.needs_review = false;
-
-      if (!c.routeHistory) c.routeHistory = [];
-      c.routeHistory.push({
-        id: 'm_' + Date.now(),
-        ts: Date.now(),
-        stage: 'Department Reassigned by Administration',
-        actor: currentOfficial.name,
-        role: currentOfficial.roleTitle,
-        note: 'Re-routed case to ' + target.name + ' for immediate dispatch.'
-      });
-
-      saveOne(c);
-      renderDashboard();
-      showToast('Ticket #' + id + ' re-routed to ' + target.name + '.', 'success');
-    }
-
-    function opOverridePriority(id) {
-      var c = getById(id);
-      if (!c) return;
-      var cur = (c.aiAnalysis && c.aiAnalysis.priority) || 3;
-      var next = cur === 1 ? 2 : 1;
-      var labels = { 1: 'Immediate Hazard', 2: 'High', 3: 'Medium', 4: 'Low' };
-      c.urgency = labels[next];
-      if (c.aiAnalysis) c.aiAnalysis.priority = next;
-
-      if (!c.routeHistory) c.routeHistory = [];
-      c.routeHistory.push({
-        id: 'm_' + Date.now(),
-        ts: Date.now(),
-        stage: 'Priority Override by Administration',
-        actor: currentOfficial.name,
-        role: currentOfficial.roleTitle,
-        note: 'Priority escalated to P' + next + ' (' + labels[next] + ').'
-      });
-
-      saveOne(c);
-      renderDashboard();
-      showToast('Ticket #' + id + ' priority set to P' + next + ' (' + labels[next] + ').', 'warning');
-    }
-
-    function opConfidentialInquiry(id) {
-      var c = getById(id);
-      if (!c) return;
-      var note = 'Dispatched Campus Security House Patrol for immediate perimeter inspection.';
-      if (!c.routeHistory) c.routeHistory = [];
-      c.routeHistory.push({
-        id: 'm_' + Date.now(),
-        ts: Date.now(),
-        stage: 'Proctorial Command Action',
-        actor: currentOfficial.name,
-        role: currentOfficial.roleTitle,
-        note: note
-      });
-      saveOne(c);
-      renderDashboard();
-      showToast('Proctorial security record logged for case #' + id + '.', 'info');
-    }
-
-    function opEscalateToRegistrar(id) {
-      var c = getById(id);
-      if (!c) return;
-      c.status = 'escalated';
-      var reason = 'Unresolved SLA breach. Student union demands immediate administrative intervention.';
-      c.escalation = {
-        isEscalated: true,
-        escalatedAt: Date.now(),
-        reason: reason,
-        escalatedBy: currentOfficial.name + ' (' + currentOfficial.roleTitle + ')'
-      };
-      if (!c.routeHistory) c.routeHistory = [];
-      c.routeHistory.push({
-        id: 'm_' + Date.now(),
-        ts: Date.now(),
-        stage: 'Escalated to Registrar Emergency Docket',
-        actor: currentOfficial.name,
-        role: currentOfficial.roleTitle,
-        note: reason
-      });
-      saveOne(c);
-      renderDashboard();
-      showToast('Ticket #' + id + ' escalated to Registrar Emergency Docket.', 'warning');
-    }
-
-    function opEndorseCouncil(id) {
-      var c = getById(id);
-      if (!c) return;
-      var note = 'DUSU Executive Council inspected site and demands immediate department resolution.';
-      c.dusuEndorsement = {
-        endorsedBy: currentOfficial.name + ' (' + currentOfficial.roleTitle + ')',
-        endorsedAt: Date.now(),
-        note: note
-      };
-      if (!c.routeHistory) c.routeHistory = [];
-      c.routeHistory.push({
-        id: 'm_' + Date.now(),
-        ts: Date.now(),
-        stage: 'DUSU Council Endorsement Attached',
-        actor: currentOfficial.name,
-        role: currentOfficial.roleTitle,
-        note: note
-      });
-      saveOne(c);
-      renderDashboard();
-      showToast('DUSU Council Endorsement attached to ticket #' + id + '.', 'success');
-    }
-
-    function opVerifyStudent(id) {
-      var c = getById(id);
-      if (!c) return;
-      c.studentVerified = true;
-      c.studentVerifiedBy = currentOfficial.name + ' (' + currentOfficial.roleTitle + ')';
-      c.studentVerifiedAt = Date.now();
-      if (!c.routeHistory) c.routeHistory = [];
-      c.routeHistory.push({
-        id: 'm_' + Date.now(),
-        ts: Date.now(),
-        stage: 'Student Ground Verification Stamped',
-        actor: currentOfficial.name,
-        role: currentOfficial.roleTitle,
-        note: 'Student Council rep physically checked the premises with the reporter. Rectification confirmed complete.'
-      });
-      saveOne(c);
-      renderDashboard();
-      showToast('Ground Student Verification stamped on ticket #' + id + '.', 'success');
-    }
-
-    function openPublicTracker(id) {
-      window.location.href = 'index.html?track=' + encodeURIComponent(id);
-    }
-
+    // ── EXPORT AUDIT CSV ──
     function exportAuditCsv() {
-      var all = getComplaints();
-      var headers = ['Ticket ID', 'Category', 'Location', 'Urgency', 'Status', 'Department', 'Logged At', 'AI Confidence', 'Description'];
-      var rows = all.map(function(c) {
+      if (!allComplaints || allComplaints.length === 0) {
+        showToast('No complaint records available to export.', 'warning');
+        return;
+      }
+
+      var headers = ['Ticket ID', 'Title', 'Category', 'Visibility', 'Status', 'Student Name', 'Student Email', 'Assigned Unit', 'Logged Date', 'Description'];
+      var rows = allComplaints.map(function (c) {
         return [
-          c.id,
-          '"' + (c.cat || '') + '"',
-          '"' + (c.location || '') + '"',
-          c.urgency || 'Normal',
-          c.status || 'open',
-          '"' + (c.dept || '') + '"',
-          new Date(c.ts || Date.now()).toISOString(),
-          (c.aiAnalysis ? Math.round(c.aiAnalysis.confidence * 100) + '%' : '95%'),
-          '"' + ((c.desc || '').replace(/"/g, '""')) + '"'
+          '"CS-' + c.id.slice(0, 8).toUpperCase() + '"',
+          '"' + (c.title || '').replace(/"/g, '""') + '"',
+          '"' + (c.category || '').replace(/"/g, '""') + '"',
+          '"' + (c.visibility || '') + '"',
+          '"' + (c.status || '') + '"',
+          '"' + (c.student ? c.student.name : '').replace(/"/g, '""') + '"',
+          '"' + (c.student ? c.student.email : '') + '"',
+          '"' + (c.target_unit ? (c.target_unit.unit_name || c.target_unit.name) : '').replace(/"/g, '""') + '"',
+          '"' + new Date(c.created_at).toISOString() + '"',
+          '"' + (c.description || '').replace(/"/g, '""') + '"'
         ].join(',');
       });
+
       var csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent([headers.join(','), ...rows].join('\n'));
       var link = document.createElement('a');
       link.setAttribute('href', csvContent);
-      link.setAttribute('download', 'civicsense_university_redressal_audit.csv');
+      link.setAttribute('download', 'civicsense_official_grievance_audit_' + new Date().toISOString().slice(0, 10) + '.csv');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      showToast('Audit CSV exported successfully.', 'success');
     }
 
     window.addEventListener('DOMContentLoaded', initAuth);

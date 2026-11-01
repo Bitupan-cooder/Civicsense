@@ -794,6 +794,153 @@
     return await res.json();
   }
 
+  // ── FETCH COMPLAINTS FOR OFFICIALS ────────────────────────────
+  async function fetchOfficialComplaints() {
+    var sb = getClient();
+    if (!sb) throw new Error('Database service unavailable.');
+
+    var sessionRes = await sb.auth.getSession();
+    var session = sessionRes.data ? sessionRes.data.session : null;
+    if (!session) {
+      throw new Error('Official login required to load redressal queue.');
+    }
+
+    var res = await sb
+      .from('complaints')
+      .select(`
+        id,
+        student_id,
+        title,
+        description,
+        category,
+        visibility,
+        target_unit_id,
+        status,
+        created_at,
+        updated_at,
+        student:profiles!student_id(id, name, email),
+        target_unit:profiles!target_unit_id(id, name, unit_name),
+        evidence:complaint_evidence(id, cloudinary_public_id, created_at),
+        history:complaint_status_history(id, status, remark, created_at, changed_by, actor:profiles!changed_by(name, role, unit_name))
+      `)
+      .order('created_at', { ascending: false });
+
+    if (res.error) {
+      console.error('Failed to load official complaints:', res.error);
+      throw new Error(res.error.message || 'Failed to retrieve grievances from database.');
+    }
+
+    var complaints = res.data || [];
+
+    // Also fetch matching id_cards for all students in the complaints list
+    if (complaints.length > 0) {
+      var studentIds = [];
+      complaints.forEach(function (c) {
+        if (c.student_id && studentIds.indexOf(c.student_id) === -1) {
+          studentIds.push(c.student_id);
+        }
+      });
+
+      if (studentIds.length > 0) {
+        var idRes = await sb
+          .from('id_cards')
+          .select('id, user_id, cloudinary_public_id, status, reviewed_by, reviewed_at')
+          .in('user_id', studentIds);
+
+        if (!idRes.error && idRes.data) {
+          var idCardMap = {};
+          idRes.data.forEach(function (card) {
+            idCardMap[card.user_id] = card;
+          });
+          complaints.forEach(function (c) {
+            c.idCard = idCardMap[c.student_id] || null;
+          });
+        }
+      }
+    }
+
+    return complaints;
+  }
+
+  // ── FETCH STUDENT ID CARD DETAILS ──────────────────────────────
+  async function fetchStudentIdCard(userId) {
+    var sb = getClient();
+    if (!sb) return null;
+    var res = await sb
+      .from('id_cards')
+      .select('id, user_id, cloudinary_public_id, status, reviewed_by, reviewed_at, created_at')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (res.error) {
+      console.warn('ID card query:', res.error);
+      return null;
+    }
+    return res.data;
+  }
+
+  // ── UPDATE COMPLAINT WORKFLOW STATUS ──────────────────────────
+  async function updateComplaintWorkflow(complaintId, status, remark, idCardStatus) {
+    var sb = getClient();
+    if (!sb) throw new Error('Database service unavailable.');
+
+    var sessionRes = await sb.auth.getSession();
+    var session = sessionRes.data ? sessionRes.data.session : null;
+    if (!session) {
+      throw new Error('Authentication required to perform official redressal actions.');
+    }
+
+    var res = await fetch('/api/complaints/update-status', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token
+      },
+      body: JSON.stringify({
+        complaintId: complaintId,
+        status: status || null,
+        remark: remark || null,
+        idCardStatus: idCardStatus || null
+      })
+    });
+
+    var data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to update complaint workflow.');
+    }
+    return data;
+  }
+
+  // ── REVIEW STUDENT ID CARD ────────────────────────────────────
+  async function reviewStudentIdCard(userId, status) {
+    var sb = getClient();
+    if (!sb) throw new Error('Database service unavailable.');
+
+    var sessionRes = await sb.auth.getSession();
+    var session = sessionRes.data ? sessionRes.data.session : null;
+    if (!session) {
+      throw new Error('Authentication required to review ID cards.');
+    }
+
+    var res = await fetch('/api/id-card/review', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token
+      },
+      body: JSON.stringify({
+        userId: userId,
+        status: status
+      })
+    });
+
+    var data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to record ID card review.');
+    }
+    return data;
+  }
+
   // ── PUBLIC API EXPORT ─────────────────────────────────────────
   global.CivicAuth = {
     getClient: getClient,
@@ -828,7 +975,11 @@
     fetchStudentComplaints: fetchStudentComplaints,
     fetchComplaintById: fetchComplaintById,
     fetchDepartmentUnits: fetchDepartmentUnits,
-    getViewableEvidenceUrl: getViewableEvidenceUrl
+    getViewableEvidenceUrl: getViewableEvidenceUrl,
+    fetchOfficialComplaints: fetchOfficialComplaints,
+    fetchStudentIdCard: fetchStudentIdCard,
+    updateComplaintWorkflow: updateComplaintWorkflow,
+    reviewStudentIdCard: reviewStudentIdCard
   };
 })(window);
 

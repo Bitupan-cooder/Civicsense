@@ -435,8 +435,19 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       } else if (profile.role === "department") {
         if (complaint.visibility === "social_service") {
           canUpdate = true;
-        } else if (complaint.visibility === "department" && (complaint.target_unit_id === user.id || !complaint.target_unit_id)) {
-          canUpdate = true;
+        } else if (complaint.visibility === "department") {
+          if (complaint.target_unit_id === user.id || !complaint.target_unit_id) {
+            canUpdate = true;
+          } else if (profile.unit_name) {
+            const { data: targetProfile } = await supabaseAdmin
+              .from("profiles")
+              .select("unit_name")
+              .eq("id", complaint.target_unit_id)
+              .maybeSingle();
+            if (targetProfile && targetProfile.unit_name === profile.unit_name) {
+              canUpdate = true;
+            }
+          }
         }
       }
 
@@ -474,6 +485,14 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
           return sendJson(res, 400, { error: "Rejection requires an explanatory remark (minimum 5 characters)." });
         }
 
+        if (status === "resolved" && (!remark || remark.trim().length < 5)) {
+          return sendJson(res, 400, { error: "Resolution requires a closing note (minimum 5 characters)." });
+        }
+
+        if (status === "in_progress" && (!remark || remark.trim().length < 3)) {
+          return sendJson(res, 400, { error: "Progress update requires a remark (minimum 3 characters)." });
+        }
+
         await supabaseAdmin
           .from("complaints")
           .update({
@@ -503,6 +522,70 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       });
     } catch (err: any) {
       return sendJson(res, 500, { error: err.message || "Failed to update complaint" });
+    }
+  }
+
+  // 6b. ID CARD REVIEW STANDALONE ROUTE
+  if (pathname === "/api/id-card/review" && req.method === "POST") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester || !requester.profile?.is_active || requester.profile.role === "student") {
+        return sendJson(res, 403, { error: "Official redressal role required" });
+      }
+
+      const body = await parseBody(req);
+      const { userId, status } = body;
+
+      if (!userId || !["verified", "not_valid"].includes(status)) {
+        return sendJson(res, 400, { error: "Missing or invalid parameters: userId, status (verified | not_valid)" });
+      }
+
+      let allowed = false;
+      if (requester.profile.role === "administration") {
+        allowed = true;
+      } else {
+        const { data: userComplaints } = await supabaseAdmin
+          .from("complaints")
+          .select("visibility, target_unit_id")
+          .eq("student_id", userId);
+        if (userComplaints && userComplaints.length > 0) {
+          allowed = userComplaints.some((c) => {
+            if (c.visibility === "social_service") return true;
+            if (requester.profile.role === "department" && c.visibility === "department") {
+              return c.target_unit_id === requester.user.id;
+            }
+            return false;
+          });
+        }
+      }
+
+      if (!allowed) {
+        return sendJson(res, 403, { error: "Unauthorized to review ID card for this user" });
+      }
+
+      const { error } = await supabaseAdmin
+        .from("id_cards")
+        .update({
+          status,
+          reviewed_by: requester.user.id,
+          reviewed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", userId);
+
+      if (error) {
+        return sendJson(res, 500, { error: error.message });
+      }
+
+      await supabaseAdmin.from("activity_log").insert({
+        actor_id: requester.user.id,
+        action: "id_card_review",
+        target: `Marked student ID card as ${status} for user ${userId.slice(0, 8)}`,
+      });
+
+      return sendJson(res, 200, { success: true, userId, status });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed to review ID card" });
     }
   }
 
