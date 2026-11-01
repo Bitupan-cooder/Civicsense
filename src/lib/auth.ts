@@ -148,3 +148,4 @@ export async function updateInitialPassword(newPassword: string): Promise<void> 
 export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
 }
+

@@ -872,43 +872,113 @@
     .toast-error .toast-indicator { background: #b91c1c; }
     .toast-warning .toast-indicator { background: #d97706; }
     .toast-info .toast-indicator { background: var(--blue, #0036FF); }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
-  <!-- ══════════ FLOATING TOP NAVIGATION BAR (MATCHING HOME) ══════════ -->
-  <div class="top-header-wrap">
-    <header class="nav-pill-bar">
-      <a href="index.html" class="brand">
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-          <path d="M11 2C11 2 4 6 4 13a7 7 0 0014 0C18 6 11 2 11 2z" fill="currentColor" opacity=".9"/>
-          <line x1="11" y1="14" x2="11" y2="20" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
-        </svg>
-        CivicSense
-        <span class="brand-sub">Official Portal</span>
-      </a>
-
-      <div class="nav-center-status">
-        <span class="pill" id="headerModePill">
-          <span class="pill-dot"></span>
-          <span id="headerModeText">Mode 1: Department Head</span>
-        </span>
-        <div class="user-badge" id="headerUserBadge">
-          <span id="headerAvatar">EE</span>
-          <span id="headerUserName">Prof. A. K. Buragohain</span>
-        </div>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:8px;">
-        <button class="btn-outline" onclick="showAuthModal()" style="height:32px;font-size:12px;padding:0 12px;">Switch Official</button>
-        <a href="index.html" class="btn btn-blue" style="height:32px;font-size:12px;padding:0 14px;">← Student Portal</a>
-        <button class="btn-outline btn-red" onclick="logoutAdmin()" style="height:32px;font-size:12px;padding:0 10px;">Logout</button>
-      </div>
-    </header>
+  <!-- ══════════ SESSION LOADING SPINNER ══════════ -->
+  <div id="authLoadingState" style="display:flex;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:var(--bg);">
+    <div style="width:28px;height:28px;border:2.5px solid var(--line);border-top-color:var(--olive);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+    <span style="font-size:13px;color:#4a6142;font-weight:600;">Verifying official credentials...</span>
   </div>
 
-  <!-- ══════════ MAIN WORKSPACE ══════════ -->
-  <main class="admin-main">
+  <!-- ══════════ OFFICIAL AUTHENTICATION GATE (SHOWN WHEN NOT LOGGED IN) ══════════ -->
+  <div id="authGateContainer" style="display:none;min-height:100vh;align-items:center;justify-content:center;padding:24px 16px;background:var(--bg);">
+    <div style="background:#ffffff;border:1.5px solid var(--line);border-radius:var(--radius);max-width:520px;width:100%;box-shadow:0 12px 36px rgba(0,0,0,0.06);overflow:hidden;">
+      
+      <!-- Card Header -->
+      <div style="background:#ffffff;border-bottom:1.5px solid var(--line);padding:22px 26px 18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <a href="index.html" class="brand" style="display:flex;align-items:center;gap:8px;font-size:18px;font-weight:700;color:var(--olive);text-decoration:none;">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+              <path d="M11 2C11 2 4 6 4 13a7 7 0 0014 0C18 6 11 2 11 2z" fill="currentColor" opacity=".9"/>
+              <line x1="11" y1="14" x2="11" y2="20" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            CivicSense
+            <span class="brand-sub" style="font-size:11px;background:var(--pill);color:#0e3018;padding:2px 8px;border-radius:999px;font-weight:600;">Official Portal</span>
+          </a>
+          <a href="index.html" class="btn-outline" style="height:28px;font-size:11px;padding:0 10px;text-decoration:none;">← Student Portal</a>
+        </div>
+        <h1 style="font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-0.03em;margin-bottom:4px;">Official Redressal Console</h1>
+        <p style="font-size:12.5px;color:#51684c;line-height:1.45;">
+          Restricted access for University Administration, Department Chairmen, and DUSU Council.
+        </p>
+      </div>
+
+      <!-- Card Body -->
+      <div style="padding:22px 26px 26px;">
+        <!-- 3 Role Tabs -->
+        <div class="auth-subtabs" style="display:flex;gap:6px;background:#f4faee;padding:4px;border-radius:10px;margin-bottom:18px;">
+          <button type="button" class="auth-subtab active" id="gateTabDept" onclick="switchGateRole('department')" style="flex:1;height:34px;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;background:#ffffff;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,0.04);">Department</button>
+          <button type="button" class="auth-subtab" id="gateTabAdmin" onclick="switchGateRole('administration')" style="flex:1;height:34px;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#4a6142;">Administration</button>
+          <button type="button" class="auth-subtab" id="gateTabSocial" onclick="switchGateRole('social_service')" style="flex:1;height:34px;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#4a6142;">Social (DUSU)</button>
+        </div>
+
+        <div id="gateRoleNotice" style="background:#f8faf4;border-left:3px solid var(--olive);padding:8px 12px;border-radius:0 6px 6px 0;font-size:12px;color:#35532d;margin-bottom:18px;line-height:1.45;">
+          <strong>Department Head Console:</strong> Manage maintenance dispatch, update resolution milestones, and verify assigned tickets.
+        </div>
+
+        <form id="gateLoginForm" onsubmit="handleGateLogin(event)">
+          <div style="margin-bottom:14px;">
+            <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:0.02em;margin-bottom:6px;">Official Email</label>
+            <input type="email" id="gateEmail" required placeholder="e.g. electrical@dibru.ac.in" style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;box-sizing:border-box;outline:none;" />
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:0.02em;margin-bottom:6px;">Authorized Password</label>
+            <input type="password" id="gatePassword" required placeholder="Enter password" style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;box-sizing:border-box;outline:none;" />
+          </div>
+
+          <div id="gateErrBox" style="display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:10px 12px;border-radius:8px;font-size:12px;font-weight:600;margin-bottom:16px;line-height:1.4;"></div>
+
+          <button type="submit" id="gateSubmitBtn" class="btn" style="width:100%;height:44px;font-size:13.5px;font-weight:700;border-radius:8px;">
+            Sign In to Console
+          </button>
+        </form>
+
+        <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line);font-size:11.5px;color:#64748b;line-height:1.5;">
+          Note: Official accounts are provisioned exclusively by Central Administration. Students must submit and track complaints via the <a href="index.html" style="color:var(--olive);font-weight:600;">Student Portal</a>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ AUTHENTICATED WORKSPACE (HIDDEN UNTIL AUTHENTICATED) ══════════ -->
+  <div id="authenticatedWorkspace" style="display:none;">
+
+    <!-- ══════════ FLOATING TOP NAVIGATION BAR (MATCHING HOME) ══════════ -->
+    <div class="top-header-wrap">
+      <header class="nav-pill-bar">
+        <a href="index.html" class="brand">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+            <path d="M11 2C11 2 4 6 4 13a7 7 0 0014 0C18 6 11 2 11 2z" fill="currentColor" opacity=".9"/>
+            <line x1="11" y1="14" x2="11" y2="20" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          CivicSense
+          <span class="brand-sub">Official Portal</span>
+        </a>
+
+        <div class="nav-center-status">
+          <span class="pill" id="headerModePill">
+            <span class="pill-dot"></span>
+            <span id="headerModeText">Mode 1: Department Head</span>
+          </span>
+          <div class="user-badge" id="headerUserBadge">
+            <span id="headerAvatar">DU</span>
+            <span id="headerUserName">Authorized Official</span>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;">
+          <a href="index.html" class="btn btn-blue" style="height:32px;font-size:12px;padding:0 14px;text-decoration:none;">← Student Portal</a>
+          <button class="btn-outline btn-red" onclick="logoutAdmin()" style="height:32px;font-size:12px;padding:0 10px;">Logout</button>
+        </div>
+      </header>
+    </div>
+
+    <!-- ══════════ MAIN WORKSPACE ══════════ -->
+    <main class="admin-main">
 
     <!-- 3 MODE SELECTION TABS -->
     <section class="mode-tabs-row" aria-label="Official Modes">
@@ -978,6 +1048,7 @@
     <section class="tickets-stack" id="ticketsStack"></section>
 
   </main>
+  </div><!-- /#authenticatedWorkspace -->
 
   <!-- ══════════ AUTH MODAL OVERLAY (MATCHING INDEX.HTML .MODAL) ══════════ -->
   <div class="modal-overlay hidden" id="authModal">
@@ -1382,29 +1453,142 @@
     var currentOfficial = null;
     var authMode = 'department';
 
-    function initAuth() {
-      CivicAuth.enforceRoleGuard({
-        allowedRoles: ['administration', 'department', 'social_service'],
-        redirectUrl: 'index.html',
-        onAllowed: function(profile, session) {
-          applyAuthenticatedProfile(profile);
-          if (profile.must_change_password) {
-            CivicAuth.ensurePasswordChangeModal();
-          }
-        },
-        onDenied: function(reason) {
-          if (reason === 'unauthenticated') {
-            showAuthModal();
-          } else if (reason === 'forbidden') {
-            showToast('Access restricted: Students must use the student portal.', 'error');
-            setTimeout(function() {
-              window.location.href = 'index.html';
-            }, 1200);
-          } else if (reason === 'inactive') {
-            showToast('Account has been deactivated by administration.', 'error');
-          }
+    var currentOfficial = null;
+    var gateRole = 'department';
+
+    async function initAuth() {
+      var gate = document.getElementById('authGateContainer');
+      var loading = document.getElementById('authLoadingState');
+      var workspace = document.getElementById('authenticatedWorkspace');
+
+      try {
+        var sb = CivicAuth.getClient();
+        if (!sb) {
+          if (loading) loading.style.display = 'none';
+          if (workspace) workspace.style.display = 'none';
+          if (gate) gate.style.display = 'flex';
+          return;
+        }
+
+        var sessionRes = await sb.auth.getSession();
+        var session = sessionRes.data ? sessionRes.data.session : null;
+
+        if (!session || !session.user) {
+          if (loading) loading.style.display = 'none';
+          if (workspace) workspace.style.display = 'none';
+          if (gate) gate.style.display = 'flex';
+          return;
+        }
+
+        var profileRes = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+        var profile = profileRes.data;
+
+        if (!profile || !profile.is_active) {
+          await sb.auth.signOut();
+          if (loading) loading.style.display = 'none';
+          if (workspace) workspace.style.display = 'none';
+          if (gate) gate.style.display = 'flex';
+          showToast('Account not authorized or deactivated.', 'error');
+          return;
+        }
+
+        if (profile.role === 'student') {
+          if (loading) loading.style.display = 'none';
+          if (workspace) workspace.style.display = 'none';
+          showToast('Access restricted: Student accounts cannot access the official administrative console.', 'error');
+          setTimeout(function() {
+            window.location.href = 'index.html';
+          }, 1200);
+          return;
+        }
+
+        // Valid official
+        if (loading) loading.style.display = 'none';
+        if (gate) gate.style.display = 'none';
+        if (workspace) workspace.style.display = 'block';
+
+        applyAuthenticatedProfile(profile);
+
+        if (profile.must_change_password) {
+          CivicAuth.ensurePasswordChangeModal();
+        }
+      } catch (err) {
+        if (loading) loading.style.display = 'none';
+        if (workspace) workspace.style.display = 'none';
+        if (gate) gate.style.display = 'flex';
+      }
+    }
+
+    function switchGateRole(role) {
+      gateRole = role;
+      ['gateTabDept', 'gateTabAdmin', 'gateTabSocial'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) {
+          el.classList.remove('active');
+          el.style.background = 'transparent';
+          el.style.color = '#4a6142';
         }
       });
+
+      var notice = document.getElementById('gateRoleNotice');
+      var emailInput = document.getElementById('gateEmail');
+
+      if (role === 'department') {
+        var tab = document.getElementById('gateTabDept');
+        if (tab) { tab.classList.add('active'); tab.style.background = '#ffffff'; tab.style.color = 'var(--ink)'; }
+        if (notice) notice.innerHTML = '<strong>Department Head Console:</strong> Manage maintenance dispatch, update resolution milestones, and verify assigned tickets.';
+        if (emailInput && !emailInput.value) emailInput.placeholder = 'e.g. electrical@dibru.ac.in';
+      } else if (role === 'administration') {
+        var tab = document.getElementById('gateTabAdmin');
+        if (tab) { tab.classList.add('active'); tab.style.background = '#ffffff'; tab.style.color = 'var(--ink)'; }
+        if (notice) notice.innerHTML = '<strong>Central Administration Console:</strong> Full triage oversight, department officer provisioning, reassignments, and executive logs.';
+        if (emailInput && !emailInput.value) emailInput.placeholder = 'e.g. admin@dibru.ac.in';
+      } else if (role === 'social_service') {
+        var tab = document.getElementById('gateTabSocial');
+        if (tab) { tab.classList.add('active'); tab.style.background = '#ffffff'; tab.style.color = 'var(--ink)'; }
+        if (notice) notice.innerHTML = '<strong>DUSU Social Service Desk:</strong> Executive campus grievance oversight, ground audit checks, and union escalation.';
+        if (emailInput && !emailInput.value) emailInput.placeholder = 'e.g. dusu@dibru.ac.in';
+      }
+      var err = document.getElementById('gateErrBox');
+      if (err) err.style.display = 'none';
+    }
+
+    async function handleGateLogin(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      var email = (document.getElementById('gateEmail').value || '').trim();
+      var password = document.getElementById('gatePassword').value;
+      var errBox = document.getElementById('gateErrBox');
+      var btn = document.getElementById('gateSubmitBtn');
+
+      if (!email || !password) {
+        errBox.style.display = 'block';
+        errBox.textContent = 'Please enter both your official email and password.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Verifying credentials...';
+      errBox.style.display = 'none';
+
+      try {
+        var res = await CivicAuth.login(email, password, [gateRole]);
+        var profile = res.profile;
+
+        document.getElementById('authGateContainer').style.display = 'none';
+        document.getElementById('authenticatedWorkspace').style.display = 'block';
+
+        applyAuthenticatedProfile(profile);
+        showToast('Welcome, ' + profile.name, 'success');
+
+        if (profile.must_change_password) {
+          CivicAuth.ensurePasswordChangeModal();
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Sign In to Console';
+        errBox.style.display = 'block';
+        errBox.textContent = err.message || 'Authentication failed.';
+      }
     }
 
     function applyAuthenticatedProfile(profile) {
@@ -1496,75 +1680,18 @@
       renderDashboard();
     }
 
-    function showAuthModal() {
-      document.getElementById('authModal').classList.remove('hidden');
-      switchAuthMode(authMode || 'department');
-    }
-
-    function closeAuthModal() {
-      document.getElementById('authModal').classList.add('hidden');
-    }
-
-    function switchAuthMode(mode) {
-      authMode = mode;
-      ['authSubDept', 'authSubSocial', 'authSubAdmin'].forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) el.classList.remove('active');
-      });
-      if (mode === 'department') document.getElementById('authSubDept').classList.add('active');
-      else if (mode === 'social_service') document.getElementById('authSubSocial').classList.add('active');
-      else if (mode === 'administration') document.getElementById('authSubAdmin').classList.add('active');
-
-      var emailInput = document.getElementById('authEmail');
-      if (emailInput && !emailInput.value) {
-        if (mode === 'administration') emailInput.placeholder = 'e.g. admin@dibru.ac.in';
-        else if (mode === 'social_service') emailInput.placeholder = 'e.g. dusu@dibru.ac.in';
-        else emailInput.placeholder = 'e.g. electrical@dibru.ac.in';
-      }
-      document.getElementById('authErr').style.display = 'none';
-    }
-
-    async function submitAuth() {
-      var email = (document.getElementById('authEmail').value || '').trim();
-      var password = document.getElementById('authPassword').value;
-      var errBox = document.getElementById('authErr');
-      var btn = document.getElementById('authSubmitBtn');
-
-      if (!email || !password) {
-        errBox.style.display = 'block';
-        errBox.textContent = 'Please enter both your official email and password.';
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = 'Authenticating with Supabase...';
-      errBox.style.display = 'none';
-
-      try {
-        var res = await CivicAuth.login(email, password, [authMode]);
-        closeAuthModal();
-        btn.disabled = false;
-        btn.textContent = 'Sign In to Console';
-
-        applyAuthenticatedProfile(res.profile);
-        showToast('Signed in as ' + res.profile.name, 'success');
-
-        if (res.profile.must_change_password) {
-          CivicAuth.ensurePasswordChangeModal();
-        }
-      } catch (err) {
-        btn.disabled = false;
-        btn.textContent = 'Sign In to Console';
-        errBox.style.display = 'block';
-        errBox.textContent = err.message || 'Authentication failed.';
-      }
-    }
-
     async function logoutAdmin() {
       if (confirm('Log out of Official Redressal Workspace?')) {
         await CivicAuth.logout();
+        var workspace = document.getElementById('authenticatedWorkspace');
+        var gate = document.getElementById('authGateContainer');
+        if (workspace) workspace.style.display = 'none';
+        if (gate) gate.style.display = 'flex';
+        var emailInput = document.getElementById('gateEmail');
+        var pwInput = document.getElementById('gatePassword');
+        if (emailInput) emailInput.value = '';
+        if (pwInput) pwInput.value = '';
         showToast('Logged out of official console.', 'info');
-        showAuthModal();
       }
     }
 
