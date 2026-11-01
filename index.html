@@ -537,6 +537,62 @@ nav.f-links a:hover{text-decoration:underline}
 .ws-step-node.done { color: #15803d; font-weight: 700; }
 .ws-step-arrow { color: #cbd5e1; font-size: 10px; }
 
+/* ── HOT TOAST NOTIFICATIONS ── */
+#toast-container {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+  max-width: 90vw;
+}
+.toast {
+  pointer-events: auto;
+  background: #ffffff;
+  color: var(--ink);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(-12px) scale(0.96);
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  max-width: 540px;
+  text-align: left;
+  line-height: 1.4;
+}
+.toast.toast-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.toast.toast-hiding {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.95);
+}
+.toast-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--olive);
+  flex-shrink: 0;
+}
+.toast-success .toast-indicator { background: var(--green, #1EA854); }
+.toast-error .toast-indicator { background: #b91c1c; }
+.toast-warning .toast-indicator { background: #d97706; }
+.toast-info .toast-indicator { background: var(--blue, #0036FF); }
+
 </style>
   <!-- Dibrugarh University Vector Map Assets (Offline Local Map Kit) -->
   <script src="Dibrugarh-University-Map-Kit/assets/proj4.js"></script>
@@ -568,7 +624,6 @@ nav.f-links a:hover{text-decoration:underline}
     <div class="nav-actions">
       <button class="btn-outline" id="openTrackerBtn" onclick="openTracker()" style="height:32px;font-size:12px;padding:0 14px;">Track Status</button>
       <a href="admin.html" class="btn btn-blue" id="openAdminPageLink" style="height:32px;font-size:12px;padding:0 14px;display:inline-flex;align-items:center;text-decoration:none;gap:4px;">Official Portal ↗</a>
-      <button class="btn-outline" id="openLoginBtn" onclick="openLogin()" style="height:32px;font-size:12px;padding:0 10px;" title="Quick Login Dialog">Login</button>
     </div>
   </nav>
 
@@ -830,7 +885,7 @@ nav.f-links a:hover{text-decoration:underline}
           <button type="button" class="map-clean-btn" onclick="campusMapZoom(1/1.5)" title="Zoom out" aria-label="Zoom out">−</button>
           <button type="button" class="map-clean-btn" onclick="campusMapFitCampus(false)" title="Center Campus" aria-label="Center Campus">Center</button>
         </div>
-        <button type="button" class="map-info-pill" title="Dibrugarh University Vector Map" aria-label="Map information" onclick="alert('Dibrugarh University Vector Map · Drag to explore, pinch or scroll to zoom, tap anywhere to pin issue location.')">ⓘ</button>
+        <button type="button" class="map-info-pill" title="Dibrugarh University Vector Map" aria-label="Map information" onclick="showToast('Dibrugarh University Vector Map: Drag to explore, scroll or pinch to zoom, tap to pin location.', 'info')">ⓘ</button>
         <div id="mapComplaintPopover" class="map-popover" style="display:none;"></div>
       </div>
     </div>
@@ -1124,6 +1179,67 @@ nav.f-links a:hover{text-decoration:underline}
 <script>
 (function(){
 'use strict';
+
+/* ── HOT TOAST NOTIFICATIONS ── */
+function showToast(message, type, duration) {
+  type = type || 'info';
+  duration = duration || 3500;
+  var container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  var toast = document.createElement('div');
+  toast.className = 'toast toast-' + type;
+
+  var dot = document.createElement('span');
+  dot.className = 'toast-indicator';
+
+  var text = document.createElement('span');
+  text.className = 'toast-text';
+  text.textContent = message;
+
+  toast.appendChild(dot);
+  toast.appendChild(text);
+  container.appendChild(toast);
+
+  requestAnimationFrame(function() {
+    toast.classList.add('toast-visible');
+  });
+
+  var hideTimeout = setTimeout(function() {
+    toast.classList.remove('toast-visible');
+    toast.classList.add('toast-hiding');
+    setTimeout(function() {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 280);
+  }, duration);
+
+  toast.onclick = function() {
+    clearTimeout(hideTimeout);
+    toast.classList.remove('toast-visible');
+    toast.classList.add('toast-hiding');
+    setTimeout(function() {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 280);
+  };
+}
+window.showToast = showToast;
+window.alert = function(msg) {
+  var type = 'info';
+  var lower = String(msg).toLowerCase();
+  if (lower.includes('error') || lower.includes('invalid') || lower.includes('failed') || lower.includes('not find')) {
+    type = 'error';
+  } else if (lower.includes('success') || lower.includes('resolved') || lower.includes('verified') || lower.includes('merged') || lower.includes('dispatched')) {
+    type = 'success';
+  } else if (lower.includes('warning') || lower.includes('priority') || lower.includes('escalat')) {
+    type = 'warning';
+  }
+  showToast(msg, type);
+};
+
 /* ══════════ DATA / STATE ══════════ */
 var CAMPUS_LOCATIONS = [
   { id: 'du_hostel_1', name_en: 'Padmanath Gohain Baruah Chatra Nivas (Hostel 1)', name_as: 'পদ্মনাথ গোহাঞিবৰুৱা ছাত্ৰ নিৱাস (হোষ্টেল ১)', keys: ['hostel 1', 'pngb', 'padmanath', 'হোষ্টেল ১', '১ নম্বৰ হোষ্টেল', 'hostel 1 r'] },
@@ -3107,7 +3223,7 @@ function wsMergeDuplicates() {
   var master = getById(masterId.trim());
   var dup = getById(dupId.trim());
   if (!master || !dup) {
-    alert('Could not find one or both tickets.');
+    showToast('Could not find one or both tickets.', 'error');
     return;
   }
   dup.status = 'closed';
@@ -3122,7 +3238,7 @@ function wsMergeDuplicates() {
     note: 'Duplicate of ticket #' + masterId
   });
   saveOne(dup);
-  alert('Successfully merged ticket #' + dupId + ' into master case #' + masterId + '!');
+  showToast('Successfully merged ticket #' + dupId + ' into master case #' + masterId + '.', 'success');
   renderWorkspace();
 }
 window.wsMergeDuplicates = wsMergeDuplicates;

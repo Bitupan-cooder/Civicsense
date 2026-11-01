@@ -746,6 +746,62 @@
       border-color: var(--olive);
       box-shadow: 0 0 0 3px rgba(26,122,58,.15);
     }
+
+    /* ── HOT TOAST NOTIFICATIONS ── */
+    #toast-container {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+      max-width: 90vw;
+    }
+    .toast {
+      pointer-events: auto;
+      background: #ffffff;
+      color: var(--ink);
+      border: 1.5px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(-12px) scale(0.96);
+      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      max-width: 540px;
+      text-align: left;
+      line-height: 1.4;
+    }
+    .toast.toast-visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .toast.toast-hiding {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.95);
+    }
+    .toast-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--olive);
+      flex-shrink: 0;
+    }
+    .toast-success .toast-indicator { background: var(--green, #1EA854); }
+    .toast-error .toast-indicator { background: #b91c1c; }
+    .toast-warning .toast-indicator { background: #d97706; }
+    .toast-info .toast-indicator { background: var(--blue, #0036FF); }
   </style>
 </head>
 <body>
@@ -891,6 +947,66 @@
 
   <!-- ══════════ CORE APPLICATION SCRIPT ══════════ -->
   <script>
+    /* ── HOT TOAST NOTIFICATIONS ── */
+    function showToast(message, type, duration) {
+      type = type || 'info';
+      duration = duration || 3500;
+      var container = document.getElementById('toast-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+      }
+
+      var toast = document.createElement('div');
+      toast.className = 'toast toast-' + type;
+
+      var dot = document.createElement('span');
+      dot.className = 'toast-indicator';
+
+      var text = document.createElement('span');
+      text.className = 'toast-text';
+      text.textContent = message;
+
+      toast.appendChild(dot);
+      toast.appendChild(text);
+      container.appendChild(toast);
+
+      requestAnimationFrame(function() {
+        toast.classList.add('toast-visible');
+      });
+
+      var hideTimeout = setTimeout(function() {
+        toast.classList.remove('toast-visible');
+        toast.classList.add('toast-hiding');
+        setTimeout(function() {
+          if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 280);
+      }, duration);
+
+      toast.onclick = function() {
+        clearTimeout(hideTimeout);
+        toast.classList.remove('toast-visible');
+        toast.classList.add('toast-hiding');
+        setTimeout(function() {
+          if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 280);
+      };
+    }
+    window.showToast = showToast;
+    window.alert = function(msg) {
+      var type = 'info';
+      var lower = String(msg).toLowerCase();
+      if (lower.includes('error') || lower.includes('invalid') || lower.includes('failed')) {
+        type = 'error';
+      } else if (lower.includes('success') || lower.includes('resolved') || lower.includes('verified') || lower.includes('dispatched') || lower.includes('updated') || lower.includes('attached')) {
+        type = 'success';
+      } else if (lower.includes('warning') || lower.includes('priority') || lower.includes('escalat') || lower.includes('adjusted')) {
+        type = 'warning';
+      }
+      showToast(msg, type);
+    };
+
     var currentMode = 'dept_head';
     var activeFilter = 'all';
     var searchQuery = '';
@@ -1610,7 +1726,7 @@
       });
 
       saveOne(c);
-      alert('Field crew dispatched for ticket #' + id + '! The student tracking screen and live map have been updated.');
+      showToast('Field crew dispatched for ticket #' + id + '. Student tracker and live map updated.', 'success');
     }
 
     function opSetStatus(id, status) {
@@ -1632,7 +1748,7 @@
       });
 
       saveOne(c);
-      alert('Ticket #' + id + ' updated to ' + status.toUpperCase() + '!');
+      showToast('Ticket #' + id + ' updated to ' + status.toUpperCase() + '.', 'success');
     }
 
     function opPostReply(id) {
@@ -1662,7 +1778,7 @@
       });
 
       saveOne(c);
-      alert('Official response posted to ticket #' + id + '!');
+      showToast('Official response posted to ticket #' + id + '.', 'success');
     }
 
     function opReassignDept(id) {
@@ -1692,7 +1808,7 @@
       };
 
       var target = depts[choice.trim()];
-      if (!target) { alert('Invalid selection.'); return; }
+      if (!target) { showToast('Invalid selection.', 'error'); return; }
 
       c.dept = target.name;
       c.cat = target.cat;
@@ -1709,7 +1825,7 @@
       });
 
       saveOne(c);
-      alert('Ticket #' + id + ' successfully reassigned to ' + target.name + '!');
+      showToast('Ticket #' + id + ' successfully reassigned to ' + target.name + '.', 'success');
     }
 
     function opOverridePriority(id) {
@@ -1734,7 +1850,7 @@
       });
 
       saveOne(c);
-      alert('Ticket #' + id + ' priority adjusted to P' + pNum + '!');
+      showToast('Ticket #' + id + ' priority adjusted to P' + pNum + '.', 'warning');
     }
 
     function opConfidentialInquiry(id) {
@@ -1761,7 +1877,7 @@
       });
 
       saveOne(c);
-      alert('Proctorial security record logged for sensitive case #' + id + '.');
+      showToast('Proctorial security record logged for sensitive case #' + id + '.', 'info');
     }
 
     function opEscalateToRegistrar(id) {
@@ -1789,7 +1905,7 @@
       });
 
       saveOne(c);
-      alert("Ticket #" + id + " successfully escalated to the University Registrar's Emergency Docket!");
+      showToast("Ticket #" + id + " escalated to University Registrar Emergency Docket.", "warning");
     }
 
     function opEndorseCouncil(id) {
@@ -1825,7 +1941,7 @@
       });
 
       saveOne(c);
-      alert('Official DUSU Council Endorsement attached to ticket #' + id + '! Appears on student tracker.');
+      showToast('DUSU Council Endorsement attached to ticket #' + id + '.', 'success');
     }
 
     function opVerifyStudent(id) {
@@ -1853,7 +1969,7 @@
       });
 
       saveOne(c);
-      alert('Ground Student Verification stamped on ticket #' + id + '!');
+      showToast('Ground Student Verification stamped on ticket #' + id + '.', 'success');
     }
 
     function openPublicTracker(id) {
