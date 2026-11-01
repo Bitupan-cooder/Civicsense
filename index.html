@@ -1051,12 +1051,13 @@ nav.f-links a:hover{text-decoration:underline}
 
       <!-- Result -->
       <div id="trackerResult" style="display:none;flex-direction:column;gap:14px">
-        <div id="statusBanner" class="status-banner pending"></div>
+        <div id="trackerBanner" class="status-banner pending"></div>
 
         <div class="tracker-steps" id="trackerSteps">
-          <div class="tracker-step">Reported</div>
-          <div class="tracker-step">In Progress</div>
-          <div class="tracker-step">Solved</div>
+          <div class="tracker-step">1. Reported</div>
+          <div class="tracker-step">2. Problem Understood</div>
+          <div class="tracker-step">3. Solving</div>
+          <div class="tracker-step">4. Solved</div>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:10px" id="trackerDetails"></div>
@@ -2438,25 +2439,44 @@ function searchComplaint(){
 window.searchComplaint = searchComplaint;
 
 function renderTracker(c){
+  window.renderTracker = renderTracker;
   var res = document.getElementById('trackerResult');
   res.style.display = 'flex';
 
   var isSolved = c.status === 'resolved' || c.status === 'closed';
   var isEscalated = c.status === 'escalated';
-  var isIP = c.status === 'in_progress' || c.status === 'investigating' || isEscalated;
+  var isSolving = c.status === 'in_progress' || c.status === 'solving' || !!c.fieldCrew || isSolved;
+  var isUnderstood = c.understood || c.status === 'acknowledged' || isSolving || isSolved;
 
   var banner = document.getElementById('trackerBanner');
-  banner.className = 'status-banner ' + (isSolved ? 'status-solved' : isEscalated ? 'status-escalated' : isIP ? 'status-in-progress' : 'status-open');
-  var statusLabel = isSolved ? 'RESOLVED & VERIFIED' : isEscalated ? 'ESCALATED TO GENERAL SECRETARY' : isIP ? 'IN PROGRESS · FIELD CREW DEPLOYED' : 'REPORT LODGED · AI ROUTED';
-  banner.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' +
-    '<span>' + statusLabel + '</span>';
+  if (banner) {
+    if (isSolved) {
+      banner.className = 'status-banner status-solved';
+      banner.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span>SOLVED &amp; VERIFIED ON SITE</span>';
+    } else if (isEscalated) {
+      banner.className = 'status-banner status-escalated';
+      banner.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg><span>ESCALATED TO GENERAL SECRETARY</span>';
+    } else if (isSolving) {
+      banner.className = 'status-banner status-in-progress';
+      banner.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>SOLVING · CREW ACTIVE &amp; WORK UNDERWAY</span>';
+    } else if (isUnderstood) {
+      banner.className = 'status-banner status-in-progress';
+      banner.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg><span>PROBLEM UNDERSTOOD · REVIEWED BY DEPARTMENT</span>';
+    } else {
+      banner.className = 'status-banner status-open';
+      banner.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6"/></svg><span>REPORT LODGED · QUEUED FOR DEPARTMENT REVIEW</span>';
+    }
+  }
 
   // Stepper
   var steps = document.getElementById('trackerSteps');
-  var sArr = steps.children;
-  sArr[0].className = 'tracker-step done';
-  sArr[1].className = 'tracker-step' + (isIP || isSolved ? ' done' : '');
-  sArr[2].className = 'tracker-step' + (isSolved ? ' done' : (isIP ? ' active' : ''));
+  var sArr = steps ? steps.children : [];
+  if (sArr && sArr.length >= 4) {
+    sArr[0].className = 'tracker-step done';
+    sArr[1].className = 'tracker-step' + (isUnderstood ? ' done' : ' active');
+    sArr[2].className = 'tracker-step' + (isSolved ? ' done' : (isSolving ? ' active done' : ''));
+    sArr[3].className = 'tracker-step' + (isSolved ? ' done' : '');
+  }
 
   var ai = c.aiAnalysis || {};
   var detailsHtml = '<div class="detail-row"><span class="detail-label">Complaint ID:</span><strong>' + c.id + '</strong></div>' +
@@ -2500,6 +2520,7 @@ function renderTracker(c){
     timelineWrap.style.display = 'none';
   }
 }
+window.renderTracker = renderTracker;
 
 /* ══════════ LOGIN MODAL ══════════ */
 var selectedOfficial = OFFICIALS[0];
@@ -2772,6 +2793,18 @@ function renderDeptComplaintCard(c) {
     '<div>' + statusBadge + '</div>' +
     '</div>' +
 
+    // Workflow Checklist
+    (function() {
+      var isUnderstood = c.understood || c.status === 'acknowledged' || c.status === 'in_progress' || c.status === 'solving' || isSolved;
+      var isSolving = c.status === 'in_progress' || c.status === 'solving' || !!c.fieldCrew || isSolved;
+      return '<div style="background:#f4faf0;border:1px solid var(--line);border-radius:10px;padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">' +
+        '<span style="font-size:11px;font-weight:700;color:var(--olive);margin-right:4px;">Workflow:</span>' +
+        '<button type="button" onclick="wsChecklistStep(&quot;' + c.id + '&quot;,&quot;understood&quot;)" class="btn' + (isUnderstood ? '' : '-outline') + '" style="height:26px;font-size:11px;padding:0 10px;">1. Problem Understood</button>' +
+        '<button type="button" onclick="wsChecklistStep(&quot;' + c.id + '&quot;,&quot;solving&quot;)" class="btn' + (isSolving ? '' : '-outline') + '" style="height:26px;font-size:11px;padding:0 10px;">2. Solving</button>' +
+        '<button type="button" onclick="wsChecklistStep(&quot;' + c.id + '&quot;,&quot;solved&quot;)" class="btn' + (isSolved ? '' : '-outline') + '" style="height:26px;font-size:11px;padding:0 10px;">3. Solved</button>' +
+        '</div>';
+    })() +
+
     // Stepper
     '<div class="stage-stepper">' +
     '<span class="stage-dot done">● Report Lodged</span> <span class="stage-arrow">→</span>' +
@@ -3007,81 +3040,110 @@ function renderSocialComplaintCard(c) {
 // ─────────────────────────────────────────────────────────────
 // OFFICIAL WORKSPACE ACTIONS & STATUS UPDATES
 // ─────────────────────────────────────────────────────────────
-function wsDispatchCrew(id) {
+function wsChecklistStep(id, step) {
   var c = getById(id);
   if (!c) return;
-  var crew = prompt('Enter field team name & assigned technician (e.g. "PHE Line Crew #2 — Plumber R. Das"):', 'Department Field Maintenance Crew');
-  if (!crew || !crew.trim()) return;
-  var eta = prompt('Estimated repair time / ETA (e.g. "Within 4 hours"):', 'Within 12 hours');
-  if (eta === null) return;
 
-  c.status = 'in_progress';
-  c.fieldCrew = { crewName: crew.trim(), eta: eta.trim(), dispatchedAt: Date.now(), dispatchedBy: currentUser.name };
-  var note = 'Field crew dispatched: ' + crew.trim() + ' (ETA: ' + eta.trim() + '). On-site inspection and repairs underway.';
-  if (!c.routeHistory) c.routeHistory = [];
-  c.routeHistory.push({
-    id: 'm_' + Date.now(),
-    ts: Date.now(),
-    stage: 'Solving (Crew Dispatched)',
-    actor: currentUser.name,
-    role: currentUser.roleTitle,
-    note: note
-  });
+  if (step === 'understood') {
+    c.understood = true;
+    if (c.status === 'open' || c.status === 'submitted' || !c.status) {
+      c.status = 'acknowledged';
+    }
+    if (!c.routeHistory) c.routeHistory = [];
+    c.routeHistory.push({
+      id: 'm_' + Date.now(),
+      ts: Date.now(),
+      stage: 'Problem Understood',
+      actor: currentUser.name,
+      role: currentUser.roleTitle,
+      note: 'Department authority reviewed the issue, verified scope and accepted remediation responsibilities.'
+    });
+    saveOne(c);
+    showToast('Ticket #' + id + ': Problem understood by ' + currentUser.name + '.', 'success');
+  } else if (step === 'solving') {
+    c.understood = true;
+    c.status = 'in_progress';
+    c.solving = true;
+    if (!c.fieldCrew) {
+      c.fieldCrew = {
+        crewName: (currentUser.departmentName || 'Department') + ' Rapid Field Squad',
+        eta: 'Within 4 hours',
+        dispatchedAt: Date.now(),
+        dispatchedBy: currentUser.name
+      };
+    }
+    if (!c.routeHistory) c.routeHistory = [];
+    c.routeHistory.push({
+      id: 'm_' + Date.now(),
+      ts: Date.now(),
+      stage: 'Solving (Crew Dispatched)',
+      actor: currentUser.name,
+      role: currentUser.roleTitle,
+      note: 'Field maintenance crew engaged. On-site repairs and troubleshooting underway.'
+    });
+    saveOne(c);
+    showToast('Ticket #' + id + ': Switched to Solving. Field crew active.', 'success');
+  } else if (step === 'solved') {
+    c.understood = true;
+    c.status = 'resolved';
+    c.resolvedAt = Date.now();
+    if (!c.routeHistory) c.routeHistory = [];
+    c.routeHistory.push({
+      id: 'm_' + Date.now(),
+      ts: Date.now(),
+      stage: 'Solved & Verified',
+      actor: currentUser.name,
+      role: currentUser.roleTitle,
+      note: 'Issue completely resolved, verified on-site, and signed off by department.'
+    });
+    saveOne(c);
+    showToast('Ticket #' + id + ': Marked Solved & Verified.', 'success');
+  }
 
-  saveOne(c);
   renderWorkspace();
   renderMapExistingComplaints();
+}
+window.wsChecklistStep = wsChecklistStep;
+
+function wsDispatchCrew(id) {
+  wsChecklistStep(id, 'solving');
 }
 window.wsDispatchCrew = wsDispatchCrew;
 
 function wsSetStatus(id, status) {
+  if (status === 'resolved') {
+    wsChecklistStep(id, 'solved');
+    return;
+  }
   var c = getById(id);
   if (!c) return;
-  var defaultMsg = status === 'resolved' ? 'Defect repaired, tested and verified on-site by department head.' : 'Case status updated.';
-  var note = prompt('Enter official status note for ' + id + ' (' + status.toUpperCase() + '):', defaultMsg);
-  if (note === null) return;
-
   c.status = status;
-  if (status === 'resolved') {
-    c.resolvedAt = Date.now();
-    c.resolutionNote = note.trim();
-  }
   if (!c.routeHistory) c.routeHistory = [];
   c.routeHistory.push({
     id: 'm_' + Date.now(),
     ts: Date.now(),
-    stage: status === 'resolved' ? 'Completed & Resolved' : ('Status: ' + status.toUpperCase()),
+    stage: 'Status: ' + status,
     actor: currentUser.name,
     role: currentUser.roleTitle,
-    note: note.trim()
+    note: 'Case status updated.'
   });
 
   saveOne(c);
   renderWorkspace();
   renderMapExistingComplaints();
+  showToast('Ticket #' + id + ' status updated to ' + status.toUpperCase() + '.', 'success');
 }
 window.wsSetStatus = wsSetStatus;
 
 function wsReassignDept(id) {
   var c = getById(id);
   if (!c) return;
-  var depts = [
-    'electricity (Electrical & Power Maintenance)',
-    'water (PHE & Water Facilities)',
-    'sanitation (Estates & Cleanliness)',
-    'hostel (Hostels & Housing Board)',
-    'internet (CCSA IT & Connectivity)',
-    'safety (Campus Security & Proctorial Safety)',
-    'classroom (Classrooms & Audio-Visual)',
-    'library (Central Library Services)'
-  ];
-  var choice = prompt('Select new department code to re-route this complaint to:\\n\\n' + depts.join('\\n'), 'electricity');
-  if (!choice || !choice.trim()) return;
+  var depts = ['electricity', 'water', 'sanitation', 'hostel', 'internet', 'safety'];
+  var curIdx = depts.indexOf(c.cat);
+  var nextCat = depts[(curIdx + 1) % depts.length];
+  var solver = SOLVER_MAP[nextCat] || { name: nextCat, desk: nextCat };
 
-  var newCat = choice.trim().toLowerCase();
-  var solver = SOLVER_MAP[newCat] || { name: choice.trim(), desk: choice.trim() };
-
-  c.cat = newCat;
+  c.cat = nextCat;
   c.catName = solver.name;
   c.dept = solver.desk;
 
@@ -3098,20 +3160,19 @@ function wsReassignDept(id) {
   saveOne(c);
   renderWorkspace();
   renderMapExistingComplaints();
+  showToast('Ticket #' + id + ' re-routed to ' + solver.name + '.', 'success');
 }
 window.wsReassignDept = wsReassignDept;
 
 function wsEscalateToRegistrar(id) {
   var c = getById(id);
   if (!c) return;
-  var reason = prompt('Enter DUSU escalation notice to the Registrar (e.g. "Department has not taken action after 48h SLA breach"):', 'SLA deadline exceeded. Urgent intervention requested on behalf of students.');
-  if (!reason || !reason.trim()) return;
-
+  var reason = 'SLA deadline exceeded. Urgent intervention requested on behalf of students.';
   c.status = 'escalated';
   c.escalation = {
     isEscalated: true,
     escalatedAt: Date.now(),
-    reason: reason.trim(),
+    reason: reason,
     escalatedBy: currentUser.name + ' (' + currentUser.roleTitle + ')'
   };
 
@@ -3122,29 +3183,28 @@ function wsEscalateToRegistrar(id) {
     stage: 'Escalated to Registrar Docket',
     actor: currentUser.name,
     role: currentUser.roleTitle,
-    note: 'DUSU Executive formal escalation: ' + reason.trim()
+    note: 'DUSU Executive formal escalation: ' + reason
   });
 
   saveOne(c);
   renderWorkspace();
   renderMapExistingComplaints();
+  showToast('Ticket #' + id + ' escalated to Registrar Docket.', 'warning');
 }
 window.wsEscalateToRegistrar = wsEscalateToRegistrar;
 
 function wsEndorseCouncil(id) {
   var c = getById(id);
   if (!c) return;
-  var note = prompt('Enter DUSU Executive Council remark on this complaint:', 'DUSU student council inspected this site with students and endorsed immediate department action.');
-  if (!note || !note.trim()) return;
-
-  c.dusuEndorsement = { note: note.trim(), endorsedBy: currentUser.name, ts: Date.now() };
+  var note = 'DUSU student council inspected this site with students and endorsed immediate department action.';
+  c.dusuEndorsement = { note: note, endorsedBy: currentUser.name, ts: Date.now() };
   if (!c.replies) c.replies = [];
   c.replies.push({
     id: 'r_' + Date.now(),
     complaintId: id,
     author: currentUser.name + ' (' + currentUser.roleTitle + ')',
     role: 'Student Union Executive',
-    message: note.trim(),
+    message: note,
     ts: Date.now()
   });
 
@@ -3155,11 +3215,12 @@ function wsEndorseCouncil(id) {
     stage: 'DUSU Council Endorsement',
     actor: currentUser.name,
     role: currentUser.roleTitle,
-    note: note.trim()
+    note: note
   });
 
   saveOne(c);
   renderWorkspace();
+  showToast('DUSU Council endorsement attached to ticket #' + id + '.', 'success');
 }
 window.wsEndorseCouncil = wsEndorseCouncil;
 
@@ -3179,23 +3240,21 @@ function wsVerifyStudentResolution(id) {
   });
   saveOne(c);
   renderWorkspace();
+  showToast('Student ground verification confirmed for ticket #' + id + '.', 'success');
 }
 window.wsVerifyStudentResolution = wsVerifyStudentResolution;
 
 function wsReply(id) {
   var c = getById(id);
   if (!c) return;
-  var text = prompt('Post official public update for ticket ' + id + ':');
-  if (!text || !text.trim()) return;
-
-  c.dusuEndorsement = { note: note.trim(), endorsedBy: currentUser.name, ts: Date.now() };
+  var text = 'Official update: Issue inspected on site by ' + currentUser.name + '.';
   if (!c.replies) c.replies = [];
   c.replies.push({
     id: 'r_' + Date.now(),
     complaintId: id,
     author: currentUser.name + ' (' + (currentUser.departmentName || currentUser.roleTitle) + ')',
     role: currentUser.roleTitle,
-    message: text.trim(),
+    message: text,
     ts: Date.now()
   });
 
@@ -3206,14 +3265,14 @@ function wsReply(id) {
     stage: 'Official Response Posted',
     actor: currentUser.name,
     role: currentUser.roleTitle,
-    note: text.trim()
+    note: text
   });
 
   saveOne(c);
   renderWorkspace();
+  showToast('Official response posted to ticket #' + id + '.', 'info');
 }
 window.wsReply = wsReply;
-
 
 function wsMergeDuplicates() {
   var masterId = prompt('Enter Master Complaint ID (e.g. CS-8921):');

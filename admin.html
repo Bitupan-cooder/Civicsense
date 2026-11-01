@@ -614,6 +614,82 @@
       margin-bottom: 14px;
     }
 
+    /* ── WORKFLOW CHECKLIST (PROBLEM UNDERSTOOD -> SOLVING -> SOLVED) ── */
+    .admin-checklist-wrap {
+      margin: 14px 0 16px;
+      background: #f4faf0;
+      border: 1.5px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+    }
+    .admin-checklist-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--olive);
+      margin-bottom: 8px;
+    }
+    .admin-checklist-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .chk-btn {
+      flex: 1;
+      min-width: 140px;
+      height: 38px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1.5px solid #cce4bf;
+      color: #3b5035;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 14px;
+      transition: all .2s ease;
+      font-family: inherit;
+    }
+    .chk-btn:hover {
+      border-color: var(--olive);
+      background: #fafef8;
+      transform: translateY(-1px);
+    }
+    .chk-btn.chk-done {
+      background: var(--olive);
+      border-color: var(--olive);
+      color: #ffffff;
+    }
+    .chk-btn.chk-active {
+      background: #eef8ea;
+      border-color: var(--green);
+      color: var(--olive);
+      font-weight: 700;
+    }
+    .chk-indicator {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.06);
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .chk-done .chk-indicator {
+      background: rgba(255,255,255,0.25);
+      color: #ffffff;
+    }
+    .chk-active .chk-indicator {
+      background: var(--green);
+      color: #ffffff;
+    }
+
     /* Ticket Action Buttons Row */
     .ticket-actions-row {
       display: flex;
@@ -1613,18 +1689,37 @@
       var conf = c.aiAnalysis && c.aiAnalysis.confidence ? Math.round(c.aiAnalysis.confidence * 100) : 95;
       var accuracyPill = '<span class="accuracy-pill">' + conf + '% AI Confidence</span>';
 
-      var isDone2 = !!c.aiAnalysis;
-      var isDone3 = c.status === 'in_progress' || c.status === 'solving' || c.fieldCrew;
-      var isDone4 = c.status === 'resolved' || c.status === 'closed';
+      var isSolved = c.status === 'resolved' || c.status === 'closed';
+      var isSolving = c.status === 'in_progress' || c.status === 'solving' || !!c.fieldCrew || isSolved;
+      var isUnderstood = c.understood || c.status === 'acknowledged' || isSolving || isSolved;
 
       var stepperHtml = '<div class="stepper-track">' +
-        '<span class="stepper-node done">Report Lodged</span>' +
+        '<span class="stepper-node done">1. Report Lodged</span>' +
         '<span class="stepper-arrow">→</span>' +
-        '<span class="stepper-node ' + (isDone2 ? 'done' : '') + '">Triaged</span>' +
+        '<span class="stepper-node ' + (isUnderstood ? 'done' : '') + '">2. Problem Understood</span>' +
         '<span class="stepper-arrow">→</span>' +
-        '<span class="stepper-node ' + (isDone3 ? 'active done' : '') + '">' + (c.fieldCrew ? 'Crew Deployed' : 'Solving') + '</span>' +
+        '<span class="stepper-node ' + (isSolved ? 'done' : (isSolving ? 'active done' : '')) + '">3. Solving</span>' +
         '<span class="stepper-arrow">→</span>' +
-        '<span class="stepper-node ' + (isDone4 ? 'done' : '') + '">' + (isDone4 ? 'Resolved & Verified' : 'Resolved') + '</span>' +
+        '<span class="stepper-node ' + (isSolved ? 'done' : '') + '">4. Solved</span>' +
+        '</div>';
+
+      var checklistHtml =
+        '<div class="admin-checklist-wrap">' +
+          '<div class="admin-checklist-title">Resolution Workflow Checklist</div>' +
+          '<div class="admin-checklist-row">' +
+            '<button type="button" class="chk-btn ' + (isUnderstood ? 'chk-done' : 'chk-active') + '" onclick="opChecklistStep(&quot;' + c.id + '&quot;, &quot;understood&quot;)">' +
+              '<span class="chk-indicator">' + (isUnderstood ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M20 6L9 17l-5-5"/></svg>' : '1') + '</span>' +
+              '<span>Problem Understood</span>' +
+            '</button>' +
+            '<button type="button" class="chk-btn ' + (isSolved ? 'chk-done' : (isSolving ? 'chk-active' : '')) + '" onclick="opChecklistStep(&quot;' + c.id + '&quot;, &quot;solving&quot;)">' +
+              '<span class="chk-indicator">' + (isSolving ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M20 6L9 17l-5-5"/></svg>' : '2') + '</span>' +
+              '<span>Solving</span>' +
+            '</button>' +
+            '<button type="button" class="chk-btn ' + (isSolved ? 'chk-done' : '') + '" onclick="opChecklistStep(&quot;' + c.id + '&quot;, &quot;solved&quot;)">' +
+              '<span class="chk-indicator">' + (isSolved ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M20 6L9 17l-5-5"/></svg>' : '3') + '</span>' +
+              '<span>Solved</span>' +
+            '</button>' +
+          '</div>' +
         '</div>';
 
       var crewCalloutHtml = '';
@@ -1692,6 +1787,7 @@
         '</div>' +
 
         stepperHtml +
+        checklistHtml +
         crewCalloutHtml +
         endorsementHtml +
         actionsHtml;
@@ -1699,74 +1795,108 @@
       return card;
     }
 
-    function opDispatchCrew(id) {
+    function opChecklistStep(id, step) {
       var c = getById(id);
       if (!c) return;
-      var crew = prompt('Enter field maintenance squad name and technician in charge:', 'Department Rapid Response Squad Alpha');
-      if (!crew || !crew.trim()) return;
-      var eta = prompt('Estimated repair time / ETA (e.g. "Within 4 hours", "By 5:00 PM today"):', 'Within 4 hours');
-      if (!eta || !eta.trim()) return;
 
-      c.status = 'in_progress';
-      c.fieldCrew = {
-        crewName: crew.trim(),
-        eta: eta.trim(),
-        dispatchedAt: Date.now(),
-        dispatchedBy: currentOfficial.name + ' (' + currentOfficial.roleTitle + ')'
-      };
+      if (step === 'understood') {
+        c.understood = true;
+        if (c.status === 'open' || c.status === 'submitted' || !c.status) {
+          c.status = 'acknowledged';
+        }
+        if (!c.routeHistory) c.routeHistory = [];
+        c.routeHistory.push({
+          id: 'm_' + Date.now(),
+          ts: Date.now(),
+          stage: 'Problem Understood',
+          actor: currentOfficial.name,
+          role: currentOfficial.roleTitle,
+          note: 'Department authority reviewed the issue, verified scope and accepted remediation responsibilities.'
+        });
+        saveOne(c);
+        showToast('Ticket #' + id + ': Problem understood by ' + currentOfficial.name + '.', 'success');
+      } else if (step === 'solving') {
+        c.understood = true;
+        c.status = 'in_progress';
+        c.solving = true;
+        if (!c.fieldCrew) {
+          c.fieldCrew = {
+            crewName: currentOfficial.departmentName + ' Rapid Response Crew',
+            eta: 'Within 4 hours',
+            dispatchedAt: Date.now(),
+            dispatchedBy: currentOfficial.name
+          };
+        }
+        if (!c.routeHistory) c.routeHistory = [];
+        c.routeHistory.push({
+          id: 'm_' + Date.now(),
+          ts: Date.now(),
+          stage: 'Solving (Crew Dispatched)',
+          actor: currentOfficial.name,
+          role: currentOfficial.roleTitle,
+          note: 'Field maintenance crew engaged. On-site repairs and troubleshooting underway.'
+        });
+        saveOne(c);
+        showToast('Ticket #' + id + ': Switched to Solving. Field crew active.', 'success');
+      } else if (step === 'solved') {
+        c.understood = true;
+        c.status = 'resolved';
+        c.resolvedAt = Date.now();
+        if (!c.routeHistory) c.routeHistory = [];
+        c.routeHistory.push({
+          id: 'm_' + Date.now(),
+          ts: Date.now(),
+          stage: 'Solved & Verified',
+          actor: currentOfficial.name,
+          role: currentOfficial.roleTitle,
+          note: 'Issue completely resolved, verified on-site, and signed off by department.'
+        });
+        saveOne(c);
+        showToast('Ticket #' + id + ': Marked Solved & Verified.', 'success');
+      }
 
-      if (!c.routeHistory) c.routeHistory = [];
-      c.routeHistory.push({
-        id: 'm_' + Date.now(),
-        ts: Date.now(),
-        stage: 'Solving (Crew Dispatched)',
-        actor: currentOfficial.name,
-        role: currentOfficial.roleTitle,
-        note: 'Field crew assigned: ' + crew.trim() + ' (ETA: ' + eta.trim() + '). On-site inspection and repairs underway.'
-      });
+      renderDashboard();
+    }
 
-      saveOne(c);
-      showToast('Field crew dispatched for ticket #' + id + '. Student tracker and live map updated.', 'success');
+    function opDispatchCrew(id) {
+      opChecklistStep(id, 'solving');
     }
 
     function opSetStatus(id, status) {
+      if (status === 'resolved') {
+        opChecklistStep(id, 'solved');
+        return;
+      }
       var c = getById(id);
       if (!c) return;
-      var defaultNote = status === 'resolved' ? 'Defect repaired, tested and verified on-site by department authority.' : 'Status updated.';
-      var note = prompt('Enter official status note for ' + id + ' (' + status.toUpperCase() + '):', defaultNote);
-      if (note === null) return;
-
       c.status = status;
       if (!c.routeHistory) c.routeHistory = [];
       c.routeHistory.push({
         id: 'm_' + Date.now(),
         ts: Date.now(),
-        stage: status === 'resolved' ? 'Resolved & Verified' : 'Status: ' + status,
+        stage: 'Status: ' + status,
         actor: currentOfficial.name,
         role: currentOfficial.roleTitle,
-        note: note.trim()
+        note: 'Official status calibrated to ' + status + '.'
       });
-
       saveOne(c);
-      showToast('Ticket #' + id + ' updated to ' + status.toUpperCase() + '.', 'success');
+      renderDashboard();
+      showToast('Ticket #' + id + ' status updated to ' + status.toUpperCase() + '.', 'success');
     }
 
     function opPostReply(id) {
       var c = getById(id);
       if (!c) return;
-      var msg = prompt('Enter official citizen response for ticket #' + id + ':');
-      if (!msg || !msg.trim()) return;
-
+      var note = 'Department update: Works underway on site by ' + currentOfficial.name + '.';
       if (!c.replies) c.replies = [];
       c.replies.push({
         id: 'r_' + Date.now(),
         complaintId: id,
         author: currentOfficial.name + ' (' + currentOfficial.departmentName + ')',
         role: currentOfficial.roleTitle,
-        message: msg.trim(),
+        message: note,
         ts: Date.now()
       });
-
       if (!c.routeHistory) c.routeHistory = [];
       c.routeHistory.push({
         id: 'm_' + Date.now(),
@@ -1774,41 +1904,28 @@
         stage: 'Official Statement Posted',
         actor: currentOfficial.name,
         role: currentOfficial.roleTitle,
-        note: msg.trim()
+        note: note
       });
-
       saveOne(c);
-      showToast('Official response posted to ticket #' + id + '.', 'success');
+      renderDashboard();
+      showToast('Official update note posted to ticket #' + id + '.', 'info');
     }
 
     function opReassignDept(id) {
       var c = getById(id);
       if (!c) return;
-      var deptList = [
-        '1. PHE & Facilities Operations Depot (Water)',
-        '2. Electrical Maintenance & Substation Desk (Power)',
-        '3. Estates & Clean Campus Desk (Sanitation)',
-        '4. Hostels & Housing Board (Residential)',
-        '5. CCSA IT & Campus Network Operations (Wi-Fi)',
-        '6. Central Library Support Directorate (Library)',
-        '7. Proctorial Command & Security House (Safety)'
-      ].join('\n');
-
-      var choice = prompt('Select new destination department number (1-7):\n\n' + deptList);
-      if (!choice) return;
-
-      var depts = {
-        '1': { name: 'PHE & Facilities Operations Depot', cat: 'water' },
-        '2': { name: 'Electrical Maintenance & Substation Desk', cat: 'electricity' },
-        '3': { name: 'Estates & Clean Campus Desk', cat: 'sanitation' },
-        '4': { name: 'Hostels & Housing Board', cat: 'hostel' },
-        '5': { name: 'CCSA IT & Campus Network Operations', cat: 'internet' },
-        '6': { name: 'Central Library Support Directorate', cat: 'library' },
-        '7': { name: 'Proctorial Command & Security House', cat: 'safety' }
-      };
-
-      var target = depts[choice.trim()];
-      if (!target) { showToast('Invalid selection.', 'error'); return; }
+      var depts = [
+        { name: 'PHE & Facilities Operations Depot', cat: 'water' },
+        { name: 'Electrical Maintenance & Substation Desk', cat: 'electricity' },
+        { name: 'Estates & Clean Campus Desk', cat: 'sanitation' },
+        { name: 'Hostels & Housing Board', cat: 'hostel' },
+        { name: 'CCSA IT & Campus Network Operations', cat: 'internet' },
+        { name: 'Central Library Support Directorate', cat: 'library' },
+        { name: 'Proctorial Command & Security House', cat: 'safety' }
+      ];
+      var currentIdx = depts.findIndex(function(d){ return d.name === c.dept; });
+      var nextIdx = (currentIdx + 1) % depts.length;
+      var target = depts[nextIdx];
 
       c.dept = target.name;
       c.cat = target.cat;
@@ -1825,19 +1942,18 @@
       });
 
       saveOne(c);
-      showToast('Ticket #' + id + ' successfully reassigned to ' + target.name + '.', 'success');
+      renderDashboard();
+      showToast('Ticket #' + id + ' re-routed to ' + target.name + '.', 'success');
     }
 
     function opOverridePriority(id) {
       var c = getById(id);
       if (!c) return;
-      var p = prompt('Set new priority level:\n1 = P1 Urgent Hazard\n2 = P2 High\n3 = P3 Medium\n4 = P4 Low', (c.aiAnalysis ? c.aiAnalysis.priority : '2'));
-      if (!p || !['1','2','3','4'].includes(p.trim())) return;
-
-      var pNum = parseInt(p.trim(), 10);
+      var cur = (c.aiAnalysis && c.aiAnalysis.priority) || 3;
+      var next = cur === 1 ? 2 : 1;
       var labels = { 1: 'Immediate Hazard', 2: 'High', 3: 'Medium', 4: 'Low' };
-      c.urgency = labels[pNum];
-      if (c.aiAnalysis) c.aiAnalysis.priority = pNum;
+      c.urgency = labels[next];
+      if (c.aiAnalysis) c.aiAnalysis.priority = next;
 
       if (!c.routeHistory) c.routeHistory = [];
       c.routeHistory.push({
@@ -1846,26 +1962,18 @@
         stage: 'Priority Override by Administration',
         actor: currentOfficial.name,
         role: currentOfficial.roleTitle,
-        note: 'Priority calibrated to P' + pNum + ' (' + labels[pNum] + ').'
+        note: 'Priority escalated to P' + next + ' (' + labels[next] + ').'
       });
 
       saveOne(c);
-      showToast('Ticket #' + id + ' priority adjusted to P' + pNum + '.', 'warning');
+      renderDashboard();
+      showToast('Ticket #' + id + ' priority set to P' + next + ' (' + labels[next] + ').', 'warning');
     }
 
     function opConfidentialInquiry(id) {
       var c = getById(id);
       if (!c) return;
-      var action = prompt('Proctorial Board Security Action:\n1. Dispatch Campus Security House Patrol\n2. Summon Accused for Confidential Proctorial Inquiry\n3. Institute Anti-Ragging Committee Tribunal', '1');
-      if (!action) return;
-
-      var acts = {
-        '1': 'Dispatched Campus Security House Patrol for immediate perimeter inspection.',
-        '2': 'Summoned named individuals for in-camera confidential proctorial inquiry.',
-        '3': 'Instituted Formal Anti-Ragging & Student Disciplinary Committee Tribunal.'
-      };
-      var note = acts[action.trim()] || 'Proctorial action initiated.';
-
+      var note = 'Dispatched Campus Security House Patrol for immediate perimeter inspection.';
       if (!c.routeHistory) c.routeHistory = [];
       c.routeHistory.push({
         id: 'm_' + Date.now(),
@@ -1875,25 +1983,22 @@
         role: currentOfficial.roleTitle,
         note: note
       });
-
       saveOne(c);
-      showToast('Proctorial security record logged for sensitive case #' + id + '.', 'info');
+      renderDashboard();
+      showToast('Proctorial security record logged for case #' + id + '.', 'info');
     }
 
     function opEscalateToRegistrar(id) {
       var c = getById(id);
       if (!c) return;
-      var reason = prompt('Enter official DUSU reason for executive escalation to Registrar:', 'Unresolved for over 48 hours. Student union demands immediate administrative intervention.');
-      if (!reason || !reason.trim()) return;
-
       c.status = 'escalated';
+      var reason = 'Unresolved SLA breach. Student union demands immediate administrative intervention.';
       c.escalation = {
         isEscalated: true,
         escalatedAt: Date.now(),
-        reason: reason.trim(),
+        reason: reason,
         escalatedBy: currentOfficial.name + ' (' + currentOfficial.roleTitle + ')'
       };
-
       if (!c.routeHistory) c.routeHistory = [];
       c.routeHistory.push({
         id: 'm_' + Date.now(),
@@ -1901,74 +2006,53 @@
         stage: 'Escalated to Registrar Emergency Docket',
         actor: currentOfficial.name,
         role: currentOfficial.roleTitle,
-        note: reason.trim()
+        note: reason
       });
-
       saveOne(c);
-      showToast("Ticket #" + id + " escalated to University Registrar Emergency Docket.", "warning");
+      renderDashboard();
+      showToast('Ticket #' + id + ' escalated to Registrar Emergency Docket.', 'warning');
     }
 
     function opEndorseCouncil(id) {
       var c = getById(id);
       if (!c) return;
-      var note = prompt('Enter DUSU Student Council endorsement note on this complaint:', 'DUSU Executive Council inspected the site and demands immediate department resolution before 5 PM.');
-      if (!note || !note.trim()) return;
-
+      var note = 'DUSU Executive Council inspected site and demands immediate department resolution.';
       c.dusuEndorsement = {
-        note: note.trim(),
-        endorsedBy: currentOfficial.name,
-        ts: Date.now()
+        endorsedBy: currentOfficial.name + ' (' + currentOfficial.roleTitle + ')',
+        endorsedAt: Date.now(),
+        note: note
       };
-
-      if (!c.replies) c.replies = [];
-      c.replies.push({
-        id: 'r_' + Date.now(),
-        complaintId: id,
-        author: currentOfficial.name + ' (' + currentOfficial.roleTitle + ')',
-        role: 'Student Union Executive',
-        message: note.trim(),
-        ts: Date.now()
-      });
-
       if (!c.routeHistory) c.routeHistory = [];
       c.routeHistory.push({
         id: 'm_' + Date.now(),
         ts: Date.now(),
-        stage: 'DUSU Council Endorsement',
+        stage: 'DUSU Council Endorsement Attached',
         actor: currentOfficial.name,
         role: currentOfficial.roleTitle,
-        note: note.trim()
+        note: note
       });
-
       saveOne(c);
+      renderDashboard();
       showToast('DUSU Council Endorsement attached to ticket #' + id + '.', 'success');
     }
 
     function opVerifyStudent(id) {
       var c = getById(id);
       if (!c) return;
-      var note = prompt('Enter student verification note (conducted with reporter):', 'Student Council rep physically checked the premises with the reporter. Rectification confirmed complete.');
-      if (!note || !note.trim()) return;
-
       c.studentVerified = true;
-      c.groundVerification = {
-        verified: true,
-        verifiedBy: currentOfficial.name,
-        note: note.trim(),
-        ts: Date.now()
-      };
-
+      c.studentVerifiedBy = currentOfficial.name + ' (' + currentOfficial.roleTitle + ')';
+      c.studentVerifiedAt = Date.now();
       if (!c.routeHistory) c.routeHistory = [];
       c.routeHistory.push({
         id: 'm_' + Date.now(),
         ts: Date.now(),
-        stage: 'Student Ground Verification Complete',
+        stage: 'Student Ground Verification Stamped',
         actor: currentOfficial.name,
         role: currentOfficial.roleTitle,
-        note: note.trim()
+        note: 'Student Council rep physically checked the premises with the reporter. Rectification confirmed complete.'
       });
-
       saveOne(c);
+      renderDashboard();
       showToast('Ground Student Verification stamped on ticket #' + id + '.', 'success');
     }
 
