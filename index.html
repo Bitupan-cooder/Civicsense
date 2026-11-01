@@ -70,22 +70,20 @@ body.intro #app{transform:scale(.9);border-radius:28px}
 .hero-glass{position:absolute;inset:0;z-index:5;pointer-events:none}
 
 /* ════════════ 3D HERO CIVIC STAGE (GSAP) ════════════ */
-.hero-3d-container{position:absolute;left:0;right:0;bottom:0;height:65%;min-height:360px;z-index:3;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;perspective:1200px}
-.hero-3d-stage{position:relative;width:min(1380px,96vw);height:100%;display:flex;align-items:flex-end;justify-content:space-evenly;padding-bottom:14px;transform-style:preserve-3d;will-change:transform}
-.hero-stage-ground{position:absolute;bottom:14px;left:4%;right:4%;height:2px;background:linear-gradient(90deg,transparent,rgba(30,168,84,.4) 15%,rgba(181,248,0,.85) 50%,rgba(30,168,84,.4) 85%,transparent);pointer-events:none;z-index:1}
-.hero-stage-glow{position:absolute;bottom:0;left:10%;right:10%;height:100px;background:radial-gradient(ellipse at bottom,rgba(181,248,0,.2),rgba(30,168,84,.08),transparent 72%);pointer-events:none;z-index:0}
-.hero-3d-card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;pointer-events:auto;transform-style:preserve-3d;transition:transform .3s cubic-bezier(.25,.8,.25,1);user-select:none;padding:0 4px}
-.hero-3d-card:hover{z-index:12}
-.hero-3d-card:hover .char-tag{background:var(--blue);color:#fff;border-color:var(--blue);transform:translateZ(30px) translateY(-4px) scale(1.05);box-shadow:0 8px 18px rgba(0,54,255,.28)}
-.hero-3d-card:hover .char-img{filter:drop-shadow(0 16px 26px rgba(30,168,84,.38))}
-.hero-3d-card:hover .char-shadow{transform:scale(1.22);opacity:.65}
-.char-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.94);border:1.5px solid var(--line);color:var(--olive);font-size:11px;font-weight:700;letter-spacing:.03em;white-space:nowrap;box-shadow:0 3px 12px rgba(0,0,0,.08);margin-bottom:8px;transition:all .25s ease;transform-style:preserve-3d;transform:translateZ(24px)}
-.char-tag-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+.hero-3d-container{position:absolute;left:0;right:0;bottom:0;height:70%;min-height:380px;z-index:8;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;perspective:1100px;perspective-origin:50% 70%}
+.hero-3d-stage{position:relative;width:min(1380px,96vw);height:100%;display:flex;align-items:flex-end;justify-content:space-evenly;padding-bottom:18px;transform-style:preserve-3d;will-change:transform}
+.hero-stage-ground{position:absolute;bottom:18px;left:3%;right:3%;height:2px;background:linear-gradient(90deg,transparent,rgba(30,168,84,.35) 15%,rgba(181,248,0,.8) 50%,rgba(30,168,84,.35) 85%,transparent);pointer-events:none;z-index:1}
+.hero-stage-glow{position:absolute;bottom:0;left:8%;right:8%;height:120px;background:radial-gradient(ellipse at bottom,rgba(181,248,0,.22),rgba(30,168,84,.09),transparent 72%);pointer-events:none;z-index:0}
+.hero-3d-card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;pointer-events:auto;transform-style:preserve-3d;will-change:transform;user-select:none;padding:0 6px}
+.hero-3d-card:hover{z-index:20}
 .char-img-wrap{position:relative;display:flex;align-items:flex-end;justify-content:center;transform-style:preserve-3d;will-change:transform}
-.char-img{height:clamp(210px,36vh,370px);width:auto;max-width:min(240px,18vw);object-fit:contain;display:block;pointer-events:none;filter:drop-shadow(0 8px 16px rgba(10,30,10,.16));transition:filter .3s ease;transform:translateZ(14px)}
-.char-shadow{width:75%;height:14px;border-radius:50%;background:radial-gradient(closest-side,rgba(10,30,10,.28),transparent);margin-top:-6px;transition:all .3s ease;pointer-events:none}
-.char-tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#0e3018;color:#fff;font-size:10.5px;font-weight:600;padding:4px 9px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:20}
-.hero-3d-card:hover .char-tooltip{opacity:1;transform:translateX(-50%) translateY(-3px)}
+.char-img{height:clamp(230px,38vh,400px);width:auto;max-width:min(250px,18vw);object-fit:contain;display:block;pointer-events:none;filter:drop-shadow(0 14px 22px rgba(10,34,14,.22)) drop-shadow(0 2px 6px rgba(0,0,0,.08));transition:filter .35s ease;transform:translateZ(20px)}
+.char-pedestal{position:relative;width:90%;height:22px;display:flex;align-items:center;justify-content:center;margin-top:-10px;transform-style:preserve-3d;pointer-events:none}
+.char-pedestal-ring{position:absolute;width:100%;height:18px;border-radius:50%;border:1.5px solid rgba(181,248,0,.55);background:radial-gradient(ellipse at center,rgba(181,248,0,.24) 0%,rgba(30,168,84,.08) 55%,transparent 75%);transform:rotateX(72deg);box-shadow:0 0 16px rgba(181,248,0,.28);transition:all .35s cubic-bezier(.2,.8,.2,1)}
+.char-shadow{position:absolute;width:84%;height:14px;border-radius:50%;background:radial-gradient(closest-side,rgba(10,30,10,.36),transparent);transform:rotateX(72deg);transition:all .35s ease}
+.hero-3d-card:hover .char-img{filter:drop-shadow(0 22px 34px rgba(30,168,84,.44)) drop-shadow(0 4px 10px rgba(0,0,0,.14))}
+.hero-3d-card:hover .char-pedestal-ring{transform:rotateX(72deg) scale(1.22);border-color:rgba(0,54,255,.65);box-shadow:0 0 24px rgba(0,54,255,.45);background:radial-gradient(ellipse at center,rgba(0,54,255,.2) 0%,rgba(30,168,84,.12) 55%,transparent 75%)}
+.hero-3d-card:hover .char-shadow{transform:rotateX(72deg) scale(1.18);opacity:.55}
 
 /* ══════════════════════ STATS ═════════════════════════ */
 .stats{position:relative;height:100vh;min-height:680px;overflow:hidden;background:#fff}
@@ -323,53 +321,58 @@ nav.f-links a:hover{text-decoration:underline}
     <div class="hero-stage-ground" aria-hidden="true"></div>
     <div class="hero-3d-stage" id="hero3dStage">
       <!-- 01: Clean Quad & Recycling -->
-      <div class="hero-3d-card" id="charCard1" data-cat="waste" onclick="selectCat('waste')" aria-label="01: Clean Quad &amp; Sanitation">
-        <div class="char-tooltip">Click to report waste or litter</div>
-        <div class="char-tag"><span class="char-tag-dot"></span>01 · CLEAN QUAD</div>
+      <div class="hero-3d-card" id="charCard1" data-cat="waste" onclick="selectCat('waste')" aria-label="Clean Quad &amp; Sanitation">
         <div class="char-img-wrap">
           <img class="char-img" src="Flat Assets/civic/char-1-recycling.png" onerror="this.src='public/flat-assets/civic-cutouts/char-1-recycling.png'" alt="Student sorting recycling" />
         </div>
-        <div class="char-shadow" aria-hidden="true"></div>
+        <div class="char-pedestal" aria-hidden="true">
+          <div class="char-pedestal-ring"></div>
+          <div class="char-shadow"></div>
+        </div>
       </div>
 
       <!-- 02: Water & Grounds Care -->
-      <div class="hero-3d-card" id="charCard2" data-cat="water" onclick="selectCat('water')" aria-label="02: Water &amp; Grounds Care">
-        <div class="char-tooltip">Click to report water leaks or supply</div>
-        <div class="char-tag"><span class="char-tag-dot"></span>02 · WATER &amp; GROUNDS</div>
+      <div class="hero-3d-card" id="charCard2" data-cat="water" onclick="selectCat('water')" aria-label="Water &amp; Grounds Care">
         <div class="char-img-wrap">
           <img class="char-img" src="Flat Assets/civic/char-2-planting.png" onerror="this.src='public/flat-assets/civic-cutouts/char-2-planting.png'" alt="Student planting sapling" />
         </div>
-        <div class="char-shadow" aria-hidden="true"></div>
+        <div class="char-pedestal" aria-hidden="true">
+          <div class="char-pedestal-ring"></div>
+          <div class="char-shadow"></div>
+        </div>
       </div>
 
       <!-- 03: Power & Voice -->
-      <div class="hero-3d-card" id="charCard3" data-cat="power" onclick="selectCat('power')" aria-label="03: Power &amp; Lighting">
-        <div class="char-tooltip">Click to report power, lighting &amp; outages</div>
-        <div class="char-tag"><span class="char-tag-dot"></span>03 · POWER &amp; LIGHTS</div>
+      <div class="hero-3d-card" id="charCard3" data-cat="power" onclick="selectCat('power')" aria-label="Power &amp; Lighting">
         <div class="char-img-wrap">
           <img class="char-img" src="Flat Assets/civic/char-3-megaphone.png" onerror="this.src='public/flat-assets/civic-cutouts/char-3-megaphone.png'" alt="Student announcing alert with megaphone" />
         </div>
-        <div class="char-shadow" aria-hidden="true"></div>
+        <div class="char-pedestal" aria-hidden="true">
+          <div class="char-pedestal-ring"></div>
+          <div class="char-shadow"></div>
+        </div>
       </div>
 
       <!-- 04: Safety & SLA Audit -->
-      <div class="hero-3d-card" id="charCard4" data-cat="safety" onclick="selectCat('safety')" aria-label="04: Safety &amp; SLA Audit">
-        <div class="char-tooltip">Click to report safety hazards &amp; security</div>
-        <div class="char-tag"><span class="char-tag-dot"></span>04 · SAFETY &amp; AUDIT</div>
+      <div class="hero-3d-card" id="charCard4" data-cat="safety" onclick="selectCat('safety')" aria-label="Safety &amp; SLA Audit">
         <div class="char-img-wrap">
           <img class="char-img" src="Flat Assets/civic/char-4-auditor.png" onerror="this.src='public/flat-assets/civic-cutouts/char-4-auditor.png'" alt="Student auditor tracking turnaround" />
         </div>
-        <div class="char-shadow" aria-hidden="true"></div>
+        <div class="char-pedestal" aria-hidden="true">
+          <div class="char-pedestal-ring"></div>
+          <div class="char-shadow"></div>
+        </div>
       </div>
 
       <!-- 05: Hostel & Direct Dispatch -->
-      <div class="hero-3d-card" id="charCard5" data-cat="hostel" onclick="selectCat('hostel')" aria-label="05: Hostel Dispatch">
-        <div class="char-tooltip">Click to report hostel &amp; residential issues</div>
-        <div class="char-tag"><span class="char-tag-dot"></span>05 · HOSTEL DISPATCH</div>
+      <div class="hero-3d-card" id="charCard5" data-cat="hostel" onclick="selectCat('hostel')" aria-label="Hostel Dispatch">
         <div class="char-img-wrap">
           <img class="char-img" src="Flat Assets/civic/char-5-dispatch.png" onerror="this.src='public/flat-assets/civic-cutouts/char-5-dispatch.png'" alt="Student dispatching redressal ticket" />
         </div>
-        <div class="char-shadow" aria-hidden="true"></div>
+        <div class="char-pedestal" aria-hidden="true">
+          <div class="char-pedestal-ring"></div>
+          <div class="char-shadow"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1252,53 +1255,200 @@ function setupScroll(){
   ScrollTrigger.refresh();
 
   /* 3D Civic Characters Parallax & Continuous Levitation */
-  var heroEl=document.getElementById('hero');
-  var stageEl=document.getElementById('hero3dStage');
-  if(heroEl && stageEl && !reduce){
-    heroEl.addEventListener('mousemove',function(e){
-      var rect=heroEl.getBoundingClientRect();
-      var x=(e.clientX-rect.left)/rect.width - 0.5;
-      var y=(e.clientY-rect.top)/rect.height - 0.5;
-      gsap.to(stageEl,{
-        rotationY:x*20,
-        rotationX:-y*14,
-        transformPerspective:1200,
-        ease:'power1.out',
-        duration:0.6
-      });
-      document.querySelectorAll('.hero-3d-card').forEach(function(card,idx){
-        var factor=(idx%2===0?1.25:0.85);
-        gsap.to(card,{
-          x:x*26*factor,
-          y:y*14*factor,
-          duration:0.7,
-          ease:'power1.out'
-        });
-      });
-    });
-    heroEl.addEventListener('mouseleave',function(){
-      gsap.to(stageEl,{rotationY:0,rotationX:0,duration:1.1,ease:'power2.out'});
-      document.querySelectorAll('.hero-3d-card').forEach(function(card){
-        gsap.to(card,{x:0,y:0,duration:1.1,ease:'power2.out'});
-      });
-    });
-  }
+  init3DStage();
+}
+window.addEventListener('load',function(){if(ScrollTrigger.getAll().length)ScrollTrigger.refresh();init3DStage();});
 
-  document.querySelectorAll('.hero-3d-card').forEach(function(card,idx){
-    var wrap=card.querySelector('.char-img-wrap');
-    if(wrap && !reduce){
-      gsap.to(wrap,{
-        y:idx%2===0?-12:-7,
-        duration:2.5+idx*0.35,
-        repeat:-1,
-        yoyo:true,
-        ease:'sine.inOut',
-        delay:idx*0.25
+/* ════════════ 3D CIVIC CHARACTERS STAGE ENGINE (GSAP) ════════════ */
+var _stage3DInitialized = false;
+function init3DStage(){
+  if(_stage3DInitialized) return;
+  var heroEl = document.getElementById('hero');
+  var stageEl = document.getElementById('hero3dStage');
+  var cards = document.querySelectorAll('.hero-3d-card');
+  if(!heroEl || !stageEl || !cards.length) return;
+  _stage3DInitialized = true;
+
+  var isHoveringCard = false;
+
+  // 1. Continuous 3D Floating & Breathing for each character figurine
+  cards.forEach(function(card, idx){
+    var wrap = card.querySelector('.char-img-wrap');
+    var ring = card.querySelector('.char-pedestal-ring');
+    var shadow = card.querySelector('.char-shadow');
+    if(!wrap) return;
+
+    var floatY = (idx % 2 === 0) ? -15 : -9;
+    var dur = 2.4 + idx * 0.35;
+    var rotZ = (idx % 2 === 0) ? 1.4 : -1.4;
+
+    gsap.to(wrap, {
+      y: floatY,
+      rotationZ: rotZ,
+      duration: dur,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+      delay: idx * 0.18
+    });
+
+    if(shadow){
+      gsap.to(shadow, {
+        scale: 0.88,
+        opacity: 0.4,
+        duration: dur,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+        delay: idx * 0.18
+      });
+    }
+
+    if(ring){
+      gsap.to(ring, {
+        scale: 0.94,
+        duration: dur,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+        delay: idx * 0.18
       });
     }
   });
+
+  // 2. Global 3D Parallax Tilt over entire hero section
+  heroEl.addEventListener('mousemove', function(e){
+    var rect = heroEl.getBoundingClientRect();
+    var x = (e.clientX - rect.left) / rect.width - 0.5;   // -0.5 to 0.5
+    var y = (e.clientY - rect.top) / rect.height - 0.5;   // -0.5 to 0.5
+
+    // Stage tilts in 3D perspective
+    gsap.to(stageEl, {
+      rotationY: x * 18,
+      rotationX: -y * 12,
+      transformPerspective: 1100,
+      duration: 0.55,
+      ease: 'power2.out',
+      overwrite: 'auto'
+    });
+
+    // Outer cards have dynamic stereo parallax
+    if(!isHoveringCard){
+      cards.forEach(function(card, idx){
+        var cardOffset = (idx - 2) * 3;
+        gsap.to(card, {
+          x: x * (20 + idx * 3.5),
+          y: y * 12,
+          rotationY: x * 14 - cardOffset,
+          rotationX: -y * 10,
+          duration: 0.65,
+          ease: 'power2.out',
+          overwrite: 'auto'
+        });
+      });
+    }
+  });
+
+  heroEl.addEventListener('mouseleave', function(){
+    gsap.to(stageEl, {
+      rotationY: 0,
+      rotationX: 0,
+      duration: 0.9,
+      ease: 'power2.out',
+      overwrite: 'auto'
+    });
+    cards.forEach(function(card){
+      gsap.to(card, {
+        x: 0,
+        y: 0,
+        rotationY: 0,
+        rotationX: 0,
+        scale: 1,
+        z: 0,
+        duration: 0.9,
+        ease: 'power2.out',
+        overwrite: 'auto'
+      });
+    });
+  });
+
+  // 3. Individual 3D Card Hover & Tilt (3D Figurine Focus)
+  cards.forEach(function(card){
+    card.addEventListener('mouseenter', function(){
+      isHoveringCard = true;
+      gsap.to(card, {
+        scale: 1.08,
+        z: 45,
+        duration: 0.35,
+        ease: 'power2.out',
+        overwrite: 'auto'
+      });
+      // Subtly push sibling characters deeper into background
+      cards.forEach(function(other){
+        if(other !== card){
+          gsap.to(other, {
+            scale: 0.96,
+            z: -20,
+            opacity: 0.85,
+            duration: 0.35,
+            ease: 'power2.out',
+            overwrite: 'auto'
+          });
+        }
+      });
+    });
+
+    card.addEventListener('mousemove', function(e){
+      var b = card.getBoundingClientRect();
+      var px = (e.clientX - b.left) / b.width - 0.5;   // -0.5 to 0.5
+      var py = (e.clientY - b.top) / b.height - 0.5;   // -0.5 to 0.5
+
+      gsap.to(card, {
+        rotationY: px * 26,
+        rotationX: -py * 20,
+        duration: 0.25,
+        ease: 'power1.out',
+        overwrite: 'auto'
+      });
+    });
+
+    card.addEventListener('mouseleave', function(){
+      isHoveringCard = false;
+      gsap.to(card, {
+        scale: 1,
+        z: 0,
+        rotationY: 0,
+        rotationX: 0,
+        duration: 0.65,
+        ease: 'power2.out',
+        overwrite: 'auto'
+      });
+      cards.forEach(function(other){
+        gsap.to(other, {
+          scale: 1,
+          z: 0,
+          opacity: 1,
+          duration: 0.65,
+          ease: 'power2.out',
+          overwrite: 'auto'
+        });
+      });
+    });
+
+    // 4. Interactive Jump on Click
+    card.addEventListener('click', function(){
+      gsap.timeline()
+        .to(card, { y: -24, scale: 1.15, rotationY: '+=12', duration: 0.22, ease: 'power2.out' })
+        .to(card, { y: 0, scale: 1.08, rotationY: '-=12', duration: 0.42, ease: 'bounce.out' });
+    });
+  });
 }
-window.addEventListener('load',function(){if(ScrollTrigger.getAll().length)ScrollTrigger.refresh();});
+// Trigger immediate stage initialization
+if(document.readyState !== 'loading'){
+  init3DStage();
+} else {
+  document.addEventListener('DOMContentLoaded', init3DStage);
+}
 
 /* ══════════ FORM LOGIC ══════════ */
 /* ══════════ FORM & AI LOGIC ══════════ */
