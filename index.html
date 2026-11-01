@@ -85,11 +85,26 @@ body.intro #app{transform:scale(.9);border-radius:28px}
 .hero-3d-card:hover .char-pedestal-ring{transform:rotateX(72deg) scale(1.22);border-color:rgba(0,54,255,.65);box-shadow:0 0 24px rgba(0,54,255,.45);background:radial-gradient(ellipse at center,rgba(0,54,255,.2) 0%,rgba(30,168,84,.12) 55%,transparent 75%)}
 .hero-3d-card:hover .char-shadow{transform:rotateX(72deg) scale(1.18);opacity:.55}
 
-/* ══════════════════════ STATS ═════════════════════════ */
-.stats{position:relative;height:100vh;min-height:680px;overflow:hidden;background:#fff}
+/* ══════════════════════ STATS & CHERRY BLOSSOM SCROLL STORY ═════════════════════ */
+.stats{position:relative;height:100vh;min-height:700px;overflow:hidden;background:#fff}
 .sq-field{position:absolute;inset:0 0 auto 0;height:42%;z-index:1;pointer-events:none;-webkit-mask-image:linear-gradient(#000,transparent);mask-image:linear-gradient(#000,transparent)}
-.tree-wrap{position:absolute;z-index:2;left:50%;transform:translateX(-50%);bottom:-2%;width:min(340px,58vw)}
-.tree-wrap img{width:100%;display:block}
+.tree-wrap{position:absolute;z-index:2;left:50%;transform:translateX(-50%);bottom:0;width:min(450px,68vw);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;pointer-events:none}
+.tree-growth-container{position:relative;width:100%;transform-origin:bottom center;will-change:transform,opacity,filter;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.tree-growth-container img#tree{width:100%;display:block;filter:drop-shadow(0 14px 28px rgba(10,34,14,.18));transform-origin:bottom center}
+.tree-blossom-glow{position:absolute;inset:15% 10% 25%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(255,182,193,.4) 0%,rgba(255,105,180,.15) 50%,transparent 75%);filter:blur(28px);opacity:0;pointer-events:none;transition:opacity .6s ease}
+.glass-petals-wrap{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:3}
+.story-petal{position:absolute;width:13px;height:13px;background:linear-gradient(135deg,#ffb7c5,#ffc0cb);border-radius:13px 0 13px 0;opacity:0;filter:drop-shadow(0 2px 5px rgba(255,105,180,.35))}
+.planter-stage{position:absolute;bottom:0;left:50%;transform:translateX(-72%);width:min(210px,36vw);z-index:4;pointer-events:auto;transform-origin:bottom center;will-change:transform,opacity}
+#planterMan{width:100%;height:auto;display:block;filter:drop-shadow(0 12px 20px rgba(10,30,10,.24));pointer-events:none}
+.planter-shadow{width:86%;height:14px;margin:-6px auto 0;border-radius:50%;background:radial-gradient(closest-side,rgba(10,30,10,.36),transparent);transform:rotateX(70deg)}
+.planting-glow{position:absolute;bottom:16px;right:24px;width:42px;height:42px;border-radius:50%;background:radial-gradient(circle,rgba(181,248,0,.85) 0%,rgba(30,168,84,.4) 45%,transparent 72%);filter:blur(6px);opacity:.75;pointer-events:none}
+.sprout-beam{position:absolute;bottom:24px;right:42px;width:3px;height:65px;background:linear-gradient(to top,rgba(181,248,0,.95),rgba(255,182,193,.85),transparent);filter:blur(1px);opacity:.8;transform-origin:bottom center;pointer-events:none}
+.story-glass-card{position:absolute;top:10%;left:-20%;z-index:6;display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:18px;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(20px) saturate(190%);backdrop-filter:blur(20px) saturate(190%);border:1.5px solid rgba(255,255,255,.95);box-shadow:0 14px 32px rgba(30,168,84,.14),0 2px 8px rgba(0,0,0,.04);max-width:320px;pointer-events:auto;transition:transform .4s cubic-bezier(.2,.8,.2,1),opacity .4s ease}
+.story-glass-icon{font-size:22px;flex-shrink:0;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(181,248,0,.28);border:1px solid rgba(181,248,0,.6)}
+.story-glass-content{display:flex;flex-direction:column;gap:3px}
+.story-step-num{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--olive)}
+.story-step-title{font-size:13px;font-weight:700;letter-spacing:-.01em;color:var(--ink);margin:0}
+.story-step-desc{font-size:11.5px;line-height:1.35;color:#3b4a30;margin:0}
 .stats-inner{position:relative;z-index:3;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:0 16px}
 .cards{position:relative;z-index:4;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:min(880px,100%)}
 .card{height:148px;padding:18px 20px;border-radius:20px;background:var(--lime);display:flex;flex-direction:column;justify-content:space-between;-webkit-mask:radial-gradient(circle 17px at 0 55%,#0000 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 17px at 100% 55%,#0000 97%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 17px at 0 55%,#0000 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 17px at 100% 55%,#0000 97%,#000) right/51% 100% no-repeat}
@@ -97,9 +112,9 @@ body.intro #app{transform:scale(.9);border-radius:28px}
 .card-value{font-size:clamp(28px,3.4vw,42px);font-weight:600;letter-spacing:-.04em;color:#0a1a04;font-variant-numeric:tabular-nums}
 .cards-shadow{width:min(820px,94%);height:10px;margin-top:-16px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.07),transparent);z-index:3}
 .logos-wrap{position:relative;width:min(860px,100%);display:flex;align-items:center;justify-content:center}
-.band{position:absolute;z-index:5;left:50%;transform:translateX(-50%);top:-6px;width:min(340px,58vw);height:64px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);background:rgba(255,255,255,.12);-webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);pointer-events:none}
+.band{position:absolute;z-index:5;left:50%;transform:translateX(-50%);top:-6px;width:min(340px,58vw);height:64px;-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);background:rgba(255,255,255,.24);border:1px solid rgba(255,255,255,.55);box-shadow:0 8px 30px rgba(30,168,84,.09);-webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);pointer-events:none}
 .logos{position:relative;z-index:6;display:flex;align-items:center;justify-content:space-between;gap:18px;width:min(860px,100%);padding:6px 10px;color:#0a1e06}
-.logo-item{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;white-space:nowrap;opacity:.75}
+.logo-item{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;white-space:nowrap;opacity:.85}
 .logo-dot{width:7px;height:7px;border-radius:50%;background:var(--olive);flex-shrink:0}
 
 /* ══════════════════════ ACCORDION / HOW ══════════════════ */
@@ -240,7 +255,7 @@ nav.f-links a:hover{text-decoration:underline}
   .nav{gap:16px}.nav-links{display:none}
   .cards{grid-template-columns:repeat(2,1fr)}.card{height:120px}
   .logos{flex-wrap:wrap;justify-content:center;gap:10px 20px}.logo-item{font-size:10px}
-  .stats{height:auto;min-height:100vh;padding:90px 0 300px}.tree-wrap{bottom:0}.band{display:none}
+  .stats{height:auto;min-height:100vh;padding:90px 0 320px}.tree-wrap{bottom:0;width:min(380px,88vw)}.planter-stage{width:min(160px,40vw)}.story-glass-card{left:50%;transform:translateX(-50%);top:-12%;width:92%;max-width:340px}.band{display:none}
   .cat-grid{grid-template-columns:repeat(2,1fr)}
   .form-row{grid-template-columns:1fr}
   .preset-grid{grid-template-columns:1fr}
@@ -379,14 +394,40 @@ nav.f-links a:hover{text-decoration:underline}
   <div class="hero-glass" id="heroGlass" aria-hidden="true"></div>
 </section>
 
-<!-- ════════════ STATS ════════════ -->
+<!-- ════════════ STATS & CHERRY BLOSSOM SCROLL STORY ════════════ -->
 <section class="stats" id="stats">
   <div class="sq-field" data-count="22" aria-hidden="true"></div>
-  <div class="tree-wrap">
-    <img id="tree" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093215_95f11900-c4a0-49ad-bb2d-bb927dd594ee.png" alt="Campus trees" />
+
+  <!-- The Tree Wrap with Man Planting & Blossom Growth -->
+  <div class="tree-wrap" id="treeStoryWrap">
+    <!-- Growing Cherry Blossom Tree -->
+    <div class="tree-growth-container" id="treeGrowth">
+      <img id="tree" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093215_95f11900-c4a0-49ad-bb2d-bb927dd594ee.png" alt="Campus cherry blossom tree" />
+      <div class="tree-blossom-glow" id="treeBlossomGlow"></div>
+      <div class="glass-petals-wrap" id="glassPetalsWrap" aria-hidden="true"></div>
+    </div>
+
+    <!-- The Man Planting at Tree Base -->
+    <div class="planter-stage" id="planterStage" aria-label="Student planting cherry blossom sapling">
+      <img id="planterMan" src="Flat Assets/civic/char-2-planting.png" onerror="this.src='public/flat-assets/civic-cutouts/char-2-planting.png'" alt="Student planting sapling" />
+      <div class="planter-shadow"></div>
+      <div class="planting-glow" id="plantingGlow"></div>
+      <div class="sprout-beam" id="sproutBeam"></div>
+    </div>
+
+    <!-- Animated Glassy Storytelling Badge -->
+    <div class="story-glass-card" id="storyGlassBadge">
+      <div class="story-glass-icon" id="storyGlassIcon">🌱</div>
+      <div class="story-glass-content">
+        <span class="story-step-num" id="storyStepNum">STEP 01 / 03</span>
+        <h4 class="story-step-title" id="storyStepTitle">Community Sows the Seed</h4>
+        <p class="story-step-desc" id="storyStepDesc">Students report campus needs · Every report is a seed for campus renewal.</p>
+      </div>
+    </div>
   </div>
+
   <div class="stats-inner">
-    <span class="pill reveal"><span class="pill-dot"></span>Live campus metrics</span>
+    <span class="pill reveal"><span class="pill-dot"></span>Live campus metrics · Growth in motion</span>
     <h2 class="h2 split" style="margin-bottom:16px">Every issue resolved,<br><em style="font-style:italic;color:var(--olive)">transparently on record.</em></h2>
     <div class="cards">
       <div class="card reveal" data-to="14" data-dec="0" data-suf=" hrs">
@@ -1222,17 +1263,140 @@ function setupScroll(){
 
   function setCounters(p){document.querySelectorAll('.card').forEach(function(c){c.querySelector('.card-value').textContent=(parseFloat(c.dataset.to)*p).toFixed(parseInt(c.dataset.dec))+c.dataset.suf;});}
 
+  /* Storytelling steps data for Cherry Blossom Growth */
+  var storySteps = [
+    { num: 'STEP 01 / 03', icon: '🌱', title: 'Community Sows the Seed', desc: 'A student files a campus report · Sowing the seed for direct institutional redressal.' },
+    { num: 'STEP 02 / 03', icon: '🌿', title: 'Departments Nourish & Act', desc: 'AI routes issues to PHE, Electrical & Sanitation within seconds.' },
+    { num: 'STEP 03 / 03', icon: '🌸', title: '100% Blossom & Redressal', desc: '14 hr avg. turnaround · 98% resolved transparently on record.' }
+  ];
+
+  function updateStoryStep(idx){
+    var step = storySteps[idx];
+    if(!step) return;
+    var numEl = document.getElementById('storyStepNum');
+    var iconEl = document.getElementById('storyGlassIcon');
+    var titleEl = document.getElementById('storyStepTitle');
+    var descEl = document.getElementById('storyStepDesc');
+    var badge = document.getElementById('storyGlassBadge');
+    if(numEl && numEl.textContent !== step.num){
+      if(badge){
+        gsap.fromTo(badge, {scale: 0.96, opacity: 0.75}, {scale: 1, opacity: 1, duration: 0.35, ease: 'back.out(1.8)'});
+      }
+      numEl.textContent = step.num;
+      if(iconEl) iconEl.textContent = step.icon;
+      if(titleEl) titleEl.textContent = step.title;
+      if(descEl) descEl.textContent = step.desc;
+    }
+  }
+
+  // Populate floating cherry blossom glass petals
+  var petWrap = document.getElementById('glassPetalsWrap');
+  if(petWrap && !petWrap.hasChildNodes()){
+    for(var i = 0; i < 16; i++){
+      var pet = document.createElement('div');
+      pet.className = 'story-petal';
+      pet.style.left = (12 + Math.random() * 76) + '%';
+      pet.style.bottom = (10 + Math.random() * 60) + '%';
+      pet.style.transform = 'scale(' + (0.6 + Math.random() * 0.8) + ') rotate(' + (Math.random() * 360) + 'deg)';
+      petWrap.appendChild(pet);
+      gsap.to(pet, {
+        y: -(35 + Math.random() * 85),
+        x: (Math.random() - 0.5) * 60,
+        rotation: '+=' + (120 + Math.random() * 240),
+        opacity: 0.8,
+        repeat: -1,
+        yoyo: true,
+        duration: 3 + Math.random() * 3,
+        delay: Math.random() * 2.5,
+        ease: 'sine.inOut'
+      });
+    }
+  }
+
   var mm=gsap.matchMedia();
   mm.add('(min-width:901px)',function(){
     gsap.from('.card',{y:40,opacity:0,stagger:.08,ease:'power3.out',scrollTrigger:{trigger:'.cards',start:'top 70%'}});
-    var px={p:0};var stl=gsap.timeline({scrollTrigger:{trigger:'#stats',start:'top top',end:'+=120%',pin:true,scrub:1}});
-    stl.to(px,{p:1,ease:'none',onUpdate:function(){setCounters(px.p);}}).fromTo('#tree',{yPercent:75},{yPercent:6,ease:'none'},'<');
+    var px={p:0};
+    var stl=gsap.timeline({
+      scrollTrigger:{
+        trigger:'#stats',
+        start:'top top',
+        end:'+=130%',
+        pin:true,
+        scrub:1,
+        onUpdate:function(self){
+          var prog = self.progress;
+          if(prog < 0.35){
+            updateStoryStep(0);
+          } else if(prog < 0.72){
+            updateStoryStep(1);
+          } else {
+            updateStoryStep(2);
+          }
+        }
+      }
+    });
+
+    stl.to(px,{p:1,ease:'none',onUpdate:function(){setCounters(px.p);}})
+      // Cherry Blossom Tree growth from sapling at base to majestic tree canopy
+      .fromTo('#treeGrowth',
+        {scaleY:0.32,scaleX:0.48,yPercent:38,opacity:0.35,filter:'brightness(0.9) saturate(0.85)'},
+        {scaleY:1,scaleX:1,yPercent:4,opacity:1,filter:'brightness(1.05) saturate(1.15)',ease:'power2.out'},'<'
+      )
+      // Blossom pink glow pulses as canopy expands
+      .fromTo('#treeBlossomGlow',
+        {opacity:0,scale:0.45},
+        {opacity:1,scale:1.2,ease:'sine.inOut'},'<0.3'
+      )
+      // Planter student active planting motion & sprout energy
+      .fromTo('#planterStage',
+        {y:0,rotation:-2,scale:1},
+        {y:8,rotation:1,scale:0.94,ease:'sine.inOut'},'<'
+      )
+      .fromTo('#sproutBeam',
+        {height:8,opacity:0.3},
+        {height:88,opacity:1,ease:'power2.out'},'<0.1'
+      )
+      .fromTo('#plantingGlow',
+        {scale:0.6,opacity:0.3},
+        {scale:1.6,opacity:0.95,ease:'sine.inOut'},'<'
+      )
+      // Frosted glass band lights up across the blooming tree trunk
+      .fromTo('#band',
+        {opacity:0.25,backdropFilter:'blur(6px)'},
+        {opacity:1,backdropFilter:'blur(20px)',ease:'none'},'<0.2'
+      );
+
     return function(){};
   });
   mm.add('(max-width:900px)',function(){
     gsap.from('.card',{y:30,opacity:0,stagger:.08,ease:'power3.out',scrollTrigger:{trigger:'.cards',start:'top 85%'}});
-    ScrollTrigger.create({trigger:'.cards',start:'top 80%',once:true,onEnter:function(){var o={p:0};gsap.to(o,{p:1,duration:2,ease:'power2.out',onUpdate:function(){setCounters(o.p);}});}});
-    ScrollTrigger.create({trigger:'#stats',start:'top top',end:'bottom bottom',scrub:true,onUpdate:function(s){gsap.set('#tree',{yPercent:40-40*s.progress});}});
+    ScrollTrigger.create({
+      trigger:'.cards',
+      start:'top 80%',
+      once:true,
+      onEnter:function(){var o={p:0};gsap.to(o,{p:1,duration:2,ease:'power2.out',onUpdate:function(){setCounters(o.p);}});}
+    });
+    ScrollTrigger.create({
+      trigger:'#stats',
+      start:'top 85%',
+      end:'bottom 15%',
+      scrub:true,
+      onUpdate:function(s){
+        var p = s.progress;
+        gsap.set('#treeGrowth',{
+          scaleY:0.35 + 0.65*p,
+          scaleX:0.5 + 0.5*p,
+          opacity:0.4 + 0.6*p,
+          yPercent:32 - 32*p
+        });
+        gsap.set('#treeBlossomGlow',{opacity:p,scale:0.6+0.6*p});
+        gsap.set('#sproutBeam',{height:10+70*p,opacity:0.3+0.7*p});
+        if(p < 0.35) updateStoryStep(0);
+        else if(p < 0.72) updateStoryStep(1);
+        else updateStoryStep(2);
+      }
+    });
     return function(){};
   });
   mm.add('(min-width:761px)',function(){
