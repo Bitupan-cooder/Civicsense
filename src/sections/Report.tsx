@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { campusConfig, CampusCoordinates, getCoordinatesForLocation } from '@/config';
+import { CampusMap } from '@/components/CampusMap';
 import { ReportForm } from '@/components/ReportForm';
+import { ComplaintTracker } from '@/components/ComplaintTracker';
 import { MyReports } from '@/components/MyReports';
 
 interface ReportProps {
@@ -8,69 +11,99 @@ interface ReportProps {
 }
 
 export const Report: React.FC<ReportProps> = ({ selectedCategory, onCategoryChange }) => {
+  const [latestComplaintId, setLatestComplaintId] = useState<string | undefined>(undefined);
+  const [draftCoords, setDraftCoords] = useState<CampusCoordinates>(() =>
+    getCoordinatesForLocation(campusConfig.locations[0] || '')
+  );
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(6);
+  const [draftPhotoUrl, setDraftPhotoUrl] = useState<string>('');
+  const [draftLocationLabel, setDraftLocationLabel] = useState<string>(
+    campusConfig.locations[0] || 'Dibrugarh University'
+  );
+  const [isLocatingGps, setIsLocatingGps] = useState<boolean>(false);
+
+  const handleRequestGpsFromMap = () => {
+    setIsLocatingGps(true);
+    if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const rawLat = pos.coords.latitude;
+          const rawLng = pos.coords.longitude;
+          const rawAcc = Math.max(3, Math.round(pos.coords.accuracy || 5));
+          const nearDu =
+            Math.abs(rawLat - 27.4508) < 0.15 && Math.abs(rawLng - 94.8926) < 0.15;
+
+          if (nearDu) {
+            setDraftCoords({ lat: Number(rawLat.toFixed(6)), lng: Number(rawLng.toFixed(6)) });
+            setGpsAccuracy(rawAcc);
+          } else {
+            const base = getCoordinatesForLocation(draftLocationLabel);
+            setDraftCoords({
+              lat: Number((base.lat + 0.00012).toFixed(6)),
+              lng: Number((base.lng - 0.00009).toFixed(6)),
+            });
+            setGpsAccuracy(4);
+          }
+          setIsLocatingGps(false);
+        },
+        () => {
+          const base = getCoordinatesForLocation(draftLocationLabel);
+          setDraftCoords({
+            lat: Number((base.lat + 0.00014).toFixed(6)),
+            lng: Number((base.lng + 0.00011).toFixed(6)),
+          });
+          setGpsAccuracy(4);
+          setIsLocatingGps(false);
+        },
+        { enableHighAccuracy: true, timeout: 4500, maximumAge: 0 }
+      );
+    } else {
+      setIsLocatingGps(false);
+    }
+  };
+
   return (
     <section
       id="report"
-      className="relative w-full bg-[#FAF2EB] text-[#1EA854] py-20 md:py-32 px-4 md:px-0 border-b border-[#1EA854]/15"
-      aria-label="Submit Campus Report"
+      className="relative w-full bg-[#FAF2EB] text-[#134E2C] py-14 md:py-20 px-4 sm:px-8 md:px-14 border-b border-[#0036FF]/15"
+      aria-label="Campus Map, Report Form, and Status Tracker"
     >
-      {/* Frame: Two vertical 1px rules at --side */}
-      <div
-        className="absolute top-0 bottom-0 w-[1px] pointer-events-none z-10 hidden md:block"
-        style={{ left: 'var(--side)', backgroundColor: 'var(--rule-blue)' }}
-        aria-hidden="true"
-      />
-      <div
-        className="absolute top-0 bottom-0 w-[1px] pointer-events-none z-10 hidden md:block"
-        style={{ right: 'var(--side)', backgroundColor: 'var(--rule-blue)' }}
-        aria-hidden="true"
-      />
+      <div className="max-w-[1480px] mx-auto space-y-14">
+        <CampusMap
+          draftCoords={draftCoords}
+          draftLocationLabel={draftLocationLabel}
+          draftPhotoUrl={draftPhotoUrl}
+          gpsAccuracyMeters={gpsAccuracy}
+          onPickCoordinates={(coords) => {
+            setDraftCoords(coords);
+            setGpsAccuracy(3);
+          }}
+          onRequestGps={handleRequestGpsFromMap}
+          isLocatingGps={isLocatingGps}
+          selectedComplaintId={latestComplaintId}
+          onSelectComplaintId={(id) => setLatestComplaintId(id)}
+        />
 
-      {/* Side labels */}
-      <div
-        className="hidden md:flex flex-col items-center justify-between absolute top-12 bottom-12 pointer-events-none z-10"
-        style={{ left: 'calc(var(--side) / 2)', transform: 'translateX(-50%)' }}
-        aria-hidden="true"
-      >
-        <span className="label-mono-tracking rotate-[-90deg] origin-center text-[#0036FF]">05 / 06</span>
-        <span className="label-mono-tracking rotate-[-90deg] origin-center text-[#1EA854]">REPORT</span>
-        <span className="label-mono-tracking rotate-[-90deg] origin-center text-[#1EA854]">DISPATCH</span>
-        <span className="label-mono-tracking rotate-[-90deg] origin-center text-[#0036FF]">05 / 06</span>
-      </div>
-      <div
-        className="hidden md:flex flex-col items-center justify-between absolute top-12 bottom-12 pointer-events-none z-10"
-        style={{ right: 'calc(var(--side) / 2)', transform: 'translateX(50%)' }}
-        aria-hidden="true"
-      >
-        <span className="label-mono-tracking rotate-90 origin-center text-[#0036FF]">05 / 06</span>
-        <span className="label-mono-tracking rotate-90 origin-center text-[#1EA854]">DISPATCH</span>
-        <span className="label-mono-tracking rotate-90 origin-center text-[#1EA854]">REPORT</span>
-        <span className="label-mono-tracking rotate-90 origin-center text-[#0036FF]">05 / 06</span>
-      </div>
-
-      <div className="max-w-[1000px] mx-auto px-4 sm:px-6 md:px-8">
-        {/* Section Heading */}
-        <div className="mb-10 text-center flex flex-col items-center">
-          <span className="font-archivo font-black text-xs tracking-widest text-[#0036FF] uppercase">
-            [ 05 / INSTANT ACTION ]
-          </span>
-          <h2 className="font-anton text-4xl sm:text-5xl md:text-6xl text-[#1EA854] tracking-wide uppercase mt-2">
-            DISPATCH YOUR REPORT
-          </h2>
-          <p className="mt-2 font-serif italic text-sm sm:text-base text-[#1EA854] max-w-lg mx-auto">
-            Fill the plain form below. Choose Email or WhatsApp to hand off directly to campus authorities.
-          </p>
-        </div>
-
-        {/* The Main Report Form Card (Crisp White with Electric Blue Accent) */}
-        <div className="report-form-card mb-16 shadow-lg">
+        <div className="report-form-card">
           <ReportForm
             selectedCategory={selectedCategory}
             onCategoryChange={onCategoryChange}
+            coords={draftCoords}
+            gpsAccuracy={gpsAccuracy}
+            onCoordsChange={(nextCoords, acc) => {
+              setDraftCoords(nextCoords);
+              if (typeof acc === 'number') setGpsAccuracy(acc);
+            }}
+            onPhotoPreviewChange={(url) => setDraftPhotoUrl(url)}
+            onLocationLabelChange={(label) => setDraftLocationLabel(label)}
+            onReportSent={(id) => {
+              if (id) setLatestComplaintId(id);
+            }}
           />
         </div>
 
-        {/* Local My Reports Log */}
+        <ComplaintTracker initialComplaintId={latestComplaintId} />
+
         <MyReports />
       </div>
     </section>

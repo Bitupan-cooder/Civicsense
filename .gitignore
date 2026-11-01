@@ -27,3 +27,11 @@ yarn-error.log*
 # Local env files
 .env*.local
 .env
+
+# Nested duplicate folder
+Civicsense/
+
+# AI Studio and Agent Cache
+.aistudio/
+.tempmediaStorage/
+scratch/

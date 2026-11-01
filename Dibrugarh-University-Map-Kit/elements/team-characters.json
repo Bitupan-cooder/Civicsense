@@ -1,0 +1,302 @@
+[
+  {
+    "id": 0,
+    "style": "Scout",
+    "colour": "#28bfa5"
+  },
+  {
+    "id": 1,
+    "style": "Scout",
+    "colour": "#9b67ed"
+  },
+  {
+    "id": 2,
+    "style": "Scout",
+    "colour": "#f2a23b"
+  },
+  {
+    "id": 3,
+    "style": "Scout",
+    "colour": "#ed6da1"
+  },
+  {
+    "id": 4,
+    "style": "Scout",
+    "colour": "#4ea8ee"
+  },
+  {
+    "id": 5,
+    "style": "Scout",
+    "colour": "#e75c5c"
+  },
+  {
+    "id": 6,
+    "style": "Scout",
+    "colour": "#89be45"
+  },
+  {
+    "id": 7,
+    "style": "Scout",
+    "colour": "#d6b946"
+  },
+  {
+    "id": 8,
+    "style": "Scout",
+    "colour": "#7084df"
+  },
+  {
+    "id": 9,
+    "style": "Scout",
+    "colour": "#cb79c5"
+  },
+  {
+    "id": 10,
+    "style": "Wizard",
+    "colour": "#28bfa5"
+  },
+  {
+    "id": 11,
+    "style": "Wizard",
+    "colour": "#9b67ed"
+  },
+  {
+    "id": 12,
+    "style": "Wizard",
+    "colour": "#f2a23b"
+  },
+  {
+    "id": 13,
+    "style": "Wizard",
+    "colour": "#ed6da1"
+  },
+  {
+    "id": 14,
+    "style": "Wizard",
+    "colour": "#4ea8ee"
+  },
+  {
+    "id": 15,
+    "style": "Wizard",
+    "colour": "#e75c5c"
+  },
+  {
+    "id": 16,
+    "style": "Wizard",
+    "colour": "#89be45"
+  },
+  {
+    "id": 17,
+    "style": "Wizard",
+    "colour": "#d6b946"
+  },
+  {
+    "id": 18,
+    "style": "Wizard",
+    "colour": "#7084df"
+  },
+  {
+    "id": 19,
+    "style": "Wizard",
+    "colour": "#cb79c5"
+  },
+  {
+    "id": 20,
+    "style": "Robot",
+    "colour": "#28bfa5"
+  },
+  {
+    "id": 21,
+    "style": "Robot",
+    "colour": "#9b67ed"
+  },
+  {
+    "id": 22,
+    "style": "Robot",
+    "colour": "#f2a23b"
+  },
+  {
+    "id": 23,
+    "style": "Robot",
+    "colour": "#ed6da1"
+  },
+  {
+    "id": 24,
+    "style": "Robot",
+    "colour": "#4ea8ee"
+  },
+  {
+    "id": 25,
+    "style": "Robot",
+    "colour": "#e75c5c"
+  },
+  {
+    "id": 26,
+    "style": "Robot",
+    "colour": "#89be45"
+  },
+  {
+    "id": 27,
+    "style": "Robot",
+    "colour": "#d6b946"
+  },
+  {
+    "id": 28,
+    "style": "Robot",
+    "colour": "#7084df"
+  },
+  {
+    "id": 29,
+    "style": "Robot",
+    "colour": "#cb79c5"
+  },
+  {
+    "id": 30,
+    "style": "Fox",
+    "colour": "#28bfa5"
+  },
+  {
+    "id": 31,
+    "style": "Fox",
+    "colour": "#9b67ed"
+  },
+  {
+    "id": 32,
+    "style": "Fox",
+    "colour": "#f2a23b"
+  },
+  {
+    "id": 33,
+    "style": "Fox",
+    "colour": "#ed6da1"
+  },
+  {
+    "id": 34,
+    "style": "Fox",
+    "colour": "#4ea8ee"
+  },
+  {
+    "id": 35,
+    "style": "Fox",
+    "colour": "#e75c5c"
+  },
+  {
+    "id": 36,
+    "style": "Fox",
+    "colour": "#89be45"
+  },
+  {
+    "id": 37,
+    "style": "Fox",
+    "colour": "#d6b946"
+  },
+  {
+    "id": 38,
+    "style": "Fox",
+    "colour": "#7084df"
+  },
+  {
+    "id": 39,
+    "style": "Fox",
+    "colour": "#cb79c5"
+  },
+  {
+    "id": 40,
+    "style": "Knight",
+    "colour": "#28bfa5"
+  },
+  {
+    "id": 41,
+    "style": "Knight",
+    "colour": "#9b67ed"
+  },
+  {
+    "id": 42,
+    "style": "Knight",
+    "colour": "#f2a23b"
+  },
+  {
+    "id": 43,
+    "style": "Knight",
+    "colour": "#ed6da1"
+  },
+  {
+    "id": 44,
+    "style": "Knight",
+    "colour": "#4ea8ee"
+  },
+  {
+    "id": 45,
+    "style": "Knight",
+    "colour": "#e75c5c"
+  },
+  {
+    "id": 46,
+    "style": "Knight",
+    "colour": "#89be45"
+  },
+  {
+    "id": 47,
+    "style": "Knight",
+    "colour": "#d6b946"
+  },
+  {
+    "id": 48,
+    "style": "Knight",
+    "colour": "#7084df"
+  },
+  {
+    "id": 49,
+    "style": "Knight",
+    "colour": "#cb79c5"
+  },
+  {
+    "id": 50,
+    "style": "Pirate",
+    "colour": "#28bfa5"
+  },
+  {
+    "id": 51,
+    "style": "Pirate",
+    "colour": "#9b67ed"
+  },
+  {
+    "id": 52,
+    "style": "Pirate",
+    "colour": "#f2a23b"
+  },
+  {
+    "id": 53,
+    "style": "Pirate",
+    "colour": "#ed6da1"
+  },
+  {
+    "id": 54,
+    "style": "Pirate",
+    "colour": "#4ea8ee"
+  },
+  {
+    "id": 55,
+    "style": "Pirate",
+    "colour": "#e75c5c"
+  },
+  {
+    "id": 56,
+    "style": "Pirate",
+    "colour": "#89be45"
+  },
+  {
+    "id": 57,
+    "style": "Pirate",
+    "colour": "#d6b946"
+  },
+  {
+    "id": 58,
+    "style": "Pirate",
+    "colour": "#7084df"
+  },
+  {
+    "id": 59,
+    "style": "Pirate",
+    "colour": "#cb79c5"
+  }
+]

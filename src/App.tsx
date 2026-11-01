@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Hero } from '@/sections/Hero';
-import { About } from '@/sections/About';
 import { Categories } from '@/sections/Categories';
 import { How } from '@/sections/How';
 import { Report } from '@/sections/Report';
+import { OfficialPortal } from '@/sections/OfficialPortal';
 import { Contact } from '@/sections/Contact';
 import { Footer } from '@/components/Footer';
 import { setupSectionAnimations } from '@/lib/scrollStory';
@@ -12,14 +12,18 @@ import { setupSectionAnimations } from '@/lib/scrollStory';
 export const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('top');
   const [selectedCategory, setSelectedCategory] = useState<string>('water');
+  const [officialPageOpen, setOfficialPageOpen] = useState<boolean>(false);
 
   useEffect(() => {
-    // 1. Setup downstream section entrance animations
+    if (officialPageOpen) {
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+      return;
+    }
+
     const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const animCleanup = setupSectionAnimations(isReduced);
 
-    // 2. Track active section for nav underline
-    const sectionIds = ['top', 'about', 'categories', 'how', 'report', 'contact'];
+    const sectionIds = ['top', 'categories', 'how', 'report', 'tracker', 'contact'];
     const observers: IntersectionObserver[] = [];
 
     sectionIds.forEach((id) => {
@@ -33,7 +37,7 @@ export const App: React.FC = () => {
               }
             });
           },
-          { threshold: 0.25 }
+          { threshold: 0.2 }
         );
         obs.observe(el);
         observers.push(obs);
@@ -44,39 +48,39 @@ export const App: React.FC = () => {
       animCleanup.destroy();
       observers.forEach((obs) => obs.disconnect());
     };
-  }, []);
+  }, [officialPageOpen]);
+
+  if (officialPageOpen) {
+    return (
+      <OfficialPortal
+        isOpen={true}
+        onClose={() => setOfficialPageOpen(false)}
+      />
+    );
+  }
 
   return (
-    <div className="relative w-full min-h-screen bg-[#FAF2EB] text-[#1EA854]">
+    <div className="relative w-full min-h-screen bg-[#FAF2EB] text-[#134E2C]">
       {/* Accessible Skip Link */}
       <a
         href="#report"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-[#0036FF] focus:text-[#FFFFFF] focus:px-4 focus:py-2 focus:font-bold focus:border-2 focus:border-[#B5F800]"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-[#0036FF] focus:text-[#B5F800] focus:px-4 focus:py-2 focus:font-semibold focus:border focus:border-[#1EA854]"
       >
         Skip directly to Report Form
       </a>
 
-      {/* SVG Fractal Noise Grain Overlay (6% opacity, subtle organic texture) */}
-      <svg className="grain-overlay" aria-hidden="true">
-        <filter id="fractalNoise">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.8"
-            numOctaves="3"
-            stitchTiles="stitch"
-          />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#fractalNoise)" />
-      </svg>
-
       {/* Fixed Nav */}
-      <Navbar activeSection={activeSection} />
+      <Navbar
+        activeSection={activeSection}
+        onOpenOfficialModal={() => setOfficialPageOpen(true)}
+      />
 
-      {/* Main Content Area */}
-      <main id="main-content">
-        <Hero onSelectCategory={(catId) => setSelectedCategory(catId)} />
-        <About />
+      {/* Main Public Content Area */}
+      <main id="main-content" className="w-full">
+        <Hero
+          onSelectCategory={(catId) => setSelectedCategory(catId)}
+          onOpenOfficialModal={() => setOfficialPageOpen(true)}
+        />
         <Categories onSelectCategory={(catId) => setSelectedCategory(catId)} />
         <How />
         <Report

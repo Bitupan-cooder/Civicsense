@@ -18,69 +18,120 @@ export interface FAQItem {
   answer: string;
 }
 
+export interface CampusCoordinates {
+  lat: number;
+  lng: number;
+}
+
 export interface AppConfig {
   siteName: string;
   campusName: string;
   emergencyPhone: string;
+  centerCoords: CampusCoordinates;
   offices: Office[];
   categories: Category[];
   locations: string[];
   faq: FAQItem[];
 }
 
+export const DIBRUGARH_UNIVERSITY_CENTER: CampusCoordinates = {
+  lat: 27.4508,
+  lng: 94.8926,
+};
+
+export const CAMPUS_LOCATION_COORDS: Record<string, CampusCoordinates> = {
+  "Padmanath Gohain Baruah Chatra Nivas (Hostel Block A)": { lat: 27.4526, lng: 94.8904 },
+  "Hostel Block A (East Wing)": { lat: 27.4526, lng: 94.8904 },
+  "Joymati Chatri Nivas (Hostel Block B)": { lat: 27.4519, lng: 94.8938 },
+  "Hostel Block B (West Wing)": { lat: 27.4519, lng: 94.8938 },
+  "Lakshminath Bezbaroa Central Library": { lat: 27.4505, lng: 94.8931 },
+  "Central Library & Study Commons": { lat: 27.4505, lng: 94.8931 },
+  "DUIET Engineering Workshop & Maker Lab": { lat: 27.4489, lng: 94.8945 },
+  "Engineering Workshop & Maker Lab": { lat: 27.4489, lng: 94.8945 },
+  "North Academic Block & Science Complex": { lat: 27.4514, lng: 94.8912 },
+  "North Academic Block (NAB)": { lat: 27.4514, lng: 94.8912 },
+  "South Science & Biotechnology Complex": { lat: 27.4496, lng: 94.8929 },
+  "South Science & Research Complex": { lat: 27.4496, lng: 94.8929 },
+  "Rangghar Auditorium & Main Quadrangle": { lat: 27.4501, lng: 94.8915 },
+  "Main Quadrangle & Outer Perimeter Path": { lat: 27.4501, lng: 94.8915 },
+  "Administrative Building & Registrar Office": { lat: 27.4512, lng: 94.8918 },
+  "University Health Centre & Main Security Gate": { lat: 27.4531, lng: 94.8922 },
+  "Bhojraj Sethi Indoor Stadium & Sports Arena": { lat: 27.4484, lng: 94.8912 },
+  "Campus Recreation & Sports Arena": { lat: 27.4484, lng: 94.8912 },
+  "Vishnu Rabha Bhawan & Student Center": { lat: 27.4515, lng: 94.8925 },
+  "Student Center & Dining Hall": { lat: 27.4515, lng: 94.8925 },
+  "Research Scholars & Graduate Residences": { lat: 27.4522, lng: 94.8898 },
+  "Graduate Residences": { lat: 27.4522, lng: 94.8898 },
+};
+
+export function getCoordinatesForLocation(locationName: string): CampusCoordinates {
+  const exact = CAMPUS_LOCATION_COORDS[locationName];
+  if (exact) return { ...exact };
+
+  const lower = (locationName || '').toLowerCase();
+  for (const [key, coords] of Object.entries(CAMPUS_LOCATION_COORDS)) {
+    if (lower.includes(key.toLowerCase()) || key.toLowerCase().includes(lower)) {
+      return { ...coords };
+    }
+  }
+
+  return { ...DIBRUGARH_UNIVERSITY_CENTER };
+}
+
 export const campusConfig: AppConfig = {
   siteName: "CivicSense",
-  campusName: "University Campus Central",
-  emergencyPhone: "+1 (800) 555-0199",
+  campusName: "Dibrugarh University, Rajabheta, Assam",
+  emergencyPhone: "+91 (373) 237-0239",
+  centerCoords: DIBRUGARH_UNIVERSITY_CENTER,
   offices: [
     {
       id: "facilities",
-      name: "Facility Operations & Plumbing",
-      email: "facilities@campus.edu",
-      whatsapp: "15550198001",
-      locationHint: "North Service Depot, Bay 2"
+      name: "Facility Operations & Plumbing (PHE)",
+      email: "facilities@dibru.ac.in",
+      whatsapp: "913732370231",
+      locationHint: "Estate & PHE Division, Near Main Gate"
     },
     {
       id: "electrical",
       name: "Electrical Maintenance & Power",
-      email: "power-maintenance@campus.edu",
-      whatsapp: "15550198002",
-      locationHint: "Substation West, Room 104"
+      email: "power-maintenance@dibru.ac.in",
+      whatsapp: "913732370232",
+      locationHint: "Electrical Substation, West Quadrangle"
     },
     {
       id: "it-network",
-      name: "Campus IT & Wi-Fi Services",
-      email: "network-helpdesk@campus.edu",
-      whatsapp: "15550198003",
-      locationHint: "Central Library, Level 1 IT Bar"
+      name: "Campus IT & Wi-Fi Services (CCSA)",
+      email: "network-helpdesk@dibru.ac.in",
+      whatsapp: "913732370233",
+      locationHint: "Centre for Computer Studies, Level 1"
     },
     {
       id: "security",
       name: "Campus Safety & Security Command",
-      email: "safety-control@campus.edu",
-      whatsapp: "15550198004",
-      locationHint: "Main Gate Security House"
+      email: "safety-control@dibru.ac.in",
+      whatsapp: "913732370234",
+      locationHint: "NH-37 Rajabheta Main Security Gate"
     },
     {
       id: "sanitation",
       name: "Sanitation & Grounds Management",
-      email: "grounds-waste@campus.edu",
-      whatsapp: "15550198005",
-      locationHint: "Environmental Services Building"
+      email: "grounds-waste@dibru.ac.in",
+      whatsapp: "913732370235",
+      locationHint: "University Estate & Horticulture Wing"
     },
     {
       id: "hostels",
       name: "Hostels & Student Housing Board",
-      email: "hostel-warden@campus.edu",
-      whatsapp: "15550198006",
-      locationHint: "Student Residential Center, Desk A"
+      email: "hostel-warden@dibru.ac.in",
+      whatsapp: "913732370236",
+      locationHint: "Dean of Student Affairs, Chatra Nivas Complex"
     },
     {
       id: "labs",
       name: "Academic Labs & Classroom Tech",
-      email: "academic-tech@campus.edu",
-      whatsapp: "15550198007",
-      locationHint: "Science Complex, Rm 210"
+      email: "academic-tech@dibru.ac.in",
+      whatsapp: "913732370237",
+      locationHint: "DUIET & Science Complex, Room 210"
     }
   ],
   categories: [
@@ -117,7 +168,7 @@ export const campusConfig: AppConfig = {
     {
       id: "hostel",
       name: "Hostel & Residence",
-      description: "Dormitory heating, broken furniture, lock repairs, laundry facility faults.",
+      description: "Dormitory maintenance, broken furniture, lock repairs, mess or laundry faults.",
       officeId: "hostels"
     },
     {
@@ -128,42 +179,33 @@ export const campusConfig: AppConfig = {
     }
   ],
   locations: [
-    "North Academic Block (NAB)",
-    "South Science & Research Complex",
-    "Central Library & Study Commons",
-    "Student Center & Dining Hall",
-    "Hostel Block A (East Wing)",
-    "Hostel Block B (West Wing)",
-    "Graduate Residences",
-    "Campus Recreation & Sports Arena",
-    "Main Quadrangle & Outer Perimeter Path",
-    "Engineering Workshop & Maker Lab"
+    "Padmanath Gohain Baruah Chatra Nivas (Hostel Block A)",
+    "Joymati Chatri Nivas (Hostel Block B)",
+    "Lakshminath Bezbaroa Central Library",
+    "DUIET Engineering Workshop & Maker Lab",
+    "North Academic Block & Science Complex",
+    "Rangghar Auditorium & Main Quadrangle",
+    "Administrative Building & Registrar Office",
+    "University Health Centre & Main Security Gate",
+    "Bhojraj Sethi Indoor Stadium & Sports Arena",
+    "Vishnu Rabha Bhawan & Student Center"
   ],
   faq: [
     {
       question: "Do I need to sign up or create an account?",
-      answer: "No. CivicSense requires no accounts, passwords, or logins. You fill out the report and it sends directly through your own email or WhatsApp."
+      answer: "No. Anyone on Dibrugarh University campus can report an issue without a password. Your report is pinned on the live OpenStreetMap as a Red Pin until solved."
     },
     {
-      question: "Who receives my report?",
-      answer: "Your message goes directly to the campus department responsible for that category (e.g. Facilities, IT Services, Hostel Office) using the verified contacts in our system."
+      question: "How does the Red Pin on the Dibrugarh University map work?",
+      answer: "When you report an issue (with GPS accuracy and an optional location photo), a Red Pin is placed at those exact coordinates on the Dibrugarh University OpenStreetMap. As soon as an official marks the issue Completed, the Red Pin is removed automatically."
     },
     {
-      question: "How can I include photos or videos of the issue?",
-      answer: "Since CivicSense does not store files on any server, please attach photos or videos directly inside your email client or WhatsApp chat when sending the hand-off message."
-    },
-    {
-      question: "Is my data stored on a server?",
-      answer: "No. CivicSense has no backend or database. Your reports remain strictly private and are only saved to your browser's local storage for your personal reference."
-    },
-    {
-      question: "What if an issue is an immediate emergency?",
-      answer: "For life-threatening hazards, fire, or acute medical emergencies, call the Campus Security Emergency Hotline directly rather than submitting a standard report."
+      question: "How can I include a photo and GPS coordinates of the issue?",
+      answer: "Use the 'Use Live GPS' button in the report form (or click directly on the Dibrugarh University map) and attach a photo of the problem spot. Your photo will appear inside the Red Pin popup on the map."
     }
   ]
 };
 
-// Check if contacts are configured
 export function isConfigured(config: AppConfig = campusConfig): boolean {
   if (!config.offices || config.offices.length === 0) return false;
   if (!config.categories || config.categories.length === 0) return false;

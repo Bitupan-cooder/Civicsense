@@ -31,10 +31,8 @@ export const MyReports: React.FC = () => {
   };
 
   const handleClearAll = () => {
-    if (window.confirm('Delete all saved reports from this browser?')) {
-      clearAllReports();
-      setReports([]);
-    }
+    clearAllReports();
+    setReports([]);
   };
 
   const formatDate = (ts: number) => {
@@ -47,29 +45,14 @@ export const MyReports: React.FC = () => {
     });
   };
 
-  const getUrgencyBadge = (urgency: string) => {
-    switch (urgency) {
-      case 'Immediate Hazard':
-        return 'bg-[#0036FF] text-[#B5F800] border border-[#0036FF]';
-      case 'Urgent':
-        return 'bg-[#1EA854] text-[#FFFFFF]';
-      case 'Low':
-        return 'bg-[#FAF2EB] text-[#1EA854] border border-[#1EA854]/30';
-      default:
-        return 'bg-[#1EA854]/10 text-[#1EA854]';
-    }
-  };
-
   return (
-    <div className="bg-[#FFFFFF] border-2 border-[#0036FF] p-6 sm:p-8 md:p-10 text-[#1EA854] mt-8 shadow-md">
+    <div className="bg-[#FFFFFF] border border-[#1EA854]/30 p-6 sm:p-8 text-[#134E2C] shadow-2xs">
       {/* Header */}
-      <div className="border-b border-[#1EA854]/20 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="border-b border-[#1EA854]/20 pb-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <span className="font-archivo font-extrabold text-[11px] tracking-widest text-[#0036FF] uppercase">
-            [ PRIVATE LOCAL RECORD ]
-          </span>
-          <h3 className="font-archivo font-black text-xl sm:text-2xl text-[#1EA854] uppercase tracking-tight">
-            MY REPORTS ON THIS DEVICE
+          <span className="imp-badge mb-1.5">LOCAL DEVICE RECORD</span>
+          <h3 className="font-anton text-2xl text-[#134E2C]">
+            My Reports on This Device
           </h3>
         </div>
 
@@ -77,88 +60,88 @@ export const MyReports: React.FC = () => {
           <button
             type="button"
             onClick={handleClearAll}
-            className="text-[11px] font-archivo font-extrabold uppercase tracking-wider text-[#0036FF] hover:underline flex items-center gap-1 self-start sm:self-auto"
+            className="text-xs font-archivo font-bold text-[#0036FF] hover:text-[#1EA854] underline flex items-center gap-1 self-start sm:self-auto cursor-pointer"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            CLEAR ALL
+            <span>Clear All</span>
           </button>
         )}
       </div>
 
       {/* Empty State */}
       {reports.length === 0 ? (
-        <div className="py-12 px-4 text-center border border-dashed border-[#1EA854]/25 bg-[#FAF2EB]">
-          <Clock className="w-10 h-10 text-[#0036FF]/50 mx-auto mb-3" />
-          <h4 className="font-archivo font-black text-base uppercase text-[#1EA854]">
+        <div className="py-10 px-4 text-center border border-dashed border-[#1EA854]/30 bg-[#FAF2EB]">
+          <Clock className="w-8 h-8 text-[#1EA854] mx-auto mb-2.5" />
+          <h4 className="font-archivo font-bold text-sm text-[#134E2C]">
             No reports filed yet on this device
           </h4>
-          <p className="font-serif italic text-xs sm:text-sm text-[#1EA854] max-w-md mx-auto mt-1 leading-relaxed">
-            When you send a campus report via Email, WhatsApp, or Clipboard, a private copy is kept here in your browser’s local storage so you can reference or mark it resolved.
+          <p className="font-archivo text-xs text-[#1EA854] max-w-md mx-auto mt-1 leading-relaxed">
+            When you submit a campus report above, a private copy is saved in your browser so you can reference it anytime.
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {reports.map((report) => {
             const isResolved = report.resolved;
             return (
               <div
                 key={report.id}
-                className={`p-4 sm:p-5 border transition-all ${
+                className={`p-4 border transition-all ${
                   isResolved
-                    ? 'bg-[#9ABC05]/15 border-[#9ABC05] text-[#1EA854]'
-                    : 'bg-[#FAF2EB] border-[#1EA854]/20 hover:border-[#0036FF]'
+                    ? 'bg-[#EEF7EE] border-[#1EA854]'
+                    : 'bg-[#FAF2EB] border-[#0036FF]/25'
                 }`}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2 pb-2 border-b border-[#1EA854]/15">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2 pb-2 border-b border-[#1EA854]/20">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-archivo font-black text-xs uppercase px-2 py-0.5 bg-[#0036FF] text-[#FFFFFF]">
+                    <span className="imp-badge">
                       {report.categoryName || report.category}
                     </span>
-                    <span className={`font-archivo font-black text-[10px] uppercase px-2 py-0.5 ${getUrgencyBadge(report.urgency)}`}>
+                    <span className="font-archivo font-bold text-xs px-2 py-0.5 bg-[#FFFFFF] border border-[#0036FF]/25 text-[#0036FF]">
                       {report.urgency}
                     </span>
-                    <span className="font-serif text-[11px] text-[#1EA854]">
+                    <span className="font-archivo text-xs font-medium text-[#1EA854]">
                       {formatDate(report.timestamp)}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <span className="font-archivo text-[10px] uppercase font-bold text-[#1EA854] flex items-center gap-1">
-                      {report.channelUsed === 'email' && <Mail className="w-3 h-3 text-[#0036FF]" />}
-                      {report.channelUsed === 'whatsapp' && <MessageCircle className="w-3 h-3 text-[#9ABC05]" />}
-                      {report.channelUsed === 'clipboard' && <Copy className="w-3 h-3 text-[#1EA854]" />}
-                      {(report.channelUsed || 'dispatch').toUpperCase()}
+                    <span className="font-archivo text-xs font-bold text-[#0036FF] flex items-center gap-1">
+                      {report.channelUsed === 'email' && <Mail className="w-3.5 h-3.5 text-[#1EA854]" />}
+                      {report.channelUsed === 'whatsapp' && <MessageCircle className="w-3.5 h-3.5 text-[#1EA854]" />}
+                      {report.channelUsed === 'clipboard' && <Copy className="w-3.5 h-3.5 text-[#0036FF]" />}
+                      <span>{(report.channelUsed || 'dispatch').toUpperCase()}</span>
                     </span>
                   </div>
                 </div>
 
                 <div className="mb-3">
-                  <span className="block font-archivo font-extrabold text-xs uppercase tracking-wide text-[#0036FF]">
+                  <span className="block font-archivo font-bold text-xs text-[#0036FF]">
                     {report.location}
                   </span>
-                  <p className="font-serif text-sm text-[#1EA854] mt-1 leading-snug">
+                  <p className="font-archivo text-sm text-[#134E2C] mt-1 leading-snug">
                     {report.description}
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-[#1EA854]/15">
+                <div className="flex items-center justify-between pt-2 border-t border-[#1EA854]/20">
                   <button
                     type="button"
                     onClick={() => handleToggle(report.id)}
-                    className={`font-archivo font-black text-xs uppercase tracking-wider flex items-center gap-1.5 py-1 px-2.5 transition-colors ${
+                    className={`font-archivo font-bold text-xs flex items-center gap-1.5 py-1 px-2.5 transition-colors cursor-pointer ${
                       isResolved
-                        ? 'bg-[#9ABC05] text-[#FFFFFF]'
-                        : 'bg-transparent border border-[#1EA854] text-[#1EA854] hover:bg-[#9ABC05] hover:text-[#FFFFFF] hover:border-[#9ABC05]'
+                        ? 'bg-[#1EA854] text-[#FFFFFF]'
+                        : 'bg-[#FFFFFF] border border-[#0036FF]/30 text-[#0036FF] hover:bg-[#0036FF] hover:text-[#B5F800]'
                     }`}
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    {isResolved ? 'RESOLVED' : 'MARK RESOLVED'}
+                    <span>{isResolved ? 'Resolved' : 'Mark Resolved'}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleDelete(report.id)}
-                    className="text-[#1EA854] hover:text-[#0036FF] p-1 transition-colors"
+                    className="text-[#1EA854] hover:text-[#0036FF] p-1 transition-colors cursor-pointer"
                     title="Delete local record"
                   >
                     <Trash2 className="w-4 h-4" />

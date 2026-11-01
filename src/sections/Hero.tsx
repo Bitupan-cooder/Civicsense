@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { setupScrollStory, runLoadReveal } from '@/lib/scrollStory';
+import { setupScrollStory, runLoadReveal, focusCharacterWithGsap } from '@/lib/scrollStory';
 import { FallingLeavesRenderer } from '@/lib/slips';
 import {
   ArrowRight,
@@ -8,10 +8,13 @@ import {
   Megaphone,
   Scale,
   FileCheck2,
+  Search,
+  Lock,
 } from 'lucide-react';
 
 interface HeroProps {
   onSelectCategory?: (categoryId: string) => void;
+  onOpenOfficialModal?: () => void;
 }
 
 type CivicIconType = 'recycle' | 'sprout' | 'megaphone' | 'scale' | 'filecheck';
@@ -20,18 +23,13 @@ interface CivicCharacter {
   id: string;
   num: string;
   name: string;
+  shortLabel: string;
   badge: string;
   category: string;
   dept: string;
   desc: string;
   iconType: CivicIconType;
   image: string;
-  left: string;
-  bottom: string;
-  width: string;
-  bubbleLeft: string;
-  bubbleTop: string;
-  zElevation: number;
 }
 
 const CIVIC_CHARACTERS: CivicCharacter[] = [
@@ -39,86 +37,61 @@ const CIVIC_CHARACTERS: CivicCharacter[] = [
     id: 'action-recycling',
     num: '01',
     name: 'Clean Campus & Sorting',
+    shortLabel: 'Clean Quad',
     badge: '01 · CLEAN QUAD',
     category: 'waste',
-    dept: 'Estates & Sanitation Operations',
-    desc: 'Student sorting recyclable paper, plastics, and campus waste into collection bags.',
+    dept: 'Sanitation & Grounds Management',
+    desc: 'Report waste, litter, or sanitation issues across campus.',
     iconType: 'recycle',
     image: '/flat-assets/civic-cutouts/char-1-recycling.png',
-    left: '1%',
-    bottom: '2%',
-    width: '20%',
-    bubbleLeft: '11%',
-    bubbleTop: '20%',
-    zElevation: 40,
   },
   {
     id: 'action-plantation',
     num: '02',
-    name: 'Green Grounds & Plantation',
-    badge: '02 · GREEN GROUNDS',
+    name: 'Water & Grounds Care',
+    shortLabel: 'Water & Grounds',
+    badge: '02 · WATER & GROUNDS',
     category: 'water',
-    dept: 'Horticulture & Quad Conservation',
-    desc: 'Student nurturing quad saplings, tending green lawns, and reporting irrigation leaks.',
+    dept: 'Facility Operations & Plumbing (PHE)',
+    desc: 'Report drinking water filters, pipe leaks, or grounds care.',
     iconType: 'sprout',
     image: '/flat-assets/civic-cutouts/char-2-planting.png',
-    left: '19%',
-    bottom: '2%',
-    width: '22%',
-    bubbleLeft: '29%',
-    bubbleTop: '22%',
-    zElevation: 35,
   },
   {
     id: 'action-voice',
     num: '03',
-    name: 'Civic Megaphone Voice',
-    badge: '03 · CIVIC VOICE',
+    name: 'Power & Lighting',
+    shortLabel: 'Power & Voice',
+    badge: '03 · POWER & LIGHTS',
     category: 'power',
-    dept: 'Proctorial & Student Welfare Desk',
-    desc: 'Student dispatching urgent alerts for pathway lighting, broken wifi, and campus safety.',
+    dept: 'Electrical Maintenance & Power',
+    desc: 'Report street lights, power outages, or faulty switches.',
     iconType: 'megaphone',
     image: '/flat-assets/civic-cutouts/char-3-megaphone.png',
-    left: '39%',
-    bottom: '4%',
-    width: '20%',
-    bubbleLeft: '49%',
-    bubbleTop: '16%',
-    zElevation: 50,
   },
   {
     id: 'action-audit',
     num: '04',
-    name: 'Fair SLA & Ledger Audit',
-    badge: '04 · FAIR SLA AUDIT',
+    name: 'Safety & SLA Audit',
+    shortLabel: 'Safety & SLA',
+    badge: '04 · SAFETY & SLA',
     category: 'safety',
-    dept: 'Campus Safety & Redressal Audit',
-    desc: 'Student auditing public redressal turnaround and maintaining open ledger transparency.',
+    dept: 'Campus Safety & Security Command',
+    desc: 'Report dark pathways, gate hazards, or security concerns.',
     iconType: 'scale',
     image: '/flat-assets/civic-cutouts/char-4-auditor.png',
-    left: '58%',
-    bottom: '2%',
-    width: '21%',
-    bubbleLeft: '68%',
-    bubbleTop: '22%',
-    zElevation: 35,
   },
   {
     id: 'action-dispatch',
     num: '05',
-    name: 'Resolution & Dispatch',
-    badge: '05 · TICKET RESOLUTION',
+    name: 'Hostel & Direct Dispatch',
+    shortLabel: 'Hostel Dispatch',
+    badge: '05 · HOSTEL DISPATCH',
     category: 'hostel',
-    dept: 'Campus Direct Redressal Box',
-    desc: 'Student dropping verified complaint ticket directly into the official redressal collection box.',
+    dept: 'Hostels & Student Housing Board',
+    desc: 'Report hostel maintenance, dining, or block facilities.',
     iconType: 'filecheck',
     image: '/flat-assets/civic-cutouts/char-5-dispatch.png',
-    left: '76%',
-    bottom: '2%',
-    width: '23%',
-    bubbleLeft: '87%',
-    bubbleTop: '18%',
-    zElevation: 45,
   },
 ];
 
@@ -137,10 +110,13 @@ const renderCivicIcon = (type: CivicIconType, className: string = 'w-4 h-4') => 
   }
 };
 
-export const Hero: React.FC<HeroProps> = ({ onSelectCategory }) => {
+export const Hero: React.FC<HeroProps> = ({ onSelectCategory, onOpenOfficialModal }) => {
   const heroRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [activeActionId, setActiveActionId] = useState<string>('action-voice');
+  const [activeActionId, setActiveActionId] = useState<string>('action-recycling');
+  const [activeCount, setActiveCount] = useState<number>(1);
+  const onSelectCategoryRef = useRef(onSelectCategory);
+  onSelectCategoryRef.current = onSelectCategory;
 
   useEffect(() => {
     const heroEl = heroRef.current;
@@ -148,13 +124,13 @@ export const Hero: React.FC<HeroProps> = ({ onSelectCategory }) => {
 
     const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // 1. Initial Load Reveal
     runLoadReveal(heroEl, isReduced);
 
-    // 2. Scroll Story Animation & 3D Tilt
-    const scrollStory = setupScrollStory(heroEl, isReduced);
+    const scrollStory = setupScrollStory(heroEl, isReduced, (stepActionId, count) => {
+      setActiveActionId(stepActionId);
+      setActiveCount(count);
+    });
 
-    // 3. 3D Tumbling Leaves Canvas
     let leavesRenderer: FallingLeavesRenderer | null = null;
     if (canvasRef.current && !isReduced) {
       leavesRenderer = new FallingLeavesRenderer(canvasRef.current);
@@ -187,16 +163,18 @@ export const Hero: React.FC<HeroProps> = ({ onSelectCategory }) => {
     };
   }, []);
 
-  const handleSelectCharacter = (character: CivicCharacter) => {
+  const handleSelectCharacter = (character: CivicCharacter, idx: number) => {
     setActiveActionId(character.id);
-    if (onSelectCategory) {
-      onSelectCategory(character.category);
+    setActiveCount(idx + 1);
+    focusCharacterWithGsap(heroRef.current, character.id);
+    if (onSelectCategoryRef.current) {
+      onSelectCategoryRef.current(character.category);
     }
   };
 
   const handleReportAction = (character: CivicCharacter) => {
-    if (onSelectCategory) {
-      onSelectCategory(character.category);
+    if (onSelectCategoryRef.current) {
+      onSelectCategoryRef.current(character.category);
     }
     const reportTarget = document.getElementById('report');
     if (reportTarget) {
@@ -204,223 +182,204 @@ export const Hero: React.FC<HeroProps> = ({ onSelectCategory }) => {
     }
   };
 
-  const scrollToReport = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const target = document.getElementById('report') || document.getElementById('about');
+  const scrollToSection = (id: string) => {
+    const target = document.getElementById(id);
     if (target) {
       target.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  const activeChar = CIVIC_CHARACTERS.find((c) => c.id === activeActionId) || CIVIC_CHARACTERS[2];
+  const activeChar = CIVIC_CHARACTERS.find((c) => c.id === activeActionId) || CIVIC_CHARACTERS[0];
 
   return (
     <section
       id="top"
       ref={heroRef}
-      className="relative w-full bg-[#FAF2EB] text-[#1EA854] select-none pt-[calc(var(--nav)+14px)] pb-12 flex flex-col items-center justify-start overflow-hidden"
-      style={{
-        perspective: '1200px',
-        transformStyle: 'preserve-3d',
-      }}
+      className="relative w-full min-h-screen bg-[#FAF2EB] text-[#134E2C] select-none pt-[calc(var(--nav)+16px)] pb-8 px-4 sm:px-8 md:px-14 flex flex-col justify-between overflow-x-hidden border-b border-[#0036FF]/15"
       aria-label="CivicSense Hero"
     >
-      {/* Real accessible H1 (visually hidden for screen readers) */}
-      <h1 className="sr-only">CivicSense: Campus Community Redressal</h1>
+      <h1 className="sr-only">CivicSense: Direct Campus Issue Redressal</h1>
 
-      {/* 3D Botanical Falling Leaves Canvas (Ambient background depth) */}
+      {/* 3D Botanical Falling Leaves Canvas */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full pointer-events-none z-0"
         aria-hidden="true"
       />
 
-      {/* Top Tagline Pill */}
-      <div className="relative z-10 w-full max-w-[1040px] mx-auto px-4 text-center">
-        <span className="inline-block font-archivo font-black text-[11px] sm:text-xs md:text-sm text-[#0036FF] uppercase tracking-[0.24em] bg-[#FFFFFF] px-3.5 py-1 border border-[#0036FF]/30 shadow-2xs">
-          [ CIVICSENSE · CAMPUS COMMUNITY ACTION ]
-        </span>
-      </div>
-
-      {/* FRAMELESS 3D CAMPUS STAGE (No enclosing box, no frame, pure single character PNGs) */}
-      <div
-        className="hero-stage relative mx-auto z-10 w-full max-w-[1140px] h-[360px] sm:h-[420px] md:h-[480px] mt-2 cursor-grab active:cursor-grabbing select-none"
-        style={{
-          perspective: '1200px',
-          perspectiveOrigin: '50% 50%',
-          transformStyle: 'preserve-3d',
-        }}
-      >
-        {/* Layer 1: Mouse & Drag Interactive 3D Tilt */}
+      {/* FULL-SCREEN 5-CHARACTER STAGE WITH MONUMENTAL #538306 CIVICSENSE WORDMARK */}
+      <div className="hero-stage relative mx-auto z-10 w-full max-w-[1600px] my-auto select-none">
         <div
-          className="hero-stage-tilt relative w-full h-full"
+          className="hero-stage-tilt relative w-full"
           style={{
+            perspective: '1200px',
             transformStyle: 'preserve-3d',
-            willChange: 'transform',
           }}
         >
-          {/* Layer 2: ScrollTrigger Camera Push-In & Pitch */}
-          <div
-            className="hero-stage-inner relative w-full h-full"
-            style={{
-              transformStyle: 'preserve-3d',
-              willChange: 'transform',
-            }}
-          >
-            {/* Background Architectural Typography: CivicSense (Framed neatly at top) */}
-            <div
-              className="absolute top-1 sm:top-3 inset-x-0 flex flex-col items-center justify-center pointer-events-none select-none z-0"
-              style={{
-                transform: 'translateZ(-30px)',
-              }}
-            >
-              <span className="font-anton text-6xl sm:text-8xl md:text-9xl text-[#1EA854]/20 tracking-tight uppercase leading-none select-none">
-                CIVICSENSE
-              </span>
-              <span className="font-serif italic text-xs sm:text-sm md:text-base text-[#0036FF]/75 tracking-[0.24em] uppercase font-bold mt-1">
-                Be Aware · Be Involved
+          <div className="hero-stage-inner relative w-full pt-8 sm:pt-12 pb-3">
+            {/* Monumental Background Serif Wordmark ("CivicSense") in exact #538306 green from reference photo */}
+            <div className="absolute inset-x-0 top-1 sm:top-3 bottom-8 flex items-center justify-center pointer-events-none select-none z-0 overflow-hidden">
+              <span className="hero-bg-wordmark text-[18vw] sm:text-[16.5vw] md:text-[15vw] text-[#538306] whitespace-nowrap select-none">
+                CivicSense
               </span>
             </div>
 
-            {/* 5 SINGLE CHARACTER PNGs: Frameless Cutouts with 3D Depth & Scroll Movement */}
-            {CIVIC_CHARACTERS.map((char) => {
-              const isActive = activeActionId === char.id;
-              return (
-                <div
-                  key={char.id}
-                  data-action-id={char.id}
-                  className="absolute cursor-pointer pointer-events-auto z-30 group flex flex-col items-center justify-end"
-                  style={{
-                    left: char.left,
-                    bottom: char.bottom,
-                    width: char.width,
-                    height: '76%',
-                    transformOrigin: '50% 95%',
-                    transform: isActive ? 'translateZ(75px)' : `translateZ(${char.zElevation}px)`,
-                    transformStyle: 'preserve-3d',
-                    transition: 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                  }}
-                  onMouseEnter={() => setActiveActionId(char.id)}
-                  onClick={() => handleSelectCharacter(char)}
-                >
-                  {/* Underfoot Ground Shadow & Active Glow Spotlight */}
-                  <div
-                    className={`absolute -bottom-1 w-3/4 h-3 rounded-full transition-all duration-200 pointer-events-none ${
-                      isActive
-                        ? 'bg-[#B5F800] blur-[4px] scale-125'
-                        : 'bg-[#1EA854]/20 blur-[2px] group-hover:bg-[#B5F800]/50'
-                    }`}
-                    style={{ transform: 'translateZ(-10px)' }}
-                  />
+            {/* Full-Width Ground Quad Line */}
+            <div className="absolute bottom-2 inset-x-0 h-1.5 bg-[#B5F800] border-b border-[#1EA854] pointer-events-none z-10" />
 
-                  {/* Single Character PNG Cutout (No frame, natural transparent cutout) */}
-                  <img
-                    src={char.image}
-                    alt={char.name}
-                    className={`w-full h-full object-contain filter drop-shadow-[0_8px_16px_rgba(30,168,84,0.18)] transition-transform duration-200 select-none pointer-events-none ${
-                      isActive ? 'scale-108 brightness-105' : 'group-hover:scale-104'
+            {/* 5-Column Full-Screen Character Row */}
+            <div className="relative z-20 grid grid-cols-2 sm:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 items-end pt-14 sm:pt-20 w-full">
+              {CIVIC_CHARACTERS.map((char, idx) => {
+                const isActive = activeActionId === char.id;
+                return (
+                  <div
+                    key={char.id}
+                    data-action-id={char.id}
+                    className={`cursor-pointer group flex flex-col items-center justify-end w-full ${
+                      idx === 4 ? 'col-span-2 sm:col-span-1' : ''
                     }`}
-                  />
-                </div>
-              );
-            })}
+                    onMouseEnter={() => handleSelectCharacter(char, idx)}
+                    onClick={() => handleSelectCharacter(char, idx)}
+                  >
+                    <div className="civic-char-actor relative w-full flex flex-col items-center justify-end">
+                      {/* Blue + Bright Lime-Green Callout Tag above character */}
+                      <div
+                        className={`civic-char-bubble mb-3 px-2.5 py-1 border flex items-center gap-1.5 transition-all duration-200 ${
+                          isActive
+                            ? 'bg-[#0036FF] text-[#B5F800] border-[#B5F800] shadow-xs'
+                            : 'bg-[#FFFFFF] text-[#1EA854] border-[#0036FF]/35 group-hover:bg-[#B5F800] group-hover:text-[#0036FF] group-hover:border-[#0036FF]'
+                        }`}
+                      >
+                        {renderCivicIcon(char.iconType, 'w-3.5 h-3.5 shrink-0')}
+                        <span className="font-archivo font-bold text-[10px] lg:text-xs uppercase tracking-wider whitespace-nowrap">
+                          {char.num} · {char.shortLabel}
+                        </span>
+                      </div>
+
+                      {/* Character Cutout Sprite */}
+                      <div className="civic-char-sprite relative w-full h-[180px] sm:h-[220px] md:h-[260px] lg:h-[300px] xl:h-[330px] flex items-end justify-center">
+                        <img
+                          src={char.image}
+                          alt={char.name}
+                          className={`h-full w-auto max-w-full object-contain object-bottom select-none pointer-events-none transition-all duration-200 ${
+                            isActive
+                              ? 'drop-shadow-[0_12px_20px_rgba(0,54,255,0.22)]'
+                              : 'drop-shadow-[0_6px_12px_rgba(30,168,84,0.16)]'
+                          }`}
+                        />
+                      </div>
+
+                      {/* Underfoot Ground Indicator Bar */}
+                      <div
+                        className={`mt-1.5 h-1.5 transition-all duration-200 pointer-events-none ${
+                          isActive
+                            ? 'w-4/5 bg-[#0036FF]'
+                            : 'w-1/2 bg-[#1EA854]/45 group-hover:bg-[#0036FF]'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Docked Civic Action Dashboard: Placed cleanly below the stage (Never obscuring the characters) */}
-      <div className="relative z-20 w-full max-w-[1040px] mx-auto px-4 mt-2">
-        {/* 5-Action Quick Switcher Pill Bar (Zero Emojis, Pure Lucide Vector Icons) */}
-        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-          {CIVIC_CHARACTERS.map((char) => {
+      {/* Full-Width Docked Action Bar below Characters */}
+      <div className="relative z-20 w-full max-w-[1480px] mx-auto mt-4">
+        {/* 5-Action Tabs */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          {CIVIC_CHARACTERS.map((char, idx) => {
             const isSelected = activeActionId === char.id;
             return (
               <button
                 key={char.id}
                 type="button"
-                onClick={() => handleSelectCharacter(char)}
-                className={`px-3 py-1.5 text-[10px] sm:text-[11px] font-mono font-bold uppercase transition-all duration-150 cursor-pointer flex items-center gap-1.5 border ${
+                onClick={() => handleSelectCharacter(char, idx)}
+                className={`px-3 py-2 text-[11px] sm:text-xs font-archivo font-bold transition-all duration-150 cursor-pointer flex items-center justify-center gap-1.5 border ${
                   isSelected
-                    ? 'bg-[#0036FF] text-[#B5F800] border-[#0036FF] shadow-xs scale-105'
-                    : 'bg-[#FFFFFF] text-[#1EA854] border-[#1EA854]/30 hover:bg-[#B5F800] hover:text-[#0036FF] hover:border-[#0036FF]'
+                    ? 'bg-[#0036FF] text-[#B5F800] border-[#0036FF]'
+                    : 'bg-[#FFFFFF] text-[#1EA854] border-[#1EA854]/30 hover:border-[#0036FF] hover:text-[#0036FF]'
                 }`}
               >
-                {renderCivicIcon(char.iconType, 'w-3.5 h-3.5')}
-                <span>{char.badge}</span>
+                {renderCivicIcon(
+                  char.iconType,
+                  `w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-[#B5F800]' : 'text-[#0036FF]'}`
+                )}
+                <span className="truncate">{char.badge}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Clean Docked Action Detail Strip */}
-        <div className="mt-2.5 bg-[#FFFFFF] border-2 border-[#0036FF] px-4 py-2.5 sm:px-6 sm:py-3 shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-fadeIn">
+        {/* Active Jurisdiction Bar */}
+        <div className="mt-2.5 bg-[#FFFFFF] border-2 border-[#0036FF] px-5 py-4 sm:px-7 sm:py-5 shadow-2xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="font-mono text-[10px] font-black uppercase text-[#0036FF] tracking-wider flex items-center gap-1">
-                {renderCivicIcon(activeChar.iconType, 'w-3.5 h-3.5 text-[#0036FF]')}
-                {activeChar.badge}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="imp-badge">{activeChar.badge}</span>
+              <span className="font-anton text-2xl sm:text-3xl text-[#1EA854]">
+                {activeChar.name}
               </span>
-              <span className="text-[9px] font-mono font-bold text-[#1EA854] bg-[#FAF2EB] px-2 py-0.5 border border-[#1EA854]/30">
-                {activeChar.dept}
+              <span className="text-xs font-archivo font-bold text-[#0036FF] bg-[#EEF7EE] px-2.5 py-0.5 border border-[#0036FF]/25">
+                Owning Post: {activeChar.dept}
               </span>
             </div>
-            <h3 className="font-anton text-base sm:text-lg text-[#1EA854] uppercase tracking-normal">
-              {activeChar.name}
-            </h3>
-            <p className="font-serif italic text-xs text-[#1EA854] mt-0.5 leading-relaxed">
+            <p className="font-archivo text-xs sm:text-sm text-[#134E2C] mt-1">
               {activeChar.desc}
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             <button
               type="button"
               onClick={() => handleReportAction(activeChar)}
-              className="inline-flex items-center gap-1.5 bg-[#0036FF] text-[#B5F800] hover:bg-[#1EA854] hover:text-[#FFFFFF] px-4 py-2 text-[11px] font-archivo font-black uppercase tracking-wider transition-colors shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-2 bg-[#0036FF] text-[#B5F800] hover:bg-[#1EA854] hover:text-[#FFFFFF] px-5 py-2.5 text-xs font-archivo font-bold transition-colors cursor-pointer"
             >
-              <span>Report This Issue</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>Report Issue</span>
+              <ArrowRight className="w-4 h-4 text-[#B5F800]" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => scrollToSection('tracker')}
+              className="inline-flex items-center gap-2 bg-[#EEF7EE] text-[#1EA854] hover:bg-[#B5F800] hover:text-[#0036FF] border border-[#1EA854]/40 px-4 py-2.5 text-xs font-archivo font-bold transition-colors cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5 text-[#0036FF]" />
+              <span>Track by ID</span>
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Hero Bottom Bar: Live Civic Actions Tracker & Accessible Action */}
-      <div
-        className="relative z-20 w-full max-w-[1200px] mx-auto px-4 sm:px-8 pt-4 pb-2 flex flex-col sm:flex-row items-center justify-between gap-3 text-[#1EA854]"
-      >
-        {/* Progress Tracker */}
-        <div className="flex items-center gap-3">
-          <div className="w-24 sm:w-32 h-2 bg-[#FFFFFF] border border-[#1EA854]/30 overflow-hidden shadow-2xs">
-            <div
-              className="hero-fix-progress-bar h-full bg-[#0036FF] transition-all duration-300"
-              style={{ width: '0%' }}
-            />
+        {/* Hero Bottom Status Strip */}
+        <div className="pt-3 flex items-center justify-between gap-2 text-[#1EA854]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-24 sm:w-32 h-1.5 bg-[#DFEFE0] overflow-hidden">
+              <div
+                className="hero-fix-progress-bar h-full bg-[#0036FF] transition-all duration-300"
+                style={{ width: `${activeCount * 20}%` }}
+              />
+            </div>
+            <span className="hero-fix-counter font-archivo font-bold text-xs text-[#0036FF]">
+              {activeCount} / 5 jurisdictions
+            </span>
           </div>
-          <span className="hero-fix-counter font-mono font-bold text-[10px] sm:text-xs tracking-wider uppercase text-[#0036FF]">
-            0 / 5 CIVIC ACTIONS ACTIVE
-          </span>
-        </div>
 
-        {/* Center Scroll Prompt */}
-        <div className="flex items-center gap-2 text-center opacity-80 pointer-events-none">
-          <span className="font-archivo font-extrabold text-[10px] sm:text-xs tracking-widest uppercase text-[#1EA854]">
-            SCROLL TO ASSEMBLE
+          <span className="hidden sm:inline font-archivo font-semibold text-xs text-[#1EA854]">
+            Scroll to explore
           </span>
-          <div className="w-4 h-6 border border-[#1EA854]/40 flex items-start justify-center p-0.5">
-            <div className="w-1 h-1.5 bg-[#0036FF] animate-bounce" />
-          </div>
-        </div>
 
-        {/* Quick Skip Link: Electric Blue with Lucide Arrow */}
-        <button
-          type="button"
-          onClick={scrollToReport}
-          className="font-mono font-bold text-[10px] sm:text-xs tracking-wider uppercase text-[#0036FF] hover:text-[#9ABC05] underline underline-offset-4 transition-colors focus-ring-blue inline-flex items-center gap-1 cursor-pointer"
-        >
-          <span>SKIP TO REPORT FORM</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
+          {onOpenOfficialModal && (
+            <button
+              type="button"
+              onClick={onOpenOfficialModal}
+              className="font-archivo font-bold text-xs text-[#0036FF] hover:text-[#1EA854] inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              <Lock className="w-3.5 h-3.5 text-[#1EA854]" />
+              <span>Official Login</span>
+            </button>
+          )}
+        </div>
       </div>
     </section>
   );
