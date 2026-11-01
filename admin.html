@@ -2,264 +2,347 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CivicSense · Official Redressal Administration Portal | Dibrugarh University</title>
+  <meta name="description" content="Official campus grievance redressal console for Dibrugarh University Department Chairmen, University Registrar, and DUSU Student Union." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet" />
   <style>
+    /* ── EXACT HOME PAGE DESIGN TOKENS ── */
     :root {
-      --bg: #f4f7f1;
-      --card-bg: #ffffff;
-      --ink: #111e13;
-      --muted: #4e604f;
-      --line: #d8e5cb;
-      --olive: #134e2c;
-      --olive-light: #eef9e7;
-      --admin-blue: #1e3a8a;
-      --admin-light: #eff6ff;
-      --social-blue: #0036FF;
-      --social-light: #f0f4ff;
-      --amber: #b45309;
-      --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-      --font-display: 'Fraunces', Georgia, serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --ink: #121410;
+      --olive: #1a7a3a;
+      --green: #1EA854;
+      --lime: #B5F800;
+      --pill: #d4f5c0;
+      --line: #e0f0d0;
+      --bg: #FAF2EB;
+      --blue: #0036FF;
+      --radius: 18px;
+      --nav: 54px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      background: #c8e0b0;
+    }
+
     body {
-      font-family: var(--font-body);
-      background: var(--bg);
+      font-family: "Inter Tight", system-ui, -apple-system, sans-serif;
       color: var(--ink);
-      line-height: 1.5;
+      background: var(--bg);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* ══════════ TOP BAR ══════════ */
-    .topbar {
-      background: #0d2818;
-      color: #fff;
-      padding: 10px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 2px solid rgba(255,255,255,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-    }
-    .topbar-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-      color: #fff;
-    }
-    .topbar-logo {
-      width: 34px;
-      height: 34px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 19px;
-    }
-    .topbar-title {
-      font-family: var(--font-display);
-      font-size: 17px;
-      font-weight: 700;
-      line-height: 1.2;
-    }
-    .topbar-subtitle {
-      font-size: 10.5px;
-      color: rgba(255,255,255,0.7);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      font-weight: 600;
-    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
 
-    .topbar-center {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255,255,255,0.08);
-      padding: 4px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.12);
-    }
-    .mode-pill {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 10px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .mode-pill.dept { background: #134e2c; color: #a7f3d0; border: 1px solid #34d399; }
-    .mode-pill.admin { background: #1e3a8a; color: #bfdbfe; border: 1px solid #60a5fa; }
-    .mode-pill.social { background: #0036FF; color: #e0e7ff; border: 1px solid #818cf8; }
-
-    .topbar-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .user-pill {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255,255,255,0.12);
-      padding: 4px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      color: #fff;
-    }
-    .btn-top {
-      background: rgba(255,255,255,0.15);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.2);
-      font-size: 12px;
-      font-weight: 600;
-      padding: 6px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      text-decoration: none;
+    /* ── SIGNATURE HOME PAGE SHARED STYLES ── */
+    .pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.18s;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: var(--pill);
+      color: #0e3018;
+      letter-spacing: .01em;
     }
-    .btn-top:hover { background: rgba(255,255,255,0.25); color: #fff; }
-    .btn-top-logout { background: #dc2626; border-color: #b91c1c; }
-    .btn-top-logout:hover { background: #b91c1c; }
+    .pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
 
-    /* ══════════ APP CONTAINER ══════════ */
-    .app-layout {
-      max-width: 1360px;
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 36px;
+      padding: 0 18px;
+      border-radius: 999px;
+      background: var(--olive);
+      color: #f0ffe8;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      white-space: nowrap;
+      border: none;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 2px 6px rgba(20,80,30,.2);
+      transition: transform .2s, background .2s;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      background: #0e5c28;
+    }
+    .btn-blue {
+      background: var(--blue);
+      color: #fff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 2px 6px rgba(0,54,255,.2);
+    }
+    .btn-blue:hover {
+      background: #0025c4;
+    }
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 36px;
+      padding: 0 16px;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--olive);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      white-space: nowrap;
+      border: 1.5px solid var(--olive);
+      cursor: pointer;
+      transition: transform .2s, background .2s, color .2s;
+    }
+    .btn-outline:hover {
+      transform: translateY(-1px);
+      background: #eef8e5;
+    }
+    .btn-amber {
+      background: #fffbeb;
+      border: 1.5px solid #f59e0b;
+      color: #b45309;
+    }
+    .btn-amber:hover {
+      background: #fef3c7;
+    }
+    .btn-red {
+      background: #fef2f2;
+      border: 1.5px solid #ef4444;
+      color: #b91c1c;
+    }
+    .btn-red:hover {
+      background: #fee2e2;
+    }
+
+    /* ── HOME-STYLE NAVIGATION HEADER ── */
+    .top-header-wrap {
       width: 100%;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-pill-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      width: 100%;
+      max-width: 1360px;
+      padding: 6px 10px 6px 20px;
+      border-radius: 999px;
+      background: rgba(250, 242, 235, .96);
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, .06), 0 6px 20px rgba(0, 0, 0, .08);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 19px;
+      font-weight: 600;
+      letter-spacing: -.04em;
+      color: var(--olive);
+    }
+    .brand-sub {
+      font-size: 11px;
+      font-weight: 500;
+      color: #3b5634;
+      padding: 2px 8px;
+      background: var(--pill);
+      border-radius: 999px;
+      letter-spacing: 0;
+      margin-left: 2px;
+    }
+    .nav-center-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--ink);
+      background: #ffffff;
+      padding: 4px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+    }
+
+    /* ── MAIN CONTENT CONTAINER ── */
+    .admin-main {
+      width: 100%;
+      max-width: 1360px;
       margin: 0 auto;
-      padding: 22px 20px 48px;
+      padding: 8px 20px 48px;
       flex: 1;
     }
 
-    /* ══════════ MODE SELECTOR TABS ══════════ */
-    .nav-modes-bar {
+    /* ── 3 MODE NAVIGATION TABS (HOME STYLE) ── */
+    .mode-tabs-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 12px;
-      margin-bottom: 20px;
-      background: #e9f0e1;
+      margin-bottom: 22px;
+      background: rgba(255, 255, 255, 0.65);
       padding: 6px;
-      border-radius: 14px;
-      border: 1px solid #c8dbc0;
+      border-radius: 20px;
+      border: 1.5px solid var(--line);
     }
-    .nav-mode-card {
-      border: 2px solid transparent;
+    @media (max-width: 900px) {
+      .mode-tabs-row { grid-template-columns: 1fr; }
+    }
+    .mode-tab-btn {
+      border: 1.5px solid transparent;
       background: transparent;
-      padding: 12px 16px;
-      border-radius: 10px;
+      padding: 12px 18px;
+      border-radius: 16px;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 14px;
-      transition: all 0.2s ease;
+      transition: all .2s ease;
       text-align: left;
     }
-    .nav-mode-card:hover {
-      background: rgba(255,255,255,0.7);
+    .mode-tab-btn:hover {
+      background: rgba(255, 255, 255, 0.85);
     }
-    .nav-mode-card.active {
+    .mode-tab-btn.active {
       background: #ffffff;
-      box-shadow: 0 4px 14px rgba(20,50,20,0.1);
+      box-shadow: 0 4px 14px rgba(26, 122, 58, 0.08);
     }
-    .nav-mode-card.active.dept { border-color: var(--olive); color: var(--olive); }
-    .nav-mode-card.active.admin { border-color: var(--admin-blue); color: var(--admin-blue); }
-    .nav-mode-card.active.social { border-color: var(--social-blue); color: var(--social-blue); }
-
-    .nav-mode-icon {
-      font-size: 26px;
+    .mode-tab-btn.active.dept {
+      border-color: var(--olive);
+    }
+    .mode-tab-btn.active.admin {
+      border-color: #1e40af;
+    }
+    .mode-tab-btn.active.social {
+      border-color: var(--blue);
+    }
+    .mode-tab-icon {
+      font-size: 24px;
       width: 44px;
       height: 44px;
-      border-radius: 10px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #f1f6ec;
+      background: var(--pill);
       flex-shrink: 0;
     }
-    .nav-mode-card.active.dept .nav-mode-icon { background: var(--olive-light); }
-    .nav-mode-card.active.admin .nav-mode-icon { background: var(--admin-light); }
-    .nav-mode-card.active.social .nav-mode-icon { background: var(--social-light); }
-    .nav-mode-text h3 { font-size: 14px; font-weight: 750; line-height: 1.25; }
-    .nav-mode-text p { font-size: 11.5px; color: #61735a; margin-top: 2px; }
+    .mode-tab-btn.active.admin .mode-tab-icon {
+      background: #eff6ff;
+    }
+    .mode-tab-btn.active.social .mode-tab-icon {
+      background: #eff4ff;
+    }
+    .mode-tab-texts h3 {
+      font-size: 14.5px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      color: var(--ink);
+    }
+    .mode-tab-texts p {
+      font-size: 12px;
+      color: #4a6142;
+      margin-top: 2px;
+    }
 
-    /* ══════════ JURISDICTION HEADER BANNER ══════════ */
-    .jurisdiction-banner {
+    /* ── JURISDICTION BANNER ── */
+    .jurisdiction-box {
       background: #ffffff;
       border: 1.5px solid var(--line);
-      border-radius: 14px;
-      padding: 16px 20px;
-      margin-bottom: 20px;
+      border-radius: var(--radius);
+      padding: 22px 28px;
+      margin-bottom: 22px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 14px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.02);
-      border-left: 6px solid var(--olive);
-      transition: border-left-color 0.25s;
+      gap: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.02);
+      position: relative;
+      overflow: hidden;
     }
-    .jurisdiction-info h2 {
-      font-family: var(--font-display);
-      font-size: 20px;
-      font-weight: 700;
+    .jurisdiction-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 6px;
+      background: var(--olive);
+      transition: background .2s;
+    }
+    .jurisdiction-title {
+      font-size: clamp(20px, 2.5vw, 28px);
+      font-weight: 600;
+      letter-spacing: -.03em;
+      line-height: 1.2;
       color: var(--ink);
     }
-    .jurisdiction-info p {
-      font-size: 12.5px;
-      color: var(--muted);
-      margin-top: 3px;
+    .jurisdiction-title em {
+      color: var(--olive);
+      font-style: italic;
+      font-weight: 600;
     }
-    .jurisdiction-badge-box {
+    .jurisdiction-desc {
+      font-size: 13.5px;
+      color: #3b5035;
+      margin-top: 4px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
     }
-    .sla-pill {
-      background: #f3f8ee;
-      border: 1px solid #d0e2c5;
-      padding: 6px 14px;
-      border-radius: 8px;
-      text-align: right;
-    }
-    .sla-pill-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4e6b47; }
-    .sla-pill-val { font-size: 14px; font-weight: 800; color: var(--ink); }
 
-    /* ══════════ KPI METRICS CARDS ══════════ */
-    .kpi-grid {
+    /* ── KPI METRICS ROW ── */
+    .kpi-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 14px;
-      margin-bottom: 22px;
+      margin-bottom: 24px;
     }
     @media (max-width: 900px) {
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-      .nav-modes-bar { grid-template-columns: 1fr; }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
     }
     .kpi-card {
       background: #ffffff;
       border: 1.5px solid var(--line);
-      border-radius: 12px;
-      padding: 16px 18px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.02);
       position: relative;
       overflow: hidden;
     }
@@ -269,291 +352,283 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 3.5px;
-      background: var(--kpi-theme, #134e2c);
+      height: 3px;
+      background: var(--kpi-col, var(--olive));
     }
-    .kpi-num {
-      font-size: 28px;
-      font-weight: 800;
+    .kpi-val {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -.04em;
       color: var(--ink);
       line-height: 1;
-      font-family: var(--font-body);
     }
-    .kpi-title {
-      font-size: 12px;
+    .kpi-lbl {
+      font-size: 12.5px;
       font-weight: 600;
-      color: var(--muted);
-      margin-top: 6px;
+      color: #4a6142;
+      margin-top: 8px;
     }
 
-    /* ══════════ FILTER & TOOLBAR ══════════ */
-    .toolbar-row {
+    /* ── TOOLBAR / CONTROLS ── */
+    .toolbar-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 14px;
+      margin-bottom: 18px;
     }
-    .tabs-group {
+    .filter-pills-group {
       display: flex;
+      align-items: center;
       gap: 6px;
-      background: #eef3e7;
-      padding: 4px;
-      border-radius: 10px;
-      border: 1px solid #d4e2c8;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 4px 6px;
+      border-radius: 999px;
+      border: 1.5px solid var(--line);
       flex-wrap: wrap;
     }
-    .tab-btn {
+    .filter-pill-btn {
       border: none;
       background: transparent;
+      font-size: 12.5px;
+      font-weight: 600;
       padding: 6px 14px;
-      border-radius: 7px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #3b5634;
+      border-radius: 999px;
+      color: #3b5035;
       cursor: pointer;
-      transition: all 0.16s;
+      transition: all .18s ease;
     }
-    .tab-btn:hover { background: rgba(255,255,255,0.7); color: #111e13; }
-    .tab-btn.active {
+    .filter-pill-btn:hover {
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--ink);
+    }
+    .filter-pill-btn.active {
+      background: var(--olive);
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(26,122,58,.2);
+    }
+    .search-input-wrap {
+      position: relative;
+      min-width: 290px;
+    }
+    .search-input-pill {
+      width: 100%;
+      height: 38px;
+      border: 1.5px solid var(--line);
+      border-radius: 999px;
+      padding: 0 16px 0 36px;
+      font-size: 13px;
+      font-family: inherit;
       background: #ffffff;
       color: var(--ink);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    }
-    .search-box {
-      position: relative;
-      min-width: 280px;
-    }
-    .search-input {
-      width: 100%;
-      height: 36px;
-      border: 1.5px solid var(--line);
-      border-radius: 8px;
-      padding: 0 12px 0 32px;
-      font-size: 12px;
-      font-family: var(--font-body);
-      background: #fff;
       outline: none;
+      transition: border-color .2s, box-shadow .2s;
     }
-    .search-input:focus {
+    .search-input-pill:focus {
       border-color: var(--olive);
-      box-shadow: 0 0 0 3px rgba(19,78,44,0.12);
+      box-shadow: 0 0 0 3px rgba(26,122,58,.14);
     }
-    .search-icon {
+    .search-svg-icon {
       position: absolute;
-      left: 10px;
-      top: 10px;
-      color: #889882;
+      left: 12px;
+      top: 11px;
+      color: #6a8264;
       pointer-events: none;
     }
 
-    /* ══════════ TICKET CARDS ══════════ */
-    .tickets-container {
+    /* ── TICKET CARDS (HOME REPORT BOX STYLE) ── */
+    .tickets-stack {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 16px;
     }
     .ticket-card {
       background: #ffffff;
       border: 1.5px solid var(--line);
-      border-radius: 14px;
-      padding: 18px 20px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.025);
-      transition: all 0.18s;
+      border-radius: 20px;
+      padding: 24px 28px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.025);
+      transition: transform .2s, border-color .2s, box-shadow .2s;
       position: relative;
     }
     .ticket-card:hover {
-      border-color: #a8cf9a;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.045);
+      border-color: #8ed692;
+      box-shadow: 0 6px 20px rgba(26, 122, 58, 0.05);
     }
     .ticket-card.sensitive {
-      border-left: 5px solid #dc2626;
+      border-left: 6px solid #dc2626;
       background: #fffafa;
     }
     .ticket-card.escalated {
-      border-left: 5px solid #f59e0b;
+      border-left: 6px solid #f59e0b;
     }
     .ticket-card.needs-review {
-      border-left: 5px solid #9333ea;
+      border-left: 6px solid #9333ea;
       background: #fdfaff;
     }
 
-    .ticket-header {
+    .ticket-card-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 12px;
-      margin-bottom: 10px;
+      gap: 14px;
+      margin-bottom: 12px;
       flex-wrap: wrap;
     }
-    .ticket-id-title {
+    .ticket-title-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
     }
-    .ticket-id {
-      font-family: var(--font-mono);
+    .ticket-id-tag {
       font-size: 12px;
       font-weight: 700;
-      background: #eef5e7;
-      color: #194823;
-      padding: 3px 8px;
-      border-radius: 6px;
-      border: 1px solid #d4e4cc;
+      background: var(--pill);
+      color: #0c3315;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: .02em;
     }
-    .ticket-title {
-      font-size: 15px;
-      font-weight: 750;
+    .ticket-heading {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -.02em;
       color: var(--ink);
     }
-    .ticket-badges {
+    .ticket-badges-group {
       display: flex;
       align-items: center;
       gap: 6px;
       flex-wrap: wrap;
     }
-    .badge {
-      font-size: 10.5px;
+
+    /* Badge chips */
+    .chip {
+      font-size: 11px;
       font-weight: 700;
-      padding: 3px 8px;
+      padding: 3px 10px;
       border-radius: 999px;
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
+      letter-spacing: .01em;
     }
-    .badge-p1 { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-    .badge-p2 { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
-    .badge-p3 { background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
-    .badge-p4 { background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
-    .badge-open { background: #fef3c7; color: #92400e; }
-    .badge-ip { background: #e0f2fe; color: #0369a1; }
-    .badge-resolved { background: #dcfce7; color: #15803d; }
-    .badge-escalated { background: #fef08a; color: #854d0e; }
-    .badge-closed { background: #f3f4f6; color: #374151; }
+    .chip-p1 { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .chip-p2 { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+    .chip-p3 { background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+    .chip-p4 { background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
+    .chip-open { background: #fef3c7; color: #92400e; }
+    .chip-ip { background: #e0f2fe; color: #0369a1; }
+    .chip-resolved { background: #dcfce7; color: #15803d; }
+    .chip-escalated { background: #fef08a; color: #854d0e; }
 
-    .ticket-meta {
-      font-size: 12px;
-      color: var(--muted);
+    .ticket-meta-row {
       display: flex;
       align-items: center;
-      gap: 14px;
-      margin-bottom: 12px;
+      gap: 16px;
+      font-size: 12.5px;
+      color: #51684c;
+      margin-bottom: 14px;
       flex-wrap: wrap;
     }
-    .ticket-meta span { display: inline-flex; align-items: center; gap: 4px; }
-
-    /* AI Analysis Snapshot Box */
-    .ai-analysis-box {
-      background: #f7faf4;
-      border: 1px solid #dce8d3;
-      border-radius: 10px;
-      padding: 11px 14px;
-      margin-bottom: 12px;
+    .ticket-meta-row span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
-    .ai-analysis-header {
+
+    /* AI Analysis Snapshot in Home Style */
+    .ai-snapshot-card {
+      background: #f7faf4;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+    }
+    .ai-snapshot-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
       font-size: 11.5px;
-      font-weight: 750;
-      color: #2b542c;
+      font-weight: 700;
+      color: var(--olive);
+      margin-bottom: 6px;
     }
-    .accuracy-tag {
-      font-size: 10.5px;
-      font-weight: 800;
-      background: #e1f5d6;
-      color: #125528;
-      padding: 2px 7px;
+    .accuracy-pill {
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--pill);
+      color: #0e3018;
+      padding: 2px 8px;
       border-radius: 999px;
-      border: 1px solid #bce6ab;
     }
-    .ai-summary-text { font-size: 13px; color: #1a2a19; line-height: 1.45; }
-    .ai-summary-as { font-size: 12.5px; color: #2e5530; margin-top: 4px; line-height: 1.45; }
+    .ai-english-summary {
+      font-size: 13.5px;
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    .ai-as-summary {
+      font-size: 13px;
+      color: #1e451b;
+      margin-top: 4px;
+      line-height: 1.45;
+    }
 
-    /* Stepper */
-    .progress-stepper {
+    /* Live Progress Stepper */
+    .stepper-track {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin: 12px 0 14px;
+      margin: 14px 0;
       padding: 8px 14px;
-      background: #fdfefe;
-      border-radius: 8px;
+      background: #fafcf8;
       border: 1px solid #e2ebd8;
+      border-radius: 999px;
       flex-wrap: wrap;
     }
-    .step-point {
-      font-size: 11px;
+    .stepper-node {
+      font-size: 11.5px;
       font-weight: 600;
       color: #64748b;
       display: flex;
       align-items: center;
       gap: 4px;
     }
-    .step-point.active { color: #0f172a; font-weight: 800; }
-    .step-point.done { color: #15803d; font-weight: 700; }
-    .step-arrow { color: #cbd5e1; font-size: 10px; }
+    .stepper-node.done { color: var(--green); font-weight: 700; }
+    .stepper-node.active { color: var(--ink); font-weight: 800; }
+    .stepper-arrow { color: #cbd5e1; font-size: 11px; }
 
-    /* Crew Dispatch Callout */
-    .crew-callout {
+    /* Field crew active callout */
+    .crew-info-bar {
       background: #f0fdf4;
       border: 1px solid #bbf7d0;
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 12px;
+      border-radius: 12px;
+      padding: 9px 14px;
+      font-size: 12.5px;
       color: #166534;
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
-    /* Actions Toolbar */
-    .ticket-actions {
+    /* Ticket Action Buttons Row */
+    .ticket-actions-row {
       display: flex;
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
-      padding-top: 10px;
-      border-top: 1px solid #eaf0e3;
+      padding-top: 14px;
+      border-top: 1px solid #edf4e7;
     }
-    .btn-act {
-      font-size: 12px;
-      font-weight: 700;
-      padding: 6px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      border: 1.5px solid transparent;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      transition: all 0.16s ease;
-    }
-    .btn-act-dept { background: #134e2c; color: #fff; }
-    .btn-act-dept:hover { background: #0c331d; }
-    .btn-act-admin { background: #1e3a8a; color: #fff; }
-    .btn-act-admin:hover { background: #172554; }
-    .btn-act-social { background: #0036FF; color: #fff; }
-    .btn-act-social:hover { background: #0022a3; }
-    .btn-act-outline { background: #fff; border-color: #cbd5e1; color: #334155; }
-    .btn-act-outline:hover { background: #f8fafc; border-color: #94a3b8; }
-    .btn-act-green { background: #dcfce7; border-color: #86efac; color: #166534; }
-    .btn-act-green:hover { background: #bbf7d0; }
-    .btn-act-amber { background: #fef3c7; border-color: #fde68a; color: #92400e; }
-    .btn-act-amber:hover { background: #fde047; }
-    .btn-act-red { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
-    .btn-act-red:hover { background: #fecaca; }
 
-    /* ══════════ LOGIN / AUTH OVERLAY MODAL ══════════ */
-    .auth-overlay {
+    /* ── AUTH MODAL (MATCHING INDEX.HTML .MODAL) ── */
+    .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(10, 25, 15, 0.75);
+      background: rgba(18, 20, 16, 0.65);
       backdrop-filter: blur(8px);
       z-index: 1000;
       display: flex;
@@ -561,297 +636,267 @@
       justify-content: center;
       padding: 20px;
     }
-    .auth-overlay.hidden { display: none; }
-    .auth-card {
-      background: #ffffff;
-      border-radius: 16px;
-      max-width: 680px;
+    .modal-overlay.hidden { display: none; }
+    .auth-box {
+      background: #fff;
+      border: 2px solid var(--green);
+      border-radius: var(--radius);
       width: 100%;
-      padding: 28px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      max-width: 680px;
+      max-height: 90vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 48px rgba(0,0,0,0.22);
     }
-    .auth-header { text-align: center; margin-bottom: 20px; }
-    .auth-header h1 {
-      font-family: var(--font-display);
-      font-size: 24px;
+    .auth-box-header {
+      background: var(--green);
+      color: #fff;
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .auth-box-title {
+      font-size: 16px;
       font-weight: 700;
-      color: var(--ink);
+      letter-spacing: -.02em;
     }
-    .auth-header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
-    .auth-mode-tabs {
+    .auth-box-body {
+      padding: 24px;
+      background: var(--bg);
+    }
+    .auth-subtabs {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       margin-bottom: 16px;
-      background: #f1f5ec;
-      padding: 5px;
-      border-radius: 12px;
-      border: 1px solid #d4e2c8;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 4px;
+      border-radius: 999px;
+      border: 1.5px solid var(--line);
     }
-    .auth-tab {
-      border: 1.5px solid transparent;
+    .auth-subtab {
+      border: none;
       background: transparent;
-      padding: 10px 8px;
-      border-radius: 9px;
+      padding: 8px 10px;
+      border-radius: 999px;
       font-size: 12px;
       font-weight: 700;
-      color: #3b5634;
+      color: #3b5035;
       cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      transition: all 0.18s;
       text-align: center;
+      transition: all .16s ease;
     }
-    .auth-tab.active { background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
-    .auth-tab.active.dept { color: #134e2c; border-color: #79bf6d; }
-    .auth-tab.active.admin { color: #1e3a8a; border-color: #60a5fa; }
-    .auth-tab.active.social { color: #0036FF; border-color: #818cf8; }
-
-    .profiles-grid {
+    .auth-subtab.active {
+      background: var(--olive);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(26,122,58,.2);
+    }
+    .profile-tiles-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
       gap: 10px;
-      max-height: 250px;
+      max-height: 240px;
       overflow-y: auto;
-      padding: 4px 2px 8px;
       margin-bottom: 16px;
     }
     .profile-tile {
+      background: #fff;
       border: 1.5px solid var(--line);
-      border-radius: 10px;
+      border-radius: 14px;
       padding: 10px 12px;
       cursor: pointer;
-      background: #fff;
-      transition: all 0.16s;
+      transition: all .16s ease;
     }
     .profile-tile:hover {
       border-color: var(--olive);
-      background: #f7fbf3;
-      transform: translateY(-1px);
+      background: #f4faf0;
     }
-    .profile-tile.selected.dept {
+    .profile-tile.selected {
       border-color: var(--olive);
       background: #eef9e7;
-      box-shadow: 0 0 0 3px rgba(19,78,44,0.12);
-    }
-    .profile-tile.selected.admin {
-      border-color: var(--admin-blue);
-      background: #eff6ff;
-      box-shadow: 0 0 0 3px rgba(30,64,175,0.12);
-    }
-    .profile-tile.selected.social {
-      border-color: var(--social-blue);
-      background: #f0f4ff;
-      box-shadow: 0 0 0 3px rgba(0,54,255,0.12);
+      box-shadow: 0 0 0 3px rgba(26,122,58,.15);
     }
     .profile-tile-badge {
       font-size: 9.5px;
-      font-weight: 750;
-      padding: 2px 6px;
+      font-weight: 700;
+      padding: 2px 7px;
       border-radius: 999px;
+      background: var(--pill);
+      color: #0e3018;
       display: inline-block;
       margin-bottom: 4px;
-      text-transform: uppercase;
     }
-    .profile-tile-name { font-size: 13px; font-weight: 700; color: var(--ink); }
-    .profile-tile-role { font-size: 11px; color: #51684c; margin-top: 2px; }
-
-    .auth-input-group { margin-bottom: 16px; }
-    .auth-input-group label {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--ink);
-      margin-bottom: 5px;
-    }
-    .auth-input {
+    .form-input-pass {
       width: 100%;
       height: 42px;
-      border: 1.5px solid var(--line);
-      border-radius: 8px;
-      padding: 0 12px;
-      font-size: 13px;
-      font-family: var(--font-mono);
-      outline: none;
-    }
-    .auth-input:focus { border-color: var(--olive); }
-    .auth-submit-btn {
-      width: 100%;
-      height: 44px;
-      background: #134e2c;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .auth-submit-btn:hover { background: #0c331d; }
-
-    /* Empty state */
-    .empty-state {
       background: #fff;
-      border: 1.5px dashed #cbd5e1;
-      border-radius: 14px;
-      padding: 48px 24px;
-      text-align: center;
-      color: #64748b;
+      border: 1.5px solid var(--line);
+      border-radius: 10px;
+      padding: 0 14px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--ink);
+      outline: none;
+      margin-top: 6px;
     }
-    .empty-state h3 { font-size: 16px; font-weight: 700; color: #334155; margin-bottom: 4px; }
+    .form-input-pass:focus {
+      border-color: var(--olive);
+      box-shadow: 0 0 0 3px rgba(26,122,58,.15);
+    }
   </style>
 </head>
 <body>
 
-  <!-- ══════════ TOP BAR ══════════ -->
-  <header class="topbar">
-    <a href="index.html" class="topbar-brand">
-      <div class="topbar-logo">🏛️</div>
-      <div class="topbar-titles">
-        <span class="topbar-title">Dibrugarh University</span>
-        <span class="topbar-subtitle">CivicSense · Central Redressal Operating Portal</span>
+  <!-- ══════════ FLOATING TOP NAVIGATION BAR (MATCHING HOME) ══════════ -->
+  <div class="top-header-wrap">
+    <header class="nav-pill-bar">
+      <a href="index.html" class="brand">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+          <path d="M11 2C11 2 4 6 4 13a7 7 0 0014 0C18 6 11 2 11 2z" fill="currentColor" opacity=".9"/>
+          <line x1="11" y1="14" x2="11" y2="20" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        CivicSense
+        <span class="brand-sub">Official Portal</span>
+      </a>
+
+      <div class="nav-center-status">
+        <span class="pill" id="headerModePill">
+          <span class="pill-dot"></span>
+          <span id="headerModeText">Mode 1: Department Head</span>
+        </span>
+        <div class="user-badge" id="headerUserBadge">
+          <span id="headerAvatar">⚡</span>
+          <span id="headerUserName">Prof. A. K. Buragohain</span>
+        </div>
       </div>
-    </a>
 
-    <div class="topbar-center" id="topbarModeIndicator">
-      <span class="mode-pill dept" id="topbarModePill">🏛️ Mode 1: Department Head</span>
-      <span style="font-size:12px;color:rgba(255,255,255,0.75);">|</span>
-      <span style="font-size:11.5px;color:rgba(255,255,255,0.9);" id="topbarDeptLabel">Electrical &amp; Power Works</span>
-    </div>
-
-    <div class="topbar-actions">
-      <div class="user-pill">
-        <div class="user-pill-avatar" id="topbarAvatar">⚡</div>
-        <span id="topbarUserName" style="font-weight:600;">Prof. A. K. Buragohain</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn-outline" onclick="showAuthModal()" style="height:32px;font-size:12px;padding:0 12px;">Switch Official</button>
+        <a href="index.html" class="btn btn-blue" style="height:32px;font-size:12px;padding:0 14px;">← Student Portal</a>
+        <button class="btn-outline btn-red" onclick="logoutAdmin()" style="height:32px;font-size:12px;padding:0 10px;">Logout</button>
       </div>
-      <button class="btn-top" onclick="showAuthModal()">Switch Profile / Mode</button>
-      <a href="index.html" class="btn-top">← Student Portal</a>
-      <button class="btn-top btn-top-logout" onclick="logoutAdmin()">Logout</button>
-    </div>
-  </header>
+    </header>
+  </div>
 
-  <!-- ══════════ MAIN APP LAYOUT ══════════ -->
-  <main class="app-layout">
+  <!-- ══════════ MAIN WORKSPACE ══════════ -->
+  <main class="admin-main">
 
     <!-- 3 MODE SELECTION TABS -->
-    <nav class="nav-modes-bar" aria-label="Official Modes">
-      <button class="nav-mode-card active dept" id="navTabDept" onclick="selectMode('dept_head')">
-        <div class="nav-mode-icon">🏛️</div>
-        <div class="nav-mode-text">
+    <section class="mode-tabs-row" aria-label="Official Modes">
+      <button class="mode-tab-btn active dept" id="navTabDept" onclick="selectMode('dept_head')">
+        <div class="mode-tab-icon">🏛️</div>
+        <div class="mode-tab-texts">
           <h3>Department Head (Chairmen)</h3>
-          <p>Dispatches field crews, updates solving status &amp; resolves facility tickets</p>
+          <p>Field maintenance crew dispatch, ETA logging &amp; defect resolution</p>
         </div>
       </button>
-      <button class="nav-mode-card admin" id="navTabAdmin" onclick="selectMode('admin')">
-        <div class="nav-mode-icon">⚖️</div>
-        <div class="nav-mode-text">
+
+      <button class="mode-tab-btn admin" id="navTabAdmin" onclick="selectMode('admin')">
+        <div class="mode-tab-icon">⚖️</div>
+        <div class="mode-tab-texts">
           <h3>Administration (Registrar &amp; Proctor)</h3>
-          <p>Admin triage review queue, department reassignments &amp; sensitive vault</p>
+          <p>Admin triage review queue, solver desk reassignments &amp; sensitive vault</p>
         </div>
       </button>
-      <button class="nav-mode-card social" id="navTabSocial" onclick="selectMode('social')">
-        <div class="nav-mode-icon">🎓</div>
-        <div class="nav-mode-text">
+
+      <button class="mode-tab-btn social" id="navTabSocial" onclick="selectMode('social')">
+        <div class="mode-tab-icon">🎓</div>
+        <div class="mode-tab-texts">
           <h3>Social Party (DUSU Council)</h3>
           <p>Executive oversight, 1-click Registrar escalation &amp; ground verifications</p>
         </div>
       </button>
-    </nav>
+    </section>
 
     <!-- OFFICIAL JURISDICTION BANNER -->
-    <section class="jurisdiction-banner" id="jurisdictionBanner">
-      <div class="jurisdiction-info">
-        <span style="font-size:11px;font-weight:750;letter-spacing:.05em;text-transform:uppercase;color:var(--olive)" id="bannerModeTag">MODE 1: DEPARTMENT HEAD JURISDICTION</span>
-        <h2 id="bannerDepartmentName">Electrical &amp; Power Engineering Works</h2>
-        <p id="bannerOfficialTitle">Chairman in Charge: Prof. A. K. Buragohain · Head, Electrical &amp; Power Operations</p>
-      </div>
-      <div class="jurisdiction-badge-box">
-        <div class="sla-pill">
-          <div class="sla-pill-lbl">Active SLA Window</div>
-          <div class="sla-pill-val" id="bannerSla">24 – 48 Hours</div>
+    <section class="jurisdiction-box" id="jurisdictionBox">
+      <div>
+        <div class="pill" id="bannerModePill" style="margin-bottom:8px;">Mode 1: Department Head Jurisdiction</div>
+        <h2 class="jurisdiction-title" id="bannerDeptHeading">Electrical &amp; Power Engineering <em id="bannerItalic">Works</em></h2>
+        <div class="jurisdiction-desc" id="bannerSubtitle">
+          <span>Chairman in Charge: <strong id="bannerName">Prof. A. K. Buragohain</strong></span>
+          <span>·</span>
+          <span id="bannerRole">Head, Electrical &amp; Power Maintenance</span>
         </div>
-        <button class="btn-act btn-act-outline" onclick="exportAuditCsv()">📥 Export Audit CSV</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="background:var(--pill);padding:6px 16px;border-radius:999px;font-size:12px;font-weight:700;color:#0e3018">
+          SLA Window: <span id="bannerSla">24 Hours Target</span>
+        </div>
+        <button class="btn btn-outline" onclick="exportAuditCsv()">📥 Export Audit CSV</button>
       </div>
     </section>
 
     <!-- KPI METRICS ROW -->
-    <section class="kpi-grid" id="kpiGrid"></section>
+    <section class="kpi-row" id="kpiRow"></section>
 
-    <!-- FILTER & ACTION TOOLBAR -->
-    <div class="toolbar-row">
-      <div class="tabs-group" id="filterTabs">
-        <button class="tab-btn active" onclick="setFilter('all')">All Tickets (<span id="countAll">0</span>)</button>
-        <button class="tab-btn" onclick="setFilter('pending')">Awaiting Action (<span id="countPending">0</span>)</button>
-        <button class="tab-btn" onclick="setFilter('in_progress')">In Progress / Solving (<span id="countIp">0</span>)</button>
-        <button class="tab-btn" onclick="setFilter('resolved')">Resolved (<span id="countResolved">0</span>)</button>
+    <!-- FILTER & SEARCH BAR -->
+    <div class="toolbar-bar">
+      <div class="filter-pills-group" id="filterGroup">
+        <button class="filter-pill-btn active" onclick="setFilter('all')">All Tickets (<span id="cAll">0</span>)</button>
+        <button class="filter-pill-btn" onclick="setFilter('pending')">Awaiting Action (<span id="cPending">0</span>)</button>
+        <button class="filter-pill-btn" onclick="setFilter('in_progress')">In Progress / Solving (<span id="cIp">0</span>)</button>
+        <button class="filter-pill-btn" onclick="setFilter('resolved')">Resolved (<span id="cResolved">0</span>)</button>
       </div>
 
-      <div class="search-box">
-        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input type="text" class="search-input" id="searchBox" placeholder="Search by Ticket ID, place or keyword..." oninput="handleSearch(this.value)" />
+      <div class="search-input-wrap">
+        <svg class="search-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" class="search-input-pill" placeholder="Search by Ticket ID, place, or keywords..." oninput="handleSearch(this.value)" />
       </div>
     </div>
 
     <!-- TICKETS DOCKET LIST -->
-    <section class="tickets-container" id="ticketsList"></section>
+    <section class="tickets-stack" id="ticketsStack"></section>
 
   </main>
 
-  <!-- ══════════ AUTH / PROFILE SELECTOR OVERLAY MODAL ══════════ -->
-  <div class="auth-overlay hidden" id="authOverlay">
-    <div class="auth-card">
-      <div class="auth-header">
-        <h1>Official Access Portal</h1>
-        <p>Select your authorized governance profile to access Dibrugarh University redressal workspace</p>
+  <!-- ══════════ AUTH MODAL OVERLAY (MATCHING INDEX.HTML .MODAL) ══════════ -->
+  <div class="modal-overlay hidden" id="authModal">
+    <div class="auth-box">
+      <div class="auth-box-header">
+        <div class="auth-box-title">Official Redressal Access Console</div>
+        <button onclick="closeAuthModal()" style="background:none;border:none;color:#fff;font-size:16px;font-weight:700;cursor:pointer">✕</button>
       </div>
 
-      <div class="auth-mode-tabs">
-        <button type="button" class="auth-tab active dept" id="authTabDept" onclick="setAuthMode('dept_head')">
-          <span style="font-size:16px;">🏛️</span>
-          <span>Department Head</span>
-          <small style="font-size:9.5px;opacity:.85">Chairmen &amp; HODs</small>
-        </button>
-        <button type="button" class="auth-tab admin" id="authTabAdmin" onclick="setAuthMode('admin')">
-          <span style="font-size:16px;">⚖️</span>
-          <span>Administration</span>
-          <small style="font-size:9.5px;opacity:.85">Registrar &amp; Proctor</small>
-        </button>
-        <button type="button" class="auth-tab social" id="authTabSocial" onclick="setAuthMode('social')">
-          <span style="font-size:16px;">🎓</span>
-          <span>Social Party</span>
-          <small style="font-size:9.5px;opacity:.85">DUSU President &amp; GS</small>
-        </button>
-      </div>
-
-      <div style="font-size:11px;font-weight:700;color:#3b5634;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px" id="authGridTitle">Select Authorized Official Profile:</div>
-      <div class="profiles-grid" id="authProfilesGrid"></div>
-
-      <div class="auth-input-group">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-          <label for="authPasscode" style="margin:0">Official Access Passcode</label>
-          <span style="font-size:11px;color:#6b7280;">Demo passcode: <code style="background:#eef5e7;padding:1px 6px;border-radius:4px;color:#134e2c">civic2026</code></span>
+      <div class="auth-box-body">
+        <div class="auth-subtabs">
+          <button type="button" class="auth-subtab active" id="authSubDept" onclick="switchAuthMode('dept_head')">🏛️ Department Head</button>
+          <button type="button" class="auth-subtab" id="authSubAdmin" onclick="switchAuthMode('admin')">⚖️ Administration</button>
+          <button type="button" class="auth-subtab" id="authSubSocial" onclick="switchAuthMode('social')">🎓 Social Party</button>
         </div>
-        <input type="password" id="authPasscode" class="auth-input" value="civic2026" placeholder="Enter authorized passcode" />
-      </div>
 
-      <div id="authError" style="display:none;color:#dc2626;font-size:12px;margin-bottom:12px;font-weight:600"></div>
+        <div style="font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">Select Official Profile:</div>
+        <div class="profile-tiles-grid" id="authProfilesGrid"></div>
 
-      <div style="display:flex;gap:10px;">
-        <button type="button" class="btn-act btn-act-outline" style="flex:1;height:44px;justify-content:center" onclick="closeAuthModal()">Cancel</button>
-        <button type="button" class="auth-submit-btn" style="flex:2" onclick="submitAuth()">Sign In to Dedicated Workspace →</button>
+        <div style="margin-top:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <label style="font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase">Official Passcode</label>
+            <span style="font-size:11px;color:#51684c">Demo code: <code style="background:var(--pill);padding:2px 6px;border-radius:4px;color:#0e3018">civic2026</code></span>
+          </div>
+          <input type="password" id="authPasscode" class="form-input-pass" value="civic2026" placeholder="Enter authorized passcode" />
+        </div>
+
+        <div id="authErr" style="display:none;color:#b91c1c;font-size:12px;font-weight:600;margin-top:8px"></div>
+
+        <div style="display:flex;gap:10px;margin-top:18px;">
+          <button type="button" class="btn-outline" style="flex:1" onclick="closeAuthModal()">Cancel</button>
+          <button type="button" class="btn" style="flex:2" onclick="submitAuth()">Sign In to Dedicated Console →</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- ══════════ SCRIPTS ══════════ -->
+  <!-- ══════════ CORE APPLICATION SCRIPT ══════════ -->
   <script>
     var currentMode = 'dept_head';
     var activeFilter = 'all';
     var searchQuery = '';
 
     var OFFICIALS = [
+      // MODE 1: DEPARTMENT HEAD (CHAIRMEN & HODs)
       {
         id: 'off_dept_electrical',
         mode: 'dept_head',
@@ -863,8 +908,7 @@
         email: 'chairman.electrical@dibru.ac.in',
         avatar: '⚡',
         badge: 'Chairman · Power Desk',
-        slaHours: 24,
-        handlesConfidential: false
+        slaHours: 24
       },
       {
         id: 'off_dept_hostel',
@@ -877,8 +921,7 @@
         email: 'chiefwarden.hostels@dibru.ac.in',
         avatar: '🏠',
         badge: 'Chairman · Hostels Board',
-        slaHours: 24,
-        handlesConfidential: true
+        slaHours: 24
       },
       {
         id: 'off_dept_it',
@@ -891,8 +934,7 @@
         email: 'director.ccsa@dibru.ac.in',
         avatar: '📶',
         badge: 'Chairman · IT Network',
-        slaHours: 12,
-        handlesConfidential: false
+        slaHours: 12
       },
       {
         id: 'off_dept_sanitation',
@@ -905,8 +947,7 @@
         email: 'estates.sanitation@dibru.ac.in',
         avatar: '🧹',
         badge: 'Chairman · Sanitation Desk',
-        slaHours: 18,
-        handlesConfidential: false
+        slaHours: 18
       },
       {
         id: 'off_dept_library',
@@ -919,9 +960,10 @@
         email: 'head.library@dibru.ac.in',
         avatar: '📚',
         badge: 'Chairman · Library Desk',
-        slaHours: 24,
-        handlesConfidential: false
+        slaHours: 24
       },
+
+      // MODE 2: CENTRAL ADMINISTRATION (REGISTRAR & PROCTOR)
       {
         id: 'off_superadmin',
         mode: 'admin',
@@ -933,8 +975,7 @@
         email: 'registrar@dibru.ac.in',
         avatar: '🏛️',
         badge: 'University Registrar',
-        slaHours: 48,
-        handlesConfidential: true
+        slaHours: 48
       },
       {
         id: 'off_proctor',
@@ -947,36 +988,35 @@
         email: 'proctor@dibru.ac.in',
         avatar: '🛡️',
         badge: 'Proctorial Board Head',
-        slaHours: 6,
-        handlesConfidential: true
+        slaHours: 6
       },
+
+      // MODE 3: SOCIAL PARTY (DUSU STUDENT UNION)
       {
         id: 'off_social_president',
         mode: 'social',
         modeLabel: 'Social Party (Student Union)',
         name: 'Arpan Dutta',
-        roleTitle: 'President, Dibrugarh University Students\' Union (DUSU)',
+        roleTitle: "President, Dibrugarh University Students' Union (DUSU)",
         departmentId: 'general',
         departmentName: 'DUSU Presidential Secretariat',
         email: 'president.dusu@dibru.ac.in',
         avatar: '🎓',
         badge: 'DUSU President',
-        slaHours: 24,
-        handlesConfidential: false
+        slaHours: 24
       },
       {
         id: 'off_social_gs',
         mode: 'social',
         modeLabel: 'Social Party (Student Union)',
         name: 'Nabajyoti Bora',
-        roleTitle: 'General Secretary, Dibrugarh University Students\' Union (DUSU)',
+        roleTitle: "General Secretary, Dibrugarh University Students' Union (DUSU)",
         departmentId: 'general',
         departmentName: 'DUSU General Secretariat',
         email: 'gs.dusu@dibru.ac.in',
         avatar: '📋',
         badge: 'DUSU General Secretary',
-        slaHours: 24,
-        handlesConfidential: false
+        slaHours: 24
       },
       {
         id: 'off_social_vp',
@@ -985,12 +1025,11 @@
         name: 'Sneha Baruah',
         roleTitle: 'Vice President, DUSU & In-Charge, Women Students Welfare',
         departmentId: 'girls_common_room',
-        departmentName: 'DUSU Women Students\' Affairs',
+        departmentName: "DUSU Women Students' Affairs",
         email: 'vp.dusu@dibru.ac.in',
         avatar: '🌟',
         badge: 'DUSU Vice President',
-        slaHours: 24,
-        handlesConfidential: false
+        slaHours: 24
       }
     ];
 
@@ -1134,7 +1173,7 @@
         }
       }
       saveComplaints(all);
-      renderAdminDashboard();
+      renderDashboard();
     }
 
     function getById(id) {
@@ -1164,26 +1203,24 @@
         currentOfficial = OFFICIALS[0];
         currentMode = 'dept_head';
       }
-      updateTopbarUI();
-      renderAdminDashboard();
+      updateHeaderUI();
+      renderDashboard();
     }
 
-    function updateTopbarUI() {
-      var pill = document.getElementById('topbarModePill');
-      var deptLbl = document.getElementById('topbarDeptLabel');
-      var avatar = document.getElementById('topbarAvatar');
-      var userName = document.getElementById('topbarUserName');
-
+    function updateHeaderUI() {
       if (!currentOfficial) return;
 
-      if (pill) {
-        pill.className = 'mode-pill ' + (currentOfficial.mode === 'dept_head' ? 'dept' : currentOfficial.mode === 'admin' ? 'admin' : 'social');
-        pill.textContent = currentOfficial.mode === 'dept_head' ? '🏛️ Mode 1: Department Head' : currentOfficial.mode === 'admin' ? '⚖️ Mode 2: Central Administration' : '🎓 Mode 3: Social Party';
+      var modePillText = document.getElementById('headerModeText');
+      var avatar = document.getElementById('headerAvatar');
+      var userName = document.getElementById('headerUserName');
+
+      if (modePillText) {
+        modePillText.textContent = currentOfficial.mode === 'dept_head' ? 'Mode 1: Department Head' : currentOfficial.mode === 'admin' ? 'Mode 2: Central Administration' : 'Mode 3: Social Party';
       }
-      if (deptLbl) deptLbl.textContent = currentOfficial.departmentName;
       if (avatar) avatar.textContent = currentOfficial.avatar || '🏛️';
       if (userName) userName.textContent = currentOfficial.name;
 
+      // Mode tabs highlighting
       ['navTabDept', 'navTabAdmin', 'navTabSocial'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.classList.remove('active');
@@ -1192,30 +1229,35 @@
       else if (currentOfficial.mode === 'admin') document.getElementById('navTabAdmin').classList.add('active');
       else if (currentOfficial.mode === 'social') document.getElementById('navTabSocial').classList.add('active');
 
-      var banner = document.getElementById('jurisdictionBanner');
-      var bannerTag = document.getElementById('bannerModeTag');
-      var bannerDept = document.getElementById('bannerDepartmentName');
-      var bannerTitle = document.getElementById('bannerOfficialTitle');
-      var bannerSla = document.getElementById('bannerSla');
+      // Update jurisdiction box
+      var box = document.getElementById('jurisdictionBox');
+      var pill = document.getElementById('bannerModePill');
+      var heading = document.getElementById('bannerDeptHeading');
+      var name = document.getElementById('bannerName');
+      var role = document.getElementById('bannerRole');
+      var sla = document.getElementById('bannerSla');
 
       if (currentOfficial.mode === 'dept_head') {
-        if (banner) banner.style.borderLeftColor = 'var(--olive)';
-        if (bannerTag) { bannerTag.textContent = 'MODE 1: DEPARTMENT HEAD (CHAIRMEN)'; bannerTag.style.color = 'var(--olive)'; }
-        if (bannerDept) bannerDept.textContent = currentOfficial.departmentName;
-        if (bannerTitle) bannerTitle.textContent = 'Chairman in Charge: ' + currentOfficial.name + ' · ' + currentOfficial.roleTitle;
-        if (bannerSla) bannerSla.textContent = (currentOfficial.slaHours || 24) + ' Hours Target';
+        if (box) box.style.setProperty('--kpi-col', 'var(--olive)');
+        if (pill) pill.textContent = 'Mode 1: Department Head Jurisdiction';
+        if (heading) heading.innerHTML = currentOfficial.departmentName + ' <em>(Desk)</em>';
+        if (name) name.textContent = currentOfficial.name;
+        if (role) role.textContent = currentOfficial.roleTitle;
+        if (sla) sla.textContent = (currentOfficial.slaHours || 24) + ' Hours Target';
       } else if (currentOfficial.mode === 'admin') {
-        if (banner) banner.style.borderLeftColor = 'var(--admin-blue)';
-        if (bannerTag) { bannerTag.textContent = 'MODE 2: CENTRAL ADMINISTRATION & PROCTORIAL COMMAND'; bannerTag.style.color = 'var(--admin-blue)'; }
-        if (bannerDept) bannerDept.textContent = 'Dibrugarh University Central Registry & Ombudsman';
-        if (bannerTitle) bannerTitle.textContent = currentOfficial.name + ' · ' + currentOfficial.roleTitle;
-        if (bannerSla) bannerSla.textContent = 'Campus SLA: 48h (Hazard: 4h)';
+        if (box) box.style.setProperty('--kpi-col', 'var(--blue)');
+        if (pill) pill.textContent = 'Mode 2: Central Administration & Ombudsman';
+        if (heading) heading.innerHTML = 'Central Administration <em>&amp; Registry</em>';
+        if (name) name.textContent = currentOfficial.name;
+        if (role) role.textContent = currentOfficial.roleTitle;
+        if (sla) sla.textContent = 'Campus SLA: 48h (Hazard: 4h)';
       } else if (currentOfficial.mode === 'social') {
-        if (banner) banner.style.borderLeftColor = 'var(--social-blue)';
-        if (bannerTag) { bannerTag.textContent = 'MODE 3: SOCIAL PARTY (DUSU STUDENT UNION OVERSIGHT)'; bannerTag.style.color = 'var(--social-blue)'; }
-        if (bannerDept) bannerDept.textContent = 'Dibrugarh University Students\' Union (DUSU) Executive Council';
-        if (bannerTitle) bannerTitle.textContent = currentOfficial.name + ' · ' + currentOfficial.roleTitle;
-        if (bannerSla) bannerSla.textContent = 'Council Review: <24h';
+        if (box) box.style.setProperty('--kpi-col', 'var(--blue)');
+        if (pill) pill.textContent = 'Mode 3: Social Party (Student Union Oversight)';
+        if (heading) heading.innerHTML = 'DUSU Executive Council <em>Oversight</em>';
+        if (name) name.textContent = currentOfficial.name;
+        if (role) role.textContent = currentOfficial.roleTitle;
+        if (sla) sla.textContent = 'Council Review: <24h';
       }
     }
 
@@ -1228,28 +1270,28 @@
           break;
         }
       }
-      updateTopbarUI();
-      renderAdminDashboard();
+      updateHeaderUI();
+      renderDashboard();
     }
 
     function showAuthModal() {
-      document.getElementById('authOverlay').classList.remove('hidden');
-      setAuthMode(currentMode);
+      document.getElementById('authModal').classList.remove('hidden');
+      switchAuthMode(currentMode);
     }
 
     function closeAuthModal() {
-      document.getElementById('authOverlay').classList.add('hidden');
+      document.getElementById('authModal').classList.add('hidden');
     }
 
-    function setAuthMode(mode) {
+    function switchAuthMode(mode) {
       authMode = mode;
-      ['authTabDept', 'authTabAdmin', 'authTabSocial'].forEach(function(id) {
+      ['authSubDept', 'authSubAdmin', 'authSubSocial'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.classList.remove('active');
       });
-      if (mode === 'dept_head') document.getElementById('authTabDept').classList.add('active');
-      else if (mode === 'admin') document.getElementById('authTabAdmin').classList.add('active');
-      else if (mode === 'social') document.getElementById('authTabSocial').classList.add('active');
+      if (mode === 'dept_head') document.getElementById('authSubDept').classList.add('active');
+      else if (mode === 'admin') document.getElementById('authSubAdmin').classList.add('active');
+      else if (mode === 'social') document.getElementById('authSubSocial').classList.add('active');
 
       renderAuthProfilesGrid();
     }
@@ -1263,14 +1305,14 @@
       filtered.forEach(function(o) {
         var isSel = selectedAuthOfficial && selectedAuthOfficial.id === o.id;
         var card = document.createElement('div');
-        card.className = 'profile-tile ' + (isSel ? 'selected ' + (o.mode === 'dept_head' ? 'dept' : o.mode === 'admin' ? 'admin' : 'social') : '');
-        card.innerHTML = '<span class="profile-tile-badge ' + (o.mode === 'dept_head' ? 'badge-p3' : o.mode === 'admin' ? 'badge-ip' : 'badge-p2') + '">' + o.badge + '</span>' +
-          '<div class="profile-tile-name">' + o.avatar + ' ' + o.name + '</div>' +
-          '<div class="profile-tile-role">' + o.roleTitle + '</div>';
+        card.className = 'profile-tile' + (isSel ? ' selected' : '');
+        card.innerHTML = '<span class="profile-tile-badge">' + o.badge + '</span>' +
+          '<div style="font-size:13px;font-weight:700;color:var(--ink);">' + o.avatar + ' ' + o.name + '</div>' +
+          '<div style="font-size:11px;color:#4a6142;margin-top:2px;">' + o.roleTitle + '</div>';
         card.onclick = function() {
           selectedAuthOfficial = o;
           renderAuthProfilesGrid();
-          document.getElementById('authError').style.display = 'none';
+          document.getElementById('authErr').style.display = 'none';
         };
         grid.appendChild(card);
       });
@@ -1279,7 +1321,7 @@
     function submitAuth() {
       var pw = document.getElementById('authPasscode').value;
       if (pw !== 'civic2026') {
-        var err = document.getElementById('authError');
+        var err = document.getElementById('authErr');
         err.style.display = 'block';
         err.textContent = 'Invalid passcode! Authorized demo passcode is: civic2026';
         return;
@@ -1288,8 +1330,8 @@
       currentMode = currentOfficial.mode;
       localStorage.setItem('civic_active_official_id', currentOfficial.id);
       closeAuthModal();
-      updateTopbarUI();
-      renderAdminDashboard();
+      updateHeaderUI();
+      renderDashboard();
     }
 
     function logoutAdmin() {
@@ -1301,18 +1343,18 @@
 
     function setFilter(filter) {
       activeFilter = filter;
-      var buttons = document.querySelectorAll('#filterTabs .tab-btn');
+      var buttons = document.querySelectorAll('#filterGroup .filter-pill-btn');
       buttons.forEach(function(b) { b.classList.remove('active'); });
       if (event && event.target) event.target.classList.add('active');
-      renderAdminDashboard();
+      renderDashboard();
     }
 
     function handleSearch(val) {
       searchQuery = val.toLowerCase().trim();
-      renderAdminDashboard();
+      renderDashboard();
     }
 
-    function renderAdminDashboard() {
+    function renderDashboard() {
       var all = getComplaints();
 
       var modeTickets = all;
@@ -1345,36 +1387,36 @@
         });
       }
 
-      var countAllEl = document.getElementById('countAll');
-      var countPendingEl = document.getElementById('countPending');
-      var countIpEl = document.getElementById('countIp');
-      var countResolvedEl = document.getElementById('countResolved');
+      var cAll = document.getElementById('cAll');
+      var cPending = document.getElementById('cPending');
+      var cIp = document.getElementById('cIp');
+      var cResolved = document.getElementById('cResolved');
 
-      if (countAllEl) countAllEl.textContent = modeTickets.length;
-      if (countPendingEl) countPendingEl.textContent = modeTickets.filter(function(c){ return c.status === 'open' || c.status === 'submitted' || !c.status; }).length;
-      if (countIpEl) countIpEl.textContent = modeTickets.filter(function(c){ return c.status === 'in_progress' || c.status === 'solving' || c.status === 'investigating' || c.status === 'escalated'; }).length;
-      if (countResolvedEl) countResolvedEl.textContent = modeTickets.filter(function(c){ return c.status === 'resolved' || c.status === 'closed'; }).length;
+      if (cAll) cAll.textContent = modeTickets.length;
+      if (cPending) cPending.textContent = modeTickets.filter(function(c){ return c.status === 'open' || c.status === 'submitted' || !c.status; }).length;
+      if (cIp) cIp.textContent = modeTickets.filter(function(c){ return c.status === 'in_progress' || c.status === 'solving' || c.status === 'investigating' || c.status === 'escalated'; }).length;
+      if (cResolved) cResolved.textContent = modeTickets.filter(function(c){ return c.status === 'resolved' || c.status === 'closed'; }).length;
 
-      var list = document.getElementById('ticketsList');
-      if (!list) return;
-      list.innerHTML = '';
+      var stack = document.getElementById('ticketsStack');
+      if (!stack) return;
+      stack.innerHTML = '';
 
       if (displayTickets.length === 0) {
-        list.innerHTML = '<div class="empty-state">' +
+        stack.innerHTML = '<div style="background:#fff;border:1.5px dashed var(--line);border-radius:20px;padding:48px 24px;text-align:center;color:#64748b">' +
           '<div style="font-size:32px;margin-bottom:8px">📋</div>' +
-          '<h3>No complaints match your active filter</h3>' +
-          '<p style="font-size:12px;color:#94a3b8;margin-top:4px">New student reports logged via CivicSense will appear here in real time.</p>' +
+          '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px">No complaints found in this view</h3>' +
+          '<p style="font-size:13px;color:#51684c">New reports filed via CivicSense appear here immediately.</p>' +
           '</div>';
         return;
       }
 
       displayTickets.forEach(function(c) {
-        list.appendChild(createTicketCard(c));
+        stack.appendChild(createTicketCard(c));
       });
     }
 
     function renderKpis(modeTickets, allTickets) {
-      var grid = document.getElementById('kpiGrid');
+      var grid = document.getElementById('kpiRow');
       if (!grid) return;
       grid.innerHTML = '';
 
@@ -1385,10 +1427,10 @@
         var resolvedCount = modeTickets.filter(function(c){ return c.status === 'resolved' || c.status === 'closed'; }).length;
 
         kpis = [
-          { val: modeTickets.length, lbl: 'Total in Department Queue', color: '#134e2c' },
-          { val: activeCount, lbl: 'Awaiting Action / Unresolved', color: '#b45309' },
-          { val: crewsCount, lbl: 'Field Maintenance Crews Out', color: '#2563eb' },
-          { val: resolvedCount, lbl: 'Cases Resolved & Stamped', color: '#15803d' }
+          { val: modeTickets.length, lbl: 'Total in Department Queue', color: 'var(--olive)' },
+          { val: activeCount, lbl: 'Awaiting Action / Solving', color: '#b45309' },
+          { val: crewsCount, lbl: 'Field Maintenance Crews Out', color: 'var(--green)' },
+          { val: resolvedCount, lbl: 'Cases Resolved & Stamped', color: 'var(--olive)' }
         ];
       } else if (currentOfficial.mode === 'admin') {
         var needsReview = allTickets.filter(function(c){ return c.aiAnalysis && (c.aiAnalysis.needs_review || c.aiAnalysis.confidence < 0.6); }).length;
@@ -1396,10 +1438,10 @@
         var sensitiveCount = allTickets.filter(function(c){ return c.aiAnalysis && c.aiAnalysis.sensitive; }).length;
 
         kpis = [
-          { val: allTickets.length, lbl: 'University-Wide Complaints Logged', color: '#1e3a8a' },
+          { val: allTickets.length, lbl: 'University-Wide Logged Cases', color: 'var(--blue)' },
           { val: needsReview, lbl: 'Held for Admin Review Queue', color: '#9333ea' },
-          { val: p1Count, lbl: 'High-Risk Immediate Hazards', color: '#dc2626' },
-          { val: sensitiveCount, lbl: 'Proctorial Confidential Vault', color: '#0369a1' }
+          { val: p1Count, lbl: 'High-Risk Urgent Hazards', color: '#dc2626' },
+          { val: sensitiveCount, lbl: 'Proctorial Confidential Vault', color: 'var(--olive)' }
         ];
       } else if (currentOfficial.mode === 'social') {
         var copiedToGs = allTickets.length;
@@ -1408,18 +1450,18 @@
         var verified = allTickets.filter(function(c){ return c.studentVerified || c.groundVerification; }).length;
 
         kpis = [
-          { val: copiedToGs, lbl: 'Complaints Copied to DUSU GS', color: '#0036FF' },
+          { val: copiedToGs, lbl: 'Complaints Copied to DUSU GS', color: 'var(--blue)' },
           { val: slaBreaches, lbl: 'SLA Breaches (>48h Unresolved)', color: '#dc2626' },
-          { val: endorsed, lbl: 'Issues Endorsed by Student Council', color: '#f59e0b' },
-          { val: verified, lbl: 'Ground Student Verifications', color: '#15803d' }
+          { val: endorsed, lbl: 'Council Endorsed Issues', color: '#f59e0b' },
+          { val: verified, lbl: 'Ground Student Verifications', color: 'var(--green)' }
         ];
       }
 
       kpis.forEach(function(k) {
         var card = document.createElement('div');
         card.className = 'kpi-card';
-        card.style.setProperty('--kpi-theme', k.color);
-        card.innerHTML = '<div class="kpi-num">' + k.val + '</div><div class="kpi-title">' + k.lbl + '</div>';
+        card.style.setProperty('--kpi-col', k.color);
+        card.innerHTML = '<div class="kpi-val">' + k.val + '</div><div class="kpi-lbl">' + k.lbl + '</div>';
         grid.appendChild(card);
       });
     }
@@ -1434,44 +1476,44 @@
 
       var statusBadge = '';
       if (c.status === 'resolved' || c.status === 'closed') {
-        statusBadge = '<span class="badge badge-resolved">✓ Resolved</span>';
+        statusBadge = '<span class="chip chip-resolved">✓ Resolved</span>';
       } else if (c.status === 'in_progress' || c.status === 'solving') {
-        statusBadge = '<span class="badge badge-ip">⚙️ Solving (Crew Out)</span>';
+        statusBadge = '<span class="chip chip-ip">⚙️ Solving (Crew Out)</span>';
       } else if (c.status === 'escalated') {
-        statusBadge = '<span class="badge badge-escalated">⚡ Escalated to GS</span>';
+        statusBadge = '<span class="chip chip-escalated">⚡ Escalated to GS</span>';
       } else {
-        statusBadge = '<span class="badge badge-open">Pending Action</span>';
+        statusBadge = '<span class="chip chip-open">Pending Action</span>';
       }
 
-      var priorityBadge = '<span class="badge badge-p4">P4 · Low</span>';
+      var priorityBadge = '<span class="chip chip-p4">P4 · Low</span>';
       if (c.urgency === 'Immediate Hazard' || (c.aiAnalysis && c.aiAnalysis.priority === 1)) {
-        priorityBadge = '<span class="badge badge-p1">🚨 P1 · Urgent Hazard</span>';
+        priorityBadge = '<span class="chip chip-p1">🚨 P1 · Urgent Hazard</span>';
       } else if (c.urgency === 'High' || (c.aiAnalysis && c.aiAnalysis.priority === 2)) {
-        priorityBadge = '<span class="badge badge-p2">⚠️ P2 · High Priority</span>';
+        priorityBadge = '<span class="chip chip-p2">⚠️ P2 · High Priority</span>';
       } else if (c.urgency === 'Medium' || (c.aiAnalysis && c.aiAnalysis.priority === 3)) {
-        priorityBadge = '<span class="badge badge-p3">P3 · Medium</span>';
+        priorityBadge = '<span class="chip chip-p3">P3 · Medium</span>';
       }
 
       var conf = c.aiAnalysis && c.aiAnalysis.confidence ? Math.round(c.aiAnalysis.confidence * 100) : 95;
-      var accuracyPill = '<span class="accuracy-tag">' + conf + '% AI Confidence</span>';
+      var accuracyPill = '<span class="accuracy-pill">' + conf + '% AI Confidence</span>';
 
       var isDone2 = !!c.aiAnalysis;
       var isDone3 = c.status === 'in_progress' || c.status === 'solving' || c.fieldCrew;
       var isDone4 = c.status === 'resolved' || c.status === 'closed';
 
-      var stepperHtml = '<div class="progress-stepper">' +
-        '<span class="step-point done">✓ Report Lodged</span>' +
-        '<span class="step-arrow">→</span>' +
-        '<span class="step-point ' + (isDone2 ? 'done' : '') + '">✓ AI Triaged</span>' +
-        '<span class="step-arrow">→</span>' +
-        '<span class="step-point ' + (isDone3 ? 'active done' : '') + '">' + (c.fieldCrew ? '🛠️ Crew Deployed' : 'Solving') + '</span>' +
-        '<span class="step-arrow">→</span>' +
-        '<span class="step-point ' + (isDone4 ? 'done' : '') + '">' + (isDone4 ? '✓ Resolved & Verified' : 'Resolved') + '</span>' +
+      var stepperHtml = '<div class="stepper-track">' +
+        '<span class="stepper-node done">✓ Report Lodged</span>' +
+        '<span class="stepper-arrow">→</span>' +
+        '<span class="stepper-node ' + (isDone2 ? 'done' : '') + '">✓ AI Triaged</span>' +
+        '<span class="stepper-arrow">→</span>' +
+        '<span class="stepper-node ' + (isDone3 ? 'active done' : '') + '">' + (c.fieldCrew ? '🛠️ Crew Deployed' : 'Solving') + '</span>' +
+        '<span class="stepper-arrow">→</span>' +
+        '<span class="stepper-node ' + (isDone4 ? 'done' : '') + '">' + (isDone4 ? '✓ Resolved & Verified' : 'Resolved') + '</span>' +
         '</div>';
 
       var crewCalloutHtml = '';
       if (c.fieldCrew) {
-        crewCalloutHtml = '<div class="crew-callout">' +
+        crewCalloutHtml = '<div class="crew-info-bar">' +
           '<span style="font-size:16px">🛠️</span>' +
           '<div><strong>Field Crew Active:</strong> ' + c.fieldCrew.crewName + ' · ETA: ' + c.fieldCrew.eta + ' (Dispatched by ' + (c.fieldCrew.dispatchedBy || 'Dept Head') + ')</div>' +
           '</div>';
@@ -1479,58 +1521,58 @@
 
       var endorsementHtml = '';
       if (c.dusuEndorsement) {
-        endorsementHtml = '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:8px 12px;font-size:12px;color:#1e40af;margin-bottom:12px">' +
+        endorsementHtml = '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:9px 14px;font-size:12.5px;color:#1e40af;margin-bottom:14px">' +
           '<strong>🎓 DUSU Council Endorsement:</strong> ' + c.dusuEndorsement.note + ' <small style="opacity:.85">(' + c.dusuEndorsement.endorsedBy + ')</small>' +
           '</div>';
       }
 
       var actionsHtml = '';
       if (currentOfficial.mode === 'dept_head') {
-        actionsHtml = '<div class="ticket-actions">' +
-          '<button class="btn-act btn-act-dept" onclick="opDispatchCrew(\'' + c.id + '\')">🛠️ Dispatch Field Crew</button>' +
-          '<button class="btn-act btn-act-green" onclick="opSetStatus(\'' + c.id + '\', \'resolved\')">✓ Mark Resolved on Site</button>' +
-          '<button class="btn-act btn-act-outline" onclick="opPostReply(\'' + c.id + '\')">💬 Post Official Update</button>' +
-          '<button class="btn-act btn-act-outline" onclick="openPublicTracker(\'' + c.id + '\')">🔍 Student View</button>' +
+        actionsHtml = '<div class="ticket-actions-row">' +
+          '<button class="btn" style="height:32px;font-size:12px;padding:0 14px;" onclick="opDispatchCrew(&quot;' + c.id + '&quot;)">🛠️ Dispatch Field Crew</button>' +
+          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opSetStatus(&quot;' + c.id + '&quot;, &quot;resolved&quot;)">✓ Mark Resolved</button>' +
+          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opPostReply(&quot;' + c.id + '&quot;)">💬 Post Official Update</button>' +
+          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="openPublicTracker(&quot;' + c.id + '&quot;)">🔍 Student View</button>' +
           '</div>';
       } else if (currentOfficial.mode === 'admin') {
-        actionsHtml = '<div class="ticket-actions">' +
-          '<button class="btn-act btn-act-admin" onclick="opReassignDept(\'' + c.id + '\')">🔄 Reassign Solver Desk</button>' +
-          '<button class="btn-act btn-act-amber" onclick="opOverridePriority(\'' + c.id + '\')">⚠️ Override Priority</button>' +
-          (isSensitive ? '<button class="btn-act btn-act-red" onclick="opConfidentialInquiry(\'' + c.id + '\')">🛡️ Proctorial Inquiry</button>' : '') +
-          '<button class="btn-act btn-act-green" onclick="opSetStatus(\'' + c.id + '\', \'resolved\')">✓ Official Sign-Off</button>' +
-          '<button class="btn-act btn-act-outline" onclick="opPostReply(\'' + c.id + '\')">💬 Post Ombudsman Note</button>' +
+        actionsHtml = '<div class="ticket-actions-row">' +
+          '<button class="btn btn-blue" style="height:32px;font-size:12px;padding:0 14px;" onclick="opReassignDept(&quot;' + c.id + '&quot;)">🔄 Reassign Solver Desk</button>' +
+          '<button class="btn-outline btn-amber" style="height:32px;font-size:12px;padding:0 14px;" onclick="opOverridePriority(&quot;' + c.id + '&quot;)">⚠️ Override Priority</button>' +
+          (isSensitive ? '<button class="btn-outline btn-red" style="height:32px;font-size:12px;padding:0 14px;" onclick="opConfidentialInquiry(&quot;' + c.id + '&quot;)">🛡️ Proctorial Inquiry</button>' : '') +
+          '<button class="btn" style="height:32px;font-size:12px;padding:0 14px;" onclick="opSetStatus(&quot;' + c.id + '&quot;, &quot;resolved&quot;)">✓ Official Sign-Off</button>' +
+          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opPostReply(&quot;' + c.id + '&quot;)">💬 Post Note</button>' +
           '</div>';
       } else if (currentOfficial.mode === 'social') {
-        actionsHtml = '<div class="ticket-actions">' +
-          '<button class="btn-act btn-act-social" onclick="opEscalateToRegistrar(\'' + c.id + '\')">⚡ Escalate to Registrar</button>' +
-          '<button class="btn-act btn-act-amber" onclick="opEndorseCouncil(\'' + c.id + '\')">🤝 Add DUSU Endorsement</button>' +
-          '<button class="btn-act btn-act-green" onclick="opVerifyStudent(\'' + c.id + '\')">✅ Student Ground Verification</button>' +
-          '<button class="btn-act btn-act-outline" onclick="opPostReply(\'' + c.id + '\')">💬 Student Council Remark</button>' +
+        actionsHtml = '<div class="ticket-actions-row">' +
+          '<button class="btn btn-blue" style="height:32px;font-size:12px;padding:0 14px;" onclick="opEscalateToRegistrar(&quot;' + c.id + '&quot;)">⚡ Escalate to Registrar</button>' +
+          '<button class="btn-outline btn-amber" style="height:32px;font-size:12px;padding:0 14px;" onclick="opEndorseCouncil(&quot;' + c.id + '&quot;)">🤝 Add Endorsement</button>' +
+          '<button class="btn" style="height:32px;font-size:12px;padding:0 14px;" onclick="opVerifyStudent(&quot;' + c.id + '&quot;)">✅ Student Ground Verification</button>' +
+          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opPostReply(&quot;' + c.id + '&quot;)">💬 Council Remark</button>' +
           '</div>';
       }
 
       card.innerHTML =
-        '<div class="ticket-header">' +
-          '<div class="ticket-id-title">' +
-            '<span class="ticket-id">' + c.id + '</span>' +
-            '<h3 class="ticket-title">' + (c.title || 'Campus Issue') + '</h3>' +
+        '<div class="ticket-card-header">' +
+          '<div class="ticket-title-row">' +
+            '<span class="ticket-id-tag">' + c.id + '</span>' +
+            '<h3 class="ticket-heading">' + (c.title || 'Campus Issue') + '</h3>' +
           '</div>' +
-          '<div class="ticket-badges">' + priorityBadge + statusBadge + '</div>' +
+          '<div class="ticket-badges-group">' + priorityBadge + statusBadge + '</div>' +
         '</div>' +
 
-        '<div class="ticket-meta">' +
+        '<div class="ticket-meta-row">' +
           '<span>📍 ' + (c.location || 'Dibrugarh University Campus') + '</span>' +
           '<span>🏢 Assigned: <strong>' + (c.dept || 'Department Desk') + '</strong></span>' +
           '<span>🕒 ' + new Date(c.ts || Date.now()).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + '</span>' +
         '</div>' +
 
-        '<div class="ai-analysis-box">' +
-          '<div class="ai-analysis-header">' +
+        '<div class="ai-snapshot-card">' +
+          '<div class="ai-snapshot-top">' +
             '<span>CivicSense AI Engine Analysis Snapshot</span>' +
             accuracyPill +
           '</div>' +
-          '<div class="ai-summary-text"><strong>English Summary:</strong> ' + ((c.aiAnalysis && c.aiAnalysis.summary_en) || c.desc || 'No summary available.') + '</div>' +
-          (c.aiAnalysis && c.aiAnalysis.summary_as ? '<div class="ai-summary-as"><strong>অসমীয়া সাৰাংশ:</strong> ' + c.aiAnalysis.summary_as + '</div>' : '') +
+          '<div class="ai-english-summary"><strong>English Summary:</strong> ' + ((c.aiAnalysis && c.aiAnalysis.summary_en) || c.desc || 'No summary available.') + '</div>' +
+          (c.aiAnalysis && c.aiAnalysis.summary_as ? '<div class="ai-as-summary"><strong>অসমীয়া সাৰাংশ:</strong> ' + c.aiAnalysis.summary_as + '</div>' : '') +
         '</div>' +
 
         stepperHtml +
@@ -1747,7 +1789,7 @@
       });
 
       saveOne(c);
-      alert('Ticket #' + id + ' successfully escalated to the University Registrar\'s Emergency Docket!');
+      alert("Ticket #" + id + " successfully escalated to the University Registrar's Emergency Docket!");
     }
 
     function opEndorseCouncil(id) {

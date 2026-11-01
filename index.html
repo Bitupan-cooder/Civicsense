@@ -438,19 +438,22 @@ nav.f-links a:hover{text-decoration:underline}
   color: #6b7280;
 }
 
-/* KPI BARS */
-.ws-kpi-bar {
+/* KPI BARS & GRIDS */
+.ws-kpi-bar,
+.kpi-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   margin-bottom: 18px;
 }
 @media (max-width: 768px) {
-  .ws-kpi-bar {
+  .ws-kpi-bar,
+  .kpi-row {
     grid-template-columns: repeat(2, 1fr);
   }
 }
-.ws-kpi-card {
+.ws-kpi-card,
+.kpi-card {
   background: #ffffff;
   border: 1.5px solid var(--line);
   border-radius: 12px;
@@ -459,22 +462,25 @@ nav.f-links a:hover{text-decoration:underline}
   position: relative;
   overflow: hidden;
 }
-.ws-kpi-card::before {
+.ws-kpi-card::before,
+.kpi-card::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 3px;
-  background: var(--kpi-color, #134e2c);
+  background: var(--kpi-color, var(--olive));
 }
-.ws-kpi-val {
+.ws-kpi-val,
+.kpi-val {
   font-size: 24px;
   font-weight: 800;
   color: var(--ink);
   line-height: 1;
 }
-.ws-kpi-label {
+.ws-kpi-label,
+.kpi-lbl {
   font-size: 11px;
   font-weight: 600;
   color: #556950;
