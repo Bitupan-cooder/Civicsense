@@ -1,0 +1,303 @@
+{
+  "name": "Dibrugarh University map kit",
+  "prepared": "2026-10-30",
+  "sourceGeometryDate": "2026-10-17",
+  "placesReviewedOn": "2026-10-18",
+  "mapRevision": "4db2ab1f2ba481e7715c1d731580154e9ee4d143923a031ffd5d427ab81d85c4",
+  "counts": {
+    "roads": 207,
+    "buildings": 4030,
+    "places": 91,
+    "areas": 16,
+    "historical": 260,
+    "trees": 1390
+  },
+  "gpsCRS": "EPSG:4326",
+  "renderCRS": "EPSG:32646",
+  "files": {
+    "android/app/src/main/assets/atlas_tree.png": {
+      "bytes": 24750,
+      "sha256": "cef946c7ec607ef50338045b8ac936c988c72bd19d622adf2757419f0f56fa4c"
+    },
+    "android/app/src/main/assets/campus_atlas.json": {
+      "bytes": 2185487,
+      "sha256": "4db2ab1f2ba481e7715c1d731580154e9ee4d143923a031ffd5d427ab81d85c4"
+    },
+    "android/app/src/main/assets/MAP_ATTRIBUTION.txt": {
+      "bytes": 816,
+      "sha256": "5da00ed4c70921da395a2621011c2292d765e2d278e26d002ae989100a04af10"
+    },
+    "android/app/src/main/assets/team_characters.webp": {
+      "bytes": 3640,
+      "sha256": "24303abc26847681e237d58fb21e1d9de701376d4976da7f7c66b4e19ee5f2ca"
+    },
+    "android/app/src/main/java/com/campushunt/app/CampusCoordinates.kt": {
+      "bytes": 1282,
+      "sha256": "f13e34902280c7e2ee46b0d9d882ef9cbc1890cb8ea907f4670444918f951b68"
+    },
+    "android/app/src/main/java/com/campushunt/app/MapLabels.kt": {
+      "bytes": 864,
+      "sha256": "b061c3fa98fae4dcc8946396a842f76ca5bccedbe4092185a2a90b7cd5cc633d"
+    },
+    "android/app/src/main/java/com/campushunt/app/TeamCharacters.kt": {
+      "bytes": 837,
+      "sha256": "b0a7cda7940df544cff4ff78bef1d68b2688ffbbd158d861d364f422f51b30ce"
+    },
+    "android/app/src/main/java/com/campushunt/app/VectorCampusMap.kt": {
+      "bytes": 21563,
+      "sha256": "704f803972323c071f39de095d654df1b5ea7fa540cee7cc691846585685cd7b"
+    },
+    "android/app/src/test/java/com/campushunt/app/CampusCoordinatesTest.kt": {
+      "bytes": 1237,
+      "sha256": "ed25ef754b3b431552d3cd47642382a2cc991ec443db3a103165529799da96f5"
+    },
+    "android/app/src/test/java/com/campushunt/app/MapLabelsTest.kt": {
+      "bytes": 1712,
+      "sha256": "6dc571ce5a1ce40c524e9b28f09273362d075f87367538c58f849f041bb11484"
+    },
+    "android/app/src/test/java/com/campushunt/app/TeamCharactersTest.kt": {
+      "bytes": 758,
+      "sha256": "31d15649705255f59ed07a4fd98ca8874b4f6062d87e487c916c08c64fdf0a9e"
+    },
+    "android/app/src/test/resources/projection-fixtures.json": {
+      "bytes": 6370,
+      "sha256": "94cec6c821efbfe173618b408270f678e827740b338c7e2617bc303cbeb22679"
+    },
+    "android/README.md": {
+      "bytes": 2282,
+      "sha256": "0451a2556170d4bf84b93af8688c8da4ac808a4706d39fc2dbc73c9c760d73ac"
+    },
+    "ASSET_PROMPT.md": {
+      "bytes": 1172,
+      "sha256": "f8346c94d16b71a89d919daed89570c74fd7a6d830f3cb08d6147d5b25f8a955"
+    },
+    "assets/PressStart2P-OFL.txt": {
+      "bytes": 4413,
+      "sha256": "705960c3281a5765ecc0b59bd4ed7ca59eed165748076bc2fc3e8fdbfeb944b0"
+    },
+    "assets/PressStart2P-Regular.ttf": {
+      "bytes": 118204,
+      "sha256": "034c77f1f05ec89421e4a63f0e3a4ca1ecf852cc6d2bf611f126f275728e017d"
+    },
+    "assets/proj4-LICENSE.md": {
+      "bytes": 1454,
+      "sha256": "d514fd8b286fc00a5c97a29f8a99b73f1a4053bbdd00c400aee5f24a1b6b301e"
+    },
+    "assets/proj4-version.txt": {
+      "bytes": 6,
+      "sha256": "375f907122becdcfde3c4246b5ea0d65edb12e89bd82d29f688aa12e4993e208"
+    },
+    "assets/proj4.js": {
+      "bytes": 129733,
+      "sha256": "af7df653d91ea591f33d26fb958990bbd3071b2db644a4edaba441cc9861a474"
+    },
+    "assets/tree-canopy-128.png": {
+      "bytes": 24750,
+      "sha256": "cef946c7ec607ef50338045b8ac936c988c72bd19d622adf2757419f0f56fa4c"
+    },
+    "assets/tree-canopy.png": {
+      "bytes": 1167620,
+      "sha256": "da7e7a5a592511237430379db6e007ef0f7b38b4d74e606bb10657823e213919"
+    },
+    "ATTRIBUTION.md": {
+      "bytes": 1689,
+      "sha256": "db97ee1f1439ccdbff651791d3883440658bb99391568d1aa88373a32ba1b022"
+    },
+    "build_map.py": {
+      "bytes": 12768,
+      "sha256": "1becaa4dd84729f97a18711aa58fb8ffabb12e8ab1f9e3dfce524eacb54d5f32"
+    },
+    "campus-data.geojson": {
+      "bytes": 2063094,
+      "sha256": "a75f3ff23159e58e9373ae557ee951b5173537476f31fa2a6e5db5ff90ed77a5"
+    },
+    "Campus-detail.png": {
+      "bytes": 2915163,
+      "sha256": "6b1a3b0de0e906bcc9c52553c60933a44acd225a85aad47dccf6da5525871689"
+    },
+    "coverage-report.json": {
+      "bytes": 1507,
+      "sha256": "6d071ab8d20e5d93f7cd3a55c80a4b1409f49972d5d5b92d16b1cb1ac41a03c1"
+    },
+    "data/audit-map-original.jpg": {
+      "bytes": 285259,
+      "sha256": "98bb2ee5023974080219546cc88784bbdbea7f2bf7d3067a81cd900b5dfe29a8"
+    },
+    "data/dibrugarh-source.osm": {
+      "bytes": 3105734,
+      "sha256": "53b6b1a319489ffa95832ab5f261ee4e086f40583e73efabea92b0049d728b63"
+    },
+    "data/overture-buildings.geojson": {
+      "bytes": 3902664,
+      "sha256": "4735aa0c98a00b477e4e74d4ae278d152b78eb714423339cd745562f301964fb"
+    },
+    "data/overture-catalog-selection.json": {
+      "bytes": 4870,
+      "sha256": "204fb8862f045a760784c09916acd610274ad04138ff75b0be88cf39df3f8865"
+    },
+    "data/overture-places-retry.geojson": {
+      "bytes": 111397,
+      "sha256": "80d2f94cbcbf9e6fdd806eef474b1aca6223040b7314e2298f8e4ec7f541ab6e"
+    },
+    "data/overture-places.geojson": {
+      "bytes": 47,
+      "sha256": "037aa5baabf4bc9f68e9e31aaf04b37f72bd814e4e05e0a15ac968fdf1994a72"
+    },
+    "data/reviewed-places.json": {
+      "bytes": 8703,
+      "sha256": "ab8baf65bbe2530e20eacc6e5d9f0384cec42edb15e19812bebf5f3409a65e5c"
+    },
+    "Dibrugarh-University-Pixel-Map.pgw": {
+      "bytes": 81,
+      "sha256": "2a7a9a758abcea19ed33addb5362822af786899c5efc8444478741dce44ad3ea"
+    },
+    "Dibrugarh-University-Pixel-Map.png": {
+      "bytes": 8842775,
+      "sha256": "f6c4f9afe1b169daaed64a81b232401f5dfa0712210faf1d7c3b706ba29c197c"
+    },
+    "Dibrugarh-University-Pixel-Map.prj": {
+      "bytes": 597,
+      "sha256": "10efc186eda519fa80fd86b299633f05819254247356cc8b89a08964d2464ea5"
+    },
+    "Dibrugarh-University-Pixel-Map.svg": {
+      "bytes": 1722596,
+      "sha256": "22d93ac9f39c4fea28315016dcd9f6cbd2126b0a04669bfb4d151288a9286ba3"
+    },
+    "elements/team-characters-preview.png": {
+      "bytes": 11705,
+      "sha256": "12115c7ebdb98b342687e9441a20bdd5f818004d592bc47f37adfbb9238ba4eb"
+    },
+    "elements/team-characters.json": {
+      "bytes": 4443,
+      "sha256": "3fb3130b091403db30af590c45971b89b476ae76f4c4b2f1e93c18e72a2b10c7"
+    },
+    "elements/team-characters.svg": {
+      "bytes": 101902,
+      "sha256": "489774f3b13fcbdd7d9ca45b929b9510ad2cdcc48b87d509b36a62f6ad030d81"
+    },
+    "elements/team-characters.webp": {
+      "bytes": 3640,
+      "sha256": "24303abc26847681e237d58fb21e1d9de701376d4976da7f7c66b4e19ee5f2ca"
+    },
+    "examples/atlas-renderer.js": {
+      "bytes": 7480,
+      "sha256": "613ebeb52890acacb20bb9ecada925b6acf6286a40c096d98308115504d7ffd1"
+    },
+    "examples/markers.html": {
+      "bytes": 3296,
+      "sha256": "e03e4dd82cfa93f36ab04cb870c20ebe0fd2b6bf829388b6753d67b1e2e21ea6"
+    },
+    "gps-projection.js": {
+      "bytes": 1753,
+      "sha256": "2da25d24a6fa619b10669a95fb4056610b302b1c2b61c62ca447336ddf9f018b"
+    },
+    "index.html": {
+      "bytes": 2540962,
+      "sha256": "728a5c3c958b9b137f56ff2a9518a3bd28488c34fe1e59775fc64d9c1ba5cede"
+    },
+    "label-placement.json": {
+      "bytes": 7448,
+      "sha256": "f73db7d7e9d3e597e29cab6a0e2686b2c675aa2a356cacf6fd3462a28f442e85"
+    },
+    "layers/areas.geojson": {
+      "bytes": 146283,
+      "sha256": "fc1cfbc3b3e8cfa3720c8ce2266d6c42d82719371f3a082ff758199ccdaa13ff"
+    },
+    "layers/auditBoundary.geojson": {
+      "bytes": 7605,
+      "sha256": "c3dd3073852da2f13a607e1c5f61d8afb455185beb32958657d17186b2374b2a"
+    },
+    "layers/boundary.geojson": {
+      "bytes": 9396,
+      "sha256": "a6c2fa909a7f60f35d4bfef91fdae5576797fb7356cc9767bd9d1ce36ef81561"
+    },
+    "layers/buffer.geojson": {
+      "bytes": 204016,
+      "sha256": "006600ab3c580c28f927412df879434794c9810eda3869ccc29aba64ec80b105"
+    },
+    "layers/buildings.geojson": {
+      "bytes": 3602953,
+      "sha256": "388e4c3fa67a7a17647a766f120af12f4744d48ee617d9d8dc586d24d7b63a11"
+    },
+    "layers/decorative-trees.geojson": {
+      "bytes": 417825,
+      "sha256": "27a740683269b789be4f798ac01b98c06d7f6a76b5018c80b51bd73f4675876d"
+    },
+    "layers/historical.geojson": {
+      "bytes": 574116,
+      "sha256": "22c0b6697a55a15258af193d2e323459d06a1be131b7336667cb646bcaa9da65"
+    },
+    "layers/osmBoundary.geojson": {
+      "bytes": 4089,
+      "sha256": "d4fdb7a15fa1b71cbfe18cbc066f8fe8d6cfdf89673f19cbc4606398a2b54bdf"
+    },
+    "layers/places.geojson": {
+      "bytes": 112821,
+      "sha256": "23cc400da0e4cc684d383ef7c25d4587bf76ce1028b9dd1eeb59acf080d67516"
+    },
+    "layers/roads.geojson": {
+      "bytes": 214924,
+      "sha256": "d06aca29e75fcf132f5b64337f5da5dfb0ab64461dd834adf75d20248d7b459b"
+    },
+    "map-data.json": {
+      "bytes": 2185487,
+      "sha256": "4db2ab1f2ba481e7715c1d731580154e9ee4d143923a031ffd5d427ab81d85c4"
+    },
+    "map-labels.js": {
+      "bytes": 973,
+      "sha256": "a054e9bc6878a3da3b1ac6441cf38f98bbabeb476e306c284d6cd07221956ff1"
+    },
+    "Map-overview.png": {
+      "bytes": 1706501,
+      "sha256": "14a080a6082aad0c8147edcf9acbaf6f06835bdeb51b664f64803be2ad537466"
+    },
+    "package_map.py": {
+      "bytes": 11598,
+      "sha256": "e74f63068e80de69149f8293b635bbf977da1d33ccc54365e13896188811df41"
+    },
+    "place-index.csv": {
+      "bytes": 16785,
+      "sha256": "fda30b9bf2152f2231021690cc9ec2e447ad9f24b3fd4229071413a51e480b70"
+    },
+    "place-review-report.json": {
+      "bytes": 3387,
+      "sha256": "78ed4a214c66d2061608655412e12c43d64871c64d96cf4d16b742346476bc7b"
+    },
+    "place-verification.json": {
+      "bytes": 1023,
+      "sha256": "66eb135596d95800cb24d55797371d0ee66ba29994a93bb3446c59b95c788e6d"
+    },
+    "PROVENANCE.md": {
+      "bytes": 7880,
+      "sha256": "daa8d8dc28555b733297e8001a7adde728e67782763e86bcbe841e6f2f48c874"
+    },
+    "README.md": {
+      "bytes": 7627,
+      "sha256": "e8961652956dfd32d6d752a85660e90d905ee7658d1e47e4823a176d6f953dbe"
+    },
+    "requirements-rebuild.txt": {
+      "bytes": 56,
+      "sha256": "6b3e026131fc1ace427dba5872487ec2fe7a470c206d7c05df2ba269475ba7b3"
+    },
+    "review_places.py": {
+      "bytes": 8626,
+      "sha256": "6cc708639851f75578bebf2e142006b396c69ac9a8115607f648ca89685617ce"
+    },
+    "verification.json": {
+      "bytes": 425,
+      "sha256": "d6cf05f92d051519e7d904f8ade789b075654a92ccf72f0f0d67827abcc9ef0f"
+    },
+    "verify_places.py": {
+      "bytes": 3799,
+      "sha256": "bc2bc6b1c738cf309854a6225228a7559c9c68886ef30446f4546a799e97239a"
+    },
+    "verify_projection.py": {
+      "bytes": 3942,
+      "sha256": "273a1d7685feb2bda4849cb48276e4f8fe8372daae2ff02f88d10ba19b5fd597"
+    },
+    "viewer.template.html": {
+      "bytes": 32427,
+      "sha256": "9af17d9df93282ff3d20402ca829a57727c08aea46eff654b7e94d7aa66315c7"
+    }
+  }
+}

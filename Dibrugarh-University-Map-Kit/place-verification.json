@@ -1,0 +1,48 @@
+{
+  "reviewedReferences": 99,
+  "mappedDestinations": 91,
+  "campusDestinations": 83,
+  "duplicateListingsMerged": 5,
+  "conflictingOrGenericListingsExcluded": 3,
+  "chemistryToAideuHostelMetres": 445.44,
+  "excludedUnits": [
+    "Centre for Studies in Languages",
+    "Centre for Studies in Physical Education and Sports"
+  ],
+  "originalRoadWaysPreserved": 207,
+  "originalRoofsPreserved": 4030,
+  "androidAssetMatches": true,
+  "zoomGrouping": [
+    {
+      "scale": 0.12,
+      "groups": 16,
+      "representedPlaces": 91
+    },
+    {
+      "scale": 0.4,
+      "groups": 50,
+      "representedPlaces": 91
+    },
+    {
+      "scale": 1,
+      "groups": 81,
+      "representedPlaces": 91
+    },
+    {
+      "scale": 3,
+      "groups": 90,
+      "representedPlaces": 91
+    },
+    {
+      "scale": 10,
+      "groups": 91,
+      "representedPlaces": 91
+    },
+    {
+      "scale": 80,
+      "groups": 91,
+      "representedPlaces": 91
+    }
+  ],
+  "fullNameWrapping": true
+}

@@ -162,11 +162,8 @@ begin
     return true;
   end if;
 
-  -- 3. Department
+  -- 3. Department: strictly can only read complaints targeted to their assigned department unit
   if v_role = 'department' then
-    if p_visibility = 'social_service' then
-      return true;
-    end if;
     if p_visibility = 'department' then
       if p_target_unit_id = v_uid then
         return true;
@@ -184,7 +181,7 @@ begin
     return false;
   end if;
 
-  -- 4. Social Service (DUSU)
+  -- 4. Social Service (DUSU Council): strictly can only read complaints submitted with social_service visibility
   if v_role = 'social_service' then
     return p_visibility = 'social_service';
   end if;
@@ -469,3 +466,55 @@ create trigger trg_profile_update_integrity
   before update on public.profiles
   for each row
   execute function public.enforce_profile_update_integrity();
+
+-- ─── 7. INITIAL DEMO CENTRAL ADMINISTRATION PROFILE ─────────
+do $$
+declare
+  v_user_id uuid := gen_random_uuid();
+begin
+  if not exists (select 1 from auth.users where email = 'admin@dibru.ac.in') then
+    insert into auth.users (
+      instance_id,
+      id,
+      aud,
+      role,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      created_at,
+      updated_at
+    ) values (
+      '00000000-0000-0000-0000-000000000000',
+      v_user_id,
+      'authenticated',
+      'authenticated',
+      'admin@dibru.ac.in',
+      crypt('Admin@123456', gen_salt('bf')),
+      now(),
+      '{"provider":"email","providers":["email"]}',
+      '{"name":"Registrar Office"}',
+      now(),
+      now()
+    );
+  else
+    select id into v_user_id from auth.users where email = 'admin@dibru.ac.in';
+    update auth.users set encrypted_password = crypt('Admin@123456', gen_salt('bf')) where id = v_user_id;
+  end if;
+
+  insert into public.profiles (id, role, name, email, unit_name, is_active, must_change_password)
+  values (
+    v_user_id,
+    'administration',
+    'Dr. P. K. Kakoty (Registrar)',
+    'admin@dibru.ac.in',
+    'Office of the Registrar & Proctor',
+    true,
+    false
+  )
+  on conflict (id) do update set
+    role = 'administration',
+    is_active = true,
+    must_change_password = false;
+end $$;

@@ -1111,7 +1111,7 @@
         <div class="nav-center-status">
           <span class="pill" id="headerModePill">
             <span class="pill-dot"></span>
-            <span id="headerModeText">Mode 1: Department Head</span>
+            <span id="headerModeText">Official Console</span>
           </span>
           <div class="user-badge" id="headerUserBadge">
             <span id="headerAvatar">DU</span>
@@ -1129,47 +1129,20 @@
     <!-- ══════════ MAIN WORKSPACE ══════════ -->
     <main class="admin-main">
 
-    <!-- 3 MODE SELECTION TABS -->
-    <section class="mode-tabs-row" aria-label="Official Modes">
-      <button class="mode-tab-btn active dept" id="navTabDept" onclick="selectMode('dept_head')">
-        <div class="mode-tab-icon">DH</div>
-        <div class="mode-tab-texts">
-          <h3>Department Head (Chairmen)</h3>
-          <p>Field maintenance crew dispatch, ETA logging &amp; defect resolution</p>
-        </div>
-      </button>
-
-      <button class="mode-tab-btn admin" id="navTabAdmin" onclick="selectMode('admin')">
-        <div class="mode-tab-icon">AD</div>
-        <div class="mode-tab-texts">
-          <h3>Administration (Registrar &amp; Proctor)</h3>
-          <p>Admin triage review queue, solver desk reassignments &amp; sensitive vault</p>
-        </div>
-      </button>
-
-      <button class="mode-tab-btn social" id="navTabSocial" onclick="selectMode('social')">
-        <div class="mode-tab-icon">SU</div>
-        <div class="mode-tab-texts">
-          <h3>Social Party (DUSU Council)</h3>
-          <p>Executive oversight, 1-click Registrar escalation &amp; ground verifications</p>
-        </div>
-      </button>
-    </section>
-
     <!-- OFFICIAL JURISDICTION BANNER -->
     <section class="jurisdiction-box" id="jurisdictionBox">
       <div>
-        <div class="pill" id="bannerModePill" style="margin-bottom:8px;">Mode 1: Department Head Jurisdiction</div>
-        <h2 class="jurisdiction-title" id="bannerDeptHeading">Electrical &amp; Power Engineering <em id="bannerItalic">Works</em></h2>
+        <div class="pill" id="bannerModePill" style="margin-bottom:8px;">Official Jurisdiction</div>
+        <h2 class="jurisdiction-title" id="bannerDeptHeading">Official Redressal <em id="bannerItalic">Workspace</em></h2>
         <div class="jurisdiction-desc" id="bannerSubtitle">
-          <span>Chairman in Charge: <strong id="bannerName">Prof. A. K. Buragohain</strong></span>
+          <span>Official in Charge: <strong id="bannerName">Authorized Official</strong></span>
           <span>·</span>
-          <span id="bannerRole">Head, Electrical &amp; Power Maintenance</span>
+          <span id="bannerRole">Campus Jurisdiction</span>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <div style="background:var(--pill);padding:6px 16px;border-radius:999px;font-size:12px;font-weight:700;color:#0e3018">
-          SLA Window: <span id="bannerSla">24 Hours Target</span>
+          SLA Window: <span id="bannerSla">Target Resolution</span>
         </div>
         <button class="btn btn-outline" onclick="exportAuditCsv()">Export Audit CSV</button>
       </div>
@@ -2229,7 +2202,7 @@
       errBox.style.display = 'none';
 
       try {
-        var res = await CivicAuth.login(email, password, [gateRole]);
+        var res = await CivicAuth.login(email, password, ['administration', 'department', 'social_service']);
         var profile = res.profile;
 
         document.getElementById('authGateContainer').style.display = 'none';
@@ -2277,20 +2250,8 @@
       var avatar = document.getElementById('headerAvatar');
       var userName = document.getElementById('headerUserName');
 
-      if (modePillText) {
-        modePillText.textContent = currentOfficial.mode === 'dept_head' ? 'Mode 1: Department Head' : currentOfficial.mode === 'admin' ? 'Mode 2: Central Administration' : 'Mode 3: Social Party';
-      }
       if (avatar) avatar.textContent = currentOfficial.avatar || 'DU';
       if (userName) userName.textContent = currentOfficial.name;
-
-      // Mode tabs highlighting
-      ['navTabDept', 'navTabAdmin', 'navTabSocial'].forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) el.classList.remove('active');
-      });
-      if (currentOfficial.mode === 'dept_head') document.getElementById('navTabDept').classList.add('active');
-      else if (currentOfficial.mode === 'admin') document.getElementById('navTabAdmin').classList.add('active');
-      else if (currentOfficial.mode === 'social') document.getElementById('navTabSocial').classList.add('active');
 
       // Update jurisdiction box
       var box = document.getElementById('jurisdictionBox');
@@ -2300,55 +2261,43 @@
       var role = document.getElementById('bannerRole');
       var sla = document.getElementById('bannerSla');
 
-      if (currentOfficial.mode === 'dept_head') {
-        if (box) box.style.setProperty('--kpi-col', 'var(--olive)');
-        if (pill) pill.textContent = 'Mode 1: Department Head Jurisdiction';
-        if (heading) heading.innerHTML = currentOfficial.departmentName + ' <em>(Desk)</em>';
-        if (name) name.textContent = currentOfficial.name;
-        if (role) role.textContent = currentOfficial.roleTitle;
-        if (sla) sla.textContent = (currentOfficial.slaHours || 24) + ' Hours Target';
-      } else if (currentOfficial.mode === 'admin') {
+      if (currentOfficial.role === 'administration') {
+        if (modePillText) modePillText.textContent = 'Central Administration';
         if (box) box.style.setProperty('--kpi-col', 'var(--blue)');
-        if (pill) pill.textContent = 'Mode 2: Central Administration & Ombudsman';
+        if (pill) pill.textContent = 'Central Administration & Ombudsman Jurisdiction';
         if (heading) heading.innerHTML = 'Central Administration <em>&amp; Registry</em>';
         if (name) name.textContent = currentOfficial.name;
-        if (role) role.textContent = currentOfficial.roleTitle;
+        if (role) role.textContent = currentOfficial.roleTitle || 'Office of the Registrar & Proctor';
         if (sla) sla.textContent = 'Campus SLA: 48h (Hazard: 4h)';
-      } else if (currentOfficial.mode === 'social') {
+      } else if (currentOfficial.role === 'social_service') {
+        if (modePillText) modePillText.textContent = 'Social Party (DUSU Council)';
         if (box) box.style.setProperty('--kpi-col', 'var(--blue)');
-        if (pill) pill.textContent = 'Mode 3: Social Party (Student Union Oversight)';
+        if (pill) pill.textContent = 'DUSU Student Union & Social Redressal Jurisdiction';
         if (heading) heading.innerHTML = 'DUSU Executive Council <em>Oversight</em>';
         if (name) name.textContent = currentOfficial.name;
-        if (role) role.textContent = currentOfficial.roleTitle;
+        if (role) role.textContent = currentOfficial.roleTitle || 'Student Union Executive';
         if (sla) sla.textContent = 'Council Review: <24h';
+      } else {
+        if (modePillText) modePillText.textContent = 'Department Head Console';
+        if (box) box.style.setProperty('--kpi-col', 'var(--olive)');
+        if (pill) pill.textContent = 'Department Jurisdiction: ' + (currentOfficial.departmentName || 'Assigned Desk');
+        if (heading) heading.innerHTML = escapeHtml(currentOfficial.departmentName) + ' <em>(Desk)</em>';
+        if (name) name.textContent = currentOfficial.name;
+        if (role) role.textContent = currentOfficial.roleTitle || 'Head of Department';
+        if (sla) sla.textContent = (currentOfficial.slaHours || 24) + ' Hours Target';
       }
 
       // Administration sub-navigation row and unit breakdown visibility
       var adminSubNav = document.getElementById('adminSubNavRow');
       var adminUnitCard = document.getElementById('adminUnitBreakdownCard');
 
-      if (currentOfficial && currentOfficial.role === 'administration') {
+      if (currentOfficial.role === 'administration') {
         if (adminSubNav) adminSubNav.style.display = 'block';
-        if (adminUnitCard) adminUnitCard.style.display = (currentOfficial.mode === 'admin' ? 'block' : 'none');
+        if (adminUnitCard) adminUnitCard.style.display = 'block';
       } else {
         if (adminSubNav) adminSubNav.style.display = 'none';
         if (adminUnitCard) adminUnitCard.style.display = 'none';
       }
-    }
-
-    function selectMode(mode) {
-      var profile = CivicAuth.getProfile();
-      // Role guard: Department and Social Service cannot enter Central Administration view
-      if (profile && profile.role !== 'administration' && mode === 'admin') {
-        showToast('Unauthorized: Central Administration view is restricted to administrative officers.', 'error');
-        return;
-      }
-      currentMode = mode;
-      if (currentOfficial) {
-        currentOfficial.mode = mode;
-      }
-      updateHeaderUI();
-      renderOfficialDashboard();
     }
 
     async function logoutAdmin() {

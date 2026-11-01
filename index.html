@@ -90,21 +90,23 @@ body.intro #app{transform:scale(.9);border-radius:28px}
 .hero-3d-card:hover .char-shadow{transform:rotateX(72deg) scale(1.18);opacity:.55}
 
 /* ══════════════════════ STATS ═════════════════════════ */
-.stats{position:relative;height:100vh;min-height:680px;overflow:hidden;background:#fff}
+.stats{position:relative;min-height:92vh;padding:110px 24px 130px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:visible}
 .sq-field{position:absolute;inset:0 0 auto 0;height:42%;z-index:1;pointer-events:none;-webkit-mask-image:linear-gradient(#000,transparent);mask-image:linear-gradient(#000,transparent)}
-.tree-wrap{position:absolute;z-index:2;left:50%;transform:translateX(-50%);bottom:-2%;width:min(340px,58vw)}
-.tree-wrap img{width:100%;height:auto;display:block;filter:drop-shadow(0 12px 24px rgba(10,34,14,.18))}
-.stats-inner{position:relative;z-index:3;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:0 16px}
-.cards{position:relative;z-index:4;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:min(880px,100%)}
-.card{height:148px;padding:18px 20px;border-radius:20px;background:var(--lime);display:flex;flex-direction:column;justify-content:space-between;-webkit-mask:radial-gradient(circle 17px at 0 55%,#0000 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 17px at 100% 55%,#0000 97%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 17px at 0 55%,#0000 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 17px at 100% 55%,#0000 97%,#000) right/51% 100% no-repeat}
-.card-label{font-size:10.5px;font-weight:500;color:#1a3008}
-.card-value{font-size:clamp(28px,3.4vw,42px);font-weight:600;letter-spacing:-.04em;color:#0a1a04;font-variant-numeric:tabular-nums}
-.cards-shadow{width:min(820px,94%);height:10px;margin-top:-16px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.07),transparent);z-index:3}
-.logos-wrap{position:relative;width:min(860px,100%);display:flex;align-items:center;justify-content:center}
-.band{position:absolute;z-index:5;left:50%;transform:translateX(-50%);top:-6px;width:min(340px,58vw);height:64px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.5);box-shadow:0 8px 30px rgba(30,168,84,.08);-webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);pointer-events:none}
-.logos{position:relative;z-index:6;display:flex;align-items:center;justify-content:space-between;gap:18px;width:min(860px,100%);padding:6px 10px;color:#0a1e06}
-.logo-item{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;white-space:nowrap;opacity:.85}
-.logo-dot{width:7px;height:7px;border-radius:50%;background:var(--olive);flex-shrink:0}
+.tree-wrap{position:absolute;z-index:2;left:50%;transform:translateX(-50%);bottom:-10px;width:min(440px,65vw);pointer-events:none}
+.tree-wrap img{width:100%;height:auto;display:block;filter:drop-shadow(0 14px 28px rgba(10,34,14,.18))}
+.stats-inner{position:relative;z-index:3;width:100%;max-width:1160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;padding:0}
+.stats-heading{font-size:clamp(32px,4.5vw,56px);font-weight:700;letter-spacing:-.035em;line-height:1.14;text-align:center;color:var(--ink);margin:0}
+.cards{position:relative;z-index:4;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;width:100%}
+.card{height:182px;padding:24px 26px;border-radius:24px;background:var(--lime);display:flex;flex-direction:column;justify-content:space-between;-webkit-mask:radial-gradient(circle 22px at 0 52%,#0000 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 22px at 100% 52%,#0000 97%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 22px at 0 52%,#0000 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 22px at 100% 52%,#0000 97%,#000) right/51% 100% no-repeat;box-shadow:0 8px 24px rgba(181,248,0,.2);transition:transform .25s ease,box-shadow .25s ease}
+.card:hover{transform:translateY(-4px);box-shadow:0 14px 34px rgba(140,200,0,.28)}
+.card-label{font-size:13.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:#183608}
+.card-value{font-size:clamp(38px,4.2vw,56px);font-weight:800;letter-spacing:-.045em;line-height:1;color:#081804;font-variant-numeric:tabular-nums}
+.cards-shadow{width:min(1080px,94%);height:14px;margin-top:-22px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.08),transparent);z-index:3}
+.logos-wrap{position:relative;width:min(1100px,100%);display:flex;align-items:center;justify-content:center;padding:12px 24px;border-radius:999px;background:rgba(244,250,240,.9);border:1.5px solid #d4ebd0;box-shadow:0 4px 16px rgba(20,60,20,.03)}
+.band{display:none}
+.logos{position:relative;z-index:6;display:flex;align-items:center;justify-content:space-between;gap:20px;width:100%;color:#0a1e06;flex-wrap:wrap}
+.logo-item{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;white-space:nowrap;color:#163610}
+.logo-dot{width:9px;height:9px;border-radius:50%;background:var(--olive);flex-shrink:0}
 
 /* ══════════════════════ ACCORDION / HOW ══════════════════ */
 .loop{position:relative;height:100vh;min-height:680px;overflow:hidden;background:#fff}
@@ -264,15 +266,23 @@ nav.f-links a:hover{text-decoration:underline}
 .timeline-stage-step.rejected{background:#ef4444;color:#ffffff}
 
 /* ══════════════════════ RESPONSIVE ══════════════════════ */
-@media(max-width:900px){
+@media(max-width:960px){
   .nav{gap:16px}.nav-links{display:none}
-  .cards{grid-template-columns:repeat(2,1fr)}.card{height:120px}
-  .logos{flex-wrap:wrap;justify-content:center;gap:10px 20px}.logo-item{font-size:10px}
-  .stats{height:auto;min-height:100vh;padding:90px 0 300px}.tree-wrap{bottom:0}.band{display:none}
+  .cards{grid-template-columns:repeat(2,1fr);gap:14px}.card{height:160px;padding:20px 22px}
+  .card-label{font-size:12px}
+  .card-value{font-size:clamp(30px,4.5vw,44px)}
+  .logos-wrap{border-radius:18px;padding:12px 16px}
+  .logos{flex-wrap:wrap;justify-content:center;gap:12px 20px}.logo-item{font-size:12px}
+  .stats{min-height:auto;padding:80px 20px 110px}.tree-wrap{bottom:0}
   .cat-grid{grid-template-columns:repeat(2,1fr)}
   .form-row{grid-template-columns:1fr}
   .preset-grid{grid-template-columns:1fr}
   .char-img{height:clamp(170px,28vh,270px)}
+}
+@media(max-width:540px){
+  .cards{grid-template-columns:1fr;max-width:340px}
+  .card{height:148px}
+  .stats-heading{font-size:28px}
 }
 @media(max-width:760px){
   .hero{height:100svh;min-height:580px}
@@ -653,7 +663,6 @@ nav.f-links a:hover{text-decoration:underline}
     <div class="nav-actions">
       <button class="btn-outline" id="navStudentBtn" onclick="handleNavStudentClick()" style="height:32px;font-size:12px;padding:0 14px;">Student Sign In</button>
       <button class="btn-outline" id="openTrackerBtn" onclick="openTracker()" style="height:32px;font-size:12px;padding:0 14px;">Track Status</button>
-      <a href="admin.html" class="btn btn-blue" id="openAdminPageLink" style="height:32px;font-size:12px;padding:0 14px;display:inline-flex;align-items:center;text-decoration:none;gap:4px;">Official Portal ↗</a>
     </div>
   </nav>
 
@@ -742,28 +751,27 @@ nav.f-links a:hover{text-decoration:underline}
     <img id="tree" src="Flat Assets/civic/man-planting.png" onerror="this.src='public/flat-assets/civic-cutouts/man-planting.png'" alt="Student planting sapling" />
   </div>
   <div class="stats-inner">
-    <h2 class="h2 split" style="margin-bottom:16px">Every issue resolved,<br><em style="font-style:italic;color:var(--olive)">transparently on record.</em></h2>
-    <div class="cards">
-      <div class="card reveal" data-to="14" data-dec="0" data-suf=" hrs">
+    <h2 class="h2 stats-heading">Every issue resolved,<br><em style="font-style:italic;color:var(--olive);font-weight:700;">transparently on record.</em></h2>
+    <div class="cards" id="statsCards">
+      <div class="card" data-to="14" data-dec="0" data-suf=" hrs">
         <span class="card-label">Avg. Turnaround</span>
-        <b class="card-value">0 hrs</b>
+        <b class="card-value">14 hrs</b>
       </div>
-      <div class="card reveal" data-to="6" data-dec="0" data-suf="">
+      <div class="card" data-to="6" data-dec="0" data-suf="">
         <span class="card-label">Departments</span>
-        <b class="card-value">0</b>
+        <b class="card-value">6</b>
       </div>
-      <div class="card reveal" data-to="98" data-dec="0" data-suf="%">
+      <div class="card" data-to="98" data-dec="0" data-suf="%">
         <span class="card-label">Resolution Rate</span>
-        <b class="card-value">0%</b>
+        <b class="card-value">98%</b>
       </div>
-      <div class="card reveal" data-to="60" data-dec="0" data-suf=" s">
+      <div class="card" data-to="60" data-dec="0" data-suf=" s">
         <span class="card-label">Time to Report</span>
-        <b class="card-value">0 s</b>
+        <b class="card-value">60 s</b>
       </div>
     </div>
     <div class="cards-shadow"></div>
     <div class="logos-wrap">
-      <div class="band" id="band" aria-hidden="true"></div>
       <div class="logos">
         <span class="logo-item"><span class="logo-dot"></span>PHE · Plumbing</span>
         <span class="logo-item"><span class="logo-dot"></span>Electrical</span>
@@ -923,8 +931,34 @@ nav.f-links a:hover{text-decoration:underline}
       </div>
     </div>
 
-    <!-- FORM -->
-    <form class="report-form reveal" id="reportForm" onsubmit="submitReport(event)">
+    <!-- STUDENT AUTH GATE (SHOWN WHEN NOT SIGNED IN) -->
+    <div class="report-auth-gate-card reveal" id="reportAuthGate" style="width:100%;background:#ffffff;border:1.5px solid var(--line);border-radius:22px;padding:38px 28px;text-align:center;box-shadow:0 8px 24px rgba(20,50,20,0.04);margin-top:20px;">
+      <div style="width:48px;height:48px;border-radius:50%;background:#eef8e5;color:var(--olive);display:inline-flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <h3 style="font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;margin-bottom:8px;">Student Sign In Required to Lodge Complaints</h3>
+      <p style="font-size:13.5px;color:#3d5236;line-height:1.55;max-width:540px;margin:0 auto 20px;">
+        To maintain accountability, protect student privacy, and enable real-time status tracking, you must sign in with your verified Dibrugarh University student account to submit a grievance.
+      </p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button type="button" class="btn" onclick="openStudentAuth()" style="height:42px;font-size:13px;padding:0 24px;font-weight:700;">
+          Sign In / Register with Student ID
+        </button>
+        <button type="button" class="btn-outline" onclick="openTracker()" style="height:42px;font-size:13px;padding:0 18px;font-weight:600;">
+          Track Registered Grievance
+        </button>
+      </div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e2ebd8;font-size:11.5px;color:#617a58;display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;">
+        <span>Official Dibrugarh University Redressal</span>
+        <span>·</span>
+        <span>Verified Student Accounts Only</span>
+        <span>·</span>
+        <span>Zero Spam Policy</span>
+      </div>
+    </div>
+
+    <!-- FORM (SHOWN ONLY WHEN AUTHENTICATED) -->
+    <form class="report-form reveal" id="reportForm" onsubmit="submitReport(event)" style="display:none;">
 
       <!-- Student Auth Banner -->
       <div id="formStudentAuthNotice" style="background:#f4f9ef;border:1px solid #cbe3b8;border-radius:10px;padding:12px 14px;font-size:12.5px;color:#204018;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
@@ -1089,7 +1123,6 @@ nav.f-links a:hover{text-decoration:underline}
     <a href="#report">Report</a>
     <a href="#" onclick="openTracker();return false">Track</a>
     <a href="#" onclick="openStudentAuth();return false" id="studentLoginFooterLink">Student Sign In</a>
-    <a href="admin.html">Official Portal ↗</a>
   </nav>
   <div class="f-right">
     <span>Dibrugarh University, Rajabheta, Assam</span>
@@ -1279,10 +1312,6 @@ nav.f-links a:hover{text-decoration:underline}
         <button class="btn" id="studentRegisterBtn" onclick="submitStudentSignup()" style="width:100%;height:42px;font-size:13px;font-weight:700;border-radius:8px;">
           Upload ID &amp; Create Student Account
         </button>
-      </div>
-
-      <div style="margin-top:16px;text-align:center;font-size:11.5px;color:#4a6142;padding-top:12px;border-top:1px solid var(--line);">
-        University Official? <a href="admin.html" style="color:var(--olive);font-weight:700;">Open Official Portal ↗</a>
       </div>
     </div>
   </div>
@@ -1841,7 +1870,7 @@ document.querySelectorAll('.sq-field').forEach(function(f){
   for(var i=0;i<count;i++){var sq=document.createElement('div');sq.className='grid-sq';sq.style.cssText='width:46px;height:46px;left:'+(Math.floor(Math.random()*30)*48-10)+'px;top:'+(Math.floor(Math.random()*6)*48+6)+'px;';f.appendChild(sq);if(!reduce)gsap.to(sq,{opacity:0,duration:1.2,repeat:-1,yoyo:true,delay:Math.random()*4,repeatDelay:Math.random()*3,ease:'sine.inOut'});}
 });
 
-var gp=[[3,64],[3,71],[6.5,71],[10,71],[3,78],[-1,70],[45.5,76],[49,80],[49,76],[52.5,76],[86,58],[86,67],[82,76],[89.5,76],[86,84]];
+var gp=[[3,64],[3,71],[6.5,71],[10,71],[3,78],[-1,70],[44,56],[48,52],[52,55],[86,58],[86,67],[82,70],[88,72],[86,78]];
 var hg=document.getElementById('heroGlass');
 gp.forEach(function(p,i){
   if(isMobile&&i%2!==0)return;
@@ -1885,28 +1914,82 @@ gsap.timeline({delay:.25,onComplete:function(){
 function setupScroll(){
   ScrollTrigger.create({trigger:'#hero',start:'top top',end:'bottom top',scrub:true,onUpdate:function(s){gsap.set('#heroTitle',{yPercent:-60*s.progress});document.querySelectorAll('.hero [data-par]').forEach(function(el){gsap.set(el,{y:parseFloat(el.dataset.par)*2*s.progress});});gsap.set('#hero3dStage',{yPercent:16*s.progress,rotationX:10*s.progress});}});
   document.querySelectorAll('.reveal').forEach(function(el){gsap.from(el,{opacity:0,y:16,duration:.8,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 85%'}});});
-  document.querySelectorAll('#stats .split, #how .split, #categories .split, #cta .split, #report .split').forEach(function(heading){
+  document.querySelectorAll('#how .split, #categories .split, #cta .split, #report .split').forEach(function(heading){
     var words = heading.querySelectorAll('.w');
     if(words.length){
       gsap.from(words,{opacity:0,y:20,filter:'blur(6px)',duration:.8,stagger:.04,ease:'power3.out',scrollTrigger:{trigger:heading,start:'top 85%'}});
     }
   });
 
-  function setCounters(p){document.querySelectorAll('.card').forEach(function(c){c.querySelector('.card-value').textContent=(parseFloat(c.dataset.to)*p).toFixed(parseInt(c.dataset.dec))+c.dataset.suf;});}
+  function setCounters(p){
+    document.querySelectorAll('#stats .card').forEach(function(c){
+      var target = parseFloat(c.dataset.to);
+      var dec = parseInt(c.dataset.dec) || 0;
+      var suf = c.dataset.suf || '';
+      var val = (target * p).toFixed(dec);
+      c.querySelector('.card-value').textContent = val + suf;
+    });
+  }
+
+  var statsCounted = false;
+  function triggerStatsCounters() {
+    if (statsCounted) return;
+    statsCounted = true;
+    var o = { p: 0 };
+    gsap.to(o, {
+      p: 1,
+      duration: 1.8,
+      ease: 'power2.out',
+      onUpdate: function () {
+        setCounters(o.p);
+      },
+      onComplete: function () {
+        setCounters(1);
+      }
+    });
+  }
+
+  gsap.from('#stats .stats-heading', {
+    opacity: 0,
+    y: 28,
+    duration: 0.9,
+    ease: 'power3.out',
+    scrollTrigger: {
+      trigger: '#stats',
+      start: 'top 85%',
+      once: true
+    }
+  });
+
+  gsap.from('#stats .card', {
+    y: 36,
+    opacity: 0,
+    duration: 0.85,
+    stagger: 0.1,
+    ease: 'power3.out',
+    scrollTrigger: {
+      trigger: '#statsCards',
+      start: 'top 85%',
+      once: true,
+      onEnter: triggerStatsCounters
+    }
+  });
+
+  gsap.fromTo('#tree',
+    { yPercent: 32 },
+    {
+      yPercent: 0,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '#stats',
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: 1.2
+      }
+    }
+  );
 
   var mm=gsap.matchMedia();
-  mm.add('(min-width:901px)',function(){
-    gsap.from('.card',{y:40,opacity:0,stagger:.08,ease:'power3.out',scrollTrigger:{trigger:'.cards',start:'top 70%'}});
-    var px={p:0};var stl=gsap.timeline({scrollTrigger:{trigger:'#stats',start:'top top',end:'+=120%',pin:true,scrub:1}});
-    stl.to(px,{p:1,ease:'none',onUpdate:function(){setCounters(px.p);}}).fromTo('#tree',{yPercent:75},{yPercent:6,ease:'none'},'<');
-    return function(){};
-  });
-  mm.add('(max-width:900px)',function(){
-    gsap.from('.card',{y:30,opacity:0,stagger:.08,ease:'power3.out',scrollTrigger:{trigger:'.cards',start:'top 85%'}});
-    ScrollTrigger.create({trigger:'.cards',start:'top 80%',once:true,onEnter:function(){var o={p:0};gsap.to(o,{p:1,duration:2,ease:'power2.out',onUpdate:function(){setCounters(o.p);}});}});
-    ScrollTrigger.create({trigger:'#stats',start:'top top',end:'bottom bottom',scrub:true,onUpdate:function(s){gsap.set('#tree',{yPercent:40-40*s.progress});}});
-    return function(){};
-  });
   mm.add('(min-width:761px)',function(){
     var panels=document.querySelectorAll('.panel');
     function act(p){panels.forEach(function(x){x.classList.remove('is-active')});p.classList.add('is-active');}
@@ -3291,8 +3374,19 @@ function syncStudentAuthUI(profile, idCardStatus) {
   var formNotice = document.getElementById('formStudentAuthNotice');
   var formText = document.getElementById('formStudentAuthText');
   var formBtn = document.getElementById('formStudentAuthBtn');
+  var reportAuthGate = document.getElementById('reportAuthGate');
+  var reportForm = document.getElementById('reportForm');
+  var successCard = document.getElementById('successCard');
 
   if (profile) {
+    if (reportAuthGate) reportAuthGate.style.display = 'none';
+    if (reportForm) {
+      if (!successCard || successCard.style.display === 'none') {
+        reportForm.style.display = 'flex';
+        reportForm.style.flexDirection = 'column';
+      }
+    }
+
     var idStatusLabel = '';
     if (idCardStatus === 'verified') {
       idStatusLabel = ' · <span style="color:#166534;font-weight:700;">ID Verified</span>';
@@ -3335,6 +3429,10 @@ function syncStudentAuthUI(profile, idCardStatus) {
       };
     }
   } else {
+    if (reportAuthGate) reportAuthGate.style.display = 'block';
+    if (reportForm) reportForm.style.display = 'none';
+    if (successCard) successCard.style.display = 'none';
+
     if (text) text.textContent = 'Not signed in as student';
     if (btn) {
       btn.textContent = 'Sign In';

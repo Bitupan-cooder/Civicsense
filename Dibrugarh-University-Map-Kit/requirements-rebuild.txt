@@ -1,0 +1,6 @@
+Pillow
+PyMuPDF
+pyproj
+shapely
+numpy
+opencv-python

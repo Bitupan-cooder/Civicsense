@@ -1,0 +1,43 @@
+{
+  "retrieved": "2026-10-17",
+  "overtureRelease": "2026-09-23.1",
+  "crs": "EPSG:32646",
+  "width": 3141.49,
+  "height": 2357.16,
+  "utmOrigin": [
+    685599.7381476436,
+    3038806.406835988
+  ],
+  "bufferMetres": 500,
+  "roads": 207,
+  "roadVertices": 1642,
+  "roadClasses": {
+    "residential": 173,
+    "primary": 3,
+    "unclassified": 11,
+    "service": 15,
+    "track": 5
+  },
+  "buildings": 4030,
+  "places": 91,
+  "campusPlaces": 83,
+  "approximateCampusAreaM2": 1543126,
+  "boundsLonLat": [
+    94.87782968790188,
+    27.438454003451582,
+    94.90996632767965,
+    27.460154888908498
+  ],
+  "limitations": [
+    "The combined boundary is a review envelope, not a surveyed legal boundary.",
+    "Western outline and land cover are approximately georeferenced from the 2020 university audit.",
+    "All available source roads are retained, including unnamed roads. Source completeness and current access are not guaranteed.",
+    "Overture footprints may be machine detected. Source places may be duplicated or displaced.",
+    "Decorative tree symbols do not locate individual real trees.",
+    "Public maps can contain outdated or conflicting listings. These pins are not field-surveyed QR coordinates.",
+    "The reviewed list is not an exhaustive export of Google Maps. Additional labels may exist or change.",
+    "No guessed pin was added for the two units excluded by the user."
+  ],
+  "placeReview": "2026-10-18",
+  "reviewedPlaceReferences": 99
+}

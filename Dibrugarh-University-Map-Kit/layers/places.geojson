@@ -1,0 +1,3609 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-6603862980314020385",
+        "kind": "place",
+        "name": "Activity Centre, D.U.",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "campus_facility",
+        "display_name": "Activity Centre, D.U.",
+        "aliases": [
+          "Activity Centre, D.U."
+        ],
+        "source_url": "https://www.google.com/maps?cid=6603862980314020385",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Activity Centre, D.U.",
+            "lat": 27.4491923,
+            "lon": 94.8938271,
+            "url": "https://www.google.com/maps?cid=6603862980314020385"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 1,
+        "campus": true,
+        "lon": 94.8938271,
+        "lat": 27.449192299999993
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8938271,
+          27.449192299999993
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-8514053953733505255",
+        "kind": "place",
+        "name": "Administrative Building, Dibrugarh University",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "campus_facility",
+        "display_name": "Administrative Building",
+        "aliases": [
+          "Administrative Building, Dibrugarh University"
+        ],
+        "source_url": "https://www.google.com/maps?cid=8514053953733505255",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Administrative Building, Dibrugarh University",
+            "lat": 27.4492486,
+            "lon": 94.8972003,
+            "url": "https://www.google.com/maps?cid=8514053953733505255"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 2,
+        "campus": true,
+        "lon": 94.8972003,
+        "lat": 27.4492486
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8972003,
+          27.4492486
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-4248386140807269376",
+        "kind": "place",
+        "name": "Aideu Handique Girls Hostel",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Aideu Handique Girls Hostel",
+        "aliases": [
+          "Aideu Handique Girls Hostel"
+        ],
+        "source_url": "https://www.google.com/maps?cid=4248386140807269376",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Aideu Handique Girls Hostel",
+            "lat": 27.446639,
+            "lon": 94.8995632,
+            "url": "https://www.google.com/maps?cid=4248386140807269376"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 3,
+        "campus": true,
+        "lon": 94.89956320000002,
+        "lat": 27.446639
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.89956320000002,
+          27.446639
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-13616490479514048412",
+        "kind": "place",
+        "name": "Ankuran Day Care Centre",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "campus_facility",
+        "display_name": "Ankuran Day Care Centre",
+        "aliases": [
+          "Ankuran Day Care Centre"
+        ],
+        "source_url": "https://www.google.com/maps?cid=13616490479514048412",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Ankuran Day Care Centre",
+            "lat": 27.4504565,
+            "lon": 94.8922175,
+            "url": "https://www.google.com/maps?cid=13616490479514048412"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 4,
+        "campus": true,
+        "lon": 94.8922175,
+        "lat": 27.4504565
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8922175,
+          27.4504565
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-11412739727371192824",
+        "kind": "place",
+        "name": "APDCN (Amal Prabha Das Chatri Nivas)",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "APDCN (Amal Prabha Das Chatri Nivas)",
+        "aliases": [
+          "APDCN (Amal Prabha Das Chatri Nivas)"
+        ],
+        "source_url": "https://www.google.com/maps?cid=11412739727371192824",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "APDCN (Amal Prabha Das Chatri Nivas)",
+            "lat": 27.4483213,
+            "lon": 94.8886789,
+            "url": "https://www.google.com/maps?cid=11412739727371192824"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 5,
+        "campus": true,
+        "lon": 94.8886789,
+        "lat": 27.448321299999996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8886789,
+          27.448321299999996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-8716979617821754532",
+        "kind": "place",
+        "name": "Bhimbor Deori Indoor Stadium",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "sports_park",
+        "display_name": "DU Indoor Stadium",
+        "aliases": [
+          "DU Indoor Stadium",
+          "Bhimbor Deori Indoor Stadium"
+        ],
+        "source_url": "https://www.google.com/maps?cid=8716979617821754532",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "DU Indoor Stadium",
+            "lat": 27.4499837,
+            "lon": 94.8980312,
+            "url": "https://www.google.com/maps?cid=8716979617821754532"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 6,
+        "campus": true,
+        "lon": 94.8980312,
+        "lat": 27.44998369999999
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8980312,
+          27.44998369999999
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-9618593042768094482",
+        "kind": "place",
+        "name": "Bulbuli Canteen",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "food_market",
+        "display_name": "Bulbuli Canteen",
+        "aliases": [
+          "Bulbuli Canteen"
+        ],
+        "source_url": "https://www.google.com/maps?cid=9618593042768094482",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Bulbuli Canteen",
+            "lat": 27.4490327,
+            "lon": 94.8957407,
+            "url": "https://www.google.com/maps?cid=9618593042768094482"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 7,
+        "campus": true,
+        "lon": 94.8957407,
+        "lat": 27.449032699999993
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8957407,
+          27.449032699999993
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-10546812784483445888",
+        "kind": "place",
+        "name": "Central Sophisticated Instrumentation Centre",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Central Sophisticated Instrumentation Centre",
+        "aliases": [
+          "Central Sophisticated Instrumentation Centre"
+        ],
+        "source_url": "https://www.google.com/maps?cid=10546812784483445888",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Central Sophisticated Instrumentation Centre",
+            "lat": 27.451733,
+            "lon": 94.89144,
+            "url": "https://www.google.com/maps?cid=10546812784483445888"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 8,
+        "campus": true,
+        "lon": 94.89144,
+        "lat": 27.451733
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.89144,
+          27.451733
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-7918655885803807671",
+        "kind": "place",
+        "name": "Centre for Atmospheric Studies",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Atmospheric Studies",
+        "aliases": [
+          "Centre for Atmospheric Studies"
+        ],
+        "source_url": "https://www.google.com/maps?cid=7918655885803807671",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Centre for Atmospheric Studies",
+            "lat": 27.4474767,
+            "lon": 94.8943448,
+            "url": "https://www.google.com/maps?cid=7918655885803807671"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 9,
+        "campus": true,
+        "lon": 94.8943448,
+        "lat": 27.447476699999996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8943448,
+          27.447476699999996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-15300258896639322913",
+        "kind": "place",
+        "name": "Centre for Biotechnology and Bioinformatics",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Biotechnology & Bioinformatics",
+        "aliases": [
+          "Centre for biotechnology and bioinformatics"
+        ],
+        "source_url": "https://www.google.com/maps?cid=15300258896639322913",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Centre for biotechnology and bioinformatics",
+            "lat": 27.450697,
+            "lon": 94.8944905,
+            "url": "https://www.google.com/maps?cid=15300258896639322913"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 10,
+        "campus": true,
+        "lon": 94.8944905,
+        "lat": 27.45069699999999
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8944905,
+          27.45069699999999
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-9876980197010224202",
+        "kind": "place",
+        "name": "Centre for Computer Science and Applications",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Computer Science · CCSA",
+        "aliases": [
+          "Centre for Computer Science and Applications",
+          "CCSA"
+        ],
+        "source_url": "https://www.google.com/maps?cid=9876980197010224202",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Centre for Computer Science and Applications",
+            "lat": 27.4494496,
+            "lon": 94.8949523,
+            "url": "https://www.google.com/maps?cid=9876980197010224202"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 11,
+        "campus": true,
+        "lon": 94.89495230000001,
+        "lat": 27.449449600000005
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.89495230000001,
+          27.449449600000005
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-2067422775885667332",
+        "kind": "place",
+        "name": "Centre for Distance and Online Education",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "campus_facility",
+        "display_name": "Distance & Online Education",
+        "aliases": [
+          "Directorate of Open and Distance Learning",
+          "DODL",
+          "CDOE"
+        ],
+        "source_url": "https://www.google.com/maps?cid=2067422775885667332",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Directorate of Open and Distance Learning",
+            "lat": 27.4482976,
+            "lon": 94.8926527,
+            "url": "https://www.google.com/maps?cid=2067422775885667332"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 12,
+        "campus": true,
+        "lon": 94.8926527,
+        "lat": 27.4482976
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8926527,
+          27.4482976
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-11424334758939020172",
+        "kind": "place",
+        "name": "Centre for Juridical Studies",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Juridical Studies",
+        "aliases": [
+          "Centre for Juridical Studies",
+          "Center for Juridical Studies"
+        ],
+        "source_url": "https://www.google.com/maps?cid=11424334758939020172",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Centre for Juridical Studies",
+            "lat": 27.4486367,
+            "lon": 94.8921843,
+            "url": "https://www.google.com/maps?cid=11424334758939020172"
+          },
+          {
+            "name": "Center for Juridical Studies",
+            "lat": 27.4487681,
+            "lon": 94.892399,
+            "url": "https://www.google.com/maps?cid=5989183457096787917"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 13,
+        "campus": true,
+        "lon": 94.89218430000001,
+        "lat": 27.448636700000005
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.89218430000001,
+          27.448636700000005
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-6774889666100164281",
+        "kind": "place",
+        "name": "Centre for Library and Information Science Studies",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Library & Information Science",
+        "aliases": [
+          "Centre For Library and Information Science Studies"
+        ],
+        "source_url": "https://www.google.com/maps?cid=6774889666100164281",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Centre For Library and Information Science Studies",
+            "lat": 27.4479825,
+            "lon": 94.8964587,
+            "url": "https://www.google.com/maps?cid=6774889666100164281"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 14,
+        "campus": true,
+        "lon": 94.8964587,
+        "lat": 27.4479825
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8964587,
+          27.4479825
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-3252607127265214391",
+        "kind": "place",
+        "name": "Centre for Management Studies",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Management Studies",
+        "aliases": [
+          "Centre for Management Studies, Dibrugarh University",
+          "CMS"
+        ],
+        "source_url": "https://www.google.com/maps?cid=3252607127265214391",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Centre for Management Studies, Dibrugarh University",
+            "lat": 27.4522657,
+            "lon": 94.8962116,
+            "url": "https://www.google.com/maps?cid=3252607127265214391"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 15,
+        "campus": true,
+        "lon": 94.8962116,
+        "lat": 27.452265700000005
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8962116,
+          27.452265700000005
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-16972077953134112503",
+        "kind": "place",
+        "name": "Centre for Social Work Studies",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Social Work Studies",
+        "aliases": [
+          "Centre For Social Work Studies, Dibrugarh University"
+        ],
+        "source_url": "https://www.google.com/maps?cid=16972077953134112503",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Centre For Social Work Studies, Dibrugarh University",
+            "lat": 27.4514339,
+            "lon": 94.8971997,
+            "url": "https://www.google.com/maps?cid=16972077953134112503"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 16,
+        "campus": true,
+        "lon": 94.8971997,
+        "lat": 27.4514339
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8971997,
+          27.4514339
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-13705119916515294380",
+        "kind": "place",
+        "name": "Centre for Studies in Journalism and Mass Communication",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Journalism & Mass Communication",
+        "aliases": [
+          "Centre For Studies In Journalism And Mass Communication",
+          "CSJMC"
+        ],
+        "source_url": "https://www.google.com/maps?cid=13705119916515294380",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Centre For Studies In Journalism And Mass Communication",
+            "lat": 27.4494674,
+            "lon": 94.8944668,
+            "url": "https://www.google.com/maps?cid=13705119916515294380"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 17,
+        "campus": true,
+        "lon": 94.8944668,
+        "lat": 27.449467400000003
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8944668,
+          27.449467400000003
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-8467487529940282708",
+        "kind": "place",
+        "name": "Centre for Studies in Philosophy",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Philosophy",
+        "aliases": [
+          "Department Of philosophy"
+        ],
+        "source_url": "https://www.google.com/maps?cid=8467487529940282708",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department Of philosophy",
+            "lat": 27.4504511,
+            "lon": 94.8954013,
+            "url": "https://www.google.com/maps?cid=8467487529940282708"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 18,
+        "campus": true,
+        "lon": 94.8954013,
+        "lat": 27.450451100000002
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8954013,
+          27.450451100000002
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-5549631072529352719",
+        "kind": "place",
+        "name": "Centre for Tea and Agro Studies",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Tea & Agro Studies",
+        "aliases": [
+          "Centre For Tea And Agro Studies"
+        ],
+        "source_url": "https://www.google.com/maps?cid=5549631072529352719",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Centre For Tea And Agro Studies",
+            "lat": 27.4486889,
+            "lon": 94.8928622,
+            "url": "https://www.google.com/maps?cid=5549631072529352719"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 19,
+        "campus": true,
+        "lon": 94.8928622,
+        "lat": 27.4486889
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8928622,
+          27.4486889
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-6230547619965075988",
+        "kind": "place",
+        "name": "China Gate",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "gate",
+        "display_name": "China Gate",
+        "aliases": [
+          "China Gate"
+        ],
+        "source_url": "https://www.google.com/maps?cid=6230547619965075988",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "China Gate",
+            "lat": 27.4532856,
+            "lon": 94.8954858,
+            "url": "https://www.google.com/maps?cid=6230547619965075988"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 20,
+        "campus": true,
+        "lon": 94.8954858,
+        "lat": 27.453285600000005
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8954858,
+          27.453285600000005
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-11989003180586411979",
+        "kind": "place",
+        "name": "Dean's Office, Dibrugarh University",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "campus_facility",
+        "display_name": "Dean's Office",
+        "aliases": [
+          "Dean's Office, Dibrugarh University"
+        ],
+        "source_url": "https://www.google.com/maps?cid=11989003180586411979",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Dean's Office, Dibrugarh University",
+            "lat": 27.4485109,
+            "lon": 94.8982481,
+            "url": "https://www.google.com/maps?cid=11989003180586411979"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 21,
+        "campus": true,
+        "lon": 94.8982481,
+        "lat": 27.448510899999995
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8982481,
+          27.448510899999995
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-2450907120815026411",
+        "kind": "place",
+        "name": "Department of Anthropology",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Anthropology",
+        "aliases": [
+          "Department of Anthropology"
+        ],
+        "source_url": "https://www.google.com/maps?cid=2450907120815026411",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department of Anthropology",
+            "lat": 27.4491548,
+            "lon": 94.8952622,
+            "url": "https://www.google.com/maps?cid=2450907120815026411"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 22,
+        "campus": true,
+        "lon": 94.8952622,
+        "lat": 27.4491548
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8952622,
+          27.4491548
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-11041404966115043913",
+        "kind": "place",
+        "name": "Department of Applied Geology",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Applied Geology",
+        "aliases": [
+          "Department of Applied Geology, Dibrugarh University"
+        ],
+        "source_url": "https://www.google.com/maps?cid=11041404966115043913",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department of Applied Geology, Dibrugarh University",
+            "lat": 27.4491438,
+            "lon": 94.8930597,
+            "url": "https://www.google.com/maps?cid=11041404966115043913"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 23,
+        "campus": true,
+        "lon": 94.8930597,
+        "lat": 27.449143799999998
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8930597,
+          27.449143799999998
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-2871452929560341634",
+        "kind": "place",
+        "name": "Department of Applied Psychology",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Applied Psychology",
+        "aliases": [
+          "Centre for Applied Psychology"
+        ],
+        "source_url": "https://www.google.com/maps?cid=2871452929560341634",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Centre for Applied Psychology",
+            "lat": 27.4493409,
+            "lon": 94.8945219,
+            "url": "https://www.google.com/maps?cid=2871452929560341634"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 24,
+        "campus": true,
+        "lon": 94.89452190000002,
+        "lat": 27.4493409
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.89452190000002,
+          27.4493409
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-10413252874945143633",
+        "kind": "place",
+        "name": "Department of Assamese",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Assamese",
+        "aliases": [
+          "Assamese Department"
+        ],
+        "source_url": "https://www.google.com/maps?cid=10413252874945143633",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Assamese Department",
+            "lat": 27.451347,
+            "lon": 94.8961637,
+            "url": "https://www.google.com/maps?cid=10413252874945143633"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 25,
+        "campus": true,
+        "lon": 94.8961637,
+        "lat": 27.451346999999995
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8961637,
+          27.451346999999995
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-12637759298986955508",
+        "kind": "place",
+        "name": "Department of Bodo",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Bodo",
+        "aliases": [
+          "Department of Bodo"
+        ],
+        "source_url": "https://www.google.com/maps?cid=12637759298986955508",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department of Bodo",
+            "lat": 27.4519343,
+            "lon": 94.8972712,
+            "url": "https://www.google.com/maps?cid=12637759298986955508"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 26,
+        "campus": true,
+        "lon": 94.8972712,
+        "lat": 27.451934299999998
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8972712,
+          27.451934299999998
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-5700347662257954613",
+        "kind": "place",
+        "name": "Department of Chemistry",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Chemistry",
+        "aliases": [
+          "Department of Chemistry, Dibrugarh University"
+        ],
+        "source_url": "https://www.google.com/maps?cid=5700347662257954613",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department of Chemistry, Dibrugarh University",
+            "lat": 27.448067,
+            "lon": 94.8953513,
+            "url": "https://www.google.com/maps?cid=5700347662257954613"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 27,
+        "campus": true,
+        "lon": 94.8953513,
+        "lat": 27.448067
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8953513,
+          27.448067
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-10334438409688352951",
+        "kind": "place",
+        "name": "Department of Commerce",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Commerce",
+        "aliases": [
+          "Department of Commerce"
+        ],
+        "source_url": "https://www.google.com/maps?cid=10334438409688352951",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department of Commerce",
+            "lat": 27.4515957,
+            "lon": 94.8964489,
+            "url": "https://www.google.com/maps?cid=10334438409688352951"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 28,
+        "campus": true,
+        "lon": 94.8964489,
+        "lat": 27.4515957
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8964489,
+          27.4515957
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-6284986668016053283",
+        "kind": "place",
+        "name": "Department of Computer Science and Engineering, DUIET",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "CSE · DUIET",
+        "aliases": [
+          "Department Of Computer Science And Engineering",
+          "CSE"
+        ],
+        "source_url": "https://www.google.com/maps?cid=6284986668016053283",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department Of Computer Science And Engineering",
+            "lat": 27.4518772,
+            "lon": 94.8913756,
+            "url": "https://www.google.com/maps?cid=6284986668016053283"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 29,
+        "campus": true,
+        "lon": 94.8913756,
+        "lat": 27.4518772
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8913756,
+          27.4518772
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-7640415826110011320",
+        "kind": "place",
+        "name": "Department of Economics",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Economics",
+        "aliases": [
+          "Department Of Economics"
+        ],
+        "source_url": "https://www.google.com/maps?cid=7640415826110011320",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department Of Economics",
+            "lat": 27.451618,
+            "lon": 94.8966877,
+            "url": "https://www.google.com/maps?cid=7640415826110011320"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 30,
+        "campus": true,
+        "lon": 94.8966877,
+        "lat": 27.451617999999996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8966877,
+          27.451617999999996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-10338059140942872532",
+        "kind": "place",
+        "name": "Department of Education",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Education",
+        "aliases": [
+          "Department of education, DU"
+        ],
+        "source_url": "https://www.google.com/maps?cid=10338059140942872532",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department of education, DU",
+            "lat": 27.4510732,
+            "lon": 94.8928803,
+            "url": "https://www.google.com/maps?cid=10338059140942872532"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 31,
+        "campus": true,
+        "lon": 94.8928803,
+        "lat": 27.451073199999996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8928803,
+          27.451073199999996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-17948185197834304508",
+        "kind": "place",
+        "name": "Department of Electronics and Communication Engineering, DUIET",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "ECE · DUIET",
+        "aliases": [
+          "Electronics and communication engineering,DUIET",
+          "ECE"
+        ],
+        "source_url": "https://www.google.com/maps?cid=17948185197834304508",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Electronics and communication engineering,DUIET",
+            "lat": 27.4517885,
+            "lon": 94.8909662,
+            "url": "https://www.google.com/maps?cid=17948185197834304508"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 32,
+        "campus": true,
+        "lon": 94.8909662,
+        "lat": 27.4517885
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8909662,
+          27.4517885
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-8534602297716571614",
+        "kind": "place",
+        "name": "Department of English",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "English",
+        "aliases": [
+          "Department of English, Dibrugarh University"
+        ],
+        "source_url": "https://www.google.com/maps?cid=8534602297716571614",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department of English, Dibrugarh University",
+            "lat": 27.4507933,
+            "lon": 94.8965003,
+            "url": "https://www.google.com/maps?cid=8534602297716571614"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 33,
+        "campus": true,
+        "lon": 94.8965003,
+        "lat": 27.450793300000004
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8965003,
+          27.450793300000004
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-664481761998064643",
+        "kind": "place",
+        "name": "Department of Geography",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Geography",
+        "aliases": [
+          "Centre For Studies In Geography",
+          "Department Of Geography, DU"
+        ],
+        "source_url": "https://www.google.com/maps?cid=664481761998064643",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Centre For Studies In Geography",
+            "lat": 27.450837,
+            "lon": 94.8968379,
+            "url": "https://www.google.com/maps?cid=664481761998064643"
+          },
+          {
+            "name": "Department Of Geography, DU",
+            "lat": 27.4508519,
+            "lon": 94.8965117,
+            "url": "https://www.google.com/maps?cid=3313645309867881274"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 34,
+        "campus": true,
+        "lon": 94.8968379,
+        "lat": 27.450836999999996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8968379,
+          27.450836999999996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-14367739775944264243",
+        "kind": "place",
+        "name": "Department of History",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "History",
+        "aliases": [
+          "Department of History"
+        ],
+        "source_url": "https://www.google.com/maps?cid=14367739775944264243",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department of History",
+            "lat": 27.4513626,
+            "lon": 94.8961887,
+            "url": "https://www.google.com/maps?cid=14367739775944264243"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 35,
+        "campus": true,
+        "lon": 94.8961887,
+        "lat": 27.451362599999996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8961887,
+          27.451362599999996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-11616951613700494824",
+        "kind": "place",
+        "name": "Department of Life Sciences",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Life Sciences",
+        "aliases": [
+          "Department of Life Sciences, Dibrugarh University"
+        ],
+        "source_url": "https://www.google.com/maps?cid=11616951613700494824",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department of Life Sciences, Dibrugarh University",
+            "lat": 27.4508075,
+            "lon": 94.8944118,
+            "url": "https://www.google.com/maps?cid=11616951613700494824"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 36,
+        "campus": true,
+        "lon": 94.89441180000001,
+        "lat": 27.450807499999996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.89441180000001,
+          27.450807499999996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-9356651079991287919",
+        "kind": "place",
+        "name": "Department of Mathematics",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Mathematics",
+        "aliases": [
+          "Department of Mathematics"
+        ],
+        "source_url": "https://www.google.com/maps?cid=9356651079991287919",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department of Mathematics",
+            "lat": 27.4496371,
+            "lon": 94.894834,
+            "url": "https://www.google.com/maps?cid=9356651079991287919"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 37,
+        "campus": true,
+        "lon": 94.894834,
+        "lat": 27.4496371
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.894834,
+          27.4496371
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-10289698570371101670",
+        "kind": "place",
+        "name": "Department of Petroleum Engineering, DUIET",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Petroleum Engineering · DUIET",
+        "aliases": [
+          "Department of Petroleum Engineering"
+        ],
+        "source_url": "https://www.google.com/maps?cid=10289698570371101670",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department of Petroleum Engineering",
+            "lat": 27.4508528,
+            "lon": 94.8909022,
+            "url": "https://www.google.com/maps?cid=10289698570371101670"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 38,
+        "campus": true,
+        "lon": 94.8909022,
+        "lat": 27.450852799999996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8909022,
+          27.450852799999996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-12072291587881461852",
+        "kind": "place",
+        "name": "Department of Petroleum Technology",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Petroleum Technology",
+        "aliases": [
+          "Department Of Petroleum Technology"
+        ],
+        "source_url": "https://www.google.com/maps?cid=12072291587881461852",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department Of Petroleum Technology",
+            "lat": 27.4497189,
+            "lon": 94.8921832,
+            "url": "https://www.google.com/maps?cid=12072291587881461852"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 39,
+        "campus": true,
+        "lon": 94.8921832,
+        "lat": 27.4497189
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8921832,
+          27.4497189
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-15500697210835961691",
+        "kind": "place",
+        "name": "Department of Pharmaceutical Sciences",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Pharmaceutical Sciences",
+        "aliases": [
+          "Department of Pharmaceutical Sciences"
+        ],
+        "source_url": "https://www.google.com/maps?cid=15500697210835961691",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department of Pharmaceutical Sciences",
+            "lat": 27.4504003,
+            "lon": 94.8912331,
+            "url": "https://www.google.com/maps?cid=15500697210835961691"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 40,
+        "campus": true,
+        "lon": 94.89123310000001,
+        "lat": 27.450400299999995
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.89123310000001,
+          27.450400299999995
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-196234022585498172",
+        "kind": "place",
+        "name": "Department of Physics",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Physics",
+        "aliases": [
+          "Physics Department, Dibrugarh University"
+        ],
+        "source_url": "https://www.google.com/maps?cid=196234022585498172",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Physics Department, Dibrugarh University",
+            "lat": 27.4478965,
+            "lon": 94.8945959,
+            "url": "https://www.google.com/maps?cid=196234022585498172"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 41,
+        "campus": true,
+        "lon": 94.8945959,
+        "lat": 27.447896500000002
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8945959,
+          27.447896500000002
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-8696179263317060215",
+        "kind": "place",
+        "name": "Department of Political Science",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Political Science",
+        "aliases": [
+          "Department Of Political Science, DU"
+        ],
+        "source_url": "https://www.google.com/maps?cid=8696179263317060215",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department Of Political Science, DU",
+            "lat": 27.450873,
+            "lon": 94.8965529,
+            "url": "https://www.google.com/maps?cid=8696179263317060215"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 42,
+        "campus": true,
+        "lon": 94.89655290000002,
+        "lat": 27.450873
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.89655290000002,
+          27.450873
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-8425938344488809003",
+        "kind": "place",
+        "name": "Department of Sociology",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Sociology",
+        "aliases": [
+          "department of sociology"
+        ],
+        "source_url": "https://www.google.com/maps?cid=8425938344488809003",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "department of sociology",
+            "lat": 27.451236,
+            "lon": 94.8970337,
+            "url": "https://www.google.com/maps?cid=8425938344488809003"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 43,
+        "campus": true,
+        "lon": 94.8970337,
+        "lat": 27.451235999999998
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8970337,
+          27.451235999999998
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-14732012877312185657",
+        "kind": "place",
+        "name": "Department of Statistics",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Statistics",
+        "aliases": [
+          "Department Of Statistics"
+        ],
+        "source_url": "https://www.google.com/maps?cid=14732012877312185657",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Department Of Statistics",
+            "lat": 27.4496901,
+            "lon": 94.8951203,
+            "url": "https://www.google.com/maps?cid=14732012877312185657"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 44,
+        "campus": true,
+        "lon": 94.8951203,
+        "lat": 27.449690100000005
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8951203,
+          27.449690100000005
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-12505337188420133231",
+        "kind": "place",
+        "name": "Dibrugarh University Institute of Engineering and Technology (DUIET)",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "DUIET",
+        "aliases": [
+          "Dibrugarh University Institute Of Engineering And Technology",
+          "Mechanical Engineering, DUIET"
+        ],
+        "source_url": "https://www.google.com/maps?cid=12505337188420133231",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Dibrugarh University Institute Of Engineering And Technology",
+            "lat": 27.4513607,
+            "lon": 94.8898846,
+            "url": "https://www.google.com/maps?cid=12505337188420133231"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 100,
+        "location_scope": "Institute pin; individual Mechanical Engineering wing not independently positioned.",
+        "index": 45,
+        "campus": true,
+        "lon": 94.8898846,
+        "lat": 27.451360700000002
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8898846,
+          27.451360700000002
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-6389747282522363533",
+        "kind": "place",
+        "name": "Dibrugarh University Old Park",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "sports_park",
+        "display_name": "Dibrugarh University Old Park",
+        "aliases": [
+          "Dibrugarh University Old Park"
+        ],
+        "source_url": "https://www.google.com/maps?cid=6389747282522363533",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Dibrugarh University Old Park",
+            "lat": 27.4492194,
+            "lon": 94.8917665,
+            "url": "https://www.google.com/maps?cid=6389747282522363533"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 46,
+        "campus": true,
+        "lon": 94.8917665,
+        "lat": 27.4492194
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8917665,
+          27.4492194
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-7506892900434980030",
+        "kind": "place",
+        "name": "Dibrugarh University Post Office",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "campus_facility",
+        "display_name": "Post Office",
+        "aliases": [
+          "India Post"
+        ],
+        "source_url": "https://www.google.com/maps?cid=7506892900434980030",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "India Post",
+            "lat": 27.4489063,
+            "lon": 94.8923676,
+            "url": "https://www.google.com/maps?cid=7506892900434980030"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 47,
+        "campus": true,
+        "lon": 94.8923676,
+        "lat": 27.448906299999997
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8923676,
+          27.448906299999997
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-15118111603935131822",
+        "kind": "place",
+        "name": "Dibrugarh University Residential Campus Gate",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "gate",
+        "display_name": "Dibrugarh University Residential Campus Gate",
+        "aliases": [
+          "Dibrugarh University Residential Campus Gate"
+        ],
+        "source_url": "https://www.google.com/maps?cid=15118111603935131822",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Dibrugarh University Residential Campus Gate",
+            "lat": 27.4519703,
+            "lon": 94.8887219,
+            "url": "https://www.google.com/maps?cid=15118111603935131822"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 48,
+        "campus": true,
+        "lon": 94.88872190000001,
+        "lat": 27.451970299999992
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.88872190000001,
+          27.451970299999992
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-16931289709597573580",
+        "kind": "place",
+        "name": "Dibrugarh University Tea Estate",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "campus_facility",
+        "display_name": "Dibrugarh University Tea Estate",
+        "aliases": [
+          "Dibrugarh University Tea Estate"
+        ],
+        "source_url": "https://www.google.com/maps?cid=16931289709597573580",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Dibrugarh University Tea Estate",
+            "lat": 27.4520194,
+            "lon": 94.8842335,
+            "url": "https://www.google.com/maps?cid=16931289709597573580"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 49,
+        "campus": true,
+        "lon": 94.8842335,
+        "lat": 27.452019399999998
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8842335,
+          27.452019399999998
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-8456276261674079510",
+        "kind": "place",
+        "name": "Dr. Bhupen Hazarika Centre for Studies in Performing Arts",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Performing Arts",
+        "aliases": [
+          "Dr. Bhupen Hazarika Centre for Studies in Performing Arts",
+          "Dr. Bhupen Hazarika Center For Studies In Performing Arts"
+        ],
+        "source_url": "https://www.google.com/maps?cid=8456276261674079510",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Dr. Bhupen Hazarika Centre for Studies in Performing Arts",
+            "lat": 27.452923,
+            "lon": 94.8959162,
+            "url": "https://www.google.com/maps?cid=8456276261674079510"
+          },
+          {
+            "name": "Dr. Bhupen Hazarika Center For Studies In Performing Arts",
+            "lat": 27.4528825,
+            "lon": 94.8964309,
+            "url": "https://www.google.com/maps?cid=5539829296242211270"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "Alternate public pins differ by 51 m; confirm on campus.",
+        "priority": 90,
+        "index": 50,
+        "campus": true,
+        "lon": 94.8959162,
+        "lat": 27.452923
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8959162,
+          27.452923
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-5802627870807250273",
+        "kind": "place",
+        "name": "DU Gymnasium",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "sports_park",
+        "display_name": "DU Gymnasium",
+        "aliases": [
+          "DU Gymnasium",
+          "University Gym"
+        ],
+        "source_url": "https://www.google.com/maps?cid=5802627870807250273",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "DU Gymnasium",
+            "lat": 27.4499227,
+            "lon": 94.898514,
+            "url": "https://www.google.com/maps?cid=5802627870807250273"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 51,
+        "campus": true,
+        "lon": 94.898514,
+        "lat": 27.44992269999999
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.898514,
+          27.44992269999999
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-4276743223410621458",
+        "kind": "place",
+        "name": "DU Haat",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "food_market",
+        "display_name": "DU Haat",
+        "aliases": [
+          "DU Haat"
+        ],
+        "source_url": "https://www.google.com/maps?cid=4276743223410621458",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "DU Haat",
+            "lat": 27.4473019,
+            "lon": 94.892023,
+            "url": "https://www.google.com/maps?cid=4276743223410621458"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 52,
+        "campus": true,
+        "lon": 94.892023,
+        "lat": 27.447301899999996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.892023,
+          27.447301899999996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-12702108033821231723",
+        "kind": "place",
+        "name": "DU Health Centre",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "campus_facility",
+        "display_name": "DU Health Centre",
+        "aliases": [
+          "DU Health Centre"
+        ],
+        "source_url": "https://www.google.com/maps?cid=12702108033821231723",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "DU Health Centre",
+            "lat": 27.446934,
+            "lon": 94.8986363,
+            "url": "https://www.google.com/maps?cid=12702108033821231723"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 53,
+        "campus": true,
+        "lon": 94.8986363,
+        "lat": 27.446933999999995
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8986363,
+          27.446933999999995
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-7053136797784165883",
+        "kind": "place",
+        "name": "DU Model School",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "campus_facility",
+        "display_name": "DU Model School",
+        "aliases": [
+          "DU Model School"
+        ],
+        "source_url": "https://www.google.com/maps?cid=7053136797784165883",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "DU Model School",
+            "lat": 27.4472389,
+            "lon": 94.8910001,
+            "url": "https://www.google.com/maps?cid=7053136797784165883"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 54,
+        "campus": true,
+        "lon": 94.8910001,
+        "lat": 27.447238899999995
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8910001,
+          27.447238899999995
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-16328287543978536581",
+        "kind": "place",
+        "name": "DU New Playground",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "sports_park",
+        "display_name": "DU New Playground",
+        "aliases": [
+          "DU New Playground"
+        ],
+        "source_url": "https://www.google.com/maps?cid=16328287543978536581",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "DU New Playground",
+            "lat": 27.449001,
+            "lon": 94.9009554,
+            "url": "https://www.google.com/maps?cid=16328287543978536581"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 55,
+        "campus": true,
+        "lon": 94.9009554,
+        "lat": 27.449001
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.9009554,
+          27.449001
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-16118570026150468251",
+        "kind": "place",
+        "name": "DU park",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "sports_park",
+        "display_name": "DU park",
+        "aliases": [
+          "DU park"
+        ],
+        "source_url": "https://www.google.com/maps?cid=16118570026150468251",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "DU park",
+            "lat": 27.4458108,
+            "lon": 94.8979524,
+            "url": "https://www.google.com/maps?cid=16118570026150468251"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 56,
+        "campus": true,
+        "lon": 94.8979524,
+        "lat": 27.445810800000004
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8979524,
+          27.445810800000004
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-15263262994751168628",
+        "kind": "place",
+        "name": "DUIET Cafeteria",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "DUIET Cafeteria",
+        "aliases": [
+          "DUIET Cafeteria"
+        ],
+        "source_url": "https://www.google.com/maps?cid=15263262994751168628",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "DUIET Cafeteria",
+            "lat": 27.4514407,
+            "lon": 94.8915479,
+            "url": "https://www.google.com/maps?cid=15263262994751168628"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 57,
+        "campus": true,
+        "lon": 94.8915479,
+        "lat": 27.451440699999996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8915479,
+          27.451440699999996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-12279287662571248971",
+        "kind": "place",
+        "name": "DUPGSU Office",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "campus_facility",
+        "display_name": "DUPGSU Office",
+        "aliases": [
+          "DUPGSU Office"
+        ],
+        "source_url": "https://www.google.com/maps?cid=12279287662571248971",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "DUPGSU Office",
+            "lat": 27.448926,
+            "lon": 94.8981616,
+            "url": "https://www.google.com/maps?cid=12279287662571248971"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 58,
+        "campus": true,
+        "lon": 94.8981616,
+        "lat": 27.448925999999997
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8981616,
+          27.448925999999997
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-4395215663253308011",
+        "kind": "place",
+        "name": "DUTA House",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "campus_facility",
+        "display_name": "DUTA House",
+        "aliases": [
+          "DUTA House"
+        ],
+        "source_url": "https://www.google.com/maps?cid=4395215663253308011",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "DUTA House",
+            "lat": 27.4463449,
+            "lon": 94.8962388,
+            "url": "https://www.google.com/maps?cid=4395215663253308011"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 59,
+        "campus": true,
+        "lon": 94.8962388,
+        "lat": 27.446344899999996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8962388,
+          27.446344899999996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-3920103067400104912",
+        "kind": "place",
+        "name": "Guruprasad Das Chatra Nivas (GPDCN)",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Guruprasad Das · GPDCN",
+        "aliases": [
+          "Guru Prasad Das Chatra Nivas",
+          "DUIET Boys Hostel No. 1",
+          "GPDCN (DUIET 1 HOSTEL)"
+        ],
+        "source_url": "https://www.google.com/maps?cid=3920103067400104912",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "GPDCN (DUIET 1 HOSTEL)",
+            "lat": 27.4522574,
+            "lon": 94.8931348,
+            "url": "https://www.google.com/maps?cid=207474599269348134"
+          },
+          {
+            "name": "Guru Prasad Das Chatra Nivas",
+            "lat": 27.4522559,
+            "lon": 94.8931241,
+            "url": "https://www.google.com/maps?cid=3920103067400104912"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 60,
+        "campus": true,
+        "lon": 94.8931241,
+        "lat": 27.452255899999997
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8931241,
+          27.452255899999997
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-7605487441209628912",
+        "kind": "place",
+        "name": "JO SAG",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "food_market",
+        "display_name": "JO SAG",
+        "aliases": [
+          "JO SAG"
+        ],
+        "source_url": "https://www.google.com/maps?cid=7605487441209628912",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "JO SAG",
+            "lat": 27.4477963,
+            "lon": 94.8981465,
+            "url": "https://www.google.com/maps?cid=7605487441209628912"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 61,
+        "campus": true,
+        "lon": 94.8981465,
+        "lat": 27.44779629999999
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8981465,
+          27.44779629999999
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-14022278154868370109",
+        "kind": "place",
+        "name": "Joymati Chatri Nibash Gate",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "gate",
+        "display_name": "Joymati Chatri Nibash Gate",
+        "aliases": [
+          "Joymati Chatri Nibash Gate"
+        ],
+        "source_url": "https://www.google.com/maps?cid=14022278154868370109",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Joymati Chatri Nibash Gate",
+            "lat": 27.4467489,
+            "lon": 94.900584,
+            "url": "https://www.google.com/maps?cid=14022278154868370109"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 62,
+        "campus": true,
+        "lon": 94.900584,
+        "lat": 27.4467489
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.900584,
+          27.4467489
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-9301570542071859339",
+        "kind": "place",
+        "name": "Juti Canteen",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "food_market",
+        "display_name": "Juti Canteen",
+        "aliases": [
+          "Juti Canteen"
+        ],
+        "source_url": "https://www.google.com/maps?cid=9301570542071859339",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Juti Canteen",
+            "lat": 27.4513878,
+            "lon": 94.8966793,
+            "url": "https://www.google.com/maps?cid=9301570542071859339"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 63,
+        "campus": true,
+        "lon": 94.8966793,
+        "lat": 27.451387799999996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8966793,
+          27.451387799999996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-13146235991924415847",
+        "kind": "place",
+        "name": "Lakshminath Bezbaroa Library",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "library",
+        "display_name": "LNB Library",
+        "aliases": [
+          "Lakshminath Bezbaroa Library",
+          "LNB Library",
+          "Central Library",
+          "Lakshminath Bezbaruah Library"
+        ],
+        "source_url": "https://www.google.com/maps?cid=13146235991924415847",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Lakshminath Bezbaroa Library",
+            "lat": 27.4480527,
+            "lon": 94.8963403,
+            "url": "https://www.google.com/maps?cid=13146235991924415847"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 80,
+        "index": 64,
+        "campus": true,
+        "lon": 94.8963403,
+        "lat": 27.448052700000005
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8963403,
+          27.448052700000005
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-7781039320114723983",
+        "kind": "place",
+        "name": "Lummer Dai Chatra Nivas (LDCN)",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Lummer Dai · LDCN",
+        "aliases": [
+          "LDCN Hostel",
+          "Lummer Dai Chatra Nivas",
+          "LUMMER DAI BOYS HOSTEL"
+        ],
+        "source_url": "https://www.google.com/maps?cid=7781039320114723983",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "LUMMER DAI BOYS HOSTEL",
+            "lat": 27.4511774,
+            "lon": 94.8934513,
+            "url": "https://www.google.com/maps?cid=5302811185620879534"
+          },
+          {
+            "name": "LDCN Hostel",
+            "lat": 27.4516957,
+            "lon": 94.8931221,
+            "url": "https://www.google.com/maps?cid=7781039320114723983"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "Alternate public pins differ by 66 m; confirm on campus.",
+        "priority": 70,
+        "index": 65,
+        "campus": true,
+        "lon": 94.8931221,
+        "lat": 27.4516957
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8931221,
+          27.4516957
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-6337985538047540524",
+        "kind": "place",
+        "name": "Maffizzudin Ahmed Hazarika Chatra Nivas, Dibrugarh University",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Maffizzudin Ahmed Hazarika Chatra Nivas",
+        "aliases": [
+          "Maffizzudin Ahmed Hazarika Chatra Nivas, Dibrugarh University"
+        ],
+        "source_url": "https://www.google.com/maps?cid=6337985538047540524",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Maffizzudin Ahmed Hazarika Chatra Nivas, Dibrugarh University",
+            "lat": 27.452223,
+            "lon": 94.898845,
+            "url": "https://www.google.com/maps?cid=6337985538047540524"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 66,
+        "campus": true,
+        "lon": 94.898845,
+        "lat": 27.452222999999996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.898845,
+          27.452222999999996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-13869120912355762528",
+        "kind": "place",
+        "name": "Miles Bronson Chatra Niwas",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Miles Bronson Chatra Niwas",
+        "aliases": [
+          "Miles Bronson Chatra Niwas"
+        ],
+        "source_url": "https://www.google.com/maps?cid=13869120912355762528",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Miles Bronson Chatra Niwas",
+            "lat": 27.4536028,
+            "lon": 94.8983178,
+            "url": "https://www.google.com/maps?cid=13869120912355762528"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 67,
+        "campus": true,
+        "lon": 94.8983178,
+        "lat": 27.4536028
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8983178,
+          27.4536028
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-16146604555648677451",
+        "kind": "place",
+        "name": "Nalinibala Devi Chatri Nivas",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Nalinibala Devi Hostel",
+        "aliases": [
+          "Nalinibala devi girls hostel"
+        ],
+        "source_url": "https://www.google.com/maps?cid=16146604555648677451",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Nalinibala devi girls hostel",
+            "lat": 27.4473557,
+            "lon": 94.9013258,
+            "url": "https://www.google.com/maps?cid=16146604555648677451"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 68,
+        "campus": true,
+        "lon": 94.9013258,
+        "lat": 27.447355700000003
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.9013258,
+          27.447355700000003
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-10189608260424261588",
+        "kind": "place",
+        "name": "Padmakumari Gohain Women's Hostel",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Padmakumari Gohain Women's Hostel",
+        "aliases": [
+          "Padmakumari Gohain Women's Hostel"
+        ],
+        "source_url": "https://www.google.com/maps?cid=10189608260424261588",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Padmakumari Gohain Women's Hostel",
+            "lat": 27.4470096,
+            "lon": 94.9002212,
+            "url": "https://www.google.com/maps?cid=10189608260424261588"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 69,
+        "campus": true,
+        "lon": 94.9002212,
+        "lat": 27.447009599999998
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.9002212,
+          27.447009599999998
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-8220668621630183024",
+        "kind": "place",
+        "name": "Padmanath Gohain Baruah Chatra Nivas (PNGBCN)",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Padmanath Gohain Baruah · PNGBCN",
+        "aliases": [
+          "Padmanath Gohain Baruah Chatra Nivas(PNGBCN)"
+        ],
+        "source_url": "https://www.google.com/maps?cid=8220668621630183024",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Padmanath Gohain Baruah Chatra Nivas(PNGBCN)",
+            "lat": 27.4514408,
+            "lon": 94.8992517,
+            "url": "https://www.google.com/maps?cid=8220668621630183024"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 70,
+        "campus": true,
+        "lon": 94.8992517,
+        "lat": 27.4514408
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8992517,
+          27.4514408
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-14036114661266939822",
+        "kind": "place",
+        "name": "Pavilion Play Ground No. 1",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "sports_park",
+        "display_name": "Old Playground",
+        "aliases": [
+          "Pavilion Play Ground No. 1",
+          "Old Playground"
+        ],
+        "source_url": "https://www.google.com/maps?cid=14036114661266939822",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Pavilion Play Ground No. 1",
+            "lat": 27.4497852,
+            "lon": 94.8930308,
+            "url": "https://www.google.com/maps?cid=14036114661266939822"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 71,
+        "campus": true,
+        "lon": 94.8930308,
+        "lat": 27.4497852
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8930308,
+          27.4497852
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-141926596950829217",
+        "kind": "place",
+        "name": "Punjab National Bank",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "bank_atm",
+        "display_name": "Punjab National Bank",
+        "aliases": [
+          "Punjab National Bank"
+        ],
+        "source_url": "https://www.google.com/maps?cid=141926596950829217",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Punjab National Bank",
+            "lat": 27.4506061,
+            "lon": 94.8940709,
+            "url": "https://www.google.com/maps?cid=141926596950829217"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 72,
+        "campus": true,
+        "lon": 94.8940709,
+        "lat": 27.4506061
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8940709,
+          27.4506061
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-11264071557295132191",
+        "kind": "place",
+        "name": "Puspalata Das Chatri Nivas (PDCN)",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Puspalata Das · PDCN",
+        "aliases": [
+          "PDCN",
+          "Pushpalata Das Chatri Nivas"
+        ],
+        "source_url": "https://www.google.com/maps?cid=11264071557295132191",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "PDCN",
+            "lat": 27.4475386,
+            "lon": 94.9016076,
+            "url": "https://www.google.com/maps?cid=11264071557295132191"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 73,
+        "campus": true,
+        "lon": 94.9016076,
+        "lat": 27.4475386
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.9016076,
+          27.4475386
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-4869280313178076706",
+        "kind": "place",
+        "name": "Rangghar Auditorium",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "campus_facility",
+        "display_name": "Rangghar Auditorium",
+        "aliases": [
+          "RangGhar-Auditorium",
+          "Rang Ghar Auditorium",
+          "Rang Ghar"
+        ],
+        "source_url": "https://www.google.com/maps?cid=4869280313178076706",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "RangGhar-Auditorium",
+            "lat": 27.4496013,
+            "lon": 94.8962796,
+            "url": "https://www.google.com/maps?cid=4869280313178076706"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 74,
+        "campus": true,
+        "lon": 94.8962796,
+        "lat": 27.449601299999994
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8962796,
+          27.449601299999994
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-12191351202796051361",
+        "kind": "place",
+        "name": "SBI ATM",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "bank_atm",
+        "display_name": "SBI ATM",
+        "aliases": [
+          "SBI ATM"
+        ],
+        "source_url": "https://www.google.com/maps?cid=12191351202796051361",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "SBI ATM",
+            "lat": 27.4489596,
+            "lon": 94.8920596,
+            "url": "https://www.google.com/maps?cid=12191351202796051361"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 75,
+        "campus": true,
+        "lon": 94.8920596,
+        "lat": 27.448959599999995
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8920596,
+          27.448959599999995
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-6701012580599784329",
+        "kind": "place",
+        "name": "SBI ATM",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "bank_atm",
+        "display_name": "SBI ATM",
+        "aliases": [
+          "SBI ATM"
+        ],
+        "source_url": "https://www.google.com/maps?cid=6701012580599784329",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "SBI ATM",
+            "lat": 27.4495,
+            "lon": 94.8979,
+            "url": "https://www.google.com/maps?cid=6701012580599784329"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 76,
+        "campus": true,
+        "lon": 94.8979,
+        "lat": 27.449499999999997
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8979,
+          27.449499999999997
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-11016994026657277716",
+        "kind": "place",
+        "name": "SBI Branch Dibrugarh University",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "bank_atm",
+        "display_name": "SBI Branch Dibrugarh University",
+        "aliases": [
+          "SBI Branch Dibrugarh University"
+        ],
+        "source_url": "https://www.google.com/maps?cid=11016994026657277716",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "SBI Branch Dibrugarh University",
+            "lat": 27.4514665,
+            "lon": 94.890255,
+            "url": "https://www.google.com/maps?cid=11016994026657277716"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 77,
+        "campus": true,
+        "lon": 94.89025500000001,
+        "lat": 27.451466499999995
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.89025500000001,
+          27.451466499999995
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-9663269740738958307",
+        "kind": "place",
+        "name": "Swarnalata Baruah Chatri Nivas (SLBCN)",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Swarnalata Baruah Chatri Nivas (SLBCN)",
+        "aliases": [
+          "Swarnalata Baruah Chatri Nivas (SLBCN)"
+        ],
+        "source_url": "https://www.google.com/maps?cid=9663269740738958307",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Swarnalata Baruah Chatri Nivas (SLBCN)",
+            "lat": 27.4470745,
+            "lon": 94.9010056,
+            "url": "https://www.google.com/maps?cid=9663269740738958307"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 78,
+        "campus": true,
+        "lon": 94.9010056,
+        "lat": 27.4470745
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.9010056,
+          27.4470745
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-7313524656330347561",
+        "kind": "place",
+        "name": "UGC's Centre for Women's Studies",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "Women's Studies",
+        "aliases": [
+          "Centre for Women's Studies"
+        ],
+        "source_url": "https://www.google.com/maps?cid=7313524656330347561",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Centre for Women's Studies",
+            "lat": 27.4508791,
+            "lon": 94.895216,
+            "url": "https://www.google.com/maps?cid=7313524656330347561"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 79,
+        "campus": true,
+        "lon": 94.895216,
+        "lat": 27.450879099999998
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.895216,
+          27.450879099999998
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-14981005587365455279",
+        "kind": "place",
+        "name": "University Park",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "sports_park",
+        "display_name": "University Park",
+        "aliases": [
+          "University Park"
+        ],
+        "source_url": "https://www.google.com/maps?cid=14981005587365455279",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "University Park",
+            "lat": 27.4463568,
+            "lon": 94.8978904,
+            "url": "https://www.google.com/maps?cid=14981005587365455279"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 80,
+        "campus": true,
+        "lon": 94.8978904,
+        "lat": 27.4463568
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8978904,
+          27.4463568
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-8026828027085067385",
+        "kind": "place",
+        "name": "University Science Instrumentation Centre",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "academic",
+        "display_name": "University Science Instrumentation Centre",
+        "aliases": [
+          "University Science Instrumentation Centre"
+        ],
+        "source_url": "https://www.google.com/maps?cid=8026828027085067385",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "University Science Instrumentation Centre",
+            "lat": 27.4478171,
+            "lon": 94.8939934,
+            "url": "https://www.google.com/maps?cid=8026828027085067385"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 90,
+        "index": 81,
+        "campus": true,
+        "lon": 94.8939934,
+        "lat": 27.447817099999998
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8939934,
+          27.447817099999998
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-13544781311457955975",
+        "kind": "place",
+        "name": "Vice-Chancellor's Office",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "campus_facility",
+        "display_name": "Vice-Chancellor's Office",
+        "aliases": [
+          "Vice-Chancellor's Office"
+        ],
+        "source_url": "https://www.google.com/maps?cid=13544781311457955975",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Vice-Chancellor's Office",
+            "lat": 27.4496373,
+            "lon": 94.8973141,
+            "url": "https://www.google.com/maps?cid=13544781311457955975"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 82,
+        "campus": true,
+        "lon": 94.8973141,
+        "lat": 27.449637299999996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8973141,
+          27.449637299999996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-11406854241920179974",
+        "kind": "place",
+        "name": "Vishranta Guest House",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "campus_facility",
+        "display_name": "Vishranta Guest House",
+        "aliases": [
+          "Vishranta Guest House"
+        ],
+        "source_url": "https://www.google.com/maps?cid=11406854241920179974",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Vishranta Guest House",
+            "lat": 27.4459063,
+            "lon": 94.8962703,
+            "url": "https://www.google.com/maps?cid=11406854241920179974"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 83,
+        "campus": true,
+        "lon": 94.8962703,
+        "lat": 27.4459063
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8962703,
+          27.4459063
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-14107583800657311879",
+        "kind": "place",
+        "name": "Borah Girl's Hostel",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Borah Girl's Hostel",
+        "aliases": [
+          "Borah Girl's Hostel"
+        ],
+        "source_url": "https://www.google.com/maps?cid=14107583800657311879",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Borah Girl's Hostel",
+            "lat": 27.4468203,
+            "lon": 94.8872549,
+            "url": "https://www.google.com/maps?cid=14107583800657311879"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 84,
+        "campus": false,
+        "lon": 94.8872549,
+        "lat": 27.446820299999995
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8872549,
+          27.446820299999995
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-15029006136454933024",
+        "kind": "place",
+        "name": "Chetia Boys Hostel",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Chetia Boys Hostel",
+        "aliases": [
+          "Chetia Boys Hostel"
+        ],
+        "source_url": "https://www.google.com/maps?cid=15029006136454933024",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Chetia Boys Hostel",
+            "lat": 27.4527044,
+            "lon": 94.8916915,
+            "url": "https://www.google.com/maps?cid=15029006136454933024"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 85,
+        "campus": false,
+        "lon": 94.8916915,
+        "lat": 27.4527044
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8916915,
+          27.4527044
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-1406019853634439392",
+        "kind": "place",
+        "name": "Duwarah Chuk Playground",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "sports_park",
+        "display_name": "Duwarah Chuk Playground",
+        "aliases": [
+          "Duwarah Chuk Playground"
+        ],
+        "source_url": "https://www.google.com/maps?cid=1406019853634439392",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Duwarah Chuk Playground",
+            "lat": 27.4541321,
+            "lon": 94.891959,
+            "url": "https://www.google.com/maps?cid=1406019853634439392"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 86,
+        "campus": false,
+        "lon": 94.891959,
+        "lat": 27.454132100000002
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.891959,
+          27.454132100000002
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-4329932159729571793",
+        "kind": "place",
+        "name": "Handique Girls Hostel",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Handique Girls Hostel",
+        "aliases": [
+          "Handique Girls Hostel"
+        ],
+        "source_url": "https://www.google.com/maps?cid=4329932159729571793",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Handique Girls Hostel",
+            "lat": 27.4549511,
+            "lon": 94.8844998,
+            "url": "https://www.google.com/maps?cid=4329932159729571793"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 87,
+        "campus": false,
+        "lon": 94.8844998,
+        "lat": 27.454951099999995
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8844998,
+          27.454951099999995
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-11898058187320492397",
+        "kind": "place",
+        "name": "Parboti Enclave Girls Hostel",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Parboti Enclave Girls Hostel",
+        "aliases": [
+          "Parboti Enclave Girls Hostel"
+        ],
+        "source_url": "https://www.google.com/maps?cid=11898058187320492397",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Parboti Enclave Girls Hostel",
+            "lat": 27.4548267,
+            "lon": 94.8944508,
+            "url": "https://www.google.com/maps?cid=11898058187320492397"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 88,
+        "campus": false,
+        "lon": 94.8944508,
+        "lat": 27.4548267
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8944508,
+          27.4548267
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-10175003191964973360",
+        "kind": "place",
+        "name": "Raju Baruah Boys' Hostel (The White House)",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "Raju Baruah Boys' Hostel (The White House)",
+        "aliases": [
+          "Raju Baruah Boys' Hostel (The White House)"
+        ],
+        "source_url": "https://www.google.com/maps?cid=10175003191964973360",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "Raju Baruah Boys' Hostel (The White House)",
+            "lat": 27.4462463,
+            "lon": 94.8926404,
+            "url": "https://www.google.com/maps?cid=10175003191964973360"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 89,
+        "campus": false,
+        "lon": 94.8926404,
+        "lat": 27.44624629999999
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8926404,
+          27.44624629999999
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-7531398004016759945",
+        "kind": "place",
+        "name": "SBI ATM",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "bank_atm",
+        "display_name": "SBI ATM",
+        "aliases": [
+          "SBI ATM"
+        ],
+        "source_url": "https://www.google.com/maps?cid=7531398004016759945",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "SBI ATM",
+            "lat": 27.4544121,
+            "lon": 94.8858228,
+            "url": "https://www.google.com/maps?cid=7531398004016759945"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 60,
+        "index": 90,
+        "campus": false,
+        "lon": 94.8858228,
+        "lat": 27.454412099999992
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8858228,
+          27.454412099999992
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "review-12320712660208636339",
+        "kind": "place",
+        "name": "The Nest Girl's Paying Guest",
+        "source": "Google Maps reference / Dibrugarh University directory",
+        "category": "hostel",
+        "display_name": "The Nest Girl's Paying Guest",
+        "aliases": [
+          "The Nest Girl's Paying Guest"
+        ],
+        "source_url": "https://www.google.com/maps?cid=12320712660208636339",
+        "reviewed_on": "2026-10-18",
+        "references": [
+          {
+            "name": "The Nest Girl's Paying Guest",
+            "lat": 27.4534829,
+            "lon": 94.8953508,
+            "url": "https://www.google.com/maps?cid=12320712660208636339"
+          }
+        ],
+        "field_verified": false,
+        "status": "Public map listing checked; QR location not surveyed",
+        "position_note": "",
+        "priority": 70,
+        "index": 91,
+        "campus": false,
+        "lon": 94.8953508,
+        "lat": 27.453482899999994
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          94.8953508,
+          27.453482899999994
+        ]
+      }
+    }
+  ]
+}
