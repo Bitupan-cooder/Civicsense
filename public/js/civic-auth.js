@@ -941,6 +941,115 @@
     return data;
   }
 
+  // ── PHASE 6: ADMIN OFFICIAL PROFILE MANAGEMENT & ACTIVITY LOGS ──
+  async function getAdminAuthHeader() {
+    var sb = getClient();
+    if (!sb) throw new Error('Database service unavailable.');
+    var sessionRes = await sb.auth.getSession();
+    var session = sessionRes.data ? sessionRes.data.session : null;
+    if (!session) throw new Error('Administration session required.');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + session.access_token
+    };
+  }
+
+  async function fetchAdminOfficials() {
+    var headers = await getAdminAuthHeader();
+    var res = await fetch('/api/admin/list-officials', { method: 'GET', headers: headers });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to fetch officials list.');
+    return data.officials || [];
+  }
+
+  async function createOfficialAccount(data) {
+    var headers = await getAdminAuthHeader();
+    var res = await fetch('/api/admin/create-official', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(data)
+    });
+    var json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Failed to create official account.');
+    return json;
+  }
+
+  async function editOfficialProfile(userId, name, unitName) {
+    var headers = await getAdminAuthHeader();
+    var res = await fetch('/api/admin/edit-official', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ userId: userId, name: name, unitName: unitName })
+    });
+    var json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Failed to update official profile.');
+    return json;
+  }
+
+  async function toggleOfficialActive(userId, isActive) {
+    var headers = await getAdminAuthHeader();
+    var res = await fetch('/api/admin/toggle-active', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ userId: userId, isActive: isActive })
+    });
+    var json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Failed to update account status.');
+    return json;
+  }
+
+  async function deleteOfficialAccount(userId) {
+    var headers = await getAdminAuthHeader();
+    var res = await fetch('/api/admin/delete-official', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ userId: userId })
+    });
+    var json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Failed to delete official account.');
+    return json;
+  }
+
+  async function resetOfficialPassword(userId, newTemporaryPassword) {
+    var headers = await getAdminAuthHeader();
+    var res = await fetch('/api/admin/reset-password', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ userId: userId, newTemporaryPassword: newTemporaryPassword })
+    });
+    var json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Failed to reset official password.');
+    return json;
+  }
+
+  async function reassignComplaint(complaintId, targetUnitId, remark) {
+    var headers = await getAdminAuthHeader();
+    var res = await fetch('/api/admin/reassign-complaint', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ complaintId: complaintId, targetUnitId: targetUnitId, remark: remark })
+    });
+    var json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Failed to reassign complaint.');
+    return json;
+  }
+
+  async function fetchActivityLogs(limit) {
+    var headers = await getAdminAuthHeader();
+    var res = await fetch('/api/activity-logs?limit=' + (limit || 100), { method: 'GET', headers: headers });
+    var json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Failed to fetch activity logs.');
+    return json.logs || [];
+  }
+
+  async function fetchAdminStats() {
+    var headers = await getAdminAuthHeader();
+    var res = await fetch('/api/admin/stats', { method: 'GET', headers: headers });
+    var json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Failed to load admin stats.');
+    return json;
+  }
+
   // ── PUBLIC API EXPORT ─────────────────────────────────────────
   global.CivicAuth = {
     getClient: getClient,
@@ -979,7 +1088,16 @@
     fetchOfficialComplaints: fetchOfficialComplaints,
     fetchStudentIdCard: fetchStudentIdCard,
     updateComplaintWorkflow: updateComplaintWorkflow,
-    reviewStudentIdCard: reviewStudentIdCard
+    reviewStudentIdCard: reviewStudentIdCard,
+    fetchAdminOfficials: fetchAdminOfficials,
+    createOfficialAccount: createOfficialAccount,
+    editOfficialProfile: editOfficialProfile,
+    toggleOfficialActive: toggleOfficialActive,
+    deleteOfficialAccount: deleteOfficialAccount,
+    resetOfficialPassword: resetOfficialPassword,
+    reassignComplaint: reassignComplaint,
+    fetchActivityLogs: fetchActivityLogs,
+    fetchAdminStats: fetchAdminStats
   };
 })(window);
 

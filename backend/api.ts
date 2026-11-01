@@ -597,7 +597,8 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         return sendJson(res, 403, { error: "Administration privileges required" });
       }
 
-      if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.BACKEND_SERVICE_ROLE_KEY;
+      if (!serviceRoleKey) {
         return sendJson(res, 500, {
           error: "Supabase Service Role Key is required to provision accounts. Please add SUPABASE_SERVICE_ROLE_KEY to .env.local",
         });
@@ -661,6 +662,221 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       });
     } catch (err: any) {
       return sendJson(res, 500, { error: err.message || "Failed to provision official account" });
+    }
+  }
+
+  // 7b. ADMIN LIST OFFICIALS
+  if (pathname === "/api/admin/list-officials" && req.method === "GET") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester || requester.profile?.role !== "administration") {
+        return sendJson(res, 403, { error: "Administration privileges required" });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from("profiles")
+        .select("id, name, email, role, unit_name, is_active, must_change_password, created_at, updated_at")
+        .in("role", ["department", "social_service"])
+        .order("name", { ascending: true });
+
+      if (error) {
+        return sendJson(res, 500, { error: error.message });
+      }
+
+      return sendJson(res, 200, { officials: data || [] });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed to load officials" });
+    }
+  }
+
+  // 7c. ADMIN EDIT OFFICIAL PROFILE
+  if (pathname === "/api/admin/edit-official" && req.method === "POST") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester || requester.profile?.role !== "administration") {
+        return sendJson(res, 403, { error: "Administration privileges required" });
+      }
+
+      const body = await parseBody(req);
+      const { userId, name, unitName } = body;
+
+      if (!userId || !name) {
+        return sendJson(res, 400, { error: "Missing required fields: userId, name" });
+      }
+
+      const { error } = await supabaseAdmin
+        .from("profiles")
+        .update({
+          name: name.trim(),
+          unit_name: unitName ? unitName.trim() : null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      if (error) {
+        return sendJson(res, 500, { error: error.message });
+      }
+
+      await supabaseAdmin.from("activity_log").insert({
+        actor_id: requester.user.id,
+        action: "official_profile_edited",
+        target: `Updated profile details for official ${userId.slice(0, 8)} (${name})`,
+      });
+
+      return sendJson(res, 200, { success: true, userId, name, unitName });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed to edit official" });
+    }
+  }
+
+  // 7d. ADMIN DELETE OFFICIAL ACCOUNT
+  if (pathname === "/api/admin/delete-official" && req.method === "POST") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester || requester.profile?.role !== "administration") {
+        return sendJson(res, 403, { error: "Administration privileges required" });
+      }
+
+      const body = await parseBody(req);
+      const { userId } = body;
+
+      if (!userId) {
+        return sendJson(res, 400, { error: "Missing required field: userId" });
+      }
+
+      // Check target role
+      const { data: targetProfile } = await supabaseAdmin
+        .from("profiles")
+        .select("role, name, email")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (!targetProfile || (targetProfile.role !== "department" && targetProfile.role !== "social_service")) {
+        return sendJson(res, 400, { error: "Can only delete department or social_service accounts" });
+      }
+
+      // Delete auth user if service role key configured
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.BACKEND_SERVICE_ROLE_KEY;
+      if (serviceRoleKey) {
+        try {
+          await supabaseAdmin.auth.admin.deleteUser(userId);
+        } catch {}
+      }
+
+      // Delete profile
+      const { error: delProfileErr } = await supabaseAdmin
+        .from("profiles")
+        .delete()
+        .eq("id", userId);
+
+      if (delProfileErr) {
+        return sendJson(res, 500, { error: delProfileErr.message });
+      }
+
+      await supabaseAdmin.from("activity_log").insert({
+        actor_id: requester.user.id,
+        action: "official_account_deleted",
+        target: `Deleted ${targetProfile.role} account for ${targetProfile.name} (${targetProfile.email})`,
+      });
+
+      return sendJson(res, 200, { success: true, userId });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed to delete official account" });
+    }
+  }
+
+  // 7e. ADMIN RESET OFFICIAL PASSWORD
+  if (pathname === "/api/admin/reset-password" && req.method === "POST") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester || requester.profile?.role !== "administration") {
+        return sendJson(res, 403, { error: "Administration privileges required" });
+      }
+
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.BACKEND_SERVICE_ROLE_KEY;
+      if (!serviceRoleKey) {
+        return sendJson(res, 500, {
+          error: "SUPABASE_SERVICE_ROLE_KEY is required in .env.local to reset official passwords via Supabase Admin API.",
+        });
+      }
+
+      const body = await parseBody(req);
+      const { userId, newTemporaryPassword } = body;
+
+      if (!userId || !newTemporaryPassword || newTemporaryPassword.length < 6) {
+        return sendJson(res, 400, { error: "Missing or invalid parameters: userId, newTemporaryPassword (minimum 6 characters)" });
+      }
+
+      const { error: resetErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        password: newTemporaryPassword,
+      });
+
+      if (resetErr) {
+        return sendJson(res, 500, { error: resetErr.message });
+      }
+
+      await supabaseAdmin
+        .from("profiles")
+        .update({
+          must_change_password: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      await supabaseAdmin.from("activity_log").insert({
+        actor_id: requester.user.id,
+        action: "official_password_reset",
+        target: `Generated new temporary credentials for official ${userId.slice(0, 8)}`,
+      });
+
+      return sendJson(res, 200, { success: true, userId });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed to reset official password" });
+    }
+  }
+
+  // 7f. ADMIN AGGREGATED STATS (BY STATUS AND BY UNIT)
+  if (pathname === "/api/admin/stats" && req.method === "GET") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester || requester.profile?.role !== "administration") {
+        return sendJson(res, 403, { error: "Administration privileges required" });
+      }
+
+      const { data: complaints, error } = await supabaseAdmin
+        .from("complaints")
+        .select("id, status, target_unit_id, target_unit:profiles!target_unit_id(unit_name, name)");
+
+      if (error) {
+        return sendJson(res, 500, { error: error.message });
+      }
+
+      const byStatus: Record<string, number> = {
+        submitted: 0,
+        under_verification: 0,
+        accepted: 0,
+        in_progress: 0,
+        resolved: 0,
+        rejected: 0,
+      };
+
+      const byUnit: Record<string, number> = {};
+
+      (complaints || []).forEach((c: any) => {
+        if (c.status && byStatus[c.status] !== undefined) {
+          byStatus[c.status]++;
+        }
+        const unitName = (c.target_unit?.unit_name || c.target_unit?.name || "General / Unassigned");
+        byUnit[unitName] = (byUnit[unitName] || 0) + 1;
+      });
+
+      return sendJson(res, 200, {
+        total: (complaints || []).length,
+        byStatus,
+        byUnit,
+      });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed to calculate stats" });
     }
   }
 

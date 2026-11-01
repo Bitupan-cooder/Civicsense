@@ -610,6 +610,69 @@
       padding: 12px 16px;
     }
 
+    /* Institutional Admin Tables & Cards */
+    .admin-table-wrap {
+      background: #ffffff;
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.02);
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    .admin-table th {
+      background: #f8faf4;
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--olive);
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      border-bottom: 1.5px solid var(--line);
+      white-space: nowrap;
+    }
+    .admin-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      color: var(--ink);
+      vertical-align: middle;
+    }
+    .admin-table tr:last-child td {
+      border-bottom: none;
+    }
+    .admin-table tr:hover td {
+      background: #fafdf7;
+    }
+    .btn-sm {
+      height: 28px;
+      padding: 0 10px;
+      font-size: 11.5px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: all .15s ease;
+      font-family: inherit;
+    }
+    .unit-badge-card {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
     .ticket-meta-row {
       display: flex;
       align-items: center;
@@ -1112,53 +1175,368 @@
       </div>
     </section>
 
-    <!-- KPI METRICS ROW -->
-    <section class="kpi-row" id="kpiRow"></section>
-
-    <!-- FILTER & SEARCH BAR -->
-    <div class="toolbar-bar">
-      <div class="filter-pills-group" id="filterGroup">
-        <button type="button" class="filter-pill-btn active" onclick="setFilter('all')">All (<span id="cAll">0</span>)</button>
-        <button type="button" class="filter-pill-btn" onclick="setFilter('submitted')">Submitted (<span id="cSubmitted">0</span>)</button>
-        <button type="button" class="filter-pill-btn" onclick="setFilter('accepted')">Accepted (<span id="cAccepted">0</span>)</button>
-        <button type="button" class="filter-pill-btn" onclick="setFilter('in_progress')">In Progress (<span id="cIp">0</span>)</button>
-        <button type="button" class="filter-pill-btn" onclick="setFilter('resolved')">Resolved (<span id="cResolved">0</span>)</button>
-        <button type="button" class="filter-pill-btn" onclick="setFilter('rejected')">Rejected (<span id="cRejected">0</span>)</button>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <select id="categoryFilter" class="filter-select-pill" onchange="handleCategoryFilter(this.value)">
-          <option value="all">All Categories</option>
-          <option value="Hostel">Hostel</option>
-          <option value="Electricity">Electricity</option>
-          <option value="Water">Water</option>
-          <option value="Sanitation">Sanitation</option>
-          <option value="Internet">Internet &amp; IT</option>
-          <option value="Library">Library</option>
-          <option value="Safety">Safety &amp; Security</option>
-          <option value="Academic">Academic</option>
-          <option value="General">General</option>
-        </select>
-
-        <select id="dateFilter" class="filter-select-pill" onchange="handleDateFilter(this.value)">
-          <option value="all">All Dates</option>
-          <option value="today">Today</option>
-          <option value="week">Past 7 Days</option>
-          <option value="month">Past 30 Days</option>
-        </select>
-
-        <div class="search-input-wrap">
-          <svg class="search-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          <input type="text" id="adminSearchInput" class="search-input-pill" placeholder="Search by Ticket ID, student, title..." oninput="handleSearch(this.value)" />
-        </div>
+    <!-- ADMINISTRATION SUB-NAVIGATION ROW (ACTIVE IN ADMIN MODE) -->
+    <div id="adminSubNavRow" style="display:none;margin-bottom:20px;">
+      <div style="display:flex;gap:8px;background:rgba(255,255,255,0.85);padding:6px;border-radius:14px;border:1.5px solid var(--line);flex-wrap:wrap;">
+        <button type="button" class="btn" id="adminSubTabComplaints" onclick="switchAdminSection('complaints')" style="height:34px;font-size:12.5px;padding:0 18px;">
+          Complaints &amp; Triage Docket
+        </button>
+        <button type="button" class="btn-outline" id="adminSubTabOfficials" onclick="switchAdminSection('officials')" style="height:34px;font-size:12.5px;padding:0 18px;">
+          Manage Department &amp; Council Accounts
+        </button>
+        <button type="button" class="btn-outline" id="adminSubTabAudit" onclick="switchAdminSection('audit')" style="height:34px;font-size:12.5px;padding:0 18px;">
+          University Activity Audit Log
+        </button>
       </div>
     </div>
 
-    <!-- TICKETS DOCKET LIST -->
-    <section class="tickets-stack" id="ticketsStack"></section>
+    <!-- ══════════ SECTION 1: COMPLAINTS & TRIAGE DOCKET ══════════ -->
+    <div id="sectionComplaints">
+      <!-- ADMINISTRATION UNIT BREAKDOWN CARD (VISIBLE IN ADMIN MODE) -->
+      <section id="adminUnitBreakdownCard" style="display:none;background:#ffffff;border:1.5px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin-bottom:20px;box-shadow:0 4px 14px rgba(0,0,0,0.02);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <h3 style="font-size:14px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;">Departmental Caseload &amp; Jurisdiction Distribution</h3>
+          <span style="font-size:12px;color:#4a6142;font-weight:600;" id="unitBreakdownTotalText">Total: 0 Active Cases</span>
+        </div>
+        <div id="unitBreakdownGrid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:10px;">
+          <!-- Dynamically populated unit pills -->
+        </div>
+      </section>
+
+      <!-- KPI METRICS ROW -->
+      <section class="kpi-row" id="kpiRow"></section>
+
+      <!-- FILTER & SEARCH BAR -->
+      <div class="toolbar-bar">
+        <div class="filter-pills-group" id="filterGroup">
+          <button type="button" class="filter-pill-btn active" onclick="setFilter('all')">All (<span id="cAll">0</span>)</button>
+          <button type="button" class="filter-pill-btn" onclick="setFilter('submitted')">Submitted (<span id="cSubmitted">0</span>)</button>
+          <button type="button" class="filter-pill-btn" onclick="setFilter('accepted')">Accepted (<span id="cAccepted">0</span>)</button>
+          <button type="button" class="filter-pill-btn" onclick="setFilter('in_progress')">In Progress (<span id="cIp">0</span>)</button>
+          <button type="button" class="filter-pill-btn" onclick="setFilter('resolved')">Resolved (<span id="cResolved">0</span>)</button>
+          <button type="button" class="filter-pill-btn" onclick="setFilter('rejected')">Rejected (<span id="cRejected">0</span>)</button>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <select id="categoryFilter" class="filter-select-pill" onchange="handleCategoryFilter(this.value)">
+            <option value="all">All Categories</option>
+            <option value="Hostel">Hostel</option>
+            <option value="Electricity">Electricity</option>
+            <option value="Water">Water</option>
+            <option value="Sanitation">Sanitation</option>
+            <option value="Internet">Internet &amp; IT</option>
+            <option value="Library">Library</option>
+            <option value="Safety">Safety &amp; Security</option>
+            <option value="Academic">Academic</option>
+            <option value="General">General</option>
+          </select>
+
+          <select id="dateFilter" class="filter-select-pill" onchange="handleDateFilter(this.value)">
+            <option value="all">All Dates</option>
+            <option value="today">Today</option>
+            <option value="week">Past 7 Days</option>
+            <option value="month">Past 30 Days</option>
+          </select>
+
+          <div class="search-input-wrap">
+            <svg class="search-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" id="adminSearchInput" class="search-input-pill" placeholder="Search by Ticket ID, student, title..." oninput="handleSearch(this.value)" />
+          </div>
+        </div>
+      </div>
+
+      <!-- TICKETS DOCKET LIST -->
+      <section class="tickets-stack" id="ticketsStack"></section>
+    </div><!-- /#sectionComplaints -->
+
+    <!-- ══════════ SECTION 2: OFFICIAL ACCOUNT MANAGEMENT ══════════ -->
+    <div id="sectionOfficials" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h2 style="font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-0.03em;">Department &amp; Council Accounts</h2>
+          <p style="font-size:12.5px;color:#4a6142;margin-top:2px;">Provision official accounts, toggle access, and manage department jurisdiction credentials.</p>
+        </div>
+        <button type="button" class="btn" onclick="openCreateOfficialModal()" style="height:38px;padding:0 18px;font-size:13px;">
+          Provision New Official Profile
+        </button>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="officialsTable">
+          <thead>
+            <tr>
+              <th>Official Name</th>
+              <th>Role</th>
+              <th>Assigned Unit</th>
+              <th>Official Email</th>
+              <th>Account Status</th>
+              <th>Password State</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="officialsTableBody">
+            <tr>
+              <td colspan="7" style="text-align:center;padding:36px;color:#64748b;">Loading official accounts...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /#sectionOfficials -->
+
+    <!-- ══════════ SECTION 3: UNIVERSITY ACTIVITY AUDIT LOG ══════════ -->
+    <div id="sectionAuditLog" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h2 style="font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-0.03em;">University Activity Audit Trail</h2>
+          <p style="font-size:12.5px;color:#4a6142;margin-top:2px;">Immutable record of all grievance verifications, reassignments, status changes, and administrative actions.</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <select id="auditActionFilter" class="filter-select-pill" onchange="handleAuditActionFilter(this.value)">
+            <option value="all">All Action Types</option>
+            <option value="complaint_status_update">Status Updates</option>
+            <option value="id_card_review">ID Card Reviews</option>
+            <option value="complaint_reassigned">Unit Reassignments</option>
+            <option value="official_account_created">Account Provisioning</option>
+            <option value="official_password_reset">Password Resets</option>
+            <option value="account_deactivated">Deactivations</option>
+          </select>
+          <button type="button" class="btn-outline" onclick="loadActivityLogs()" style="height:36px;font-size:12.5px;padding:0 14px;">
+            Refresh Audit Log
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="auditTable">
+          <thead>
+            <tr>
+              <th style="width:160px;">Timestamp</th>
+              <th style="width:200px;">Actor / Official</th>
+              <th style="width:170px;">Action</th>
+              <th>Target &amp; Details</th>
+            </tr>
+          </thead>
+          <tbody id="auditTableBody">
+            <tr>
+              <td colspan="4" style="text-align:center;padding:36px;color:#64748b;">Loading audit logs...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /#sectionAuditLog -->
 
   </main>
   </div><!-- /#authenticatedWorkspace -->
+
+  <!-- ══════════ REASSIGN UNIT MODAL (ADMIN ONLY) ══════════ -->
+  <div class="modal-overlay hidden" id="reassignModal">
+    <div class="auth-box" style="max-width:520px;">
+      <div class="modal-head" style="background:#ffffff;">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink);">Reassign Redressal Solver Unit</div>
+          <div style="font-size:12px;color:#51684c;" id="reassignModalSubtitle">Complaint #--</div>
+        </div>
+        <button type="button" onclick="closeReassignModal()" style="background:none;border:none;color:#4a6142;font-size:22px;font-weight:700;cursor:pointer;">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div style="background:#f8faf4;border-left:3px solid var(--blue);padding:8px 12px;border-radius:0 6px 6px 0;font-size:12px;color:#1e3a8a;margin-bottom:14px;line-height:1.45;">
+          <strong>Administration Jurisdiction:</strong> Transferring this grievance re-routes notification and dispatch responsibilities to the targeted department head.
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:0.02em;margin-bottom:6px;">Target Department Unit</label>
+          <select id="reassignTargetSelect" class="form-input-pass" style="width:100%;height:40px;margin-top:0;cursor:pointer;">
+            <option value="">Loading department units...</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:0.02em;margin-bottom:6px;">Administrative Reassignment Remark</label>
+          <textarea id="reassignRemarkInput" rows="3" style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;box-sizing:border-box;outline:none;" placeholder="Reason for unit transfer..."></textarea>
+        </div>
+
+        <div id="reassignErrBox" style="display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:600;margin-top:12px;line-height:1.4;"></div>
+      </div>
+
+      <div class="modal-foot">
+        <button type="button" class="btn-outline" onclick="closeReassignModal()">Cancel</button>
+        <button type="button" class="btn btn-blue" id="reassignSubmitBtn" onclick="submitReassignment()">Confirm Reassignment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ PROVISION OFFICIAL ACCOUNT MODAL (ADMIN ONLY) ══════════ -->
+  <div class="modal-overlay hidden" id="createOfficialModal">
+    <div class="auth-box" style="max-width:540px;">
+      <div class="modal-head" style="background:#ffffff;">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink);">Provision Official Account</div>
+          <div style="font-size:12px;color:#51684c;">Create authorized Department or Social Service profile</div>
+        </div>
+        <button type="button" onclick="closeCreateOfficialModal()" style="background:none;border:none;color:#4a6142;font-size:22px;font-weight:700;cursor:pointer;">&times;</button>
+      </div>
+
+      <form onsubmit="handleCreateOfficialSubmit(event)">
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;margin-bottom:4px;">Official Full Name</label>
+            <input type="text" id="createOffName" required placeholder="e.g. Prof. B. K. Sarma" class="form-input-pass" style="margin-top:0;" />
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;margin-bottom:4px;">Role Type</label>
+              <select id="createOffRole" required class="form-input-pass" style="margin-top:0;cursor:pointer;">
+                <option value="department">Department Head</option>
+                <option value="social_service">Social Service (DUSU)</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;margin-bottom:4px;">Unit / Desk Name</label>
+              <input type="text" id="createOffUnit" required placeholder="e.g. Electrical &amp; Power Works" class="form-input-pass" style="margin-top:0;" />
+            </div>
+          </div>
+
+          <div>
+            <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;margin-bottom:4px;">Official Email</label>
+            <input type="email" id="createOffEmail" required placeholder="e.g. electrical@dibru.ac.in" class="form-input-pass" style="margin-top:0;" />
+          </div>
+
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;">Temporary Password</label>
+              <button type="button" onclick="generateTemporaryPassword()" style="background:none;border:none;font-size:11px;font-weight:600;color:var(--blue);cursor:pointer;">Generate Strong Password</button>
+            </div>
+            <input type="text" id="createOffPassword" required minlength="8" placeholder="Enter temporary password (min 8 chars)" class="form-input-pass" style="margin-top:0;" />
+            <div style="font-size:11px;color:#64748b;margin-top:4px;">Created via server route using Supabase Service Role. Handled securely and hashed by Supabase Auth.</div>
+          </div>
+
+          <div id="createOffErrBox" style="display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:600;line-height:1.4;"></div>
+        </div>
+
+        <div class="modal-foot">
+          <button type="button" class="btn-outline" onclick="closeCreateOfficialModal()">Cancel</button>
+          <button type="submit" class="btn" id="createOffSubmitBtn">Create Official Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════════ ONE-TIME CREDENTIALS PRESENTATION MODAL ══════════ -->
+  <div class="modal-overlay hidden" id="credentialsModal">
+    <div class="auth-box" style="max-width:500px;">
+      <div class="modal-head" style="background:#ffffff;">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink);">Official Account Credentials</div>
+          <div style="font-size:12px;color:#51684c;">One-time display verification</div>
+        </div>
+        <button type="button" onclick="closeCredentialsModal()" style="background:none;border:none;color:#4a6142;font-size:22px;font-weight:700;cursor:pointer;">&times;</button>
+      </div>
+
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div style="background:#fffbeb;border-left:3px solid #d97706;padding:10px 12px;border-radius:0 6px 6px 0;font-size:12px;color:#92400e;line-height:1.45;">
+          <strong>Security Notice:</strong> The temporary password is shown once and cannot be retrieved again. Securely convey these credentials to the officer. The user is required to set a permanent password upon first login.
+        </div>
+
+        <div style="background:#ffffff;border:1.5px solid var(--line);border-radius:12px;padding:14px 18px;display:flex;flex-direction:column;gap:8px;">
+          <div>
+            <span style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;">Official:</span>
+            <span style="font-size:13.5px;font-weight:700;color:var(--ink);margin-left:6px;" id="credName">--</span>
+          </div>
+          <div>
+            <span style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;">Email:</span>
+            <span style="font-size:13px;color:#334155;margin-left:6px;" id="credEmail">--</span>
+          </div>
+          <div>
+            <span style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;">Unit:</span>
+            <span style="font-size:13px;color:#334155;margin-left:6px;" id="credUnit">--</span>
+          </div>
+          <div style="margin-top:6px;padding-top:10px;border-top:1px dashed var(--line);display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <span style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;display:block;">Temporary Password</span>
+              <span style="font-family:monospace;font-size:15px;font-weight:700;color:#0e3018;background:var(--pill);padding:2px 8px;border-radius:6px;display:inline-block;margin-top:2px;" id="credPassword">--</span>
+            </div>
+            <button type="button" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 12px;" onclick="copyCredentials()">
+              Copy Credentials
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-foot">
+        <button type="button" class="btn" onclick="closeCredentialsModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ EDIT OFFICIAL MODAL ══════════ -->
+  <div class="modal-overlay hidden" id="editOfficialModal">
+    <div class="auth-box" style="max-width:480px;">
+      <div class="modal-head" style="background:#ffffff;">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink);">Edit Official Profile</div>
+          <div style="font-size:12px;color:#51684c;" id="editOffSubtitle">Profile ID: --</div>
+        </div>
+        <button type="button" onclick="closeEditOfficialModal()" style="background:none;border:none;color:#4a6142;font-size:22px;font-weight:700;cursor:pointer;">&times;</button>
+      </div>
+
+      <form onsubmit="handleEditOfficialSubmit(event)">
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;margin-bottom:4px;">Official Name</label>
+            <input type="text" id="editOffName" required class="form-input-pass" style="margin-top:0;" />
+          </div>
+          <div>
+            <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;margin-bottom:4px;">Unit / Desk Name</label>
+            <input type="text" id="editOffUnit" required class="form-input-pass" style="margin-top:0;" />
+          </div>
+          <div id="editOffErrBox" style="display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:600;"></div>
+        </div>
+
+        <div class="modal-foot">
+          <button type="button" class="btn-outline" onclick="closeEditOfficialModal()">Cancel</button>
+          <button type="submit" class="btn" id="editOffSubmitBtn">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════════ RESET OFFICIAL PASSWORD MODAL ══════════ -->
+  <div class="modal-overlay hidden" id="resetPasswordModal">
+    <div class="auth-box" style="max-width:480px;">
+      <div class="modal-head" style="background:#ffffff;">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink);">Reset Account Password</div>
+          <div style="font-size:12px;color:#51684c;" id="resetPwSubtitle">Official: --</div>
+        </div>
+        <button type="button" onclick="closeResetPasswordModal()" style="background:none;border:none;color:#4a6142;font-size:22px;font-weight:700;cursor:pointer;">&times;</button>
+      </div>
+
+      <form onsubmit="handleResetPasswordSubmit(event)">
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+          <div style="background:#f8faf4;border-left:3px solid var(--olive);padding:8px 12px;border-radius:0 6px 6px 0;font-size:12px;color:#35532d;line-height:1.45;">
+            Assigns a new temporary password and flags account for mandatory password change on subsequent sign-in.
+          </div>
+
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;">New Temporary Password</label>
+              <button type="button" onclick="generateResetTemporaryPassword()" style="background:none;border:none;font-size:11px;font-weight:600;color:var(--blue);cursor:pointer;">Generate Password</button>
+            </div>
+            <input type="text" id="resetNewPasswordInput" required minlength="8" placeholder="Enter new password (min 8 chars)" class="form-input-pass" style="margin-top:0;" />
+          </div>
+
+          <div id="resetPwErrBox" style="display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:600;"></div>
+        </div>
+
+        <div class="modal-foot">
+          <button type="button" class="btn-outline" onclick="closeResetPasswordModal()">Cancel</button>
+          <button type="submit" class="btn" id="resetPwSubmitBtn">Apply New Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- ══════════ COMPLAINT FULL DOCKET MODAL ══════════ -->
   <div class="modal-overlay hidden" id="complaintDetailModal">
@@ -1246,6 +1624,7 @@
         <button type="button" class="btn-outline" id="modalActionAcceptBtn" onclick="promptActionFromDocket('accepted')">Accept Grievance</button>
         <button type="button" class="btn" id="modalActionProgressBtn" onclick="promptActionFromDocket('in_progress')">Update Progress</button>
         <button type="button" class="btn btn-blue" id="modalActionResolveBtn" onclick="promptActionFromDocket('resolved')">Mark Resolved</button>
+        <button type="button" class="btn-outline" id="modalActionReassignBtn" style="display:none;border-color:var(--blue);color:var(--blue);" onclick="reassignFromDocket()">Reassign Unit</button>
       </div>
     </div>
   </div>
@@ -1943,6 +2322,18 @@
         if (role) role.textContent = currentOfficial.roleTitle;
         if (sla) sla.textContent = 'Council Review: <24h';
       }
+
+      // Administration sub-navigation row and unit breakdown visibility
+      var adminSubNav = document.getElementById('adminSubNavRow');
+      var adminUnitCard = document.getElementById('adminUnitBreakdownCard');
+
+      if (currentOfficial && currentOfficial.role === 'administration') {
+        if (adminSubNav) adminSubNav.style.display = 'block';
+        if (adminUnitCard) adminUnitCard.style.display = (currentOfficial.mode === 'admin' ? 'block' : 'none');
+      } else {
+        if (adminSubNav) adminSubNav.style.display = 'none';
+        if (adminUnitCard) adminUnitCard.style.display = 'none';
+      }
     }
 
     function selectMode(mode) {
@@ -2113,6 +2504,11 @@
       // Update KPI cards
       renderKpis(filtered, allComplaints);
 
+      // Update unit caseload breakdown for administration
+      if (currentOfficial && currentOfficial.role === 'administration') {
+        renderUnitBreakdown();
+      }
+
       // Render cards
       var stack = document.getElementById('ticketsStack');
       if (!stack) return;
@@ -2209,6 +2605,11 @@
         workflowButtons += '<span style="font-size:12px;color:#991b1b;font-weight:700;">Grievance Rejected</span>';
       }
 
+      var reassignBtn = '';
+      if (currentOfficial && currentOfficial.role === 'administration' && c.status !== 'resolved' && c.status !== 'rejected') {
+        reassignBtn = '<button type="button" class="btn-outline" style="height:32px;font-size:12px;padding:0 12px;border-color:var(--blue);color:var(--blue);" onclick="openReassignModal(&quot;' + c.id + '&quot;)">Reassign Unit</button>';
+      }
+
       card.innerHTML =
         '<div class="ticket-card-header">' +
           '<div class="ticket-title-row">' +
@@ -2239,6 +2640,7 @@
         '<div class="ticket-actions-row">' +
           '<button type="button" class="btn" style="height:32px;font-size:12px;padding:0 14px;" onclick="openDocketModal(&quot;' + c.id + '&quot;)">Open Docket &amp; History</button>' +
           '<button type="button" class="btn-outline" style="height:32px;font-size:12px;padding:0 12px;" onclick="openIdCardModal(&quot;' + c.student_id + '&quot;, &quot;' + escapeHtml(studentName) + '&quot;, &quot;' + escapeHtml(studentEmail) + '&quot;)">View Student ID Card</button>' +
+          reassignBtn +
           workflowButtons +
         '</div>';
 
@@ -2336,11 +2738,13 @@
       var acceptBtn = document.getElementById('modalActionAcceptBtn');
       var progressBtn = document.getElementById('modalActionProgressBtn');
       var resolveBtn = document.getElementById('modalActionResolveBtn');
+      var reassignBtn = document.getElementById('modalActionReassignBtn');
 
       if (rejectBtn) rejectBtn.style.display = (complaint.status !== 'resolved' && complaint.status !== 'rejected') ? 'inline-flex' : 'none';
       if (acceptBtn) acceptBtn.style.display = (complaint.status === 'submitted' || complaint.status === 'under_verification') ? 'inline-flex' : 'none';
       if (progressBtn) progressBtn.style.display = (complaint.status === 'accepted' || complaint.status === 'in_progress') ? 'inline-flex' : 'none';
       if (resolveBtn) resolveBtn.style.display = (complaint.status === 'in_progress') ? 'inline-flex' : 'none';
+      if (reassignBtn) reassignBtn.style.display = (currentOfficial && currentOfficial.role === 'administration' && complaint.status !== 'resolved' && complaint.status !== 'rejected') ? 'inline-flex' : 'none';
 
       document.getElementById('complaintDetailModal').classList.remove('hidden');
     }
@@ -2348,6 +2752,11 @@
     function closeDocketModal() {
       document.getElementById('complaintDetailModal').classList.add('hidden');
       activeDocketComplaint = null;
+    }
+
+    function reassignFromDocket() {
+      if (!activeDocketComplaint) return;
+      openReassignModal(activeDocketComplaint.id);
     }
 
     function viewStudentIdFromDocket() {
@@ -2601,6 +3010,598 @@
       link.click();
       document.body.removeChild(link);
       showToast('Audit CSV exported successfully.', 'success');
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── PHASE 6: ADMINISTRATION WORKSPACE LOGIC ──
+    // ══════════════════════════════════════════════════════════════
+
+    var activeAdminSection = 'complaints';
+    var adminOfficialsList = [];
+    var fullAuditLogs = [];
+    var activeReassignComplaintId = null;
+    var activeEditOfficialId = null;
+    var activeResetOfficialId = null;
+    var activeResetOfficialMeta = { name: '', email: '', unit: '' };
+    var lastCreatedCredentials = null;
+
+    function switchAdminSection(section) {
+      activeAdminSection = section;
+
+      var sComplaints = document.getElementById('sectionComplaints');
+      var sOfficials = document.getElementById('sectionOfficials');
+      var sAudit = document.getElementById('sectionAuditLog');
+
+      var tabComplaints = document.getElementById('adminSubTabComplaints');
+      var tabOfficials = document.getElementById('adminSubTabOfficials');
+      var tabAudit = document.getElementById('adminSubTabAudit');
+
+      if (sComplaints) sComplaints.style.display = (section === 'complaints' ? 'block' : 'none');
+      if (sOfficials) sOfficials.style.display = (section === 'officials' ? 'block' : 'none');
+      if (sAudit) sAudit.style.display = (section === 'audit' ? 'block' : 'none');
+
+      if (tabComplaints) tabComplaints.className = (section === 'complaints' ? 'btn' : 'btn-outline');
+      if (tabOfficials) tabOfficials.className = (section === 'officials' ? 'btn' : 'btn-outline');
+      if (tabAudit) tabAudit.className = (section === 'audit' ? 'btn' : 'btn-outline');
+
+      if (section === 'officials') {
+        loadAdminOfficials();
+      } else if (section === 'audit') {
+        loadActivityLogs();
+      }
+    }
+
+    function renderUnitBreakdown() {
+      var grid = document.getElementById('unitBreakdownGrid');
+      var totalText = document.getElementById('unitBreakdownTotalText');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      var unitCounts = {};
+      var activeCount = 0;
+
+      allComplaints.forEach(function (c) {
+        if (c.status !== 'resolved' && c.status !== 'rejected') {
+          activeCount++;
+          var uName = (c.target_unit && (c.target_unit.unit_name || c.target_unit.name)) || 'Unassigned / General';
+          unitCounts[uName] = (unitCounts[uName] || 0) + 1;
+        }
+      });
+
+      if (totalText) {
+        totalText.textContent = 'Total: ' + activeCount + ' Active Cases';
+      }
+
+      var units = Object.keys(unitCounts);
+      if (units.length === 0) {
+        grid.innerHTML = '<div style="font-size:12.5px;color:#64748b;grid-column:1/-1;">No pending complaints assigned to department desks.</div>';
+        return;
+      }
+
+      units.sort().forEach(function (uName) {
+        var count = unitCounts[uName];
+        var card = document.createElement('div');
+        card.className = 'unit-badge-card';
+        card.innerHTML =
+          '<span class="unit-badge-name">' + escapeHtml(uName) + '</span>' +
+          '<span class="unit-badge-count">' + count + '</span>';
+        grid.appendChild(card);
+      });
+    }
+
+    // ── REASSIGN REDRESSAL SOLVER UNIT ──
+    async function openReassignModal(complaintId) {
+      activeReassignComplaintId = complaintId;
+      var complaint = allComplaints.find(function(c) { return c.id === complaintId; });
+
+      var sub = document.getElementById('reassignModalSubtitle');
+      if (sub) {
+        sub.textContent = 'Complaint #CS-' + complaintId.slice(0, 8).toUpperCase() + (complaint ? ': ' + complaint.title : '');
+      }
+
+      var remarkInput = document.getElementById('reassignRemarkInput');
+      if (remarkInput) remarkInput.value = '';
+
+      var errBox = document.getElementById('reassignErrBox');
+      if (errBox) errBox.style.display = 'none';
+
+      var btn = document.getElementById('reassignSubmitBtn');
+      if (btn) { btn.disabled = false; btn.textContent = 'Confirm Reassignment'; }
+
+      var select = document.getElementById('reassignTargetSelect');
+      if (select) {
+        select.innerHTML = '<option value="">Loading department units...</option>';
+        try {
+          var units = await CivicAuth.fetchDepartmentUnits();
+          select.innerHTML = '<option value="">-- Select Destination Department Unit --</option>';
+          units.forEach(function(u) {
+            var opt = document.createElement('option');
+            opt.value = u.id;
+            opt.textContent = (u.unit_name || u.name) + ' (' + u.name + ')';
+            if (complaint && complaint.target_unit_id === u.id) {
+              opt.textContent += ' [Current Unit]';
+            }
+            select.appendChild(opt);
+          });
+        } catch (e) {
+          select.innerHTML = '<option value="">Failed to load units: ' + escapeHtml(e.message) + '</option>';
+        }
+      }
+
+      document.getElementById('reassignModal').classList.remove('hidden');
+    }
+
+    function closeReassignModal() {
+      document.getElementById('reassignModal').classList.add('hidden');
+      activeReassignComplaintId = null;
+    }
+
+    async function submitReassignment() {
+      if (!activeReassignComplaintId) return;
+
+      var select = document.getElementById('reassignTargetSelect');
+      var remarkInput = document.getElementById('reassignRemarkInput');
+      var errBox = document.getElementById('reassignErrBox');
+      var btn = document.getElementById('reassignSubmitBtn');
+
+      var targetUnitId = (select ? select.value : '').trim();
+      var remark = (remarkInput ? remarkInput.value : '').trim();
+
+      if (!targetUnitId) {
+        if (errBox) {
+          errBox.style.display = 'block';
+          errBox.textContent = 'Please select a destination department unit.';
+        }
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Reassigning...';
+      }
+      if (errBox) errBox.style.display = 'none';
+
+      try {
+        await CivicAuth.reassignComplaint(activeReassignComplaintId, targetUnitId, remark);
+        showToast('Complaint reassigned successfully to destination department.', 'success');
+        closeReassignModal();
+        await loadOfficialComplaints();
+
+        if (activeDocketComplaint && activeDocketComplaint.id === activeReassignComplaintId) {
+          openDocketModal(activeReassignComplaintId);
+        }
+      } catch (err) {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Confirm Reassignment';
+        }
+        if (errBox) {
+          errBox.style.display = 'block';
+          errBox.textContent = err.message || 'Reassignment failed.';
+        }
+      }
+    }
+
+    // ── OFFICIAL ACCOUNTS MANAGEMENT ──
+    async function loadAdminOfficials() {
+      var tbody = document.getElementById('officialsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:36px;color:#64748b;">' +
+        '<div style="width:24px;height:24px;border:2.5px solid var(--line);border-top-color:var(--olive);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 10px;"></div>' +
+        'Fetching official accounts from database...' +
+        '</td></tr>';
+
+      try {
+        adminOfficialsList = await CivicAuth.fetchAdminOfficials();
+        if (!adminOfficialsList || adminOfficialsList.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:36px;color:#64748b;">No official accounts found. Click "Provision New Official Profile" to create one.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        adminOfficialsList.forEach(function(off) {
+          var tr = document.createElement('tr');
+
+          var roleLabel = 'Department Head';
+          if (off.role === 'social_service') roleLabel = 'Social Service (DUSU)';
+          else if (off.role === 'administration') roleLabel = 'Administration';
+
+          var statusBadge = off.is_active !== false
+            ? '<span class="chip chip-resolved">Active</span>'
+            : '<span class="chip chip-rejected">Deactivated</span>';
+
+          var pwBadge = off.must_change_password
+            ? '<span class="chip chip-submitted">Must Change</span>'
+            : '<span class="chip chip-resolved">Configured</span>';
+
+          var toggleBtnText = off.is_active !== false ? 'Deactivate' : 'Activate';
+          var toggleBtnClass = off.is_active !== false ? 'btn-outline btn-red' : 'btn-outline';
+
+          var escapedName = escapeHtml(off.name).replace(/"/g, '&quot;');
+          var escapedUnit = escapeHtml(off.unit_name || '').replace(/"/g, '&quot;');
+          var escapedEmail = escapeHtml(off.email || '').replace(/"/g, '&quot;');
+
+          tr.innerHTML =
+            '<td style="font-weight:700;color:var(--ink);">' + escapeHtml(off.name) + '</td>' +
+            '<td><span class="chip" style="background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;">' + roleLabel + '</span></td>' +
+            '<td>' + escapeHtml(off.unit_name || 'General Desk') + '</td>' +
+            '<td style="font-family:monospace;font-size:12px;color:#334155;">' + escapeHtml(off.email) + '</td>' +
+            '<td>' + statusBadge + '</td>' +
+            '<td>' + pwBadge + '</td>' +
+            '<td style="text-align:right;">' +
+              '<div style="display:inline-flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">' +
+                '<button type="button" class="btn-sm btn-outline" onclick="openEditOfficialModal(&quot;' + off.id + '&quot;, &quot;' + escapedName + '&quot;, &quot;' + escapedUnit + '&quot;)">Edit</button>' +
+                '<button type="button" class="btn-sm ' + toggleBtnClass + '" onclick="toggleOfficialStatus(&quot;' + off.id + '&quot;, ' + (off.is_active !== false) + ')">' + toggleBtnText + '</button>' +
+                '<button type="button" class="btn-sm btn-outline" style="border-color:var(--blue);color:var(--blue);" onclick="openResetPasswordModal(&quot;' + off.id + '&quot;, &quot;' + escapedName + '&quot;, &quot;' + escapedEmail + '&quot;, &quot;' + escapedUnit + '&quot;)">Reset Password</button>' +
+                '<button type="button" class="btn-sm btn-outline btn-red" onclick="confirmDeleteOfficial(&quot;' + off.id + '&quot;, &quot;' + escapedName + '&quot;)">Delete</button>' +
+              '</div>' +
+            '</td>';
+
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:36px;color:#991b1b;">Failed to load officials: ' + escapeHtml(err.message || 'Server error.') + '</td></tr>';
+      }
+    }
+
+    function generateRandomPassword() {
+      var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
+      var pwd = 'DU-';
+      for (var i = 0; i < 9; i++) {
+        pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return pwd;
+    }
+
+    function openCreateOfficialModal() {
+      document.getElementById('createOffName').value = '';
+      document.getElementById('createOffUnit').value = '';
+      document.getElementById('createOffEmail').value = '';
+      document.getElementById('createOffPassword').value = '';
+      var errBox = document.getElementById('createOffErrBox');
+      if (errBox) errBox.style.display = 'none';
+      var btn = document.getElementById('createOffSubmitBtn');
+      if (btn) { btn.disabled = false; btn.textContent = 'Create Official Account'; }
+      generateTemporaryPassword();
+      document.getElementById('createOfficialModal').classList.remove('hidden');
+    }
+
+    function closeCreateOfficialModal() {
+      document.getElementById('createOfficialModal').classList.add('hidden');
+    }
+
+    function generateTemporaryPassword() {
+      var pwd = generateRandomPassword();
+      var input = document.getElementById('createOffPassword');
+      if (input) input.value = pwd;
+    }
+
+    async function handleCreateOfficialSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      var name = (document.getElementById('createOffName').value || '').trim();
+      var role = document.getElementById('createOffRole').value;
+      var unit = (document.getElementById('createOffUnit').value || '').trim();
+      var email = (document.getElementById('createOffEmail').value || '').trim();
+      var password = document.getElementById('createOffPassword').value;
+      var errBox = document.getElementById('createOffErrBox');
+      var btn = document.getElementById('createOffSubmitBtn');
+
+      if (!name || !unit || !email || !password) {
+        if (errBox) { errBox.textContent = 'All fields are mandatory.'; errBox.style.display = 'block'; }
+        return;
+      }
+      if (password.length < 8) {
+        if (errBox) { errBox.textContent = 'Temporary password must be at least 8 characters long.'; errBox.style.display = 'block'; }
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Provisioning profile...';
+      if (errBox) errBox.style.display = 'none';
+
+      try {
+        await CivicAuth.createOfficialAccount({
+          email: email,
+          password: password,
+          name: name,
+          role: role,
+          unitName: unit
+        });
+
+        closeCreateOfficialModal();
+        openCredentialsModal(name, role, unit, email, password);
+        showToast('Official account for ' + name + ' created successfully.', 'success');
+        await loadAdminOfficials();
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Create Official Account';
+        if (errBox) {
+          errBox.style.display = 'block';
+          errBox.textContent = err.message || 'Failed to create official account.';
+        }
+      }
+    }
+
+    function openCredentialsModal(name, role, unit, email, password) {
+      lastCreatedCredentials = { name: name, role: role, unit: unit, email: email, password: password };
+      var elName = document.getElementById('credName');
+      var elUnit = document.getElementById('credUnit');
+      var elEmail = document.getElementById('credEmail');
+      var elPw = document.getElementById('credPassword');
+
+      if (elName) elName.textContent = name;
+      if (elUnit) elUnit.textContent = unit + ' (' + (role === 'department' ? 'Department Head' : role === 'social_service' ? 'Social Service' : role) + ')';
+      if (elEmail) elEmail.textContent = email;
+      if (elPw) elPw.textContent = password;
+
+      document.getElementById('credentialsModal').classList.remove('hidden');
+    }
+
+    function closeCredentialsModal() {
+      document.getElementById('credentialsModal').classList.add('hidden');
+    }
+
+    function copyCredentials() {
+      if (!lastCreatedCredentials) return;
+      var text = 'CivicSense Official Portal Access\n' +
+        'Official Name: ' + lastCreatedCredentials.name + '\n' +
+        'Role: ' + lastCreatedCredentials.role + '\n' +
+        'Unit / Desk: ' + lastCreatedCredentials.unit + '\n' +
+        'Official Email: ' + lastCreatedCredentials.email + '\n' +
+        'Temporary Password: ' + lastCreatedCredentials.password + '\n' +
+        'Portal URL: ' + window.location.origin + '/admin.html\n\n' +
+        'Note: You will be prompted to set a permanent password upon first sign-in.';
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          showToast('Account credentials copied to clipboard.', 'success');
+        }).catch(function() {
+          fallbackCopyText(text);
+        });
+      } else {
+        fallbackCopyText(text);
+      }
+    }
+
+    function fallbackCopyText(text) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('Account credentials copied to clipboard.', 'success');
+      } catch (err) {
+        showToast('Please manually copy the temporary password.', 'warning');
+      }
+      document.body.removeChild(ta);
+    }
+
+    function openEditOfficialModal(userId, name, unitName) {
+      activeEditOfficialId = userId;
+      document.getElementById('editOffSubtitle').textContent = 'Profile: ' + name;
+      document.getElementById('editOffName').value = name;
+      document.getElementById('editOffUnit').value = unitName;
+      var errBox = document.getElementById('editOffErrBox');
+      if (errBox) errBox.style.display = 'none';
+      var btn = document.getElementById('editOffSubmitBtn');
+      if (btn) { btn.disabled = false; btn.textContent = 'Save Changes'; }
+      document.getElementById('editOfficialModal').classList.remove('hidden');
+    }
+
+    function closeEditOfficialModal() {
+      document.getElementById('editOfficialModal').classList.add('hidden');
+      activeEditOfficialId = null;
+    }
+
+    async function handleEditOfficialSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (!activeEditOfficialId) return;
+
+      var name = (document.getElementById('editOffName').value || '').trim();
+      var unit = (document.getElementById('editOffUnit').value || '').trim();
+      var errBox = document.getElementById('editOffErrBox');
+      var btn = document.getElementById('editOffSubmitBtn');
+
+      if (!name || !unit) {
+        if (errBox) { errBox.textContent = 'Both name and unit name are required.'; errBox.style.display = 'block'; }
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Saving changes...';
+      if (errBox) errBox.style.display = 'none';
+
+      try {
+        await CivicAuth.editOfficialProfile(activeEditOfficialId, name, unit);
+        showToast('Official profile updated successfully.', 'success');
+        closeEditOfficialModal();
+        await loadAdminOfficials();
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Save Changes';
+        if (errBox) {
+          errBox.style.display = 'block';
+          errBox.textContent = err.message || 'Failed to update profile.';
+        }
+      }
+    }
+
+    async function toggleOfficialStatus(userId, currentIsActive) {
+      var actionLabel = currentIsActive ? 'deactivate' : 'activate';
+      if (!confirm('Are you sure you want to ' + actionLabel + ' this official account?')) {
+        return;
+      }
+
+      try {
+        await CivicAuth.toggleOfficialActive(userId, !currentIsActive);
+        showToast('Official account ' + (currentIsActive ? 'deactivated' : 'activated') + ' successfully.', 'success');
+        await loadAdminOfficials();
+      } catch (err) {
+        showToast(err.message || 'Failed to update account status.', 'error');
+      }
+    }
+
+    function openResetPasswordModal(userId, name, email, unit) {
+      activeResetOfficialId = userId;
+      activeResetOfficialMeta = { name: name, email: email, unit: unit };
+      document.getElementById('resetPwSubtitle').textContent = 'Official: ' + name;
+      document.getElementById('resetNewPasswordInput').value = '';
+      var errBox = document.getElementById('resetPwErrBox');
+      if (errBox) errBox.style.display = 'none';
+      var btn = document.getElementById('resetPwSubmitBtn');
+      if (btn) { btn.disabled = false; btn.textContent = 'Apply New Password'; }
+      generateResetTemporaryPassword();
+      document.getElementById('resetPasswordModal').classList.remove('hidden');
+    }
+
+    function closeResetPasswordModal() {
+      document.getElementById('resetPasswordModal').classList.add('hidden');
+      activeResetOfficialId = null;
+    }
+
+    function generateResetTemporaryPassword() {
+      var pwd = generateRandomPassword();
+      var input = document.getElementById('resetNewPasswordInput');
+      if (input) input.value = pwd;
+    }
+
+    async function handleResetPasswordSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (!activeResetOfficialId) return;
+
+      var password = (document.getElementById('resetNewPasswordInput').value || '').trim();
+      var errBox = document.getElementById('resetPwErrBox');
+      var btn = document.getElementById('resetPwSubmitBtn');
+
+      if (!password || password.length < 8) {
+        if (errBox) { errBox.textContent = 'Password must be at least 8 characters long.'; errBox.style.display = 'block'; }
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Resetting password...';
+      if (errBox) errBox.style.display = 'none';
+
+      try {
+        await CivicAuth.resetOfficialPassword(activeResetOfficialId, password);
+        closeResetPasswordModal();
+        openCredentialsModal(activeResetOfficialMeta.name, 'Department / Council', activeResetOfficialMeta.unit, activeResetOfficialMeta.email, password);
+        showToast('Password reset successfully for ' + activeResetOfficialMeta.name, 'success');
+        await loadAdminOfficials();
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Apply New Password';
+        if (errBox) {
+          errBox.style.display = 'block';
+          errBox.textContent = err.message || 'Failed to reset password.';
+        }
+      }
+    }
+
+    async function confirmDeleteOfficial(userId, name) {
+      if (!confirm('CAUTION: Permanently delete official profile and login access for ' + name + '?\n\nThis action cannot be undone.')) {
+        return;
+      }
+
+      try {
+        await CivicAuth.deleteOfficialAccount(userId);
+        showToast('Official account permanently deleted.', 'success');
+        await loadAdminOfficials();
+      } catch (err) {
+        showToast(err.message || 'Failed to delete official account.', 'error');
+      }
+    }
+
+    // ── UNIVERSITY ACTIVITY AUDIT TRAIL ──
+    async function loadActivityLogs() {
+      var tbody = document.getElementById('auditTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:36px;color:#64748b;">' +
+        '<div style="width:24px;height:24px;border:2.5px solid var(--line);border-top-color:var(--olive);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 10px;"></div>' +
+        'Loading audit trail from database...' +
+        '</td></tr>';
+
+      try {
+        fullAuditLogs = await CivicAuth.fetchActivityLogs(150);
+        renderActivityLogs();
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:36px;color:#991b1b;">Failed to load audit logs: ' + escapeHtml(err.message || 'Server error.') + '</td></tr>';
+      }
+    }
+
+    function handleAuditActionFilter(actionVal) {
+      renderActivityLogs();
+    }
+
+    function renderActivityLogs() {
+      var tbody = document.getElementById('auditTableBody');
+      if (!tbody) return;
+
+      var filterVal = (document.getElementById('auditActionFilter') ? document.getElementById('auditActionFilter').value : 'all') || 'all';
+
+      var filtered = fullAuditLogs.slice();
+      if (filterVal !== 'all') {
+        filtered = filtered.filter(function(log) {
+          return log.action_type === filterVal;
+        });
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:36px;color:#64748b;">No audit records found for the selected filter.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      filtered.forEach(function(item) {
+        var tr = document.createElement('tr');
+
+        var actorStr = 'System / Administrator';
+        if (item.actor) {
+          actorStr = item.actor.name + (item.actor.unit_name ? ' (' + item.actor.unit_name + ')' : ' [' + item.actor.role + ']');
+        }
+
+        var actionBadge = '<span class="chip chip-submitted">' + escapeHtml(item.action_type) + '</span>';
+        if (item.action_type === 'complaint_status_update') actionBadge = '<span class="chip chip-accepted">Status Update</span>';
+        else if (item.action_type === 'id_card_review') actionBadge = '<span class="chip chip-resolved">ID Review</span>';
+        else if (item.action_type === 'complaint_reassigned') actionBadge = '<span class="chip chip-escalated">Reassigned</span>';
+        else if (item.action_type === 'official_account_created') actionBadge = '<span class="chip chip-in_progress">Account Created</span>';
+        else if (item.action_type === 'official_password_reset') actionBadge = '<span class="chip chip-under_verification">Password Reset</span>';
+        else if (item.action_type === 'account_deactivated') actionBadge = '<span class="chip chip-rejected">Deactivated</span>';
+        else if (item.action_type === 'official_profile_updated') actionBadge = '<span class="chip chip-ip">Profile Updated</span>';
+
+        var detailsStr = '';
+        if (item.target_complaint_id) {
+          detailsStr += '<div style="font-weight:600;color:var(--ink);">Complaint #CS-' + item.target_complaint_id.slice(0, 8).toUpperCase() + '</div>';
+        }
+        if (item.details) {
+          var detailsObj = typeof item.details === 'string' ? JSON.parse(item.details || '{}') : item.details;
+          var bits = [];
+          if (detailsObj.status) bits.push('Status: ' + detailsObj.status);
+          if (detailsObj.previous_status) bits.push('Prev: ' + detailsObj.previous_status);
+          if (detailsObj.new_status) bits.push('New: ' + detailsObj.new_status);
+          if (detailsObj.previous_unit) bits.push('From: ' + detailsObj.previous_unit);
+          if (detailsObj.new_unit) bits.push('To: ' + detailsObj.new_unit);
+          if (detailsObj.official_email) bits.push('Email: ' + detailsObj.official_email);
+          if (detailsObj.role) bits.push('Role: ' + detailsObj.role);
+          if (detailsObj.remark) bits.push('Remark: "' + detailsObj.remark + '"');
+
+          if (bits.length > 0) {
+            detailsStr += '<div style="font-size:12px;color:#475569;margin-top:2px;">' + escapeHtml(bits.join(' · ')) + '</div>';
+          }
+        }
+
+        tr.innerHTML =
+          '<td style="white-space:nowrap;font-size:12px;color:#64748b;">' + formatDate(item.created_at) + '</td>' +
+          '<td style="font-size:12.5px;font-weight:600;color:var(--ink);">' + escapeHtml(actorStr) + '</td>' +
+          '<td>' + actionBadge + '</td>' +
+          '<td>' + (detailsStr || '<span style="color:#94a3b8;">--</span>') + '</td>';
+
+        tbody.appendChild(tr);
+      });
     }
 
     window.addEventListener('DOMContentLoaded', initAuth);
