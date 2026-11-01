@@ -65,12 +65,28 @@ body.intro #app{transform:scale(.9);border-radius:28px}
 .cloud{position:absolute}
 .cloud-l{top:-3%;left:-5%;width:min(44vw,640px);z-index:4}
 .cloud-r{top:2%;right:-6%;width:min(42vw,620px);z-index:4}
-#heroTitle{position:absolute;z-index:6;top:30%;width:100%;text-align:center;font-size:clamp(28px,4.8vw,70px);font-weight:400;letter-spacing:-.045em;line-height:1.04;padding:0 16px}
+#heroTitle{position:absolute;z-index:6;top:clamp(80px,14vh,130px);width:100%;text-align:center;font-size:clamp(28px,4.5vw,66px);font-weight:400;letter-spacing:-.045em;line-height:1.04;padding:0 16px}
 #heroTitle em{color:var(--olive);font-style:italic;font-weight:500}
-.hero-badges{position:absolute;z-index:7;top:54%;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 20px}
-.hero-media{position:absolute;left:0;right:0;bottom:0;height:66%;z-index:2;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 20%);mask-image:linear-gradient(to bottom,transparent 0,#000 20%)}
-.hero-media video{width:100%;height:100%;object-fit:cover;object-position:center 60%}
+.hero-badges{position:absolute;z-index:7;top:clamp(185px,27vh,255px);width:100%;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 20px}
 .hero-glass{position:absolute;inset:0;z-index:5;pointer-events:none}
+
+/* ════════════ 3D HERO CIVIC STAGE (GSAP) ════════════ */
+.hero-3d-container{position:absolute;left:0;right:0;bottom:0;height:65%;min-height:360px;z-index:3;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;perspective:1200px}
+.hero-3d-stage{position:relative;width:min(1380px,96vw);height:100%;display:flex;align-items:flex-end;justify-content:space-evenly;padding-bottom:14px;transform-style:preserve-3d;will-change:transform}
+.hero-stage-ground{position:absolute;bottom:14px;left:4%;right:4%;height:2px;background:linear-gradient(90deg,transparent,rgba(30,168,84,.4) 15%,rgba(181,248,0,.85) 50%,rgba(30,168,84,.4) 85%,transparent);pointer-events:none;z-index:1}
+.hero-stage-glow{position:absolute;bottom:0;left:10%;right:10%;height:100px;background:radial-gradient(ellipse at bottom,rgba(181,248,0,.2),rgba(30,168,84,.08),transparent 72%);pointer-events:none;z-index:0}
+.hero-3d-card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;pointer-events:auto;transform-style:preserve-3d;transition:transform .3s cubic-bezier(.25,.8,.25,1);user-select:none;padding:0 4px}
+.hero-3d-card:hover{z-index:12}
+.hero-3d-card:hover .char-tag{background:var(--blue);color:#fff;border-color:var(--blue);transform:translateZ(30px) translateY(-4px) scale(1.05);box-shadow:0 8px 18px rgba(0,54,255,.28)}
+.hero-3d-card:hover .char-img{filter:drop-shadow(0 16px 26px rgba(30,168,84,.38))}
+.hero-3d-card:hover .char-shadow{transform:scale(1.22);opacity:.65}
+.char-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.94);border:1.5px solid var(--line);color:var(--olive);font-size:11px;font-weight:700;letter-spacing:.03em;white-space:nowrap;box-shadow:0 3px 12px rgba(0,0,0,.08);margin-bottom:8px;transition:all .25s ease;transform-style:preserve-3d;transform:translateZ(24px)}
+.char-tag-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+.char-img-wrap{position:relative;display:flex;align-items:flex-end;justify-content:center;transform-style:preserve-3d;will-change:transform}
+.char-img{height:clamp(210px,36vh,370px);width:auto;max-width:min(240px,18vw);object-fit:contain;display:block;pointer-events:none;filter:drop-shadow(0 8px 16px rgba(10,30,10,.16));transition:filter .3s ease;transform:translateZ(14px)}
+.char-shadow{width:75%;height:14px;border-radius:50%;background:radial-gradient(closest-side,rgba(10,30,10,.28),transparent);margin-top:-6px;transition:all .3s ease;pointer-events:none}
+.char-tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#0e3018;color:#fff;font-size:10.5px;font-weight:600;padding:4px 9px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:20}
+.hero-3d-card:hover .char-tooltip{opacity:1;transform:translateX(-50%) translateY(-3px)}
 
 /* ══════════════════════ STATS ═════════════════════════ */
 .stats{position:relative;height:100vh;min-height:680px;overflow:hidden;background:#fff}
@@ -231,12 +247,16 @@ nav.f-links a:hover{text-decoration:underline}
   .cat-grid{grid-template-columns:repeat(2,1fr)}
   .form-row{grid-template-columns:1fr}
   .preset-grid{grid-template-columns:1fr}
+  .char-img{height:clamp(170px,28vh,270px)}
 }
 @media(max-width:760px){
-  .hero{height:100svh;min-height:560px}
-  #heroTitle{top:24%;font-size:clamp(24px,7vw,46px)}
-  .hero-badges{top:50%;flex-direction:column;gap:6px}
-  .hero-media{height:60%;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14%);mask-image:linear-gradient(to bottom,transparent 0,#000 14%)}
+  .hero{height:100svh;min-height:580px}
+  #heroTitle{top:clamp(75px,11vh,100px);font-size:clamp(22px,6.2vw,36px)}
+  .hero-badges{top:clamp(155px,22vh,195px);flex-direction:column;gap:5px}
+  .hero-3d-container{height:60%}
+  .hero-3d-stage{overflow-x:auto;justify-content:flex-start;gap:16px;padding:0 20px 14px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+  .hero-3d-card{flex:0 0 auto;scroll-snap-align:center}
+  .char-img{height:200px;max-width:160px}
   .cloud-l{width:70vw;left:-18vw;top:6%}.cloud-r{width:66vw;right:-20vw;top:10%}
   .nav{top:14px;gap:10px;padding-left:12px}.brand{font-size:16px}
   .loop{height:auto;min-height:0;padding:12vh 0 40px}.loop-head{position:relative;top:auto}
@@ -305,11 +325,61 @@ nav.f-links a:hover{text-decoration:underline}
     <span class="pill">PS-04 · Live Status Tracking</span>
   </div>
 
-  <div class="hero-media">
-    <video id="heroVideo" autoplay muted loop playsinline preload="auto"
-      poster="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093215_b7826239-e451-4e15-b42b-d6bcf9497a32.png"
-      src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093331_5998f443-1b9c-4b62-820c-8219c73c72c4.mp4">
-    </video>
+  <!-- ════════════ 3D CIVIC CHARACTER STAGE (GSAP) ════════════ -->
+  <div class="hero-3d-container" id="hero3dContainer">
+    <div class="hero-stage-glow" aria-hidden="true"></div>
+    <div class="hero-stage-ground" aria-hidden="true"></div>
+    <div class="hero-3d-stage" id="hero3dStage">
+      <!-- 01: Clean Quad & Recycling -->
+      <div class="hero-3d-card" id="charCard1" data-cat="waste" onclick="selectCat('waste')" aria-label="01: Clean Quad &amp; Sanitation">
+        <div class="char-tooltip">Click to report waste or litter</div>
+        <div class="char-tag"><span class="char-tag-dot"></span>01 · CLEAN QUAD</div>
+        <div class="char-img-wrap">
+          <img class="char-img" src="Flat Assets/civic/char-1-recycling.png" onerror="this.src='public/flat-assets/civic-cutouts/char-1-recycling.png'" alt="Student sorting recycling" />
+        </div>
+        <div class="char-shadow" aria-hidden="true"></div>
+      </div>
+
+      <!-- 02: Water & Grounds Care -->
+      <div class="hero-3d-card" id="charCard2" data-cat="water" onclick="selectCat('water')" aria-label="02: Water &amp; Grounds Care">
+        <div class="char-tooltip">Click to report water leaks or supply</div>
+        <div class="char-tag"><span class="char-tag-dot"></span>02 · WATER &amp; GROUNDS</div>
+        <div class="char-img-wrap">
+          <img class="char-img" src="Flat Assets/civic/char-2-planting.png" onerror="this.src='public/flat-assets/civic-cutouts/char-2-planting.png'" alt="Student planting sapling" />
+        </div>
+        <div class="char-shadow" aria-hidden="true"></div>
+      </div>
+
+      <!-- 03: Power & Voice -->
+      <div class="hero-3d-card" id="charCard3" data-cat="power" onclick="selectCat('power')" aria-label="03: Power &amp; Lighting">
+        <div class="char-tooltip">Click to report power, lighting &amp; outages</div>
+        <div class="char-tag"><span class="char-tag-dot"></span>03 · POWER &amp; LIGHTS</div>
+        <div class="char-img-wrap">
+          <img class="char-img" src="Flat Assets/civic/char-3-megaphone.png" onerror="this.src='public/flat-assets/civic-cutouts/char-3-megaphone.png'" alt="Student announcing alert with megaphone" />
+        </div>
+        <div class="char-shadow" aria-hidden="true"></div>
+      </div>
+
+      <!-- 04: Safety & SLA Audit -->
+      <div class="hero-3d-card" id="charCard4" data-cat="safety" onclick="selectCat('safety')" aria-label="04: Safety &amp; SLA Audit">
+        <div class="char-tooltip">Click to report safety hazards &amp; security</div>
+        <div class="char-tag"><span class="char-tag-dot"></span>04 · SAFETY &amp; AUDIT</div>
+        <div class="char-img-wrap">
+          <img class="char-img" src="Flat Assets/civic/char-4-auditor.png" onerror="this.src='public/flat-assets/civic-cutouts/char-4-auditor.png'" alt="Student auditor tracking turnaround" />
+        </div>
+        <div class="char-shadow" aria-hidden="true"></div>
+      </div>
+
+      <!-- 05: Hostel & Direct Dispatch -->
+      <div class="hero-3d-card" id="charCard5" data-cat="hostel" onclick="selectCat('hostel')" aria-label="05: Hostel Dispatch">
+        <div class="char-tooltip">Click to report hostel &amp; residential issues</div>
+        <div class="char-tag"><span class="char-tag-dot"></span>05 · HOSTEL DISPATCH</div>
+        <div class="char-img-wrap">
+          <img class="char-img" src="Flat Assets/civic/char-5-dispatch.png" onerror="this.src='public/flat-assets/civic-cutouts/char-5-dispatch.png'" alt="Student dispatching redressal ticket" />
+        </div>
+        <div class="char-shadow" aria-hidden="true"></div>
+      </div>
+    </div>
   </div>
   <div class="hero-glass" id="heroGlass" aria-hidden="true"></div>
 </section>
@@ -1147,11 +1217,12 @@ gsap.timeline({delay:.25,onComplete:function(){
 .to('#heroBadges',{opacity:1,y:0,duration:.7,ease:'power3.out'},'-=.5')
 .from('.cloud-l',{x:-120,opacity:0,duration:1.6,ease:'power3.out'},.4)
 .from('.cloud-r',{x:120,opacity:0,duration:1.6,ease:'power3.out'},.4)
-.from('#heroGlass .glass',{opacity:0,scale:.6,duration:.6,stagger:{each:.05,from:'random'},ease:'back.out(2)'},'-=1');
+.from('#heroGlass .glass',{opacity:0,scale:.6,duration:.6,stagger:{each:.05,from:'random'},ease:'back.out(2)'},'-=1')
+.from('.hero-3d-card',{y:90,opacity:0,scale:.8,rotationX:25,duration:1.2,stagger:.1,ease:'back.out(1.7)'},'-=.9');
 
 /* ══════════ SCROLL ══════════ */
 function setupScroll(){
-  ScrollTrigger.create({trigger:'#hero',start:'top top',end:'bottom top',scrub:true,onUpdate:function(s){gsap.set('#heroTitle',{yPercent:-60*s.progress});gsap.set('#heroBadges',{yPercent:-40*s.progress,opacity:Math.max(0,1-s.progress*2)});document.querySelectorAll('.hero [data-par]').forEach(function(el){gsap.set(el,{y:parseFloat(el.dataset.par)*2*s.progress});});gsap.set('.hero-media',{yPercent:8*s.progress});}});
+  ScrollTrigger.create({trigger:'#hero',start:'top top',end:'bottom top',scrub:true,onUpdate:function(s){gsap.set('#heroTitle',{yPercent:-60*s.progress});gsap.set('#heroBadges',{yPercent:-40*s.progress,opacity:Math.max(0,1-s.progress*2)});document.querySelectorAll('.hero [data-par]').forEach(function(el){gsap.set(el,{y:parseFloat(el.dataset.par)*2*s.progress});});gsap.set('#hero3dStage',{yPercent:16*s.progress,rotationX:10*s.progress});}});
   document.querySelectorAll('.reveal').forEach(function(el){gsap.from(el,{opacity:0,y:16,duration:.8,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 85%'}});});
   document.querySelectorAll('#stats .split .w,#how .split .w,#categories .split .w,#cta .split .w,#report .split .w').forEach(function(el){gsap.from(el,{opacity:0,y:22,filter:'blur(8px)',duration:.9,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 80%'}});});
 
@@ -1188,6 +1259,53 @@ function setupScroll(){
   var ftl=gsap.timeline({scrollTrigger:{trigger:'#footer',start:'top 92%'}});
   ftl.to('.fdot',{y:-8,duration:.25,stagger:.08,yoyo:true,repeat:3,ease:'sine.inOut'}).to('.fdot',{attr:{cx:27,cy:50},duration:.45,ease:'power3.inOut'}).to('.fdot:nth-child(3),.fdot:nth-child(4)',{opacity:0,duration:.1},'>').to('#fMark',{strokeDashoffset:0,duration:.6,ease:'power3.out'},'-=.05').to('.fdot:nth-child(2)',{attr:{r:5.5},duration:.3,ease:'back.out(3)'},'<').to('#fRing',{strokeDashoffset:0,duration:.9,ease:'power2.inOut'},'-=.3');
   ScrollTrigger.refresh();
+
+  /* 3D Civic Characters Parallax & Continuous Levitation */
+  var heroEl=document.getElementById('hero');
+  var stageEl=document.getElementById('hero3dStage');
+  if(heroEl && stageEl && !reduce){
+    heroEl.addEventListener('mousemove',function(e){
+      var rect=heroEl.getBoundingClientRect();
+      var x=(e.clientX-rect.left)/rect.width - 0.5;
+      var y=(e.clientY-rect.top)/rect.height - 0.5;
+      gsap.to(stageEl,{
+        rotationY:x*20,
+        rotationX:-y*14,
+        transformPerspective:1200,
+        ease:'power1.out',
+        duration:0.6
+      });
+      document.querySelectorAll('.hero-3d-card').forEach(function(card,idx){
+        var factor=(idx%2===0?1.25:0.85);
+        gsap.to(card,{
+          x:x*26*factor,
+          y:y*14*factor,
+          duration:0.7,
+          ease:'power1.out'
+        });
+      });
+    });
+    heroEl.addEventListener('mouseleave',function(){
+      gsap.to(stageEl,{rotationY:0,rotationX:0,duration:1.1,ease:'power2.out'});
+      document.querySelectorAll('.hero-3d-card').forEach(function(card){
+        gsap.to(card,{x:0,y:0,duration:1.1,ease:'power2.out'});
+      });
+    });
+  }
+
+  document.querySelectorAll('.hero-3d-card').forEach(function(card,idx){
+    var wrap=card.querySelector('.char-img-wrap');
+    if(wrap && !reduce){
+      gsap.to(wrap,{
+        y:idx%2===0?-12:-7,
+        duration:2.5+idx*0.35,
+        repeat:-1,
+        yoyo:true,
+        ease:'sine.inOut',
+        delay:idx*0.25
+      });
+    }
+  });
 }
 window.addEventListener('load',function(){if(ScrollTrigger.getAll().length)ScrollTrigger.refresh();});
 
