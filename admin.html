@@ -989,33 +989,32 @@
 
       <div class="auth-box-body">
         <div class="auth-subtabs">
-          <button type="button" class="auth-subtab active" id="authSubDept" onclick="switchAuthMode('dept_head')">Department Head</button>
-          <button type="button" class="auth-subtab" id="authSubAdmin" onclick="switchAuthMode('admin')">Administration</button>
-          <button type="button" class="auth-subtab" id="authSubSocial" onclick="switchAuthMode('social')">Social Party</button>
+          <button type="button" class="auth-subtab active" id="authSubDept" onclick="switchAuthMode('department')">Department</button>
+          <button type="button" class="auth-subtab" id="authSubSocial" onclick="switchAuthMode('social_service')">Social Service (DUSU)</button>
+          <button type="button" class="auth-subtab" id="authSubAdmin" onclick="switchAuthMode('administration')">Administration</button>
         </div>
 
-        <div style="font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">Select Official Profile:</div>
-        <div class="profile-tiles-grid" id="authProfilesGrid"></div>
+        <div style="margin-top:16px;">
+          <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;margin-bottom:6px">Official Email</label>
+          <input type="email" id="authEmail" class="form-input-pass" placeholder="e.g. electrical@dibru.ac.in" style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;box-sizing:border-box;margin-bottom:12px;" />
 
-        <div style="margin-top:14px;">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <label style="font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase">Official Passcode</label>
-            <span style="font-size:11px;color:#51684c">Demo code: <code style="background:var(--pill);padding:2px 6px;border-radius:4px;color:#0e3018">civic2026</code></span>
-          </div>
-          <input type="password" id="authPasscode" class="form-input-pass" value="civic2026" placeholder="Enter authorized passcode" />
+          <label style="display:block;font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;margin-bottom:6px">Authorized Password</label>
+          <input type="password" id="authPassword" class="form-input-pass" placeholder="Enter account password" style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;box-sizing:border-box;" />
         </div>
 
-        <div id="authErr" style="display:none;color:#b91c1c;font-size:12px;font-weight:600;margin-top:8px"></div>
+        <div id="authErr" style="display:none;color:#b91c1c;font-size:12px;font-weight:600;margin-top:10px;line-height:1.4"></div>
 
-        <div style="display:flex;gap:10px;margin-top:18px;">
+        <div style="display:flex;gap:10px;margin-top:20px;">
           <button type="button" class="btn-outline" style="flex:1" onclick="closeAuthModal()">Cancel</button>
-          <button type="button" class="btn" style="flex:2" onclick="submitAuth()">Sign In to Dedicated Console</button>
+          <button type="button" class="btn" id="authSubmitBtn" style="flex:2" onclick="submitAuth()">Sign In to Console</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ══════════ CORE APPLICATION SCRIPT ══════════ -->
+  <!-- ══════════ CORE APPLICATION SCRIPTS ══════════ -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="public/js/civic-auth.js"></script>
   <script>
     /* ── HOT TOAST NOTIFICATIONS ── */
     function showToast(message, type, duration) {
@@ -1381,24 +1380,49 @@
     }
 
     var currentOfficial = null;
-    var selectedAuthOfficial = OFFICIALS[0];
-    var authMode = 'dept_head';
+    var authMode = 'department';
 
     function initAuth() {
-      var savedId = localStorage.getItem('civic_active_official_id');
-      if (savedId) {
-        for (var i = 0; i < OFFICIALS.length; i++) {
-          if (OFFICIALS[i].id === savedId) {
-            currentOfficial = OFFICIALS[i];
-            currentMode = currentOfficial.mode;
-            break;
+      CivicAuth.enforceRoleGuard({
+        allowedRoles: ['administration', 'department', 'social_service'],
+        redirectUrl: 'index.html',
+        onAllowed: function(profile, session) {
+          applyAuthenticatedProfile(profile);
+          if (profile.must_change_password) {
+            CivicAuth.ensurePasswordChangeModal();
+          }
+        },
+        onDenied: function(reason) {
+          if (reason === 'unauthenticated') {
+            showAuthModal();
+          } else if (reason === 'forbidden') {
+            showToast('Access restricted: Students must use the student portal.', 'error');
+            setTimeout(function() {
+              window.location.href = 'index.html';
+            }, 1200);
+          } else if (reason === 'inactive') {
+            showToast('Account has been deactivated by administration.', 'error');
           }
         }
-      }
-      if (!currentOfficial) {
-        currentOfficial = OFFICIALS[0];
-        currentMode = 'dept_head';
-      }
+      });
+    }
+
+    function applyAuthenticatedProfile(profile) {
+      if (!profile) return;
+      var roleMode = profile.role === 'administration' ? 'admin' : profile.role === 'social_service' ? 'social' : 'dept_head';
+      currentMode = roleMode;
+      currentOfficial = {
+        id: profile.id,
+        mode: roleMode,
+        role: profile.role,
+        name: profile.name,
+        roleTitle: profile.unit_name || (profile.role === 'administration' ? 'Central Administration & Registry' : 'DUSU Social Welfare Desk'),
+        departmentName: profile.unit_name || 'Official Desk',
+        email: profile.email,
+        avatar: profile.name.slice(0, 2).toUpperCase(),
+        slaHours: profile.role === 'administration' ? 48 : 24
+      };
+
       updateHeaderUI();
       renderDashboard();
     }
@@ -1458,13 +1482,15 @@
     }
 
     function selectMode(mode) {
+      var profile = CivicAuth.getProfile();
+      // Role guard: Department and Social Service cannot enter Central Administration view
+      if (profile && profile.role !== 'administration' && mode === 'admin') {
+        showToast('Unauthorized: Central Administration view is restricted to administrative officers.', 'error');
+        return;
+      }
       currentMode = mode;
-      for (var i = 0; i < OFFICIALS.length; i++) {
-        if (OFFICIALS[i].mode === mode) {
-          currentOfficial = OFFICIALS[i];
-          localStorage.setItem('civic_active_official_id', currentOfficial.id);
-          break;
-        }
+      if (currentOfficial) {
+        currentOfficial.mode = mode;
       }
       updateHeaderUI();
       renderDashboard();
@@ -1472,7 +1498,7 @@
 
     function showAuthModal() {
       document.getElementById('authModal').classList.remove('hidden');
-      switchAuthMode(currentMode);
+      switchAuthMode(authMode || 'department');
     }
 
     function closeAuthModal() {
@@ -1481,58 +1507,63 @@
 
     function switchAuthMode(mode) {
       authMode = mode;
-      ['authSubDept', 'authSubAdmin', 'authSubSocial'].forEach(function(id) {
+      ['authSubDept', 'authSubSocial', 'authSubAdmin'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.classList.remove('active');
       });
-      if (mode === 'dept_head') document.getElementById('authSubDept').classList.add('active');
-      else if (mode === 'admin') document.getElementById('authSubAdmin').classList.add('active');
-      else if (mode === 'social') document.getElementById('authSubSocial').classList.add('active');
+      if (mode === 'department') document.getElementById('authSubDept').classList.add('active');
+      else if (mode === 'social_service') document.getElementById('authSubSocial').classList.add('active');
+      else if (mode === 'administration') document.getElementById('authSubAdmin').classList.add('active');
 
-      renderAuthProfilesGrid();
+      var emailInput = document.getElementById('authEmail');
+      if (emailInput && !emailInput.value) {
+        if (mode === 'administration') emailInput.placeholder = 'e.g. admin@dibru.ac.in';
+        else if (mode === 'social_service') emailInput.placeholder = 'e.g. dusu@dibru.ac.in';
+        else emailInput.placeholder = 'e.g. electrical@dibru.ac.in';
+      }
+      document.getElementById('authErr').style.display = 'none';
     }
 
-    function renderAuthProfilesGrid() {
-      var grid = document.getElementById('authProfilesGrid');
-      if (!grid) return;
-      grid.innerHTML = '';
+    async function submitAuth() {
+      var email = (document.getElementById('authEmail').value || '').trim();
+      var password = document.getElementById('authPassword').value;
+      var errBox = document.getElementById('authErr');
+      var btn = document.getElementById('authSubmitBtn');
 
-      var filtered = OFFICIALS.filter(function(o) { return o.mode === authMode; });
-      filtered.forEach(function(o) {
-        var isSel = selectedAuthOfficial && selectedAuthOfficial.id === o.id;
-        var card = document.createElement('div');
-        card.className = 'profile-tile' + (isSel ? ' selected' : '');
-        card.innerHTML = '<span class="profile-tile-badge">' + o.badge + '</span>' +
-          '<div style="font-size:13px;font-weight:700;color:var(--ink);">' + o.avatar + ' ' + o.name + '</div>' +
-          '<div style="font-size:11px;color:#4a6142;margin-top:2px;">' + o.roleTitle + '</div>';
-        card.onclick = function() {
-          selectedAuthOfficial = o;
-          renderAuthProfilesGrid();
-          document.getElementById('authErr').style.display = 'none';
-        };
-        grid.appendChild(card);
-      });
-    }
-
-    function submitAuth() {
-      var pw = document.getElementById('authPasscode').value;
-      if (pw !== 'civic2026') {
-        var err = document.getElementById('authErr');
-        err.style.display = 'block';
-        err.textContent = 'Invalid passcode! Authorized demo passcode is: civic2026';
+      if (!email || !password) {
+        errBox.style.display = 'block';
+        errBox.textContent = 'Please enter both your official email and password.';
         return;
       }
-      currentOfficial = selectedAuthOfficial;
-      currentMode = currentOfficial.mode;
-      localStorage.setItem('civic_active_official_id', currentOfficial.id);
-      closeAuthModal();
-      updateHeaderUI();
-      renderDashboard();
+
+      btn.disabled = true;
+      btn.textContent = 'Authenticating with Supabase...';
+      errBox.style.display = 'none';
+
+      try {
+        var res = await CivicAuth.login(email, password, [authMode]);
+        closeAuthModal();
+        btn.disabled = false;
+        btn.textContent = 'Sign In to Console';
+
+        applyAuthenticatedProfile(res.profile);
+        showToast('Signed in as ' + res.profile.name, 'success');
+
+        if (res.profile.must_change_password) {
+          CivicAuth.ensurePasswordChangeModal();
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Sign In to Console';
+        errBox.style.display = 'block';
+        errBox.textContent = err.message || 'Authentication failed.';
+      }
     }
 
-    function logoutAdmin() {
+    async function logoutAdmin() {
       if (confirm('Log out of Official Redressal Workspace?')) {
-        localStorage.removeItem('civic_active_official_id');
+        await CivicAuth.logout();
+        showToast('Logged out of official console.', 'info');
         showAuthModal();
       }
     }

@@ -1025,7 +1025,8 @@ nav.f-links a:hover{text-decoration:underline}
     <a href="#categories">Categories</a>
     <a href="#report">Report</a>
     <a href="#" onclick="openTracker();return false">Track</a>
-    <a href="#" onclick="openLogin();return false">Officials</a>
+    <a href="#" onclick="openStudentAuth();return false" id="studentLoginFooterLink">Student Sign In</a>
+    <a href="admin.html">Official Portal ↗</a>
   </nav>
   <div class="f-right">
     <span>Dibrugarh University, Rajabheta, Assam</span>
@@ -1050,6 +1051,12 @@ nav.f-links a:hover{text-decoration:underline}
       <button class="modal-close" onclick="closeTracker()" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">
+      <!-- Student Auth Indicator -->
+      <div id="studentAuthIndicator" style="display:flex;align-items:center;justify-content:space-between;background:#f8faf4;border:1px solid var(--line);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:12px;">
+        <span id="studentAuthStatusText" style="color:#4a6142;">Not signed in as student</span>
+        <button id="studentAuthToggleBtn" onclick="openStudentAuth()" style="background:none;border:none;color:var(--olive);font-weight:700;font-size:12px;cursor:pointer;text-decoration:underline;">Sign In</button>
+      </div>
+
       <!-- Search -->
       <div style="display:flex;gap:8px">
         <input class="track-input" id="trackerInput" type="text" placeholder="Enter Complaint ID (e.g. CS-8921)" style="flex:1;border-radius:10px;height:42px" />
@@ -1089,6 +1096,46 @@ nav.f-links a:hover{text-decoration:underline}
       <div style="background:#f8faf4;border-radius:10px;padding:12px 14px">
         <div style="font-size:11px;font-weight:600;color:var(--olive);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Demo Complaints</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap" id="demoIds"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     STUDENT AUTHENTICATION MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="studentAuthModal" role="dialog" aria-modal="true" aria-labelledby="studentAuthTitle">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <div class="modal-title" id="studentAuthTitle">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Student Sign In
+      </div>
+      <button class="modal-close" onclick="closeStudentAuth()" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:22px 20px;">
+      <p style="font-size:12.5px;color:#4a6142;line-height:1.5;margin-bottom:14px;">
+        Sign in to view your submitted grievances and real-time redressal progress.
+      </p>
+
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="form-label" for="studentEmailInput">Student University Email</label>
+        <input class="track-input" id="studentEmailInput" type="email" placeholder="e.g. student@dibru.ac.in" style="width:100%;height:40px;border-radius:8px;padding:0 12px;font-size:13px;box-sizing:border-box;" />
+      </div>
+
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label" for="studentPwInput">Password</label>
+        <input class="track-input" id="studentPwInput" type="password" placeholder="Enter password" style="width:100%;height:40px;border-radius:8px;padding:0 12px;font-size:13px;box-sizing:border-box;" />
+      </div>
+
+      <div id="studentAuthErr" style="display:none;color:#b91c1c;font-size:12px;font-weight:600;margin-bottom:12px;line-height:1.4;"></div>
+
+      <button class="btn" id="studentLoginBtn" onclick="submitStudentLogin()" style="width:100%;height:42px;font-size:13px;font-weight:700;border-radius:8px;">
+        Sign In as Student
+      </button>
+
+      <div style="margin-top:14px;text-align:center;font-size:11.5px;color:#4a6142;">
+        Are you an official? <a href="admin.html" style="color:var(--olive);font-weight:700;">Open Official Portal ↗</a>
       </div>
     </div>
   </div>
@@ -1185,6 +1232,8 @@ nav.f-links a:hover{text-decoration:underline}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="public/js/civic-auth.js"></script>
 <script>
 (function(){
 'use strict';
@@ -2281,6 +2330,7 @@ function formatTime(ts){
 function openTracker(){
   document.getElementById('trackerModal').classList.remove('hidden');
   buildDemoIds();
+  checkCurrentStudentSession();
 }
 window.openTracker = openTracker;
 
@@ -2288,6 +2338,105 @@ function closeTracker(){
   document.getElementById('trackerModal').classList.add('hidden');
 }
 window.closeTracker = closeTracker;
+
+function openStudentAuth(){
+  document.getElementById('studentAuthModal').classList.remove('hidden');
+  document.getElementById('studentAuthErr').style.display = 'none';
+}
+window.openStudentAuth = openStudentAuth;
+
+function closeStudentAuth(){
+  document.getElementById('studentAuthModal').classList.add('hidden');
+}
+window.closeStudentAuth = closeStudentAuth;
+
+async function submitStudentLogin(){
+  var email = (document.getElementById('studentEmailInput').value || '').trim();
+  var password = document.getElementById('studentPwInput').value;
+  var errBox = document.getElementById('studentAuthErr');
+  var btn = document.getElementById('studentLoginBtn');
+
+  if(!email || !password){
+    errBox.style.display = 'block';
+    errBox.textContent = 'Please enter both student email and password.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+  errBox.style.display = 'none';
+
+  try {
+    var res = await CivicAuth.loginStudent(email, password);
+    btn.disabled = false;
+    btn.textContent = 'Sign In as Student';
+    closeStudentAuth();
+    showToast('Signed in as ' + res.profile.name, 'success');
+    syncStudentAuthUI(res.profile);
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = 'Sign In as Student';
+    errBox.style.display = 'block';
+    errBox.textContent = err.message || 'Login failed.';
+  }
+}
+window.submitStudentLogin = submitStudentLogin;
+
+function syncStudentAuthUI(profile){
+  var text = document.getElementById('studentAuthStatusText');
+  var btn = document.getElementById('studentAuthToggleBtn');
+  var footerLink = document.getElementById('studentLoginFooterLink');
+
+  if(profile){
+    if(text) text.textContent = 'Signed in as ' + profile.name + ' (' + profile.email + ')';
+    if(btn){
+      btn.textContent = 'Sign Out';
+      btn.onclick = async function(){
+        await CivicAuth.logout();
+        showToast('Signed out of student session.', 'info');
+        syncStudentAuthUI(null);
+      };
+    }
+    if(footerLink){
+      footerLink.textContent = profile.name + ' (Sign Out)';
+      footerLink.onclick = async function(e){
+        e.preventDefault();
+        await CivicAuth.logout();
+        showToast('Signed out of student session.', 'info');
+        syncStudentAuthUI(null);
+      };
+    }
+  } else {
+    if(text) text.textContent = 'Not signed in as student';
+    if(btn){
+      btn.textContent = 'Sign In';
+      btn.onclick = openStudentAuth;
+    }
+    if(footerLink){
+      footerLink.textContent = 'Student Sign In';
+      footerLink.onclick = function(e){
+        e.preventDefault();
+        openStudentAuth();
+      };
+    }
+  }
+}
+window.syncStudentAuthUI = syncStudentAuthUI;
+
+async function checkCurrentStudentSession(){
+  try {
+    var sb = CivicAuth.getClient();
+    if(!sb) return;
+    var sessionRes = await sb.auth.getSession();
+    var session = sessionRes.data ? sessionRes.data.session : null;
+    if(session && session.user){
+      var res = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+      if(res.data && res.data.role === 'student'){
+        syncStudentAuthUI(res.data);
+      }
+    }
+  } catch(e){}
+}
 
 function buildDemoIds(){
   var wrap = document.getElementById('trackerDemoIds');
@@ -4157,6 +4306,7 @@ updateAI();
 initCampusMap();
 
 buildDemoIds();
+checkCurrentStudentSession();
 
 })();
 </script>
