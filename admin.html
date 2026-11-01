@@ -569,12 +569,6 @@
       color: var(--ink);
       line-height: 1.45;
     }
-    .ai-as-summary {
-      font-size: 13px;
-      color: #1e451b;
-      margin-top: 4px;
-      line-height: 1.45;
-    }
 
     /* Live Progress Stepper */
     .stepper-track {
@@ -1352,6 +1346,16 @@
       }
     }
 
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     function saveComplaints(c) {
       localStorage.setItem('civic_complaints', JSON.stringify(c));
     }
@@ -1779,11 +1783,10 @@
 
         '<div class="ai-snapshot-card">' +
           '<div class="ai-snapshot-top">' +
-            '<span>Grievance Summary & Details</span>' +
+            '<span>Reported Grievance</span>' +
             accuracyPill +
           '</div>' +
-          '<div class="ai-english-summary"><strong>English Summary:</strong> ' + ((c.aiAnalysis && c.aiAnalysis.summary_en) || c.desc || 'No summary available.') + '</div>' +
-          (c.aiAnalysis && c.aiAnalysis.summary_as ? '<div class="ai-as-summary"><strong>অসমীয়া সাৰাংশ:</strong> ' + c.aiAnalysis.summary_as + '</div>' : '') +
+          '<div class="ai-english-summary" style="font-size:13px;color:#1e293b;line-height:1.5;">' + escapeHtml(c.desc || (c.aiAnalysis && c.aiAnalysis.summary_en) || 'No description provided.') + '</div>' +
         '</div>' +
 
         stepperHtml +

@@ -62,6 +62,7 @@ body.intro #app{transform:scale(.9);border-radius:28px}
 .nav-links{display:flex;gap:20px;font-size:13px;font-weight:500;color:#1a3a10}
 .nav-links a:hover{color:var(--olive)}
 .nav-actions{display:flex;gap:8px;align-items:center}
+.hero-backdrop-title{position:absolute;left:50%;top:50%;transform:translate(-50%,-46%);width:100%;text-align:center;font-family:"Inter Tight",system-ui,sans-serif;font-size:clamp(46px,10.5vw,156px);font-weight:800;letter-spacing:-.04em;line-height:.92;color:#ffffff;text-shadow:0 4px 30px rgba(20,60,20,.08),0 1px 4px rgba(0,0,0,.05);z-index:2;pointer-events:none;user-select:none;white-space:nowrap}
 .cloud{position:absolute}
 .cloud-l{top:-3%;left:-5%;width:min(44vw,640px);z-index:4}
 .cloud-r{top:2%;right:-6%;width:min(42vw,620px);z-index:4}
@@ -626,6 +627,9 @@ nav.f-links a:hover{text-decoration:underline}
       <a href="admin.html" class="btn btn-blue" id="openAdminPageLink" style="height:32px;font-size:12px;padding:0 14px;display:inline-flex;align-items:center;text-decoration:none;gap:4px;">Official Portal ↗</a>
     </div>
   </nav>
+
+  <!-- Massive backdrop typography layered behind characters and clouds -->
+  <div class="hero-backdrop-title" aria-hidden="true" data-par="-25">Report Fearlessly</div>
 
   <div class="cloud cloud-l" data-par="-60">
     <img class="drift-a" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093216_44218665-b15e-4566-a2d4-2676ab03609d.png" alt="" />
@@ -1640,6 +1644,7 @@ gsap.timeline({delay:.25,onComplete:function(){
 .fromTo('#app',{scale:.9,borderRadius:28},{scale:1,borderRadius:0,duration:1.4,ease:'expo.inOut'})
 .to('.nav',{opacity:1,y:0,duration:.8,ease:'power3.out'},'-=.5')
 .to(hw,{opacity:1,y:0,filter:'blur(0px)',duration:1,stagger:.07,ease:'power3.out'},'-=.7')
+.from('.hero-backdrop-title',{scale:.94,opacity:0,duration:1.2,ease:'power3.out'},'-=.8')
 .from('.cloud-l',{x:-120,opacity:0,duration:1.6,ease:'power3.out'},.4)
 .from('.cloud-r',{x:120,opacity:0,duration:1.6,ease:'power3.out'},.4)
 .from('#heroGlass .glass',{opacity:0,scale:.6,duration:.6,stagger:{each:.05,from:'random'},ease:'back.out(2)'},'-=1')
@@ -1705,9 +1710,7 @@ function init3DStage(){
   if(!heroEl || !stageEl || !cards.length) return;
   _stage3DInitialized = true;
 
-  var isHoveringCard = false;
-
-  // 1. Continuous 3D Floating & Breathing for each character figurine
+  // Continuous ambient floating for each character figurine (no cursor movement)
   cards.forEach(function(card, idx){
     var wrap = card.querySelector('.char-img-wrap');
     var ring = card.querySelector('.char-pedestal-ring');
@@ -1751,133 +1754,6 @@ function init3DStage(){
       });
     }
   });
-
-  // 2. Global 3D Parallax Tilt over entire hero section
-  heroEl.addEventListener('mousemove', function(e){
-    var rect = heroEl.getBoundingClientRect();
-    var x = (e.clientX - rect.left) / rect.width - 0.5;   // -0.5 to 0.5
-    var y = (e.clientY - rect.top) / rect.height - 0.5;   // -0.5 to 0.5
-
-    // Stage tilts in 3D perspective
-    gsap.to(stageEl, {
-      rotationY: x * 18,
-      rotationX: -y * 12,
-      transformPerspective: 1100,
-      duration: 0.55,
-      ease: 'power2.out',
-      overwrite: 'auto'
-    });
-
-    // Outer cards have dynamic stereo parallax
-    if(!isHoveringCard){
-      cards.forEach(function(card, idx){
-        var cardOffset = (idx - 2) * 3;
-        gsap.to(card, {
-          x: x * (20 + idx * 3.5),
-          y: y * 12,
-          rotationY: x * 14 - cardOffset,
-          rotationX: -y * 10,
-          duration: 0.65,
-          ease: 'power2.out',
-          overwrite: 'auto'
-        });
-      });
-    }
-  });
-
-  heroEl.addEventListener('mouseleave', function(){
-    gsap.to(stageEl, {
-      rotationY: 0,
-      rotationX: 0,
-      duration: 0.9,
-      ease: 'power2.out',
-      overwrite: 'auto'
-    });
-    cards.forEach(function(card){
-      gsap.to(card, {
-        x: 0,
-        y: 0,
-        rotationY: 0,
-        rotationX: 0,
-        scale: 1,
-        z: 0,
-        duration: 0.9,
-        ease: 'power2.out',
-        overwrite: 'auto'
-      });
-    });
-  });
-
-  // 3. Individual 3D Card Hover & Tilt (3D Figurine Focus)
-  cards.forEach(function(card){
-    card.addEventListener('mouseenter', function(){
-      isHoveringCard = true;
-      gsap.to(card, {
-        scale: 1.08,
-        z: 45,
-        duration: 0.35,
-        ease: 'power2.out',
-        overwrite: 'auto'
-      });
-      // Subtly push sibling characters deeper into background
-      cards.forEach(function(other){
-        if(other !== card){
-          gsap.to(other, {
-            scale: 0.96,
-            z: -20,
-            opacity: 0.85,
-            duration: 0.35,
-            ease: 'power2.out',
-            overwrite: 'auto'
-          });
-        }
-      });
-    });
-
-    card.addEventListener('mousemove', function(e){
-      var b = card.getBoundingClientRect();
-      var px = (e.clientX - b.left) / b.width - 0.5;   // -0.5 to 0.5
-      var py = (e.clientY - b.top) / b.height - 0.5;   // -0.5 to 0.5
-
-      gsap.to(card, {
-        rotationY: px * 26,
-        rotationX: -py * 20,
-        duration: 0.25,
-        ease: 'power1.out',
-        overwrite: 'auto'
-      });
-    });
-
-    card.addEventListener('mouseleave', function(){
-      isHoveringCard = false;
-      gsap.to(card, {
-        scale: 1,
-        z: 0,
-        rotationY: 0,
-        rotationX: 0,
-        duration: 0.65,
-        ease: 'power2.out',
-        overwrite: 'auto'
-      });
-      cards.forEach(function(other){
-        gsap.to(other, {
-          scale: 1,
-          z: 0,
-          opacity: 1,
-          duration: 0.65,
-          ease: 'power2.out',
-          overwrite: 'auto'
-        });
-      });
-    });
-
-    // 4. Interactive Jump on Click
-    card.addEventListener('click', function(){
-      gsap.timeline()
-        .to(card, { y: -24, scale: 1.15, rotationY: '+=12', duration: 0.22, ease: 'power2.out' })
-        .to(card, { y: 0, scale: 1.08, rotationY: '-=12', duration: 0.42, ease: 'bounce.out' });
-    });
-  });
 }
 // Trigger immediate stage initialization
 if(document.readyState !== 'loading'){
@@ -1887,6 +1763,17 @@ if(document.readyState !== 'loading'){
 }
 
 /* ══════════ CIVICSENSE AI ANALYSIS ENGINE & WORKSPACE ══════════ */
+
+/* Helper: HTML entity escaping */
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 /* Helper: Assamese numerals to standard */
 function normalizeAssameseNumerals(str) {
@@ -2479,6 +2366,7 @@ function renderTracker(c){
   }
 
   var ai = c.aiAnalysis || {};
+  var reportedText = c.desc || (c.aiAnalysis && c.aiAnalysis.summary_en) || '';
   var detailsHtml = '<div class="detail-row"><span class="detail-label">Complaint ID:</span><strong>' + c.id + '</strong></div>' +
     '<div class="detail-row"><span class="detail-label">Domain Category:</span><span>' + (c.catName || ai.category || c.cat) + '</span></div>' +
     '<div class="detail-row"><span class="detail-label">Location:</span><span>' + (c.location || 'Campus Premises') + '</span></div>' +
@@ -2486,8 +2374,11 @@ function renderTracker(c){
     '<div class="detail-row"><span class="detail-label">Logged At:</span><span>' + formatTime(c.ts) + '</span></div>' +
     '<div class="detail-row"><span class="detail-label">Priority:</span><span>' + (ai.priority ? 'P' + ai.priority : c.urgency || 'Normal') + '</span></div>';
 
-  if (ai.summary_as) {
-    detailsHtml += '<div style="background:#f4fbf0;border:1px solid #c0e0b0;border-radius:8px;padding:8px 10px;font-size:12px;color:#1a3010;margin-top:4px;"><strong>অসমীয়া সাৰাংশ:</strong> ' + ai.summary_as + '</div>';
+  if (reportedText) {
+    detailsHtml += '<div class="detail-row" style="flex-direction:column;align-items:flex-start;gap:4px;margin-top:6px;">' +
+      '<span class="detail-label">Reported Grievance:</span>' +
+      '<div style="font-size:13px;color:#1a3010;line-height:1.5;background:#f8faf6;padding:9px 12px;border-radius:8px;border:1px solid #e2ebd8;width:100%;box-sizing:border-box;">' + escapeHtml(reportedText) + '</div>' +
+    '</div>';
   }
 
   document.getElementById('trackerDetails').innerHTML = detailsHtml;
@@ -2813,10 +2704,9 @@ function renderDeptComplaintCard(c) {
     '<span class="stage-dot ' + (isSolved ? 'done' : '') + '">● Resolved</span>' +
     '</div>' +
 
-    // Description & AI findings
+    // Description & user reported text
     '<div style="font-size:13px;color:#1e293b;background:#f8faf6;padding:10px 12px;border-radius:8px;border:1px solid #e2ebd8;">' +
-    '<strong>Issue Details:</strong> ' + c.desc +
-    (ai.summary_as ? '<div style="margin-top:4px;color:#334155;"><strong>অসমীয়া:</strong> ' + ai.summary_as + '</div>' : '') +
+    '<strong>Issue Details:</strong> ' + escapeHtml(c.desc || '') +
     '</div>' +
 
     // Replies history
