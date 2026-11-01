@@ -239,6 +239,30 @@ nav.f-links a:hover{text-decoration:underline}
 .badge-escalated{background:#fef0ee;color:#c03020;border:1px solid #f0b0a0;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;text-transform:uppercase}
 .badge-merged{background:#f0f4ff;color:var(--blue);border:1px solid #a0b8ff;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700}
 
+/* Phase 4 Institutional Complaint & Timeline Badges */
+.status-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.02em}
+.status-pill.submitted{background:#f1f5f9;border:1px solid #cbd5e1;color:#334155}
+.status-pill.under_verification{background:#fefce8;border:1px solid #fde047;color:#854d0e}
+.status-pill.accepted{background:#eff6ff;border:1px solid #93c5fd;color:#1d4ed8}
+.status-pill.in_progress{background:#f5f3ff;border:1px solid #c4b5fd;color:#5b21b6}
+.status-pill.resolved{background:#f0fdf4;border:1px solid #86efac;color:#166534}
+.status-pill.rejected{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
+
+.visibility-pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:600;letter-spacing:0.01em}
+.visibility-pill.administration{background:#f1f5f9;color:#1e293b;border:1px solid #94a3b8}
+.visibility-pill.department{background:#f0fdf4;color:#14532d;border:1px solid #86efac}
+.visibility-pill.social_service{background:#eff6ff;color:#1e3a8a;border:1px solid #93c5fd}
+
+.complaint-card{background:#ffffff;border:1.5px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;transition:border-color .2s,box-shadow .2s}
+.complaint-card:hover{border-color:var(--olive);box-shadow:0 4px 16px rgba(26,122,58,0.08)}
+.complaint-header-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.timeline-stages{display:flex;background:#f8faf6;border-radius:8px;border:1px solid var(--line);overflow:hidden;margin:10px 0}
+.timeline-stage-step{flex:1;padding:8px 4px;text-align:center;font-size:10.5px;font-weight:600;color:#64748b;border-right:1px solid var(--line);position:relative}
+.timeline-stage-step:last-child{border-right:none}
+.timeline-stage-step.active{background:#e2f4d6;color:var(--olive);font-weight:700}
+.timeline-stage-step.completed{background:var(--green);color:#ffffff}
+.timeline-stage-step.rejected{background:#ef4444;color:#ffffff}
+
 /* ══════════════════════ RESPONSIVE ══════════════════════ */
 @media(max-width:900px){
   .nav{gap:16px}.nav-links{display:none}
@@ -627,6 +651,7 @@ nav.f-links a:hover{text-decoration:underline}
       <a href="#report">Report</a>
     </div>
     <div class="nav-actions">
+      <button class="btn-outline" id="navStudentBtn" onclick="handleNavStudentClick()" style="height:32px;font-size:12px;padding:0 14px;">Student Sign In</button>
       <button class="btn-outline" id="openTrackerBtn" onclick="openTracker()" style="height:32px;font-size:12px;padding:0 14px;">Track Status</button>
       <a href="admin.html" class="btn btn-blue" id="openAdminPageLink" style="height:32px;font-size:12px;padding:0 14px;display:inline-flex;align-items:center;text-decoration:none;gap:4px;">Official Portal ↗</a>
     </div>
@@ -865,25 +890,25 @@ nav.f-links a:hover{text-decoration:underline}
 <section class="report-section" id="report">
   <div class="sq-field" data-count="16" aria-hidden="true"></div>
   <div class="report-inner">
-    <h2 class="h2 split reveal">Report a Campus Issue.<br><em style="color:var(--olive);font-style:italic">AI Analyzed &amp; Auto-Routed.</em></h2>
+    <h2 class="h2 split reveal">Report a Campus Issue.<br><em style="color:var(--olive);font-style:italic">Campus Redressal &amp; Grievance Tracking.</em></h2>
     <p style="font-size:14px;color:#2a3a1e;margin:-10px 0 20px;line-height:1.5;" class="reveal">
-      No login needed. Type in Assamese (অসমীয়া), Romanised Assamese (e.g. <em>"Hostel 2 r bathroom t pani nai"</em>), or English. Our AI analyzes the root cause, priority, and location, and routes directly to the university solver.
+      Submit your grievance directly to authorized university departments or central administration. Registered complaints are permanently tracked with milestone status updates.
     </p>
 
     <!-- SUCCESS STATE (hidden by default) -->
     <div class="success-card" id="successCard" style="display:none;width:100%">
-      <div style="font-size:13px;font-weight:600;color:var(--olive);margin-bottom:8px;">Complaint Registered &amp; AI-Dispatched</div>
+      <div style="font-size:13px;font-weight:600;color:var(--olive);margin-bottom:8px;">Complaint Registered &amp; Saved Permanently</div>
       <div class="ticket-id" id="ticketId">CS-0000</div>
       <div id="successSummary" style="font-size:13px;color:#1a3010;margin:10px 0 18px;line-height:1.5">
-        Your complaint has been analyzed by CivicSense AI and auto-routed to the assigned department authority with a copy to the General Secretary (DUSU).
+        Your complaint has been submitted to the redressal portal.
       </div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-        <button class="btn" onclick="openTrackerWithId(document.getElementById('ticketId').textContent)">Track This Complaint</button>
+        <button class="btn" onclick="openTrackerWithId(document.getElementById('ticketId').textContent)">View in Student Dashboard</button>
         <button class="btn-outline" onclick="resetForm()">File Another</button>
       </div>
     </div>
 
-        <!-- SIMPLE CLEAN CAMPUS MAP -->
+    <!-- SIMPLE CLEAN CAMPUS MAP -->
     <div class="campus-map-clean-section reveal" id="campusMapCard">
       <h3 class="campus-map-simple-heading">Campus map</h3>
       <div class="campus-map-container" id="campusMap">
@@ -901,27 +926,76 @@ nav.f-links a:hover{text-decoration:underline}
     <!-- FORM -->
     <form class="report-form reveal" id="reportForm" onsubmit="submitReport(event)">
 
-      <!-- Description First -->
+      <!-- Student Auth Banner -->
+      <div id="formStudentAuthNotice" style="background:#f4f9ef;border:1px solid #cbe3b8;border-radius:10px;padding:12px 14px;font-size:12.5px;color:#204018;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <span id="formStudentAuthText">Not signed in as student.</span>
+        <button type="button" class="btn" id="formStudentAuthBtn" onclick="openStudentAuth()" style="height:30px;font-size:11.5px;padding:0 12px;background:var(--olive);">Sign In / Register with ID</button>
+      </div>
+
+      <!-- Title -->
+      <div class="form-group full">
+        <label class="form-label" for="fTitle">Complaint Title *</label>
+        <input class="form-input" id="fTitle" type="text" required placeholder="Brief summary of the issue (e.g. Water shortage in Hostel 2, Broken switchboard in CCSA)" />
+        <span class="form-error" id="titleError" style="display:none">Please enter a complaint title (minimum 5 characters).</span>
+      </div>
+
+      <!-- Category and Visibility Row -->
+      <div class="form-row">
+        <!-- Category -->
+        <div class="form-group" style="flex:1;">
+          <label class="form-label" for="fCategory">Issue Category *</label>
+          <select class="form-select" id="fCategory" required onchange="handleCategorySelect()">
+            <option value="">Select Category</option>
+            <option value="Hostel Facilities">Hostel Facilities &amp; Living</option>
+            <option value="Water & Plumbing">Water Supply &amp; Plumbing (PHE)</option>
+            <option value="Electrical & Lighting">Electrical Maintenance &amp; Lighting</option>
+            <option value="Sanitation & Waste">Sanitation &amp; Waste Disposal</option>
+            <option value="Academic Labs">Academic Labs &amp; Quad</option>
+            <option value="Network & IT">Network, Wi-Fi &amp; IT Helpdesk</option>
+            <option value="Campus Security">Campus Safety &amp; Security</option>
+            <option value="Other">Other Campus Facilities</option>
+          </select>
+        </div>
+
+        <!-- Visibility Level -->
+        <div class="form-group" style="flex:1;">
+          <label class="form-label" for="fVisibility">Privacy &amp; Visibility Level *</label>
+          <select class="form-select" id="fVisibility" required onchange="handleVisibilityChange()">
+            <option value="department" selected>Department (Administration + Assigned Department + You)</option>
+            <option value="administration">Administration Only (Registrar &amp; Proctor + You)</option>
+            <option value="social_service">Social Service (Administration + All Departments + DUSU + You)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Target Unit (Conditional on Visibility == department) -->
+      <div class="form-group full" id="fTargetUnitContainer">
+        <label class="form-label" for="fTargetUnit">Target Department Unit *</label>
+        <select class="form-select" id="fTargetUnit">
+          <option value="">Loading department units...</option>
+        </select>
+        <span style="font-size:11px;color:#5a6e50;margin-top:2px;">Select the university department responsible for resolving this grievance.</span>
+      </div>
+
+      <!-- Description -->
       <div class="form-group full">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
-          <label class="form-label" for="fDesc" style="margin:0">Describe the Issue (অসমীয়া / English) *</label>
+          <label class="form-label" for="fDesc" style="margin:0">Detailed Description *</label>
           <div style="display:flex;gap:6px;align-items:center;">
             <span id="aiLangIndicator" style="font-size:11px;font-weight:600;color:var(--olive);background:var(--pill);padding:3px 9px;border-radius:999px;">
-              Auto-Detecting...
-            </span>
-            <span id="aiAccuracyBadge" style="font-size:11px;font-weight:700;color:var(--olive);background:#e0f5d0;padding:3px 10px;border-radius:999px;border:1px solid #c0e8a8;">
-              AI Accuracy: 95%
+              Assamese / English
             </span>
           </div>
         </div>
-        <textarea class="form-textarea" id="fDesc" required minlength="8" rows="4" placeholder="e.g. 'Hostel 2 r bathroom t pani nai 2 din dhori' or 'CCSA computer lab live wire spark near door' or 'গ্ৰন্থাগাৰৰ লাইট আৰু ফেন জ্বলা নাই'..." oninput="updateAI()"></textarea>
+        <textarea class="form-textarea" id="fDesc" required minlength="8" rows="4" placeholder="Describe the grievance in detail: exact location, duration, and defect..." oninput="updateAI()"></textarea>
         <span class="form-error" id="descError" style="display:none">Please describe the issue (minimum 8 characters).</span>
       </div>
 
+      <!-- Location Row -->
       <div class="form-row">
         <!-- Location -->
         <div class="form-group" style="flex:1;">
-          <label class="form-label" for="fLocation">Campus Landmark (Optional match)</label>
+          <label class="form-label" for="fLocation">Campus Landmark (Optional Match)</label>
           <select class="form-select" id="fLocation" onchange="updateAI()">
             <option value="">Auto-Detect from complaint text</option>
             <option value="du_hostel_1">Padmanath Gohain Baruah Chatra Nivas (Hostel 1)</option>
@@ -945,36 +1019,25 @@ nav.f-links a:hover{text-decoration:underline}
         </div>
       </div>
 
-      <!-- Photo Upload -->
+      <!-- Evidence File Uploads (Cloudinary Authenticated) -->
       <div class="form-group full">
-        <label class="form-label" for="fPhoto">Attach Site Photo / Snap from Camera (Auto-captures location pin on map)</label>
+        <label class="form-label" for="fEvidenceFiles">Attach Evidence Files (Optional - Images or PDF, max 5 MB each)</label>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <input type="file" id="fPhoto" accept="image/*" class="form-input" style="padding:8px;font-size:12px;flex:1;" onchange="handlePhotoUpload(event)" />
+          <input type="file" id="fEvidenceFiles" multiple accept="image/jpeg,image/png,image/webp,application/pdf" class="form-input" style="padding:8px;font-size:12px;flex:1;" onchange="handleEvidenceFilesChange(event)" />
           <button type="button" class="btn" style="height:38px;font-size:12px;padding:0 14px;background:var(--olive);gap:6px;" onclick="triggerCameraCapture()">
             Open Camera
           </button>
-          <input type="file" id="fCameraCapture" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload(event)" />
-          <img id="photoPreview" style="display:none;width:52px;height:52px;object-fit:cover;border-radius:8px;border:1.5px solid var(--olive);" alt="Uploaded preview" />
+          <input type="file" id="fCameraCapture" accept="image/*" capture="environment" style="display:none;" onchange="handleCameraCapture(event)" />
         </div>
+        <div id="evidenceFilesPreviewList" style="margin-top:6px;display:flex;flex-direction:column;gap:6px;"></div>
       </div>
 
-      <div class="form-row">
-        <!-- Name -->
-        <div class="form-group">
-          <label class="form-label" for="fName">Your Name (Optional / Anonymous)</label>
-          <input class="form-input" id="fName" type="text" placeholder="Leave empty to stay anonymous" />
-        </div>
-
-        <!-- Contact -->
-        <div class="form-group">
-          <label class="form-label" for="fContact">Contact / Roll No. (Optional)</label>
-          <input class="form-input" id="fContact" type="text" placeholder="Roll No. or phone for dispatch updates" />
-        </div>
-      </div>
+      <!-- Submission Error Box -->
+      <div id="submitError" style="display:none;padding:10px 14px;border-radius:8px;font-size:12px;font-weight:600;background:#fef0ee;border:1px solid #f0b0a0;color:#c03020;line-height:1.4;"></div>
 
       <button class="btn" type="submit" id="submitBtn" style="height:46px;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-        Dispatch Complaint with AI Routing
+        Submit Complaint for Official Redressal
       </button>
     </form>
   </div>
@@ -1039,64 +1102,104 @@ nav.f-links a:hover{text-decoration:underline}
 </div><!-- /app -->
 
 <!-- ═══════════════════════════════════════
-     COMPLAINT TRACKER MODAL
+     COMPLAINT TRACKER & STUDENT DASHBOARD MODAL
 ═══════════════════════════════════════ -->
 <div class="modal-overlay hidden" id="trackerModal" role="dialog" aria-modal="true" aria-labelledby="trackerTitle">
-  <div class="modal" style="max-width:600px">
+  <div class="modal" style="max-width:700px">
     <div class="modal-header">
-      <div class="modal-title">
+      <div class="modal-title" id="trackerTitle">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        Complaint Status Tracker
+        Student Complaints &amp; Redressal Tracker
       </div>
       <button class="modal-close" onclick="closeTracker()" aria-label="Close">&times;</button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body" style="padding:18px 20px;">
+
       <!-- Student Auth Indicator -->
-      <div id="studentAuthIndicator" style="display:flex;align-items:center;justify-content:space-between;background:#f8faf4;border:1px solid var(--line);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:12px;">
+      <div id="studentAuthIndicator" style="display:flex;align-items:center;justify-content:space-between;background:#f8faf4;border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;flex-wrap:wrap;gap:8px;">
         <span id="studentAuthStatusText" style="color:#4a6142;">Not signed in as student</span>
         <button id="studentAuthToggleBtn" onclick="openStudentAuth()" style="background:none;border:none;color:var(--olive);font-weight:700;font-size:12px;cursor:pointer;text-decoration:underline;">Sign In</button>
       </div>
 
-      <!-- Search -->
-      <div style="display:flex;gap:8px">
-        <input class="track-input" id="trackerInput" type="text" placeholder="Enter Complaint ID (e.g. CS-8921)" style="flex:1;border-radius:10px;height:42px" />
-        <button class="btn" onclick="searchComplaint()" style="height:42px;border-radius:10px;">Search</button>
-      </div>
-      <div id="trackerError" style="display:none" class="error-msg"></div>
-
-      <!-- Result -->
-      <div id="trackerResult" style="display:none;flex-direction:column;gap:14px">
-        <div id="trackerBanner" class="status-banner pending"></div>
-
-        <div class="tracker-steps" id="trackerSteps">
-          <div class="tracker-step">1. Reported</div>
-          <div class="tracker-step">2. Problem Understood</div>
-          <div class="tracker-step">3. Solving</div>
-          <div class="tracker-step">4. Solved</div>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:10px" id="trackerDetails"></div>
-
-        <div id="trackerReply" style="display:none;background:#f0ffe8;border:1px solid #a0d8a0;border-radius:10px;padding:12px 14px">
-          <div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Latest Official Update</div>
-          <div id="trackerReplyText" style="font-size:13px;color:#1a3010;line-height:1.5"></div>
-        </div>
-
-        <div id="trackerTimelineWrap" style="display:none;background:#f8faf4;border-radius:12px;padding:14px 16px;border:1px solid var(--line)">
-          <div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Route &amp; Resolution Milestones</div>
-          <div class="timeline" id="trackerTimeline"></div>
-        </div>
-
-        <div style="text-align:right">
-          <button class="btn-outline" onclick="document.getElementById('report').scrollIntoView({behavior:'smooth'});closeTracker();" style="font-size:12px;height:32px;padding:0 14px;">+ File New Report</button>
-        </div>
+      <!-- Mode Tabs (My Complaints vs Track Single ID) -->
+      <div id="trackerModeTabs" style="display:flex;gap:6px;background:#f2f8ec;padding:4px;border-radius:10px;margin-bottom:14px;">
+        <button type="button" id="tabMyComplaints" onclick="switchTrackerMode('my_complaints')" style="flex:1;height:34px;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;background:#ffffff;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,0.05);">My Complaints (<span id="myComplaintsCount">0</span>)</button>
+        <button type="button" id="tabTrackSingle" onclick="switchTrackerMode('track_single')" style="flex:1;height:34px;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#4a6142;">Track by Complaint ID</button>
       </div>
 
-      <!-- Sample IDs -->
-      <div style="background:#f8faf4;border-radius:10px;padding:12px 14px">
-        <div style="font-size:11px;font-weight:600;color:var(--olive);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Demo Complaints</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap" id="demoIds"></div>
+      <!-- 1. MY COMPLAINTS DASHBOARD VIEW -->
+      <div id="myComplaintsView">
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+          <input class="track-input" id="complaintsFilterText" type="text" placeholder="Filter by title, category, or ID..." style="flex:2;min-width:200px;border-radius:8px;height:38px;font-size:12.5px;" oninput="filterStudentComplaints()" />
+          <select class="form-select" id="complaintsStatusSelect" style="flex:1;min-width:140px;border-radius:8px;height:38px;font-size:12px;padding:6px 28px 6px 10px;" onchange="filterStudentComplaints()">
+            <option value="ALL">All Statuses</option>
+            <option value="submitted">Submitted</option>
+            <option value="under_verification">Under Verification</option>
+            <option value="accepted">Accepted</option>
+            <option value="in_progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+
+        <div id="studentComplaintsLoading" style="display:none;padding:30px;text-align:center;font-size:13px;color:#4a6142;">
+          Loading your submitted complaints from database...
+        </div>
+
+        <div id="studentComplaintsEmpty" style="display:none;background:#fcfdfa;border:1.5px dashed var(--line);border-radius:12px;padding:32px 20px;text-align:center;">
+          <div style="font-size:14px;font-weight:700;color:var(--olive);margin-bottom:6px;">No complaints found</div>
+          <p style="font-size:12.5px;color:#4a6142;margin:0 0 14px;line-height:1.5;">You have not submitted any complaints yet under this student account.</p>
+          <button class="btn" onclick="closeTracker();document.getElementById('report').scrollIntoView({behavior:'smooth'});" style="font-size:12px;height:34px;padding:0 16px;">File a Campus Issue</button>
+        </div>
+
+        <div id="studentComplaintsList" style="display:flex;flex-direction:column;gap:12px;max-height:480px;overflow-y:auto;padding-right:4px;"></div>
       </div>
+
+      <!-- 2. TRACK BY ID VIEW -->
+      <div id="trackSingleView" style="display:none;">
+        <div style="display:flex;gap:8px">
+          <input class="track-input" id="trackerInput" type="text" placeholder="Enter Complaint ID (e.g. CS-8921 or UUID)" style="flex:1;border-radius:10px;height:42px" />
+          <button class="btn" onclick="searchComplaint()" style="height:42px;border-radius:10px;">Search</button>
+        </div>
+        <div id="trackerError" style="display:none;margin-top:10px;" class="error-msg"></div>
+
+        <!-- Result -->
+        <div id="trackerResult" style="display:none;flex-direction:column;gap:14px;margin-top:14px;">
+          <div id="trackerBanner" class="status-banner pending"></div>
+
+          <div class="timeline-stages" id="trackerStagesBar">
+            <div class="timeline-stage-step" id="stageStep1">1. Submitted</div>
+            <div class="timeline-stage-step" id="stageStep2">2. Under Verification</div>
+            <div class="timeline-stage-step" id="stageStep3">3. Accepted</div>
+            <div class="timeline-stage-step" id="stageStep4">4. In Progress</div>
+            <div class="timeline-stage-step" id="stageStep5">5. Resolved</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:10px" id="trackerDetails"></div>
+
+          <!-- Evidence files section -->
+          <div id="trackerEvidenceWrap" style="display:none;background:#f8faf4;border-radius:10px;padding:12px 14px;border:1px solid var(--line);">
+            <div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Attached Evidence (Authenticated Delivery)</div>
+            <div id="trackerEvidenceList" style="display:flex;flex-direction:column;gap:6px;"></div>
+          </div>
+
+          <div id="trackerTimelineWrap" style="display:none;background:#f8faf4;border-radius:12px;padding:14px 16px;border:1px solid var(--line)">
+            <div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Institutional Status Timeline &amp; Remarks</div>
+            <div class="timeline" id="trackerTimeline"></div>
+          </div>
+
+          <div style="text-align:right">
+            <button class="btn-outline" onclick="document.getElementById('report').scrollIntoView({behavior:'smooth'});closeTracker();" style="font-size:12px;height:32px;padding:0 14px;">+ File New Report</button>
+          </div>
+        </div>
+
+        <!-- Sample IDs -->
+        <div style="background:#f8faf4;border-radius:10px;padding:12px 14px;margin-top:14px;">
+          <div style="font-size:11px;font-weight:600;color:var(--olive);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Demo Complaints</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap" id="demoIds"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -2268,14 +2371,211 @@ function updateAI() {
 }
 window.updateAI = updateAI;
 
-/* ══════════ FORM SUBMIT WITH FULL AI JSON ══════════ */
-function submitReport(e) {
+/* ══════════ PHASE 4: COMPLAINT SUBMISSION & EVIDENCE HANDLING ══════════ */
+var selectedEvidenceFiles = [];
+var cachedDepartmentUnits = [];
+var currentStudentComplaints = [];
+
+function handleEvidenceFilesChange(e) {
+  var files = e.target.files;
+  if (!files || files.length === 0) return;
+
+  var MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+  var allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    if (f.size > MAX_SIZE) {
+      showToast('File "' + f.name + '" exceeds the 5 MB limit.', 'error');
+      continue;
+    }
+    if (allowedTypes.indexOf(f.type) === -1 && !f.name.match(/\.(jpg|jpeg|png|webp|pdf)$/i)) {
+      showToast('File "' + f.name + '" is not an accepted format (JPG, PNG, WEBP, PDF only).', 'error');
+      continue;
+    }
+    selectedEvidenceFiles.push(f);
+  }
+  renderEvidencePreview();
+}
+window.handleEvidenceFilesChange = handleEvidenceFilesChange;
+
+function handleCameraCapture(e) {
+  var files = e.target.files;
+  if (files && files.length > 0) {
+    selectedEvidenceFiles.push(files[0]);
+    renderEvidencePreview();
+  }
+}
+window.handleCameraCapture = handleCameraCapture;
+
+function removeEvidenceFile(idx) {
+  if (idx >= 0 && idx < selectedEvidenceFiles.length) {
+    selectedEvidenceFiles.splice(idx, 1);
+    renderEvidencePreview();
+  }
+}
+window.removeEvidenceFile = removeEvidenceFile;
+
+function renderEvidencePreview() {
+  var listEl = document.getElementById('evidenceFilesPreviewList');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+
+  if (selectedEvidenceFiles.length === 0) {
+    return;
+  }
+
+  selectedEvidenceFiles.forEach(function (f, idx) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:#f8faf6;padding:6px 10px;border-radius:6px;border:1px solid #e2ebd8;font-size:12px;';
+
+    var sizeKb = Math.round(f.size / 1024);
+    var sizeLabel = sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + ' MB' : sizeKb + ' KB';
+
+    row.innerHTML = '<span><strong>' + escapeHtml(f.name) + '</strong> (' + sizeLabel + ')</span>' +
+      '<button type="button" onclick="removeEvidenceFile(' + idx + ')" style="background:none;border:none;color:#b91c1c;font-weight:700;cursor:pointer;font-size:11px;padding:2px 6px;">Remove</button>';
+
+    listEl.appendChild(row);
+  });
+}
+
+function handleVisibilityChange() {
+  var vis = document.getElementById('fVisibility') ? document.getElementById('fVisibility').value : 'department';
+  var targetContainer = document.getElementById('fTargetUnitContainer');
+  if (targetContainer) {
+    if (vis === 'department') {
+      targetContainer.style.display = 'flex';
+      targetContainer.style.flexDirection = 'column';
+      loadDepartmentUnits();
+    } else {
+      targetContainer.style.display = 'none';
+    }
+  }
+}
+window.handleVisibilityChange = handleVisibilityChange;
+
+function handleCategorySelect() {
+  var cat = document.getElementById('fCategory') ? document.getElementById('fCategory').value : '';
+  if (cat && cachedDepartmentUnits.length > 0) {
+    var sel = document.getElementById('fTargetUnit');
+    if (sel && (!sel.value || sel.value === '')) {
+      for (var i = 0; i < cachedDepartmentUnits.length; i++) {
+        var u = cachedDepartmentUnits[i];
+        var uName = (u.unit_name || u.name || '').toLowerCase();
+        if (cat.indexOf('Water') !== -1 && (uName.indexOf('water') !== -1 || uName.indexOf('phe') !== -1)) {
+          sel.value = u.id;
+          break;
+        } else if (cat.indexOf('Electrical') !== -1 && uName.indexOf('elect') !== -1) {
+          sel.value = u.id;
+          break;
+        } else if (cat.indexOf('Hostel') !== -1 && uName.indexOf('hostel') !== -1) {
+          sel.value = u.id;
+          break;
+        } else if (cat.indexOf('Network') !== -1 && (uName.indexOf('net') !== -1 || uName.indexOf('ccsa') !== -1 || uName.indexOf('it') !== -1)) {
+          sel.value = u.id;
+          break;
+        }
+      }
+    }
+  }
+}
+window.handleCategorySelect = handleCategorySelect;
+
+async function loadDepartmentUnits() {
+  if (cachedDepartmentUnits.length > 0) {
+    renderDepartmentUnitOptions(cachedDepartmentUnits);
+    return;
+  }
+  try {
+    var units = await CivicAuth.fetchDepartmentUnits();
+    cachedDepartmentUnits = units || [];
+    renderDepartmentUnitOptions(cachedDepartmentUnits);
+  } catch (err) {
+    console.error('Failed to load department units:', err);
+  }
+}
+
+function renderDepartmentUnitOptions(units) {
+  var sel = document.getElementById('fTargetUnit');
+  if (!sel) return;
+  var currentVal = sel.value;
+  sel.innerHTML = '<option value="">Select University Department Unit</option>';
+  units.forEach(function (u) {
+    var label = u.name + (u.unit_name ? ' — ' + u.unit_name : ' (' + u.role + ')');
+    var opt = document.createElement('option');
+    opt.value = u.id;
+    opt.textContent = label;
+    sel.appendChild(opt);
+  });
+  if (currentVal) sel.value = currentVal;
+}
+
+/* ══════════ STUDENT COMPLAINT SUBMISSION ══════════ */
+async function submitReport(e) {
   e.preventDefault();
+
+  var errBox = document.getElementById('submitError');
+  if (errBox) errBox.style.display = 'none';
+
+  var sb = CivicAuth.getClient();
+  var sessionRes = sb ? await sb.auth.getSession() : null;
+  var session = sessionRes && sessionRes.data ? sessionRes.data.session : null;
+
+  if (!session || !session.user) {
+    if (errBox) {
+      errBox.style.display = 'block';
+      errBox.textContent = 'You must be signed in with your student account to register and track a grievance.';
+    }
+    openStudentAuth();
+    showToast('Please sign in or register with your student ID to submit complaints.', 'info');
+    return;
+  }
+
+  var titleEl = document.getElementById('fTitle');
+  var title = titleEl ? titleEl.value.trim() : '';
+  if (!title || title.length < 5) {
+    var titleErr = document.getElementById('titleError');
+    if (titleErr) titleErr.style.display = 'block';
+    if (titleEl) titleEl.focus();
+    return;
+  }
+  var titleErr2 = document.getElementById('titleError');
+  if (titleErr2) titleErr2.style.display = 'none';
+
+  var catEl = document.getElementById('fCategory');
+  var category = catEl ? catEl.value : '';
+  if (!category) {
+    if (errBox) {
+      errBox.style.display = 'block';
+      errBox.textContent = 'Please select an issue category.';
+    }
+    if (catEl) catEl.focus();
+    return;
+  }
+
+  var visEl = document.getElementById('fVisibility');
+  var visibility = visEl ? visEl.value : 'department';
+
+  var targetUnitId = null;
+  if (visibility === 'department') {
+    var unitEl = document.getElementById('fTargetUnit');
+    targetUnitId = unitEl ? unitEl.value : null;
+    if (!targetUnitId) {
+      if (errBox) {
+        errBox.style.display = 'block';
+        errBox.textContent = 'Please select the target university department.';
+      }
+      if (unitEl) unitEl.focus();
+      return;
+    }
+  }
+
   var descEl = document.getElementById('fDesc');
   var desc = descEl ? descEl.value.trim() : '';
   if (desc.length < 8) {
     var err = document.getElementById('descError');
     if (err) err.style.display = 'block';
+    if (descEl) descEl.focus();
     return;
   }
   var err2 = document.getElementById('descError');
@@ -2288,71 +2588,58 @@ function submitReport(e) {
     loc = (cLoc ? cLoc.value.trim() : '') || 'Unspecified Location';
   }
 
-  // Full AI Analysis
-  var analysis = analyzeComplaint(desc, photoFileName, loc, 'en');
-  var solver = SOLVER_MAP[analysis.category] || SOLVER_MAP.other;
-  var id = nextId();
-  var authorName = (document.getElementById('fName') ? document.getElementById('fName').value.trim() : '') || 'Campus Citizen (Anonymous)';
-  var contact = (document.getElementById('fContact') ? document.getElementById('fContact').value.trim() : '') || null;
-
-  var complaint = {
-    id: id,
-    ts: Date.now(),
-    title: (analysis.summary_en || (solver.name + ' at ' + (analysis.location_text || 'Campus'))),
-    desc: desc,
-    location: analysis.location_text || loc || 'Campus Quad',
-    lat: currentDraftCoords.lat,
-    lng: currentDraftCoords.lng,
-    cat: analysis.category,
-    catName: solver.name,
-    urgency: analysis.priority === 1 ? 'Urgent' : analysis.priority === 2 ? 'High' : 'Normal',
-    status: 'open',
-    dept: solver.desk,
-    studentName: authorName,
-    studentContact: contact,
-    photoUrl: photoData,
-    aiAnalysis: analysis,
-    routeHistory: [
-      {
-        id: 'm_' + Date.now() + '_1',
-        ts: Date.now(),
-        stage: 'Report Registered',
-        actor: authorName,
-        role: 'Citizen',
-        note: 'Report lodged in ' + (analysis.language === 'as' ? 'Assamese' : analysis.language === 'mixed' ? 'Mixed Romanised Assamese' : 'English') + '.'
-      },
-      {
-        id: 'm_' + Date.now() + '_2',
-        ts: Date.now() + 500,
-        stage: 'AI Autonomous Triage & Auto-Route',
-        actor: 'CivicSense Neural Dispatch',
-        role: 'AI Engine',
-        note: analysis.sensitive ?
-          'Confidential Triage: Dispatched strictly to Dr. P. Barua (Head / Chairperson, Proctorial Board).' :
-          'AI classified root cause: ' + analysis.category + ' (P' + analysis.priority + '). Dispatched to ' + solver.desk + ' with copy to General Secretary (DUSU). SLA: ' + solver.sla + 'h.'
-      }
-    ],
-    replies: []
-  };
-
-  var all = getComplaints();
-  all.unshift(complaint);
-  saveComplaints(all);
-
-  var tid = document.getElementById('ticketId');
-  if (tid) tid.textContent = id;
-  var sum = document.getElementById('successSummary');
-  if (sum) {
-    sum.textContent = analysis.sensitive ?
-      'Your report has been treated with maximum confidentiality and routed directly to the Proctorial Board Chairperson for immediate intervention.' :
-      'CivicSense AI analyzed your complaint (category: ' + analysis.category + ', priority: P' + analysis.priority + ') and auto-dispatched it to ' + solver.desk + ' with a copy to the General Secretary (DUSU).';
+  var submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Uploading evidence & registering complaint...';
   }
 
-  document.getElementById('reportForm').style.display = 'none';
-  var sc = document.getElementById('successCard');
-  if (sc) {
-    sc.style.display = 'flex';
-    sc.style.flexDirection = 'column';
+  try {
+    var complaint = await CivicAuth.submitStudentComplaint({
+      title: title,
+      description: desc,
+      category: category,
+      visibility: visibility,
+      targetUnitId: targetUnitId,
+      evidenceFiles: selectedEvidenceFiles
+    });
+
+    var tid = document.getElementById('ticketId');
+    if (tid) tid.textContent = 'CS-' + complaint.id.slice(0, 8).toUpperCase();
+
+    var sum = document.getElementById('successSummary');
+    if (sum) {
+      var visText = visibility === 'administration'
+        ? 'Administration Only (confidential to Registrar / Proctorial Board)'
+        : visibility === 'department'
+        ? 'Assigned Department and Central Administration'
+        : 'All Departments and DUSU Social Service Council';
+      sum.textContent = 'Your grievance "' + title + '" has been registered in the database with visibility set to: ' + visText + '. Permanent status tracking is active.';
+    }
+
+    document.getElementById('reportForm').style.display = 'none';
+    var sc = document.getElementById('successCard');
+    if (sc) {
+      sc.style.display = 'flex';
+      sc.style.flexDirection = 'column';
+    }
+
+    selectedEvidenceFiles = [];
+    renderEvidencePreview();
+    showToast('Complaint submitted with status: Submitted', 'success');
+
+    // Refresh complaints list in the background
+    loadStudentComplaints();
+  } catch (err) {
+    if (errBox) {
+      errBox.style.display = 'block';
+      errBox.textContent = err.message || 'Failed to submit complaint.';
+    }
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Submit Complaint for Official Redressal';
+    }
   }
 }
 window.submitReport = submitReport;
@@ -2366,22 +2653,31 @@ function resetForm() {
   }
   var sc = document.getElementById('successCard');
   if (sc) sc.style.display = 'none';
-  photoData = null;
-  photoFileName = null;
-  var prev = document.getElementById('photoPreview');
-  if (prev) prev.style.display = 'none';
+  selectedEvidenceFiles = [];
+  renderEvidencePreview();
+  handleVisibilityChange();
   updateAI();
 }
 window.resetForm = resetForm;
 
+function handleNavStudentClick() {
+  var profile = CivicAuth.getProfile();
+  if (profile && profile.role === 'student') {
+    openTracker();
+    switchTrackerMode('my_complaints');
+  } else {
+    openStudentAuth();
+  }
+}
+window.handleNavStudentClick = handleNavStudentClick;
+
 function openTrackerWithId(id) {
+  openTracker();
   if (id && id.trim()) {
+    switchTrackerMode('track_single');
     var ti = document.getElementById('trackerInput');
     if (ti) ti.value = id.trim();
-    openTracker();
-    setTimeout(searchComplaint, 100);
-  } else {
-    openTracker();
+    setTimeout(searchComplaint, 150);
   }
 }
 window.openTrackerWithId = openTrackerWithId;
@@ -2393,122 +2689,509 @@ window.addEventListener('DOMContentLoaded', function() {
     if (trackId) {
       setTimeout(function() { openTrackerWithId(trackId); }, 250);
     }
+    loadDepartmentUnits();
+    handleVisibilityChange();
   } catch(e) {}
 });
 
-/* ══════════ TRACKER MODAL ══════════ */
-function formatTime(ts){
-  if(!ts) return '';
-  var d=new Date(ts);
-  return d.toLocaleDateString('en-IN', {month:'short', day:'numeric'}) + ', ' + d.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+/* ══════════ STUDENT TRACKER & DASHBOARD ══════════ */
+function formatTime(ts) {
+  if (!ts) return '';
+  var d = new Date(ts);
+  if (isNaN(d.getTime())) return String(ts);
+  return d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' +
+    d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 }
-function openTracker(){
+
+function openTracker() {
   document.getElementById('trackerModal').classList.remove('hidden');
   buildDemoIds();
   checkCurrentStudentSession();
+  var profile = CivicAuth.getProfile();
+  if (profile && profile.role === 'student') {
+    switchTrackerMode('my_complaints');
+    loadStudentComplaints();
+  } else {
+    switchTrackerMode('track_single');
+  }
 }
 window.openTracker = openTracker;
 
-function closeTracker(){
+function closeTracker() {
   document.getElementById('trackerModal').classList.add('hidden');
 }
 window.closeTracker = closeTracker;
 
-function openStudentAuth(){
-  document.getElementById('studentAuthModal').classList.remove('hidden');
-  document.getElementById('studentAuthErr').style.display = 'none';
-  var signupErr = document.getElementById('signupErr');
-  if (signupErr) signupErr.style.display = 'none';
+function switchTrackerMode(mode) {
+  var compView = document.getElementById('myComplaintsView');
+  var singleView = document.getElementById('trackSingleView');
+  var tabComp = document.getElementById('tabMyComplaints');
+  var tabSingle = document.getElementById('tabTrackSingle');
+
+  if (mode === 'my_complaints') {
+    if (compView) compView.style.display = 'block';
+    if (singleView) singleView.style.display = 'none';
+    if (tabComp) { tabComp.style.background = '#ffffff'; tabComp.style.color = 'var(--ink)'; }
+    if (tabSingle) { tabSingle.style.background = 'transparent'; tabSingle.style.color = '#4a6142'; }
+  } else {
+    if (compView) compView.style.display = 'none';
+    if (singleView) singleView.style.display = 'block';
+    if (tabSingle) { tabSingle.style.background = '#ffffff'; tabSingle.style.color = 'var(--ink)'; }
+    if (tabComp) { tabComp.style.background = 'transparent'; tabComp.style.color = '#4a6142'; }
+  }
+}
+window.switchTrackerMode = switchTrackerMode;
+
+async function loadStudentComplaints() {
+  var loadingEl = document.getElementById('studentComplaintsLoading');
+  var emptyEl = document.getElementById('studentComplaintsEmpty');
+  var listEl = document.getElementById('studentComplaintsList');
+  var countEl = document.getElementById('myComplaintsCount');
+
+  if (loadingEl) loadingEl.style.display = 'block';
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (listEl) listEl.innerHTML = '';
+
+  try {
+    var complaints = await CivicAuth.fetchStudentComplaints();
+    currentStudentComplaints = complaints || [];
+
+    if (countEl) countEl.textContent = String(currentStudentComplaints.length);
+    if (loadingEl) loadingEl.style.display = 'none';
+
+    renderStudentComplaintsList(currentStudentComplaints);
+  } catch (err) {
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (emptyEl) {
+      emptyEl.style.display = 'block';
+      emptyEl.querySelector('p').textContent = err.message || 'Failed to load complaints.';
+    }
+  }
+}
+window.loadStudentComplaints = loadStudentComplaints;
+
+function renderStudentComplaintsList(list) {
+  var listEl = document.getElementById('studentComplaintsList');
+  var emptyEl = document.getElementById('studentComplaintsEmpty');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+
+  if (!list || list.length === 0) {
+    if (emptyEl) emptyEl.style.display = 'block';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  list.forEach(function (c) {
+    var card = document.createElement('div');
+    card.className = 'complaint-card';
+
+    var statusClass = c.status || 'submitted';
+    var statusLabel = (c.status || 'submitted').replace('_', ' ');
+
+    var visLabel = c.visibility === 'administration'
+      ? 'Administration Only'
+      : c.visibility === 'department'
+      ? 'Department'
+      : 'Social Service (DUSU)';
+
+    var refId = 'CS-' + c.id.slice(0, 8).toUpperCase();
+    var createdDate = formatTime(c.created_at);
+
+    var history = c.complaint_status_history || [];
+    var evidence = c.complaint_evidence || [];
+
+    card.innerHTML =
+      '<div class="complaint-header-row">' +
+      '  <div style="display:flex;align-items:center;gap:8px;">' +
+      '    <strong style="font-size:13px;color:var(--olive);letter-spacing:-0.01em;">#' + refId + '</strong>' +
+      '    <span style="font-size:11.5px;color:#64748b;">' + createdDate + '</span>' +
+      '  </div>' +
+      '  <div style="display:flex;align-items:center;gap:6px;">' +
+      '    <span class="visibility-pill ' + c.visibility + '">' + visLabel + '</span>' +
+      '    <span class="status-pill ' + statusClass + '">' + statusLabel + '</span>' +
+      '  </div>' +
+      '</div>' +
+      '<div style="font-size:14px;font-weight:700;color:var(--ink);">' + escapeHtml(c.title) + '</div>' +
+      '<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#4a6142;">' +
+      '  <span style="background:var(--pill);padding:2px 8px;border-radius:6px;font-weight:600;">' + escapeHtml(c.category) + '</span>' +
+      '  <span>' + (evidence.length > 0 ? evidence.length + ' evidence file(s)' : 'No evidence files') + '</span>' +
+      '</div>' +
+      '<div style="margin-top:6px;">' +
+      '  <button type="button" class="btn-outline" onclick="toggleComplaintDetail(this)" style="font-size:11.5px;height:30px;padding:0 12px;border-radius:6px;">View Status Timeline &amp; Details</button>' +
+      '</div>' +
+      '<div class="complaint-detail-drawer" style="display:none;margin-top:12px;border-top:1px solid var(--line);padding-top:12px;">' +
+      '  <div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;margin-bottom:4px;">Grievance Description</div>' +
+      '  <div style="font-size:13px;color:#1e293b;line-height:1.5;background:#f8faf6;padding:10px 12px;border-radius:8px;border:1px solid #e2ebd8;margin-bottom:12px;">' + escapeHtml(c.description) + '</div>' +
+      (evidence.length > 0 ? renderEvidenceListHtml(c.id, evidence) : '') +
+      '  <div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;margin-bottom:6px;">Resolution Lifecycle Milestone Tracker</div>' +
+         renderTimelineStagesHtml(c.status) +
+      '  <div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;margin-top:12px;margin-bottom:6px;">Status History &amp; Official Remarks</div>' +
+         renderHistoryAuditHtml(history) +
+      '</div>';
+
+    listEl.appendChild(card);
+  });
+}
+
+function toggleComplaintDetail(btn) {
+  var drawer = btn.parentNode.parentNode.querySelector('.complaint-detail-drawer');
+  if (!drawer) return;
+  if (drawer.style.display === 'none' || drawer.style.display === '') {
+    drawer.style.display = 'block';
+    btn.textContent = 'Hide Details';
+  } else {
+    drawer.style.display = 'none';
+    btn.textContent = 'View Status Timeline & Details';
+  }
+}
+window.toggleComplaintDetail = toggleComplaintDetail;
+
+function renderTimelineStagesHtml(status) {
+  var stages = [
+    { key: 'submitted', label: '1. Submitted' },
+    { key: 'under_verification', label: '2. Under Verification' },
+    { key: 'accepted', label: '3. Accepted' },
+    { key: 'in_progress', label: '4. In Progress' },
+    { key: 'resolved', label: '5. Resolved' }
+  ];
+
+  var order = ['submitted', 'under_verification', 'accepted', 'in_progress', 'resolved'];
+  var currentIdx = order.indexOf(status);
+
+  var html = '<div class="timeline-stages">';
+  stages.forEach(function (st, idx) {
+    var cls = 'timeline-stage-step';
+    if (status === 'rejected') {
+      if (idx === 0) cls += ' completed';
+      else if (idx === 1) cls += ' rejected';
+    } else if (currentIdx !== -1) {
+      if (idx < currentIdx) cls += ' completed';
+      else if (idx === currentIdx) cls += ' active';
+    }
+    html += '<div class="' + cls + '">' + st.label + '</div>';
+  });
+  html += '</div>';
+
+  if (status === 'rejected') {
+    html += '<div style="background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:600;margin-top:6px;">This complaint has been rejected by the reviewing official. Review remarks below.</div>';
+  }
+  return html;
+}
+
+function renderHistoryAuditHtml(history) {
+  if (!history || history.length === 0) {
+    return '<div style="font-size:12px;color:#64748b;padding:6px 0;">No status changes recorded yet.</div>';
+  }
+
+  var html = '<div class="timeline" style="margin-top:6px;">';
+  history.forEach(function (h) {
+    var statusTitle = (h.status || 'submitted').replace('_', ' ').toUpperCase();
+    var timeStr = formatTime(h.created_at);
+    html += '<div class="timeline-item">' +
+      '<div class="timeline-title">' + statusTitle + '</div>' +
+      '<div class="timeline-time">' + timeStr + '</div>' +
+      (h.remark ? '<div class="timeline-desc">' + escapeHtml(h.remark) + '</div>' : '') +
+      '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderEvidenceListHtml(complaintId, evidence) {
+  var html = '<div style="margin-bottom:12px;">' +
+    '<div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;margin-bottom:6px;">Attached Evidence (Cloudinary Authenticated)</div>' +
+    '<div style="display:flex;flex-direction:column;gap:6px;">';
+
+  evidence.forEach(function (ev, idx) {
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;background:#f8faf6;padding:6px 10px;border-radius:6px;border:1px solid #e2ebd8;font-size:12px;">' +
+      '<span>Evidence Document #' + (idx + 1) + '</span>' +
+      '<button type="button" class="btn" onclick="viewEvidenceFile(\'' + complaintId + '\', \'' + ev.cloudinary_public_id + '\')" style="height:26px;font-size:11px;padding:0 10px;background:var(--olive);">View Protected File</button>' +
+      '</div>';
+  });
+
+  html += '</div></div>';
+  return html;
+}
+
+async function viewEvidenceFile(complaintId, publicId) {
+  try {
+    showToast('Requesting secure signed delivery link...', 'info');
+    var res = await CivicAuth.getViewableEvidenceUrl(complaintId, publicId);
+    if (res && res.signedUrl) {
+      window.open(res.signedUrl, '_blank', 'noopener,noreferrer');
+    }
+  } catch (err) {
+    showToast(err.message || 'Access denied to evidence file.', 'error');
+  }
+}
+window.viewEvidenceFile = viewEvidenceFile;
+
+function filterStudentComplaints() {
+  var txt = (document.getElementById('complaintsFilterText') ? document.getElementById('complaintsFilterText').value : '').toLowerCase().trim();
+  var st = document.getElementById('complaintsStatusSelect') ? document.getElementById('complaintsStatusSelect').value : 'ALL';
+
+  var filtered = currentStudentComplaints.filter(function (c) {
+    if (st !== 'ALL' && c.status !== st) return false;
+    if (txt) {
+      var matchId = c.id.toLowerCase().indexOf(txt) !== -1;
+      var matchTitle = (c.title || '').toLowerCase().indexOf(txt) !== -1;
+      var matchCat = (c.category || '').toLowerCase().indexOf(txt) !== -1;
+      return matchId || matchTitle || matchCat;
+    }
+    return true;
+  });
+
+  renderStudentComplaintsList(filtered);
+}
+window.filterStudentComplaints = filterStudentComplaints;
+
+/* ══════════ SINGLE COMPLAINT TRACKER SEARCH ══════════ */
+async function searchComplaint() {
+  var inputEl = document.getElementById('trackerInput');
+  var id = inputEl ? inputEl.value.trim() : '';
+  var errEl = document.getElementById('trackerError');
+  var resEl = document.getElementById('trackerResult');
+
+  if (!id) {
+    if (errEl) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'Please enter a valid Complaint ID.';
+    }
+    if (resEl) resEl.style.display = 'none';
+    return;
+  }
+
+  if (errEl) errEl.style.display = 'none';
+
+  // 1. Try fetching from Supabase database
+  try {
+    var dbComplaint = await CivicAuth.fetchComplaintById(id);
+    if (dbComplaint) {
+      renderTrackerFromDatabase(dbComplaint);
+      return;
+    }
+  } catch (e) {
+    console.error('Database query error:', e);
+  }
+
+  // 2. Fallback to mock prototype complaints if present
+  var localComp = typeof getById === 'function' ? getById(id) : null;
+  if (localComp) {
+    renderTracker(localComp);
+    return;
+  }
+
+  if (errEl) {
+    errEl.style.display = 'block';
+    errEl.textContent = 'No complaint record found matching ID "' + id + '". Please check the reference ID and try again.';
+  }
+  if (resEl) resEl.style.display = 'none';
+}
+window.searchComplaint = searchComplaint;
+
+function renderTrackerFromDatabase(c) {
+  var res = document.getElementById('trackerResult');
+  if (res) res.style.display = 'flex';
+
+  var refId = 'CS-' + c.id.slice(0, 8).toUpperCase();
+  var banner = document.getElementById('trackerBanner');
+  var statusClass = c.status || 'submitted';
+  var statusText = (c.status || 'submitted').replace('_', ' ').toUpperCase();
+
+  if (banner) {
+    banner.className = 'status-banner ' + (c.status === 'resolved' ? 'status-solved' : c.status === 'rejected' ? 'status-escalated' : 'status-in-progress');
+    banner.innerHTML = '<strong>' + statusText + '</strong> · ' + (c.status === 'resolved' ? 'Resolution verified by authorized department' : 'Active campus grievance tracking');
+  }
+
+  // Update Stage bar
+  var stagesBar = document.getElementById('trackerStagesBar');
+  if (stagesBar) {
+    stagesBar.outerHTML = renderTimelineStagesHtml(c.status);
+  }
+
+  var visLabel = c.visibility === 'administration'
+    ? 'Administration Only (Registrar & Proctor)'
+    : c.visibility === 'department'
+    ? 'Assigned Department Authority'
+    : 'Social Service (DUSU Council)';
+
+  var detailsHtml =
+    '<div class="detail-row"><span class="detail-label">Complaint ID:</span><strong>#' + refId + ' (' + c.id + ')</strong></div>' +
+    '<div class="detail-row"><span class="detail-label">Title:</span><strong>' + escapeHtml(c.title) + '</strong></div>' +
+    '<div class="detail-row"><span class="detail-label">Category:</span><span>' + escapeHtml(c.category) + '</span></div>' +
+    '<div class="detail-row"><span class="detail-label">Privacy Level:</span><span>' + visLabel + '</span></div>' +
+    '<div class="detail-row"><span class="detail-label">Submission Date:</span><span>' + formatTime(c.created_at) + '</span></div>' +
+    '<div class="detail-row" style="flex-direction:column;align-items:flex-start;gap:4px;margin-top:6px;">' +
+    '  <span class="detail-label">Description:</span>' +
+    '  <div style="font-size:13px;color:#1e293b;line-height:1.5;background:#f8faf6;padding:10px 12px;border-radius:8px;border:1px solid #e2ebd8;width:100%;box-sizing:border-box;">' + escapeHtml(c.description) + '</div>' +
+    '</div>';
+
+  var detailsEl = document.getElementById('trackerDetails');
+  if (detailsEl) detailsEl.innerHTML = detailsHtml;
+
+  // Evidence files
+  var evWrap = document.getElementById('trackerEvidenceWrap');
+  var evList = document.getElementById('trackerEvidenceList');
+  var evidence = c.complaint_evidence || [];
+
+  if (evidence.length > 0 && evWrap && evList) {
+    evWrap.style.display = 'block';
+    evList.innerHTML = '';
+    evidence.forEach(function (ev, idx) {
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:#ffffff;padding:6px 10px;border-radius:6px;border:1px solid var(--line);font-size:12px;';
+      row.innerHTML = '<span>Evidence Document #' + (idx + 1) + '</span>' +
+        '<button type="button" class="btn" onclick="viewEvidenceFile(\'' + c.id + '\', \'' + ev.cloudinary_public_id + '\')" style="height:26px;font-size:11px;padding:0 10px;background:var(--olive);">View Protected File</button>';
+      evList.appendChild(row);
+    });
+  } else if (evWrap) {
+    evWrap.style.display = 'none';
+  }
+
+  // Timeline
+  var timelineWrap = document.getElementById('trackerTimelineWrap');
+  var timelineEl = document.getElementById('trackerTimeline');
+  var history = c.complaint_status_history || [];
+
+  if (history.length > 0 && timelineWrap && timelineEl) {
+    timelineWrap.style.display = 'block';
+    timelineEl.innerHTML = '';
+    history.forEach(function (h) {
+      var item = document.createElement('div');
+      item.className = 'timeline-item';
+      item.innerHTML =
+        '<div class="timeline-title">' + (h.status || 'submitted').replace('_', ' ').toUpperCase() + '</div>' +
+        '<div class="timeline-time">' + formatTime(h.created_at) + '</div>' +
+        (h.remark ? '<div class="timeline-desc">' + escapeHtml(h.remark) + '</div>' : '');
+      timelineEl.appendChild(item);
+    });
+  } else if (timelineWrap) {
+    timelineWrap.style.display = 'none';
+  }
+}
+
+/* ══════════ STUDENT AUTHENTICATION & UI SYNC ══════════ */
+function openStudentAuth() {
+  var modal = document.getElementById('studentAuthModal');
+  if (modal) modal.classList.remove('hidden');
+  var err1 = document.getElementById('studentAuthErr');
+  if (err1) err1.style.display = 'none';
+  var err2 = document.getElementById('signupErr');
+  if (err2) err2.style.display = 'none';
 }
 window.openStudentAuth = openStudentAuth;
 
-function closeStudentAuth(){
-  document.getElementById('studentAuthModal').classList.add('hidden');
+function closeStudentAuth() {
+  var modal = document.getElementById('studentAuthModal');
+  if (modal) modal.classList.add('hidden');
 }
 window.closeStudentAuth = closeStudentAuth;
 
-function switchStudentAuthTab(tab){
+function switchStudentAuthTab(tab) {
   var signInView = document.getElementById('studentSignInView');
   var signUpView = document.getElementById('studentSignUpView');
   var tabIn = document.getElementById('tabStudentSignIn');
   var tabUp = document.getElementById('tabStudentSignUp');
 
-  if(tab === 'signin'){
-    if(signInView) signInView.style.display = 'block';
-    if(signUpView) signUpView.style.display = 'none';
-    if(tabIn){ tabIn.style.background = '#ffffff'; tabIn.style.color = 'var(--ink)'; }
-    if(tabUp){ tabUp.style.background = 'transparent'; tabUp.style.color = '#4a6142'; }
+  if (tab === 'signin') {
+    if (signInView) signInView.style.display = 'block';
+    if (signUpView) signUpView.style.display = 'none';
+    if (tabIn) { tabIn.style.background = '#ffffff'; tabIn.style.color = 'var(--ink)'; }
+    if (tabUp) { tabUp.style.background = 'transparent'; tabUp.style.color = '#4a6142'; }
   } else {
-    if(signInView) signInView.style.display = 'none';
-    if(signUpView) signUpView.style.display = 'block';
-    if(tabUp){ tabUp.style.background = '#ffffff'; tabUp.style.color = 'var(--ink)'; }
-    if(tabIn){ tabIn.style.background = 'transparent'; tabIn.style.color = '#4a6142'; }
+    if (signInView) signInView.style.display = 'none';
+    if (signUpView) signUpView.style.display = 'block';
+    if (tabUp) { tabUp.style.background = '#ffffff'; tabUp.style.color = 'var(--ink)'; }
+    if (tabIn) { tabIn.style.background = 'transparent'; tabIn.style.color = '#4a6142'; }
   }
 }
 window.switchStudentAuthTab = switchStudentAuthTab;
 
-async function submitStudentLogin(){
-  var email = (document.getElementById('studentEmailInput').value || '').trim();
-  var password = document.getElementById('studentPwInput').value;
+async function submitStudentLogin() {
+  var email = (document.getElementById('studentEmailInput') ? document.getElementById('studentEmailInput').value : '').trim();
+  var password = document.getElementById('studentPwInput') ? document.getElementById('studentPwInput').value : '';
   var errBox = document.getElementById('studentAuthErr');
   var btn = document.getElementById('studentLoginBtn');
 
-  if(!email || !password){
-    errBox.style.display = 'block';
-    errBox.textContent = 'Please enter both student email and password.';
+  if (!email || !password) {
+    if (errBox) {
+      errBox.style.display = 'block';
+      errBox.textContent = 'Please enter both student email and password.';
+    }
     return;
   }
 
-  btn.disabled = true;
-  btn.textContent = 'Signing in...';
-  errBox.style.display = 'none';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+  }
+  if (errBox) errBox.style.display = 'none';
 
   try {
     var res = await CivicAuth.loginStudent(email, password);
-    btn.disabled = false;
-    btn.textContent = 'Sign In as Student';
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Sign In as Student';
+    }
     closeStudentAuth();
     showToast('Signed in as ' + res.profile.name, 'success');
-    syncStudentAuthUI(res.profile);
-  } catch(err) {
-    btn.disabled = false;
-    btn.textContent = 'Sign In as Student';
-    errBox.style.display = 'block';
-    errBox.textContent = err.message || 'Login failed.';
+
+    var cardRes = await CivicAuth.getClient().from('id_cards').select('status').eq('user_id', res.profile.id).maybeSingle();
+    var idStatus = cardRes.data ? cardRes.data.status : 'pending';
+    syncStudentAuthUI(res.profile, idStatus);
+    loadStudentComplaints();
+  } catch (err) {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Sign In as Student';
+    }
+    if (errBox) {
+      errBox.style.display = 'block';
+      errBox.textContent = err.message || 'Login failed.';
+    }
   }
 }
 window.submitStudentLogin = submitStudentLogin;
 
-async function submitStudentSignup(){
-  var name = (document.getElementById('signupName').value || '').trim();
-  var email = (document.getElementById('signupEmail').value || '').trim();
-  var password = document.getElementById('signupPassword').value;
+async function submitStudentSignup() {
+  var name = (document.getElementById('signupName') ? document.getElementById('signupName').value : '').trim();
+  var email = (document.getElementById('signupEmail') ? document.getElementById('signupEmail').value : '').trim();
+  var password = document.getElementById('signupPassword') ? document.getElementById('signupPassword').value : '';
   var fileInput = document.getElementById('signupIdCard');
   var file = fileInput && fileInput.files ? fileInput.files[0] : null;
   var errBox = document.getElementById('signupErr');
   var btn = document.getElementById('studentRegisterBtn');
 
-  if(!name || !email || !password){
-    errBox.style.display = 'block';
-    errBox.textContent = 'Please complete all registration fields.';
+  if (!name || !email || !password) {
+    if (errBox) {
+      errBox.style.display = 'block';
+      errBox.textContent = 'Please complete all registration fields.';
+    }
     return;
   }
 
-  if(password.length < 8){
-    errBox.style.display = 'block';
-    errBox.textContent = 'Password must be at least 8 characters long.';
+  if (password.length < 8) {
+    if (errBox) {
+      errBox.style.display = 'block';
+      errBox.textContent = 'Password must be at least 8 characters long.';
+    }
     return;
   }
 
-  if(!file){
-    errBox.style.display = 'block';
-    errBox.textContent = 'Please select a student ID card file (image or PDF, max 5 MB).';
+  if (!file) {
+    if (errBox) {
+      errBox.style.display = 'block';
+      errBox.textContent = 'Please select a student ID card file (image or PDF, max 5 MB).';
+    }
     return;
   }
 
-  btn.disabled = true;
-  btn.textContent = 'Uploading ID card & creating account...';
-  errBox.style.display = 'none';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Uploading ID card & creating account...';
+  }
+  if (errBox) errBox.style.display = 'none';
 
   try {
     var res = await CivicAuth.signUpStudent({
@@ -2518,96 +3201,133 @@ async function submitStudentSignup(){
       file: file
     });
 
-    btn.disabled = false;
-    btn.textContent = 'Upload ID & Create Student Account';
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Upload ID & Create Student Account';
+    }
     closeStudentAuth();
     showToast('Registration complete. ID card uploaded for official verification.', 'success');
 
-    // Auto sign in with the new credentials
+    // Auto-login newly registered student
     try {
       var loginRes = await CivicAuth.loginStudent(email, password);
-      syncStudentAuthUI(loginRes.profile);
-    } catch(e){}
-  } catch(err) {
-    btn.disabled = false;
-    btn.textContent = 'Upload ID & Create Student Account';
-    errBox.style.display = 'block';
-    errBox.textContent = err.message || 'Registration failed.';
+      syncStudentAuthUI(loginRes.profile, 'pending');
+      loadStudentComplaints();
+    } catch (e) {}
+  } catch (err) {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Upload ID & Create Student Account';
+    }
+    if (errBox) {
+      errBox.style.display = 'block';
+      errBox.textContent = err.message || 'Registration failed.';
+    }
   }
 }
 window.submitStudentSignup = submitStudentSignup;
 
-function openReuploadModal(){
-  document.getElementById('reuploadIdModal').classList.remove('hidden');
+function openReuploadModal() {
+  var modal = document.getElementById('reuploadIdModal');
+  if (modal) modal.classList.remove('hidden');
   var err = document.getElementById('reuploadErr');
-  if(err) err.style.display = 'none';
+  if (err) err.style.display = 'none';
 }
 window.openReuploadModal = openReuploadModal;
 
-function closeReuploadModal(){
-  document.getElementById('reuploadIdModal').classList.add('hidden');
+function closeReuploadModal() {
+  var modal = document.getElementById('reuploadIdModal');
+  if (modal) modal.classList.add('hidden');
 }
 window.closeReuploadModal = closeReuploadModal;
 
-async function submitReuploadId(){
+async function submitReuploadId() {
   var fileInput = document.getElementById('reuploadFile');
   var file = fileInput && fileInput.files ? fileInput.files[0] : null;
   var errBox = document.getElementById('reuploadErr');
   var btn = document.getElementById('reuploadSubmitBtn');
 
-  if(!file){
-    errBox.style.display = 'block';
-    errBox.textContent = 'Please select a new valid ID card file.';
+  if (!file) {
+    if (errBox) {
+      errBox.style.display = 'block';
+      errBox.textContent = 'Please select a new valid ID card file.';
+    }
     return;
   }
 
-  btn.disabled = true;
-  btn.textContent = 'Uploading ID...';
-  errBox.style.display = 'none';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Uploading ID...';
+  }
+  if (errBox) errBox.style.display = 'none';
 
   try {
     await CivicAuth.reuploadIdCard(file);
-    btn.disabled = false;
-    btn.textContent = 'Submit for Review';
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Submit for Review';
+    }
     closeReuploadModal();
     showToast('Student ID card re-uploaded. Status reset to pending verification.', 'success');
     checkCurrentStudentSession();
-  } catch(err) {
-    btn.disabled = false;
-    btn.textContent = 'Submit for Review';
-    errBox.style.display = 'block';
-    errBox.textContent = err.message || 'Re-upload failed.';
+  } catch (err) {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Submit for Review';
+    }
+    if (errBox) {
+      errBox.style.display = 'block';
+      errBox.textContent = err.message || 'Re-upload failed.';
+    }
   }
 }
 window.submitReuploadId = submitReuploadId;
 
-function syncStudentAuthUI(profile, idCardStatus){
+function syncStudentAuthUI(profile, idCardStatus) {
   var text = document.getElementById('studentAuthStatusText');
   var btn = document.getElementById('studentAuthToggleBtn');
   var footerLink = document.getElementById('studentLoginFooterLink');
+  var navBtn = document.getElementById('navStudentBtn');
+  var formNotice = document.getElementById('formStudentAuthNotice');
+  var formText = document.getElementById('formStudentAuthText');
+  var formBtn = document.getElementById('formStudentAuthBtn');
 
-  if(profile){
+  if (profile) {
     var idStatusLabel = '';
     if (idCardStatus === 'verified') {
-      idStatusLabel = ' · ID Verified';
+      idStatusLabel = ' · <span style="color:#166534;font-weight:700;">ID Verified</span>';
     } else if (idCardStatus === 'not_valid') {
-      idStatusLabel = ' · ID Not Valid (<button onclick="openReuploadModal()" style="background:none;border:none;color:#b91c1c;font-weight:700;text-decoration:underline;cursor:pointer;">Re-upload</button>)';
+      idStatusLabel = ' · <span style="color:#991b1b;font-weight:700;">ID Not Valid</span> (<button onclick="openReuploadModal()" style="background:none;border:none;color:#b91c1c;font-weight:700;text-decoration:underline;cursor:pointer;">Re-upload</button>)';
     } else {
-      idStatusLabel = ' · ID Pending Verification';
+      idStatusLabel = ' · <span style="color:#854d0e;font-weight:700;">ID Pending Verification</span>';
     }
 
-    if(text) text.innerHTML = 'Signed in as <strong>' + profile.name + '</strong> (' + profile.email + ')' + idStatusLabel;
-    if(btn){
+    if (text) text.innerHTML = 'Signed in as <strong>' + escapeHtml(profile.name) + '</strong> (' + escapeHtml(profile.email) + ')' + idStatusLabel;
+    if (btn) {
       btn.textContent = 'Sign Out';
-      btn.onclick = async function(){
+      btn.onclick = async function () {
         await CivicAuth.logout();
         showToast('Signed out of student session.', 'info');
         syncStudentAuthUI(null);
       };
     }
-    if(footerLink){
+    if (navBtn) {
+      navBtn.textContent = 'Student: ' + profile.name.split(' ')[0];
+      navBtn.onclick = handleNavStudentClick;
+    }
+    if (formText) {
+      formText.innerHTML = 'Submitting as authenticated student: <strong>' + escapeHtml(profile.name) + '</strong> (' + escapeHtml(profile.email) + ')' + idStatusLabel;
+    }
+    if (formBtn) {
+      formBtn.textContent = 'My Complaints';
+      formBtn.onclick = function () {
+        openTracker();
+        switchTrackerMode('my_complaints');
+      };
+    }
+    if (footerLink) {
       footerLink.textContent = profile.name + ' (Sign Out)';
-      footerLink.onclick = async function(e){
+      footerLink.onclick = async function (e) {
         e.preventDefault();
         await CivicAuth.logout();
         showToast('Signed out of student session.', 'info');
@@ -2615,14 +3335,25 @@ function syncStudentAuthUI(profile, idCardStatus){
       };
     }
   } else {
-    if(text) text.textContent = 'Not signed in as student';
-    if(btn){
+    if (text) text.textContent = 'Not signed in as student';
+    if (btn) {
       btn.textContent = 'Sign In';
       btn.onclick = openStudentAuth;
     }
-    if(footerLink){
+    if (navBtn) {
+      navBtn.textContent = 'Student Sign In';
+      navBtn.onclick = handleNavStudentClick;
+    }
+    if (formText) {
+      formText.textContent = 'Notice: You must be signed in with your student account to register complaints.';
+    }
+    if (formBtn) {
+      formBtn.textContent = 'Sign In / Register with ID';
+      formBtn.onclick = openStudentAuth;
+    }
+    if (footerLink) {
       footerLink.textContent = 'Student Sign In';
-      footerLink.onclick = function(e){
+      footerLink.onclick = function (e) {
         e.preventDefault();
         openStudentAuth();
       };
@@ -2631,150 +3362,46 @@ function syncStudentAuthUI(profile, idCardStatus){
 }
 window.syncStudentAuthUI = syncStudentAuthUI;
 
-async function checkCurrentStudentSession(){
+async function checkCurrentStudentSession() {
   try {
     var sb = CivicAuth.getClient();
-    if(!sb) return;
+    if (!sb) return;
     var sessionRes = await sb.auth.getSession();
     var session = sessionRes.data ? sessionRes.data.session : null;
-    if(session && session.user){
+    if (session && session.user) {
       var res = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-      if(res.data && res.data.role === 'student'){
+      if (res.data && res.data.role === 'student') {
         var cardRes = await sb.from('id_cards').select('status').eq('user_id', session.user.id).maybeSingle();
         var idStatus = cardRes.data ? cardRes.data.status : 'pending';
         syncStudentAuthUI(res.data, idStatus);
       }
+    } else {
+      syncStudentAuthUI(null);
     }
-  } catch(e){}
+  } catch (e) {
+    console.error('Session check error:', e);
+  }
 }
 
-function buildDemoIds(){
-  var wrap = document.getElementById('trackerDemoIds');
-  if(!wrap) return;
+function buildDemoIds() {
+  var wrap = document.getElementById('demoIds');
+  if (!wrap) return;
   wrap.innerHTML = '';
-  var all = getComplaints().slice(0, 4);
-  all.forEach(function(c){
+  var all = typeof getComplaints === 'function' ? getComplaints().slice(0, 4) : [];
+  all.forEach(function (c) {
     var b = document.createElement('button');
     b.className = 'btn-outline';
     b.style.fontSize = '11px';
     b.style.height = '24px';
     b.style.padding = '0 8px';
     b.textContent = c.id;
-    b.onclick = function(){
+    b.onclick = function () {
       document.getElementById('trackerInput').value = c.id;
       searchComplaint();
     };
     wrap.appendChild(b);
   });
 }
-
-function searchComplaint(){
-  var id = document.getElementById('trackerInput').value.trim();
-  if(!id){
-    document.getElementById('trackerError').style.display = 'block';
-    document.getElementById('trackerError').textContent = 'Please enter a Complaint ID.';
-    document.getElementById('trackerResult').style.display = 'none';
-    return;
-  }
-  var c = getById(id);
-  document.getElementById('trackerError').style.display = 'none';
-  if(!c){
-    document.getElementById('trackerError').style.display = 'block';
-    document.getElementById('trackerError').textContent = 'No complaint found with ID "' + id + '". Check the ID and try again.';
-    document.getElementById('trackerResult').style.display = 'none';
-    return;
-  }
-  renderTracker(c);
-}
-window.searchComplaint = searchComplaint;
-
-function renderTracker(c){
-  window.renderTracker = renderTracker;
-  var res = document.getElementById('trackerResult');
-  res.style.display = 'flex';
-
-  var isSolved = c.status === 'resolved' || c.status === 'closed';
-  var isEscalated = c.status === 'escalated';
-  var isSolving = c.status === 'in_progress' || c.status === 'solving' || !!c.fieldCrew || isSolved;
-  var isUnderstood = c.understood || c.status === 'acknowledged' || isSolving || isSolved;
-
-  var banner = document.getElementById('trackerBanner');
-  if (banner) {
-    if (isSolved) {
-      banner.className = 'status-banner status-solved';
-      banner.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span>SOLVED &amp; VERIFIED ON SITE</span>';
-    } else if (isEscalated) {
-      banner.className = 'status-banner status-escalated';
-      banner.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg><span>ESCALATED TO GENERAL SECRETARY</span>';
-    } else if (isSolving) {
-      banner.className = 'status-banner status-in-progress';
-      banner.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>SOLVING · CREW ACTIVE &amp; WORK UNDERWAY</span>';
-    } else if (isUnderstood) {
-      banner.className = 'status-banner status-in-progress';
-      banner.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg><span>PROBLEM UNDERSTOOD · REVIEWED BY DEPARTMENT</span>';
-    } else {
-      banner.className = 'status-banner status-open';
-      banner.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6"/></svg><span>REPORT LODGED · QUEUED FOR DEPARTMENT REVIEW</span>';
-    }
-  }
-
-  // Stepper
-  var steps = document.getElementById('trackerSteps');
-  var sArr = steps ? steps.children : [];
-  if (sArr && sArr.length >= 4) {
-    sArr[0].className = 'tracker-step done';
-    sArr[1].className = 'tracker-step' + (isUnderstood ? ' done' : ' active');
-    sArr[2].className = 'tracker-step' + (isSolved ? ' done' : (isSolving ? ' active done' : ''));
-    sArr[3].className = 'tracker-step' + (isSolved ? ' done' : '');
-  }
-
-  var ai = c.aiAnalysis || {};
-  var reportedText = c.desc || (c.aiAnalysis && c.aiAnalysis.summary_en) || '';
-  var detailsHtml = '<div class="detail-row"><span class="detail-label">Complaint ID:</span><strong>' + c.id + '</strong></div>' +
-    '<div class="detail-row"><span class="detail-label">Domain Category:</span><span>' + (c.catName || ai.category || c.cat) + '</span></div>' +
-    '<div class="detail-row"><span class="detail-label">Location:</span><span>' + (c.location || 'Campus Premises') + '</span></div>' +
-    '<div class="detail-row"><span class="detail-label">Assigned Authority:</span><strong>' + (c.dept || 'Department Authority') + '</strong></div>' +
-    '<div class="detail-row"><span class="detail-label">Logged At:</span><span>' + formatTime(c.ts) + '</span></div>' +
-    '<div class="detail-row"><span class="detail-label">Priority:</span><span>' + (ai.priority ? 'P' + ai.priority : c.urgency || 'Normal') + '</span></div>';
-
-  if (reportedText) {
-    detailsHtml += '<div class="detail-row" style="flex-direction:column;align-items:flex-start;gap:4px;margin-top:6px;">' +
-      '<span class="detail-label">Reported Grievance:</span>' +
-      '<div style="font-size:13px;color:#1a3010;line-height:1.5;background:#f8faf6;padding:9px 12px;border-radius:8px;border:1px solid #e2ebd8;width:100%;box-sizing:border-box;">' + escapeHtml(reportedText) + '</div>' +
-    '</div>';
-  }
-
-  document.getElementById('trackerDetails').innerHTML = detailsHtml;
-
-  // Replies
-  var replyEl = document.getElementById('trackerReply');
-  if(c.replies && c.replies.length > 0){
-    replyEl.style.display = 'block';
-    var lr = c.replies[c.replies.length - 1];
-    document.getElementById('trackerReplyText').textContent = (lr.message || lr.text || '') + ' — ' + (lr.author || lr.by || 'Official');
-  } else {
-    replyEl.style.display = 'none';
-  }
-
-  // Timeline
-  var timelineWrap = document.getElementById('trackerTimelineWrap');
-  var timelineEl = document.getElementById('trackerTimeline');
-  if(c.routeHistory && c.routeHistory.length > 0){
-    timelineWrap.style.display = 'block';
-    var tHtml = '';
-    c.routeHistory.forEach(function(m){
-      tHtml += '<div class="timeline-item">' +
-        '<div class="timeline-title">' + (m.stage || 'Update') + ' · <span style="font-weight:500;color:#555">' + (m.actor || 'System') + '</span></div>' +
-        '<div class="timeline-time">' + formatTime(m.ts) + '</div>' +
-        (m.note ? '<div class="timeline-body">' + m.note + '</div>' : '') +
-        '</div>';
-    });
-    timelineEl.innerHTML = tHtml;
-  } else {
-    timelineWrap.style.display = 'none';
-  }
-}
-window.renderTracker = renderTracker;
 
 /* ══════════ LOGIN MODAL ══════════ */
 var selectedOfficial = OFFICIALS[0];

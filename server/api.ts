@@ -79,8 +79,11 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
   // 1. SIGN UPLOAD ENDPOINT
   if (pathname === "/api/cloudinary/sign-upload" && req.method === "POST") {
     try {
+      const body = await parseBody(req).catch(() => ({}));
       const timestamp = Math.round(Date.now() / 1000);
-      const folder = "civicsense/id_cards";
+      const folder = body && body.folder === "civicsense/complaint_evidence"
+        ? "civicsense/complaint_evidence"
+        : "civicsense/id_cards";
       const deliveryType = "authenticated";
 
       if (!API_SECRET || !API_KEY || !CLOUD_NAME) {
@@ -108,6 +111,26 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       });
     } catch (err: any) {
       return sendJson(res, 500, { error: err.message || "Failed to generate upload signature" });
+    }
+  }
+
+  // 1.5 DEPARTMENT UNITS LIST (PUBLIC READ FOR COMPLAINT TARGET SELECTION)
+  if (pathname === "/api/department-units" && req.method === "GET") {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from("profiles")
+        .select("id, name, unit_name, role")
+        .in("role", ["department", "social_service"])
+        .eq("is_active", true)
+        .order("name", { ascending: true });
+
+      if (error) {
+        return sendJson(res, 500, { error: error.message });
+      }
+
+      return sendJson(res, 200, { units: data || [] });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed to fetch department units" });
     }
   }
 
@@ -199,5 +222,110 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     }
   }
 
+  // 3. VIEW COMPLAINT EVIDENCE ENDPOINT (Short-lived signed URL with privacy verification)
+  if (pathname === "/api/complaint-evidence/view" && req.method === "GET") {
+    try {
+      const evidenceId = url.searchParams.get("evidenceId");
+      const publicId = url.searchParams.get("publicId");
+      const complaintId = url.searchParams.get("complaintId");
+
+      if (!evidenceId && (!publicId || !complaintId)) {
+        return sendJson(res, 400, { error: "Missing required parameter: evidenceId or (complaintId and publicId)" });
+      }
+
+      const requester = await getRequester(req);
+      if (!requester) {
+        return sendJson(res, 401, { error: "Authentication required" });
+      }
+
+      const { user, profile } = requester;
+      if (!profile || !profile.is_active) {
+        return sendJson(res, 403, { error: "Account inactive or unauthorized" });
+      }
+
+      let targetComplaintId = complaintId;
+      let targetPublicId = publicId;
+
+      if (evidenceId) {
+        const { data: evRow, error: evErr } = await supabaseAdmin
+          .from("complaint_evidence")
+          .select("complaint_id, cloudinary_public_id")
+          .eq("id", evidenceId)
+          .maybeSingle();
+
+        if (evErr || !evRow) {
+          return sendJson(res, 404, { error: "Evidence record not found" });
+        }
+        targetComplaintId = evRow.complaint_id;
+        targetPublicId = evRow.cloudinary_public_id;
+      }
+
+      const { data: compRow, error: compErr } = await supabaseAdmin
+        .from("complaints")
+        .select("id, student_id, visibility, target_unit_id")
+        .eq("id", targetComplaintId)
+        .maybeSingle();
+
+      if (compErr || !compRow) {
+        return sendJson(res, 404, { error: "Complaint not found" });
+      }
+
+      // Check complaint visibility permissions according to spec
+      let isAllowed = false;
+      if (profile.role === "student" && compRow.student_id === user.id) {
+        isAllowed = true;
+      } else if (profile.role === "administration") {
+        isAllowed = true;
+      } else if (profile.role === "social_service" && compRow.visibility === "social_service") {
+        isAllowed = true;
+      } else if (profile.role === "department") {
+        if (compRow.visibility === "social_service") {
+          isAllowed = true;
+        } else if (compRow.visibility === "department") {
+          if (compRow.target_unit_id === user.id) {
+            isAllowed = true;
+          } else if (compRow.target_unit_id && profile.unit_name) {
+            const { data: targetUnitProfile } = await supabaseAdmin
+              .from("profiles")
+              .select("unit_name")
+              .eq("id", compRow.target_unit_id)
+              .maybeSingle();
+            if (targetUnitProfile && targetUnitProfile.unit_name === profile.unit_name) {
+              isAllowed = true;
+            }
+          }
+        }
+      }
+
+      if (!isAllowed) {
+        return sendJson(res, 403, { error: "Forbidden: Not authorized to view this complaint evidence" });
+      }
+
+      if (!API_SECRET || !API_KEY || !CLOUD_NAME) {
+        return sendJson(res, 500, { error: "Cloudinary credentials not configured." });
+      }
+
+      const expiresAt = Math.round(Date.now() / 1000) + 10 * 60;
+      const signedUrl = cloudinary.utils.private_download_url(
+        targetPublicId!,
+        "jpg",
+        {
+          expires_at: expiresAt,
+          attachment: false,
+          type: "authenticated",
+        }
+      );
+
+      return sendJson(res, 200, {
+        signedUrl,
+        expiresAt,
+        publicId: targetPublicId,
+      });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed to generate signed evidence URL" });
+    }
+  }
+
   return false;
 }
+

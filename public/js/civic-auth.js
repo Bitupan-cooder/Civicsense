@@ -543,6 +543,257 @@
     return await res.json();
   }
 
+  // ── UPLOAD COMPLAINT EVIDENCE FILE ────────────────────────────
+  async function uploadEvidenceFile(file) {
+    if (!file) throw new Error('Evidence file is required.');
+
+    var MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+    if (file.size > MAX_SIZE) {
+      throw new Error('Evidence file size exceeds the 5 MB limit.');
+    }
+
+    var signRes = await fetch('/api/cloudinary/sign-upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folder: 'civicsense/complaint_evidence' })
+    });
+
+    if (!signRes.ok) {
+      var errData = await signRes.json().catch(function() { return {}; });
+      throw new Error(errData.error || 'Server rejected evidence upload signature request.');
+    }
+
+    var signData = await signRes.json();
+    var formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', signData.apiKey);
+    formData.append('timestamp', signData.timestamp);
+    formData.append('signature', signData.signature);
+    formData.append('folder', signData.folder);
+    formData.append('type', signData.type);
+
+    var uploadUrl = 'https://api.cloudinary.com/v1_1/' + signData.cloudName + '/auto/upload';
+    var cldRes = await fetch(uploadUrl, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!cldRes.ok) {
+      var cldErr = await cldRes.json().catch(function() { return {}; });
+      throw new Error((cldErr.error && cldErr.error.message) || 'Failed to upload evidence file.');
+    }
+
+    var cldData = await cldRes.json();
+    return {
+      public_id: cldData.public_id,
+      format: cldData.format
+    };
+  }
+
+  // ── SUBMIT STUDENT COMPLAINT ──────────────────────────────────
+  async function submitStudentComplaint(options) {
+    var sb = getClient();
+    if (!sb) throw new Error('Database service unavailable.');
+
+    var sessionRes = await sb.auth.getSession();
+    var session = sessionRes.data ? sessionRes.data.session : null;
+    if (!session || !session.user) {
+      throw new Error('You must be signed in with your student account to submit a complaint.');
+    }
+
+    var title = (options.title || '').trim();
+    var description = (options.description || '').trim();
+    var category = (options.category || '').trim();
+    var visibility = options.visibility || 'department';
+    var targetUnitId = options.targetUnitId || null;
+    var evidenceFiles = options.evidenceFiles || [];
+
+    if (!title || title.length < 5) {
+      throw new Error('Please enter a descriptive complaint title (minimum 5 characters).');
+    }
+    if (!description || description.length < 8) {
+      throw new Error('Please describe the issue in detail (minimum 8 characters).');
+    }
+    if (!category) {
+      throw new Error('Please select an issue category.');
+    }
+    if (visibility === 'department' && !targetUnitId) {
+      throw new Error('Please select the targeted university department unit.');
+    }
+
+    // 1. Upload evidence files (Cloudinary authenticated delivery)
+    var uploadedPublicIds = [];
+    if (evidenceFiles.length > 0) {
+      for (var i = 0; i < evidenceFiles.length; i++) {
+        var up = await uploadEvidenceFile(evidenceFiles[i]);
+        uploadedPublicIds.push(up.public_id);
+      }
+    }
+
+    // 2. Insert complaint record
+    var compRes = await sb
+      .from('complaints')
+      .insert({
+        student_id: session.user.id,
+        title: title,
+        description: description,
+        category: category,
+        visibility: visibility,
+        target_unit_id: visibility === 'department' ? targetUnitId : null,
+        status: 'submitted'
+      })
+      .select()
+      .single();
+
+    if (compRes.error || !compRes.data) {
+      throw new Error((compRes.error && compRes.error.message) || 'Failed to register complaint in database.');
+    }
+
+    var complaint = compRes.data;
+
+    // 3. Insert complaint evidence records
+    if (uploadedPublicIds.length > 0) {
+      var evRows = uploadedPublicIds.map(function(pid) {
+        return {
+          complaint_id: complaint.id,
+          cloudinary_public_id: pid
+        };
+      });
+
+      var evRes = await sb.from('complaint_evidence').insert(evRows);
+      if (evRes.error) {
+        console.error('Failed to link evidence records:', evRes.error);
+      }
+    }
+
+    // 4. Insert initial status history record (Submitted)
+    var histRes = await sb.from('complaint_status_history').insert({
+      complaint_id: complaint.id,
+      status: 'submitted',
+      remark: 'Complaint registered by student',
+      changed_by: session.user.id
+    });
+
+    if (histRes.error) {
+      console.error('Failed to create status history entry:', histRes.error);
+    }
+
+    // 5. Activity log
+    try {
+      await sb.from('activity_log').insert({
+        actor_id: session.user.id,
+        action: 'complaint_submitted',
+        target: 'Complaint #' + complaint.id.slice(0, 8) + ' (' + title.slice(0, 30) + ') submitted'
+      });
+    } catch (e) {}
+
+    return complaint;
+  }
+
+  // ── FETCH STUDENT COMPLAINTS ──────────────────────────────────
+  async function fetchStudentComplaints() {
+    var sb = getClient();
+    if (!sb) throw new Error('Database service unavailable.');
+
+    var sessionRes = await sb.auth.getSession();
+    var session = sessionRes.data ? sessionRes.data.session : null;
+    if (!session || !session.user) {
+      return [];
+    }
+
+    var res = await sb
+      .from('complaints')
+      .select('id, student_id, title, description, category, visibility, target_unit_id, status, created_at, updated_at, complaint_evidence(id, complaint_id, cloudinary_public_id, created_at), complaint_status_history(id, complaint_id, status, remark, changed_by, created_at)')
+      .eq('student_id', session.user.id)
+      .order('created_at', { ascending: false });
+
+    if (res.error) {
+      throw new Error(res.error.message || 'Failed to fetch complaints list.');
+    }
+
+    return res.data || [];
+  }
+
+  // ── FETCH COMPLAINT BY ID (FOR TRACKER) ───────────────────────
+  async function fetchComplaintById(complaintId) {
+    var sb = getClient();
+    if (!sb) throw new Error('Database service unavailable.');
+
+    var cleanId = (complaintId || '').trim();
+    if (!cleanId) return null;
+
+    var query = sb
+      .from('complaints')
+      .select('id, student_id, title, description, category, visibility, target_unit_id, status, created_at, updated_at, complaint_evidence(id, complaint_id, cloudinary_public_id, created_at), complaint_status_history(id, complaint_id, status, remark, changed_by, created_at)');
+
+    // Check if cleanId looks like a UUID
+    if (cleanId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      query = query.eq('id', cleanId);
+    } else {
+      // Allow prefix search e.g. first 8 characters
+      var prefix = cleanId.replace(/^CS-?/i, '');
+      query = query.ilike('id', prefix + '%');
+    }
+
+    var res = await query.maybeSingle();
+    if (res.error) {
+      console.error('Failed to query complaint:', res.error);
+      return null;
+    }
+    return res.data;
+  }
+
+  // ── FETCH DEPARTMENT UNITS LIST ───────────────────────────────
+  async function fetchDepartmentUnits() {
+    var sb = getClient();
+    if (sb) {
+      var res = await sb
+        .from('profiles')
+        .select('id, name, unit_name, role')
+        .in('role', ['department', 'social_service'])
+        .eq('is_active', true)
+        .order('name', { ascending: true });
+
+      if (!res.error && res.data && res.data.length > 0) {
+        return res.data;
+      }
+    }
+
+    var fallbackRes = await fetch('/api/department-units');
+    if (fallbackRes.ok) {
+      var json = await fallbackRes.json();
+      return json.units || [];
+    }
+    return [];
+  }
+
+  // ── VIEW COMPLAINT EVIDENCE FILE ──────────────────────────────
+  async function getViewableEvidenceUrl(complaintId, publicId) {
+    var sb = getClient();
+    if (!sb) throw new Error('Database service unavailable.');
+
+    var sessionRes = await sb.auth.getSession();
+    var session = sessionRes.data ? sessionRes.data.session : null;
+    if (!session) {
+      throw new Error('Authentication required to view complaint evidence files.');
+    }
+
+    var url = '/api/complaint-evidence/view?complaintId=' + encodeURIComponent(complaintId) + '&publicId=' + encodeURIComponent(publicId);
+    var res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + session.access_token
+      }
+    });
+
+    if (!res.ok) {
+      var errData = await res.json().catch(function() { return {}; });
+      throw new Error(errData.error || 'Access denied to evidence file.');
+    }
+
+    return await res.json();
+  }
+
   // ── PUBLIC API EXPORT ─────────────────────────────────────────
   global.CivicAuth = {
     getClient: getClient,
@@ -571,7 +822,13 @@
     uploadIdCardToCloudinary: uploadIdCardToCloudinary,
     signUpStudent: signUpStudent,
     reuploadIdCard: reuploadIdCard,
-    getViewableIdCardUrl: getViewableIdCardUrl
+    getViewableIdCardUrl: getViewableIdCardUrl,
+    uploadEvidenceFile: uploadEvidenceFile,
+    submitStudentComplaint: submitStudentComplaint,
+    fetchStudentComplaints: fetchStudentComplaints,
+    fetchComplaintById: fetchComplaintById,
+    fetchDepartmentUnits: fetchDepartmentUnits,
+    getViewableEvidenceUrl: getViewableEvidenceUrl
   };
 })(window);
 
