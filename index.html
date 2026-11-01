@@ -486,42 +486,42 @@ nav.f-links a:hover{text-decoration:underline}
   <div class="categories-inner">
     <h2 class="h2 split">Pick your issue type.<br>We route it <em style="color:var(--olive);font-style:italic">to the right desk.</em></h2>
     <div class="cat-grid" id="catGrid">
-      <div class="cat-card reveal" data-cat="water" onclick="selectCat('water')">
+      <div class="cat-card" data-cat="water" onclick="selectCat('water')">
         <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M12 2s-6 6.5-6 11a6 6 0 0012 0C18 8.5 12 2 12 2z"/><path d="M8 16s1 2 4 2 4-2 4-2"/></svg></div>
         <div><div class="cat-name">Water &amp; Plumbing</div><div class="cat-desc">Leaking pipes, broken taps, washroom issues, low pressure or water supply failure.</div></div>
         <div class="cat-dept">→ PHE · Facility Operations</div>
       </div>
-      <div class="cat-card reveal" data-cat="power" onclick="selectCat('power')">
+      <div class="cat-card" data-cat="power" onclick="selectCat('power')">
         <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H12L11 22l8.5-11.5H12L13 2z"/></svg></div>
         <div><div class="cat-name">Power &amp; Lighting</div><div class="cat-desc">Broken pathway lights, flickering fixtures, tripped breakers, dead electrical sockets.</div></div>
         <div class="cat-dept">→ Electrical Maintenance</div>
       </div>
-      <div class="cat-card reveal" data-cat="wifi" onclick="selectCat('wifi')">
+      <div class="cat-card" data-cat="wifi" onclick="selectCat('wifi')">
         <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M5 12.5A10 10 0 0119 12.5"/><path d="M8 15.5A6 6 0 0116 15.5"/><circle cx="12" cy="20" r="1.2" fill="var(--olive)" stroke="none"/></svg></div>
         <div><div class="cat-name">Wi-Fi &amp; Connectivity</div><div class="cat-desc">Dead signal spots, frequent drops, authentication failures, damaged Ethernet ports.</div></div>
         <div class="cat-dept">→ CCSA · Campus IT</div>
       </div>
-      <div class="cat-card reveal" data-cat="safety" onclick="selectCat('safety')">
+      <div class="cat-card" data-cat="safety" onclick="selectCat('safety')">
         <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5V12c0 4.5-3.5 8.5-8 9.5C7.5 20.5 4 16.5 4 12V7.5L12 3z"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="15" r=".8" fill="var(--olive)" stroke="none"/></svg></div>
         <div><div class="cat-name">Safety &amp; Emergency</div><div class="cat-desc">Unlit corners, broken emergency boxes, hazardous walkways, access door defects.</div></div>
         <div class="cat-dept">→ Campus Safety Command</div>
       </div>
-      <div class="cat-card reveal" data-cat="waste" onclick="selectCat('waste')">
+      <div class="cat-card" data-cat="waste" onclick="selectCat('waste')">
         <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></div>
         <div><div class="cat-name">Waste &amp; Sanitation</div><div class="cat-desc">Overflowing trash bins, broken recycling units, litter on walkways, bio-waste cleanup.</div></div>
         <div class="cat-dept">→ Sanitation &amp; Grounds</div>
       </div>
-      <div class="cat-card reveal" data-cat="hostel" onclick="selectCat('hostel')">
+      <div class="cat-card" data-cat="hostel" onclick="selectCat('hostel')">
         <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M3 21V9l9-6 9 6v12"/><rect x="9" y="13" width="6" height="8"/></svg></div>
         <div><div class="cat-name">Hostel &amp; Residence</div><div class="cat-desc">Dormitory maintenance, broken furniture, lock repairs, mess or laundry faults.</div></div>
         <div class="cat-dept">→ Hostels &amp; Housing Board</div>
       </div>
-      <div class="cat-card reveal" data-cat="labs" onclick="selectCat('labs')">
+      <div class="cat-card" data-cat="labs" onclick="selectCat('labs')">
         <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M9 3v8L5 21h14L15 11V3"/><line x1="9" y1="3" x2="15" y2="3"/></svg></div>
         <div><div class="cat-name">Labs &amp; Classrooms</div><div class="cat-desc">Faulty projectors, lab ventilation, air conditioning, AV system outages.</div></div>
         <div class="cat-dept">→ Academic Labs &amp; Tech</div>
       </div>
-      <div class="cat-card reveal" style="background:var(--pill);border-color:var(--olive);justify-content:center;align-items:center;text-align:center;gap:14px;">
+      <div class="cat-card" style="background:var(--pill);border-color:var(--olive);justify-content:center;align-items:center;text-align:center;gap:14px;">
         <div style="font-size:13px;font-weight:600;color:var(--olive);">7 categories · 7 departments<br>All auto-routed by AI</div>
         <button class="btn" onclick="document.getElementById('report').scrollIntoView({behavior:'smooth'})" style="font-size:12px;height:32px;padding:0 14px;">File a Report</button>
       </div>
@@ -1213,7 +1213,12 @@ gsap.timeline({delay:.25,onComplete:function(){
 function setupScroll(){
   ScrollTrigger.create({trigger:'#hero',start:'top top',end:'bottom top',scrub:true,onUpdate:function(s){gsap.set('#heroTitle',{yPercent:-60*s.progress});document.querySelectorAll('.hero [data-par]').forEach(function(el){gsap.set(el,{y:parseFloat(el.dataset.par)*2*s.progress});});gsap.set('#hero3dStage',{yPercent:16*s.progress,rotationX:10*s.progress});}});
   document.querySelectorAll('.reveal').forEach(function(el){gsap.from(el,{opacity:0,y:16,duration:.8,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 85%'}});});
-  document.querySelectorAll('#stats .split .w,#how .split .w,#categories .split .w,#cta .split .w,#report .split .w').forEach(function(el){gsap.from(el,{opacity:0,y:22,filter:'blur(8px)',duration:.9,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 80%'}});});
+  document.querySelectorAll('#stats .split, #how .split, #categories .split, #cta .split, #report .split').forEach(function(heading){
+    var words = heading.querySelectorAll('.w');
+    if(words.length){
+      gsap.from(words,{opacity:0,y:20,filter:'blur(6px)',duration:.8,stagger:.04,ease:'power3.out',scrollTrigger:{trigger:heading,start:'top 85%'}});
+    }
+  });
 
   function setCounters(p){document.querySelectorAll('.card').forEach(function(c){c.querySelector('.card-value').textContent=(parseFloat(c.dataset.to)*p).toFixed(parseInt(c.dataset.dec))+c.dataset.suf;});}
 
@@ -1242,7 +1247,7 @@ function setupScroll(){
     document.querySelectorAll('.panel>*').forEach(function(el){gsap.from(el,{y:40,opacity:0,duration:.9,stagger:.1,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 85%'}});});
     return function(){};
   });
-  gsap.from('.cat-card',{y:30,opacity:0,stagger:{each:.06,from:'start'},duration:.8,ease:'power3.out',scrollTrigger:{trigger:'#catGrid',start:'top 80%'}});
+  gsap.from('.cat-card',{y:24,opacity:0,stagger:{each:.05,from:'start'},duration:.7,ease:'power3.out',scrollTrigger:{trigger:'#catGrid',start:'top 88%'}});
   ScrollTrigger.create({trigger:'#cta',start:'top bottom',end:'bottom bottom',scrub:true,onUpdate:function(s){gsap.set('#ctaImg',{yPercent:-12+12*s.progress});}});
   gsap.from('#ctaCard',{y:80,scale:.94,opacity:0,filter:'blur(10px)',duration:1.2,ease:'power3.out',scrollTrigger:{trigger:'#cta',start:'top 60%'}});
   var ftl=gsap.timeline({scrollTrigger:{trigger:'#footer',start:'top 92%'}});
