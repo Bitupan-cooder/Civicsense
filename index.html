@@ -57,11 +57,20 @@ body.intro #app{transform:scale(.9);border-radius:28px}
 
 /* ══════════════════════ HERO ════════════════════════ */
 .hero{position:relative;height:100vh;min-height:640px;overflow:hidden;background:var(--bg)}
-.nav{position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:28px;padding:5px 5px 5px 18px;border-radius:999px;background:rgba(250,242,235,.95);box-shadow:0 0 0 1px rgba(0,0,0,.06),0 6px 18px rgba(0,0,0,.08);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);white-space:nowrap}
-.brand{display:flex;align-items:center;gap:8px;font-size:19px;font-weight:600;letter-spacing:-.04em;color:var(--olive)}
-.nav-links{display:flex;gap:20px;font-size:13px;font-weight:500;color:#1a3a10}
-.nav-links a:hover{color:var(--olive)}
-.nav-actions{display:flex;gap:8px;align-items:center}
+.nav{position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:28px;height:48px;padding:0 8px 0 14px;border-radius:0 0 20px 20px;background:rgba(250,242,235,.94);box-shadow:0 8px 26px rgba(14,48,24,.08),0 1px 0 rgba(255,255,255,.7) inset,0 0 0 1px rgba(0,0,0,.06);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);white-space:nowrap}
+.nav::before,.nav::after{content:'';position:absolute;top:0;width:16px;height:16px;pointer-events:none}
+.nav::before{left:-16px;background:radial-gradient(circle at 0 100%,transparent 16px,rgba(250,242,235,.94) 16.5px)}
+.nav::after{right:-16px;background:radial-gradient(circle at 100% 100%,transparent 16px,rgba(250,242,235,.94) 16.5px)}
+.brand{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:700;letter-spacing:-.03em;color:var(--olive);text-decoration:none}
+.brand-icon-box{width:26px;height:26px;border-radius:7.5px;background:linear-gradient(145deg,#1ea854,#124e27);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(30,168,84,.35),inset 0 1px 0 rgba(255,255,255,.4);flex-shrink:0}
+.nav-links{display:flex;align-items:center;gap:20px;font-size:13px;font-weight:500;color:#244b20}
+.nav-links a{padding:4px 8px;border-radius:6px;transition:color .2s,background .2s}
+.nav-links a:hover{color:var(--olive);background:rgba(20,82,40,.06)}
+.nav-actions{display:flex;gap:7px;align-items:center}
+.nav-btn-track{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border-radius:999px;font-size:12px;font-weight:600;letter-spacing:-.01em;background:rgba(20,82,40,.07);color:var(--olive);border:1px solid rgba(20,82,40,.12);cursor:pointer;white-space:nowrap;transition:background .2s,transform .2s}
+.nav-btn-track:hover{background:rgba(20,82,40,.14);transform:translateY(-1px)}
+.nav-btn-portal{display:inline-flex;align-items:center;justify-content:center;gap:4px;height:32px;padding:0 14px;border-radius:999px;font-size:12px;font-weight:600;letter-spacing:-.01em;background:var(--olive);color:#f0ffe8;border:none;text-decoration:none;cursor:pointer;white-space:nowrap;box-shadow:0 2px 8px rgba(20,82,40,.25),inset 0 1px 0 rgba(255,255,255,.25);transition:background .2s,transform .2s,box-shadow .2s}
+.nav-btn-portal:hover{background:#0e3d1c;transform:translateY(-1px);box-shadow:0 4px 12px rgba(20,82,40,.35)}
 .hero-backdrop-title{position:absolute;left:0;right:0;margin:0 auto;bottom:clamp(225px,32vh,340px);width:100%;text-align:center;font-family:"Inter Tight",system-ui,sans-serif;font-size:clamp(46px,10.5vw,156px);font-weight:800;letter-spacing:-.04em;line-height:.92;color:#8abe05;text-shadow:0 4px 30px rgba(138,190,5,.16),0 1px 4px rgba(0,0,0,.04);z-index:2;pointer-events:none;user-select:none;white-space:nowrap}
 .cloud{position:absolute}
 .cloud-l{top:-3%;left:-5%;width:min(44vw,640px);z-index:4}
@@ -256,7 +265,7 @@ nav.f-links a:hover{text-decoration:underline}
   .hero-3d-card{flex:0 0 auto;scroll-snap-align:center}
   .char-img{height:200px;max-width:160px}
   .cloud-l{width:70vw;left:-18vw;top:6%}.cloud-r{width:66vw;right:-20vw;top:10%}
-  .nav{top:14px;gap:10px;padding-left:12px}.brand{font-size:16px}
+  .nav{top:0;gap:8px;padding:0 6px 0 10px;height:44px;border-radius:0 0 16px 16px}.nav::before,.nav::after{display:none}.brand{font-size:14px}
   .loop{height:auto;min-height:0;padding:12vh 0 40px}.loop-head{position:relative;top:auto}
   .loop-cloud{width:62vw;left:-14vw;top:2vh;opacity:.9}
   .track{position:relative;inset:auto;flex-direction:column;margin-top:40px}
@@ -611,11 +620,13 @@ nav.f-links a:hover{text-decoration:underline}
 <section class="hero" id="hero">
   <nav class="nav" aria-label="Main navigation">
     <a class="brand" href="#hero" aria-label="CivicSense home">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-        <path d="M11 2C11 2 4 6 4 13a7 7 0 0014 0C18 6 11 2 11 2z" fill="currentColor" opacity=".9"/>
-        <line x1="11" y1="14" x2="11" y2="20" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-      CivicSense
+      <span class="brand-icon-box">
+        <svg width="16" height="16" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+          <path d="M11 2C11 2 4 6 4 13a7 7 0 0014 0C18 6 11 2 11 2z" fill="#fff" opacity=".95"/>
+          <line x1="11" y1="14" x2="11" y2="20" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span>CivicSense</span>
     </a>
     <div class="nav-links">
       <a href="#stats">Stats</a>
@@ -624,8 +635,8 @@ nav.f-links a:hover{text-decoration:underline}
       <a href="#report">Report</a>
     </div>
     <div class="nav-actions">
-      <button class="btn-outline" id="openTrackerBtn" onclick="openTracker()" style="height:32px;font-size:12px;padding:0 14px;">Track Status</button>
-      <a href="admin.html" class="btn btn-blue" id="openAdminPageLink" style="height:32px;font-size:12px;padding:0 14px;display:inline-flex;align-items:center;text-decoration:none;gap:4px;">Official Portal ↗</a>
+      <button class="nav-btn-track" id="openTrackerBtn" onclick="openTracker()">Track Status</button>
+      <a href="admin.html" class="nav-btn-portal" id="openAdminPageLink">Official Portal ↗</a>
     </div>
   </nav>
 
