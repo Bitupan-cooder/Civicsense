@@ -425,3 +425,47 @@ create policy activity_log_insert_policy on public.activity_log
     actor_id = auth.uid()
     and public.current_user_is_active() = true
   );
+
+-- ─── 6. SECURITY INTEGRITY TRIGGERS ─────────────────────────
+
+-- Enforce profile integrity: prevents students or non-administrators
+-- from self-elevating roles, modifying unit assignments, or tampering with active states
+create or replace function public.enforce_profile_update_integrity()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_caller_role public.user_role;
+begin
+  -- Service role or background processes bypass
+  if auth.uid() is null then
+    NEW.updated_at = timezone('utc'::text, now());
+    return NEW;
+  end if;
+
+  select role into v_caller_role from public.profiles where id = auth.uid() and is_active = true;
+
+  if v_caller_role is null or v_caller_role != 'administration' then
+    if NEW.role is distinct from OLD.role then
+      raise exception 'Security violation: Only Central Administration can modify user roles.';
+    end if;
+    if NEW.is_active is distinct from OLD.is_active then
+      raise exception 'Security violation: Only Central Administration can modify account activation status.';
+    end if;
+    if NEW.unit_name is distinct from OLD.unit_name then
+      raise exception 'Security violation: Only Central Administration can modify official unit assignments.';
+    end if;
+  end if;
+
+  NEW.updated_at = timezone('utc'::text, now());
+  return NEW;
+end;
+$$;
+
+drop trigger if exists trg_profile_update_integrity on public.profiles;
+create trigger trg_profile_update_integrity
+  before update on public.profiles
+  for each row
+  execute function public.enforce_profile_update_integrity();
