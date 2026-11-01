@@ -307,6 +307,230 @@ nav.f-links a:hover{text-decoration:underline}
 .map-info-pill:hover{transform:scale(1.1)}
 .map-popover{position:absolute;z-index:25;background:#ffffff;color:#173d34;border:1.5px solid var(--olive);border-radius:12px;padding:10px 14px;box-shadow:0 10px 25px rgba(20,50,20,0.18);font-size:12px;max-width:260px;line-height:1.45;transform:translate(-50%, -100%);margin-top:-16px;pointer-events:auto}
 .map-popover::after{content:'';position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);border-width:7px 7px 0;border-style:solid;border-color:#ffffff transparent transparent;display:block;width:0}
+
+/* ══════════ OFFICIAL PORTALS — 3 DISTINCT MODES ══════════ */
+.login-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+  background: #f1f5ec;
+  padding: 5px;
+  border-radius: 12px;
+  border: 1px solid #d4e2c8;
+}
+.login-mode-tab {
+  border: 1.5px solid transparent;
+  background: transparent;
+  padding: 10px 8px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #3b5634;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transition: all .2s ease;
+  text-align: center;
+}
+.login-mode-tab:hover {
+  background: rgba(255,255,255,0.75);
+  color: #1b3816;
+}
+.login-mode-tab.active {
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(20,50,20,0.12);
+}
+.login-mode-tab.active.dept {
+  color: #134e2c;
+  border-color: #79bf6d;
+}
+.login-mode-tab.active.admin {
+  color: #1e3a8a;
+  border-color: #60a5fa;
+}
+.login-mode-tab.active.social {
+  color: #0036FF;
+  border-color: #818cf8;
+}
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+  gap: 10px;
+  max-height: 270px;
+  overflow-y: auto;
+  padding: 2px 4px 6px 2px;
+}
+.profile-card {
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 11px 12px;
+  cursor: pointer;
+  transition: all .18s ease;
+  background: #fff;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.profile-card:hover {
+  border-color: var(--olive);
+  background: #f6fbf2;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+}
+.profile-card.selected.dept {
+  border-color: #134e2c;
+  background: #eef9e7;
+  box-shadow: 0 0 0 3px rgba(19,78,44,.15);
+}
+.profile-card.selected.admin {
+  border-color: #1e40af;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(30,64,175,.15);
+}
+.profile-card.selected.social {
+  border-color: #0036FF;
+  background: #f0f4ff;
+  box-shadow: 0 0 0 3px rgba(0,54,255,.15);
+}
+.profile-badge {
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  display: inline-block;
+  align-self: flex-start;
+  margin-bottom: 3px;
+}
+.profile-badge.dept {
+  background: #e0f5d0;
+  color: #134e2c;
+  border: 1px solid #b8e6a0;
+}
+.profile-badge.admin {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+.profile-badge.social {
+  background: #e0e7ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+}
+.profile-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.profile-title {
+  font-size: 11px;
+  color: #4a6838;
+  line-height: 1.35;
+}
+.profile-dept {
+  font-size: 10.5px;
+  color: #6b7280;
+}
+
+/* KPI BARS */
+.ws-kpi-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+@media (max-width: 768px) {
+  .ws-kpi-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.ws-kpi-card {
+  background: #ffffff;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+  position: relative;
+  overflow: hidden;
+}
+.ws-kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--kpi-color, #134e2c);
+}
+.ws-kpi-val {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1;
+}
+.ws-kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #556950;
+  margin-top: 5px;
+}
+
+/* TICKET ACTION CONTROLS */
+.ws-btn-sm {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all .16s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.ws-btn-primary { background: #134e2c; color: #fff; }
+.ws-btn-primary:hover { background: #0c331d; }
+.ws-btn-admin { background: #1e40af; color: #fff; }
+.ws-btn-admin:hover { background: #172554; }
+.ws-btn-social { background: #0036FF; color: #fff; }
+.ws-btn-social:hover { background: #0022a3; }
+.ws-btn-outline { background: #fff; border-color: #cbd5e1; color: #334155; }
+.ws-btn-outline:hover { background: #f8fafc; border-color: #94a3b8; }
+.ws-btn-amber { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+.ws-btn-amber:hover { background: #fde68a; }
+.ws-btn-green { background: #dcfce7; border-color: #22c55e; color: #166534; }
+.ws-btn-green:hover { background: #bbf7d0; }
+
+/* STEPPER */
+.ws-stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 9px 0 11px;
+  padding: 7px 12px;
+  background: #f8faf6;
+  border-radius: 8px;
+  border: 1px solid #e1ead6;
+  flex-wrap: wrap;
+}
+.ws-step-node {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ws-step-node.active { color: #0f172a; font-weight: 800; }
+.ws-step-node.done { color: #15803d; font-weight: 700; }
+.ws-step-arrow { color: #cbd5e1; font-size: 10px; }
+
 </style>
   <!-- Dibrugarh University Vector Map Assets (Offline Local Map Kit) -->
   <script src="Dibrugarh-University-Map-Kit/assets/proj4.js"></script>
@@ -800,55 +1024,83 @@ nav.f-links a:hover{text-decoration:underline}
 </div>
 
 <!-- ═══════════════════════════════════════
-     OFFICIALS LOGIN MODAL
+     OFFICIALS LOGIN MODAL — 3 DISTINCT MODES
 ═══════════════════════════════════════ -->
 <div class="modal-overlay hidden" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-  <div class="modal">
+  <div class="modal" style="max-width:720px">
     <div class="modal-header">
-      <div class="modal-title">
+      <div class="modal-title" id="loginTitle">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-        Officials Access Portal
+        Dibrugarh University · Official Redressal Access Portal
       </div>
       <button class="modal-close" onclick="closeLogin()" aria-label="Close">✕</button>
     </div>
     <div class="modal-body">
-      <div class="info-box">
-        Password-protected portal for Department Heads, Student Union Executive, and Central Admin. Your role is auto-detected upon login.
+      <!-- 3 MODE SWITCHER TABS -->
+      <div class="login-mode-tabs" role="tablist" aria-label="Official Modes">
+        <button type="button" class="login-mode-tab active dept" id="tabModeDept" onclick="switchLoginMode('dept_head')" role="tab" aria-selected="true">
+          <span style="font-size:17px;">🏛️</span>
+          <span>Department Head</span>
+          <small style="font-size:9.5px;opacity:.85;font-weight:600">Chairmen &amp; HODs</small>
+        </button>
+        <button type="button" class="login-mode-tab admin" id="tabModeAdmin" onclick="switchLoginMode('admin')" role="tab" aria-selected="false">
+          <span style="font-size:17px;">⚖️</span>
+          <span>Administration</span>
+          <small style="font-size:9.5px;opacity:.85;font-weight:600">Registrar &amp; Proctor</small>
+        </button>
+        <button type="button" class="login-mode-tab social" id="tabModeSocial" onclick="switchLoginMode('social')" role="tab" aria-selected="false">
+          <span style="font-size:17px;">🎓</span>
+          <span>Social Party</span>
+          <small style="font-size:9.5px;opacity:.85;font-weight:600">DUSU President &amp; GS</small>
+        </button>
       </div>
 
-      <div>
-        <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Select Demo Role Preset</div>
-        <div class="preset-grid" id="presetGrid"></div>
+      <!-- MODE DESCRIPTION BANNER -->
+      <div id="loginModeBanner" class="info-box" style="margin-bottom:12px;padding:10px 14px;border-left:4px solid var(--olive);">
+        <strong>Mode 1: Department Head (Chairmen)</strong> — Manages departmental complaints, dispatches maintenance crews, updates solving status, and resolves facility tickets.
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="pwInput">Password</label>
-        <input class="pw-input" id="pwInput" type="password" value="civic2026" placeholder="Enter authorized password" />
+      <!-- PROFILES LIST FOR CURRENT MODE -->
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;color:#3b5634;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px" id="profilesListTitle">Select Official Profile:</div>
+        <div class="profile-grid" id="officialProfilesGrid"></div>
       </div>
 
-      <div id="loginError" style="display:none" class="error-msg"></div>
-      <button class="btn" id="loginSubmitBtn" onclick="submitLogin()" style="width:100%;height:44px;font-size:14px;border-radius:10px;">Login to Workspace</button>
+      <!-- PASSWORD / CREDENTIAL FORM -->
+      <div class="form-group" style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <label class="form-label" for="pwInput" style="margin:0">Official Passcode</label>
+          <span style="font-size:10.5px;color:#6b7280;">Demo passcode: <code style="background:#e5f0dc;padding:1px 5px;border-radius:4px;color:#134e2c;">civic2026</code></span>
+        </div>
+        <input class="pw-input" id="pwInput" type="password" value="civic2026" placeholder="Enter authorized passcode" />
+      </div>
+
+      <div id="loginError" style="display:none;margin-bottom:10px;" class="error-msg"></div>
+      <button class="btn" id="loginSubmitBtn" onclick="submitLogin()" style="width:100%;height:44px;font-size:14px;border-radius:10px;font-weight:700;">
+        Sign In to Department Head Workspace →
+      </button>
     </div>
   </div>
 </div>
 
 <!-- ═══════════════════════════════════════
-     OFFICIAL WORKSPACE MODAL
+     OFFICIAL WORKSPACE MODAL — DEDICATED DASHBOARDS
 ═══════════════════════════════════════ -->
 <div class="modal-overlay hidden" id="workspaceModal" role="dialog" aria-modal="true" aria-labelledby="wsTitle">
-  <div class="modal" style="max-width:760px;max-height:92vh">
-    <div class="modal-header">
-      <div class="modal-title" id="wsTitle">
+  <div class="modal" style="max-width:980px;max-height:94vh;width:95%">
+    <div class="modal-header" id="wsHeader" style="background:#134e2c;color:#fff;transition:background .25s ease;">
+      <div class="modal-title" id="wsTitle" style="color:#fff;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
-        <span id="wsRoleLabel">Official Workspace</span>
+        <span id="wsRoleLabel">Department Head Workspace</span>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span id="wsUserName" style="font-size:12px;opacity:.85"></span>
-        <button onclick="logoutWorkspace()" style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:12px;padding:4px 10px;border-radius:999px;cursor:pointer">Logout</button>
-        <button class="modal-close" onclick="closeWorkspace()" aria-label="Close">✕</button>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span id="wsUserName" style="font-size:12px;opacity:.95;background:rgba(255,255,255,.18);padding:3px 10px;border-radius:999px;"></span>
+        <button onclick="switchRoleInsideWorkspace()" style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:11.5px;padding:5px 12px;border-radius:6px;cursor:pointer">Switch Mode</button>
+        <button onclick="logoutWorkspace()" style="background:#dc2626;border:none;color:#fff;font-size:11.5px;padding:5px 12px;border-radius:6px;cursor:pointer">Logout</button>
+        <button class="modal-close" onclick="closeWorkspace()" aria-label="Close" style="color:#fff;">✕</button>
       </div>
     </div>
-    <div class="modal-body" id="wsBody"></div>
+    <div class="modal-body" id="wsBody" style="background:#f9fbf7;padding:18px 22px;max-height:80vh;overflow-y:auto;"></div>
   </div>
 </div>
 
@@ -898,89 +1150,153 @@ var SOLVER_MAP = {
   other: { name: 'Central Administration Review', desk: 'Registrar Office & Redressal Ombudsman', head: 'Prof. Hemanga Sharma', sla: 48, icon: '📋' }
 };
 
+// ════════════ OFFICIALS & 3 DISTINCT WORKSPACE MODES ════════════
+var currentLoginMode = 'dept_head'; // 'dept_head' | 'admin' | 'social'
+
 var OFFICIALS = [
+  // MODE 1: DEPARTMENT HEAD (CHAIRMEN & HODs)
   {
-    id: 'off_proctor',
-    name: 'Dr. P. Barua',
-    email: 'proctor@campus.edu',
-    role: 'head_chairperson',
-    roleTitle: 'Head / Chairperson, Proctorial Board & Sensitive Redressal',
-    departmentId: 'safety',
-    departmentName: 'Campus Safety & Confidential Proctorial Command',
-    mode: 3,
+    id: 'off_dept_electrical',
+    mode: 'dept_head',
+    modeLabel: 'Department Head (Chairman)',
+    name: 'Prof. A. K. Buragohain',
+    roleTitle: 'Chairman / Head, Electrical & Power Engineering',
+    departmentId: 'electricity',
+    departmentName: 'Electrical & Power Works',
+    email: 'chairman.electrical@dibru.ac.in',
+    avatar: '⚡',
+    badge: 'Chairman · Power Desk',
+    handlesConfidential: false
+  },
+  {
+    id: 'off_dept_hostel',
+    mode: 'dept_head',
+    modeLabel: 'Department Head (Chairman)',
+    name: 'Dr. J. Hazarika',
+    roleTitle: 'Chief Warden & Chairman, Hostels & Residential Welfare',
+    departmentId: 'hostel',
+    departmentName: 'Hostels & Housing Board',
+    email: 'chiefwarden.hostels@dibru.ac.in',
+    avatar: '🏠',
+    badge: 'Chairman · Hostels Board',
     handlesConfidential: true
   },
   {
-    id: 'off_water',
-    name: 'Shri Biren Gogoi',
-    email: 'dept.water@campus.edu',
-    role: 'dept_head',
-    roleTitle: 'Officer in Charge, PHE & Facilities Depot',
-    departmentId: 'water',
-    departmentName: 'Water & Facilities Depot',
-    mode: 1
-  },
-  {
-    id: 'off_electrical',
-    name: 'Er. Deepshikha Kalita',
-    email: 'dept.electrical@campus.edu',
-    role: 'dept_head',
-    roleTitle: 'Chief Engineer, Electrical & Power Maintenance',
-    departmentId: 'electricity',
-    departmentName: 'Power & Infrastructure Desk',
-    mode: 1
-  },
-  {
-    id: 'off_hostel',
-    name: 'Dr. J. Hazarika',
-    email: 'hostel-warden@campus.edu',
-    role: 'dept_head',
-    roleTitle: 'Chief Warden, Hostels & Residential Welfare',
-    departmentId: 'hostel',
-    departmentName: 'Hostels & Housing Board',
-    mode: 1
-  },
-  {
-    id: 'off_it',
+    id: 'off_dept_it',
+    mode: 'dept_head',
+    modeLabel: 'Department Head (Chairman)',
     name: 'Prof. T. Saikia',
-    email: 'ccsa-network@campus.edu',
-    role: 'dept_head',
-    roleTitle: 'Director, CCSA IT & Campus Connectivity',
+    roleTitle: 'Director & Chairman, Centre for Computer Science & Applications (CCSA)',
     departmentId: 'internet',
-    departmentName: 'CCSA IT Network Operations',
-    mode: 1
+    departmentName: 'CCSA IT & Campus Network',
+    email: 'director.ccsa@dibru.ac.in',
+    avatar: '📶',
+    badge: 'Chairman · IT Network',
+    handlesConfidential: false
   },
   {
-    id: 'off_sanitation',
+    id: 'off_dept_sanitation',
+    mode: 'dept_head',
+    modeLabel: 'Department Head (Chairman)',
     name: 'Dr. Mukul Barua',
-    email: 'dept.sanitation@campus.edu',
-    role: 'dept_head',
-    roleTitle: 'Head, Estates & Sanitation Operations',
+    roleTitle: 'Head & Chairman, Estates, Cleanliness & Sanitation Operations',
     departmentId: 'sanitation',
-    departmentName: 'Clean Campus & Sanitation Desk',
-    mode: 1
+    departmentName: 'Sanitation & Estates Office',
+    email: 'estates.head@dibru.ac.in',
+    avatar: '🧹',
+    badge: 'Chairman · Sanitation',
+    handlesConfidential: false
   },
   {
-    id: 'off_president',
-    name: 'Nabajyoti Bora',
-    email: 'gs.dusu@campus.edu',
-    role: 'president_gs',
-    roleTitle: 'General Secretary, DUSU (Executive Oversight)',
-    departmentId: 'general',
-    departmentName: 'DUSU Executive Council',
-    mode: 2
+    id: 'off_dept_water',
+    mode: 'dept_head',
+    modeLabel: 'Department Head (Chairman)',
+    name: 'Er. Pranab Jyoti Nath',
+    roleTitle: 'Executive Engineer & Head, Public Health Engineering (Water Works)',
+    departmentId: 'water',
+    departmentName: 'PHE & Water Facilities',
+    email: 'phe.water@dibru.ac.in',
+    avatar: '💧',
+    badge: 'Chairman · PHE Water',
+    handlesConfidential: false
   },
+
+  // MODE 2: ADMINISTRATION (REGISTRAR & PROCTORIAL REGISTRY)
   {
-    id: 'off_superadmin',
+    id: 'off_admin_registrar',
+    mode: 'admin',
+    modeLabel: 'Administration (Registrar)',
     name: 'Prof. Hemanga Sharma',
-    email: 'registrar@campus.edu',
-    role: 'admin',
     roleTitle: 'University Registrar & Central Administration Ombudsman',
     departmentId: 'admin',
-    departmentName: 'University Ombudsman & Central Registry',
-    mode: 3
+    departmentName: 'Office of the Registrar & University Ombudsman',
+    email: 'registrar@dibru.ac.in',
+    avatar: '🏛️',
+    badge: 'Registrar & Ombudsman',
+    handlesConfidential: true
+  },
+  {
+    id: 'off_admin_proctor',
+    mode: 'admin',
+    modeLabel: 'Administration (Proctor)',
+    name: 'Prof. B. K. Sarma',
+    roleTitle: 'Chief Proctor & Disciplinary Redressal Chairperson',
+    departmentId: 'safety',
+    departmentName: 'Proctorial Board & Confidential Safety Registry',
+    email: 'proctor@dibru.ac.in',
+    avatar: '⚖️',
+    badge: 'Chief Proctor · Safety',
+    handlesConfidential: true
+  },
+
+  // MODE 3: SOCIAL PARTY (STUDENT UNION - PRESIDENT & GENERAL SECRETARY)
+  {
+    id: 'off_social_president',
+    mode: 'social',
+    modeLabel: 'Social Party (President)',
+    name: 'Arpan Dutta',
+    roleTitle: 'President, Dibrugarh University Students\' Union (DUSU)',
+    departmentId: 'general',
+    departmentName: 'DUSU Presidential Executive',
+    email: 'president.dusu@dibru.ac.in',
+    avatar: '🎓',
+    badge: 'DUSU President',
+    handlesConfidential: false
+  },
+  {
+    id: 'off_social_gs',
+    mode: 'social',
+    modeLabel: 'Social Party (General Secretary)',
+    name: 'Nabajyoti Bora',
+    roleTitle: 'General Secretary, DUSU (Executive Student Welfare)',
+    departmentId: 'general',
+    departmentName: 'DUSU Secretariat (Copied Official)',
+    email: 'gs.dusu@dibru.ac.in',
+    avatar: '🤝',
+    badge: 'DUSU General Secretary',
+    handlesConfidential: false
+  },
+  {
+    id: 'off_social_vp',
+    mode: 'social',
+    modeLabel: 'Social Party (Vice President)',
+    name: 'Darshana Borah',
+    roleTitle: 'Vice President & Cultural Affairs Secretary, DUSU',
+    departmentId: 'general',
+    departmentName: 'DUSU Student Welfare Committee',
+    email: 'vp.dusu@dibru.ac.in',
+    avatar: '🌟',
+    badge: 'DUSU Vice President',
+    handlesConfidential: false
   }
 ];
+
+var selectedOfficial = OFFICIALS[0];
+var currentUser = null;
+window.OFFICIALS = OFFICIALS;
+window.currentLoginMode = currentLoginMode;
+window.selectedOfficial = selectedOfficial;
+window.currentUser = currentUser;
 
 /* Seed complaints in localStorage with exact 15-key AI JSON */
 var SEED = [
@@ -1110,6 +1426,7 @@ function getComplaints(){
   }
   try { return JSON.parse(raw); } catch(e){ return SEED; }
 }
+window.getComplaints = getComplaints;
 
 function saveComplaints(c){
   localStorage.setItem('civic_complaints', JSON.stringify(c));
@@ -1130,6 +1447,7 @@ function getById(id){
   }
   return null;
 }
+window.getById = getById;
 
 function nextId(){
   var all = getComplaints();
@@ -2048,234 +2366,610 @@ function renderTracker(c){
 
 /* ══════════ LOGIN MODAL ══════════ */
 var selectedOfficial = OFFICIALS[0];
-function openLogin(){
-  document.getElementById('loginModal').classList.remove('hidden');
+function switchLoginMode(mode) {
+  currentLoginMode = mode;
+  ['tabModeDept', 'tabModeAdmin', 'tabModeSocial'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+
+  var banner = document.getElementById('loginModeBanner');
+  var title = document.getElementById('profilesListTitle');
+  var btn = document.getElementById('loginSubmitBtn');
+
+  if (mode === 'dept_head') {
+    var tab = document.getElementById('tabModeDept');
+    if (tab) tab.classList.add('active');
+    if (banner) {
+      banner.innerHTML = '<strong>Mode 1: Department Head (Chairmen)</strong> — Solves departmental issues, dispatches maintenance crews, updates resolution progress, and handles sensitive departmental cases.';
+      banner.style.borderLeftColor = 'var(--olive)';
+    }
+    if (title) title.textContent = 'Select Department Chairman Profile:';
+    if (btn) {
+      btn.textContent = 'Sign In to Department Head Workspace →';
+      btn.style.background = 'var(--olive)';
+    }
+  } else if (mode === 'admin') {
+    var tab = document.getElementById('tabModeAdmin');
+    if (tab) tab.classList.add('active');
+    if (banner) {
+      banner.innerHTML = '<strong>Mode 2: Administration (Registrar & Officers)</strong> — University-wide oversight, reviews ambiguous/low-confidence AI complaints, manages confidential safety dockets, and re-routes issues.';
+      banner.style.borderLeftColor = '#1e40af';
+    }
+    if (title) title.textContent = 'Select Administration / Registrar Profile:';
+    if (btn) {
+      btn.textContent = 'Sign In to Administration Workspace →';
+      btn.style.background = '#1e40af';
+    }
+  } else if (mode === 'social') {
+    var tab = document.getElementById('tabModeSocial');
+    if (tab) tab.classList.add('active');
+    if (banner) {
+      banner.innerHTML = '<strong>Mode 3: Social Party (Student Union — DUSU)</strong> — Represents student body, monitors all complaints copied to General Secretary, verifies student resolution, and escalates delayed cases to Registrar.';
+      banner.style.borderLeftColor = '#0036FF';
+    }
+    if (title) title.textContent = 'Select Student Union (DUSU) Profile:';
+    if (btn) {
+      btn.textContent = 'Sign In to Social Party Workspace →';
+      btn.style.background = '#0036FF';
+    }
+  }
+
+  // Pre-select first official of this mode
+  var firstOfMode = OFFICIALS.find(function(o) { return o.mode === mode; });
+  if (firstOfMode) selectedOfficial = firstOfMode;
   buildPresets();
+}
+window.switchLoginMode = switchLoginMode;
+
+function openLogin() {
+  document.getElementById('loginModal').classList.remove('hidden');
+  switchLoginMode(currentLoginMode);
 }
 window.openLogin = openLogin;
 
-function closeLogin(){
+function closeLogin() {
   document.getElementById('loginModal').classList.add('hidden');
 }
 window.closeLogin = closeLogin;
 
-function buildPresets(){
-  var wrap = document.getElementById('officialPresets');
-  if(!wrap) return;
-  wrap.innerHTML = '';
-  OFFICIALS.forEach(function(o){
+function buildPresets() {
+  var grid = document.getElementById('officialProfilesGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  var filtered = OFFICIALS.filter(function(o) { return o.mode === currentLoginMode; });
+  filtered.forEach(function(o) {
+    var isSel = (o.id === selectedOfficial.id);
     var card = document.createElement('div');
-    card.className = 'preset-card' + (o.id === selectedOfficial.id ? ' selected' : '');
-    card.innerHTML = '<div class="preset-name">' + o.name + (o.handlesConfidential ? ' 🛡️' : '') + '</div><div class="preset-role">' + o.roleTitle + '</div><div style="font-size:10.5px;color:var(--olive);margin-top:2px;">' + o.departmentName + '</div>';
-    card.onclick = function(){
+    card.className = 'profile-card' + (isSel ? (' selected ' + o.mode) : '');
+    card.onclick = function() {
       selectedOfficial = o;
       buildPresets();
-      document.getElementById('loginError').style.display = 'none';
+      var err = document.getElementById('loginError');
+      if (err) err.style.display = 'none';
     };
-    wrap.appendChild(card);
+
+    var badgeClass = o.mode === 'dept_head' ? 'dept' : o.mode === 'admin' ? 'admin' : 'social';
+    card.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
+      '<span class="profile-badge ' + badgeClass + '">' + o.badge + '</span>' +
+      (isSel ? '<span style="font-size:12px;color:var(--olive);font-weight:800;">✓</span>' : '') +
+      '</div>' +
+      '<div class="profile-name"><span>' + o.avatar + '</span> <span>' + o.name + '</span></div>' +
+      '<div class="profile-title">' + o.roleTitle + '</div>' +
+      '<div class="profile-dept">🏢 ' + o.departmentName + '</div>' +
+      '<div style="font-size:10px;color:#9ca3af;margin-top:3px;">✉️ ' + o.email + '</div>';
+
+    grid.appendChild(card);
   });
 }
 
-function submitLogin(){
+function submitLogin() {
   var pw = document.getElementById('pwInput') ? document.getElementById('pwInput').value : '';
-  if(pw !== 'civic2026'){
-    document.getElementById('loginError').style.display = 'block';
-    document.getElementById('loginError').textContent = 'Incorrect password. Demo password is: civic2026';
+  if (pw !== 'civic2026') {
+    var err = document.getElementById('loginError');
+    if (err) {
+      err.style.display = 'block';
+      err.textContent = 'Incorrect passcode. Authorized demo passcode is: civic2026';
+    }
     return;
   }
   currentUser = selectedOfficial;
+  window.currentUser = currentUser;
   closeLogin();
   openWorkspace();
 }
 window.submitLogin = submitLogin;
 
-/* ══════════ OFFICIAL WORKSPACE MODAL ══════════ */
-function openWorkspace(){
-  if(!currentUser){ openLogin(); return; }
-  document.getElementById('wsRoleLabel').textContent = currentUser.name + ' · ' + currentUser.roleTitle;
+function openWorkspace() {
+  if (!currentUser) { openLogin(); return; }
+
+  var wsHeader = document.getElementById('wsHeader');
+  var wsRoleLabel = document.getElementById('wsRoleLabel');
+  var wsUserName = document.getElementById('wsUserName');
+
+  if (currentUser.mode === 'dept_head') {
+    if (wsHeader) wsHeader.style.background = '#134e2c';
+    if (wsRoleLabel) wsRoleLabel.textContent = '🏛️ Department Head (Chairman) Workspace';
+  } else if (currentUser.mode === 'admin') {
+    if (wsHeader) wsHeader.style.background = '#1e3a8a';
+    if (wsRoleLabel) wsRoleLabel.textContent = '⚖️ Central Administration & Proctorial Registry';
+  } else if (currentUser.mode === 'social') {
+    if (wsHeader) wsHeader.style.background = '#0036FF';
+    if (wsRoleLabel) wsRoleLabel.textContent = '🎓 Student Union Executive (DUSU) Workspace';
+  }
+
+  if (wsUserName) wsUserName.textContent = currentUser.name + ' (' + currentUser.badge + ')';
   document.getElementById('workspaceModal').classList.remove('hidden');
   renderWorkspace();
 }
 window.openWorkspace = openWorkspace;
 
-function closeWorkspace(){
+function closeWorkspace() {
   document.getElementById('workspaceModal').classList.add('hidden');
 }
 window.closeWorkspace = closeWorkspace;
 
-var wsActiveFilter = 'all';
-function wsFilter(f){
-  wsActiveFilter = f;
+function logoutWorkspace() {
+  currentUser = null;
+  window.currentUser = null;
+  closeWorkspace();
+}
+window.logoutWorkspace = logoutWorkspace;
+
+function switchRoleInsideWorkspace() {
+  closeWorkspace();
+  openLogin();
+}
+window.switchRoleInsideWorkspace = switchRoleInsideWorkspace;
+
+var wsActiveTab = 'all';
+function setWsTab(tab) {
+  wsActiveTab = tab;
   renderWorkspace();
 }
-window.wsFilter = wsFilter;
+window.setWsTab = setWsTab;
 
-function renderWorkspace(){
+function renderWorkspace() {
+  if (!currentUser) return;
   var body = document.getElementById('wsBody');
+  if (!body) return;
+
   var all = getComplaints();
 
-  // Role-based visibility
-  var visible = all.filter(function(c){
+  if (currentUser.mode === 'dept_head') {
+    renderDeptHeadWorkspace(body, all);
+  } else if (currentUser.mode === 'admin') {
+    renderAdminWorkspace(body, all);
+  } else if (currentUser.mode === 'social') {
+    renderSocialPartyWorkspace(body, all);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// PAGE 1: DEPARTMENT HEAD DASHBOARD (CHAIRMAN)
+// ─────────────────────────────────────────────────────────────
+function renderDeptHeadWorkspace(body, all) {
+  var deptId = currentUser.departmentId;
+  var deptName = currentUser.departmentName;
+
+  var deptComplaints = all.filter(function(c) {
     var ai = c.aiAnalysis || {};
-    if (ai.sensitive && !currentUser.handlesConfidential && currentUser.mode !== 3) {
-      return false; // Sensitive cases hidden from regular department heads
-    }
-    if (currentUser.mode === 1) {
-      return c.cat === currentUser.departmentId || (c.dept || '').toLowerCase().indexOf((currentUser.departmentName || '').toLowerCase()) !== -1;
-    }
-    return true;
+    if (ai.sensitive && !currentUser.handlesConfidential) return false;
+    return c.cat === deptId || (c.dept || '').toLowerCase().indexOf((deptName || '').toLowerCase()) !== -1;
   });
 
-  if (wsActiveFilter === 'open') {
-    visible = visible.filter(function(c){ return c.status !== 'resolved' && c.status !== 'closed'; });
-  } else if (wsActiveFilter === 'resolved') {
-    visible = visible.filter(function(c){ return c.status === 'resolved' || c.status === 'closed'; });
-  } else if (wsActiveFilter === 'sensitive') {
-    visible = visible.filter(function(c){ return c.aiAnalysis && c.aiAnalysis.sensitive; });
-  }
+  var pending = deptComplaints.filter(function(c) { return c.status !== 'resolved' && c.status !== 'closed'; });
+  var solving = deptComplaints.filter(function(c) { return c.status === 'in_progress'; });
+  var resolved = deptComplaints.filter(function(c) { return c.status === 'resolved' || c.status === 'closed'; });
 
-  var html = '<div style="display:flex;flex-direction:column;gap:14px">';
+  var filteredList = deptComplaints;
+  if (wsActiveTab === 'pending') filteredList = pending;
+  else if (wsActiveTab === 'solving') filteredList = solving;
+  else if (wsActiveTab === 'resolved') filteredList = resolved;
 
-  // Top Filter Bar
-  html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px">' +
-    '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
-    '<button onclick="wsFilter(\'all\')" class="btn' + (wsActiveFilter==='all'?'':'-outline') + '" style="height:30px;font-size:11px;padding:0 12px">All (' + visible.length + ')</button>' +
-    '<button onclick="wsFilter(\'open\')" class="btn' + (wsActiveFilter==='open'?'':'-outline') + '" style="height:30px;font-size:11px;padding:0 12px">Pending</button>' +
-    '<button onclick="wsFilter(\'resolved\')" class="btn' + (wsActiveFilter==='resolved'?'':'-outline') + '" style="height:30px;font-size:11px;padding:0 12px">Resolved</button>' +
-    (currentUser.handlesConfidential || currentUser.mode >= 2 ? '<button onclick="wsFilter(\'sensitive\')" class="btn' + (wsActiveFilter==='sensitive'?'':'-outline') + '" style="height:30px;font-size:11px;padding:0 12px;border-color:#d02010;color:#c02010">🛡️ Confidential</button>' : '') +
+  var html = '<div style="display:flex;flex-direction:column;gap:14px;">';
+
+  // Mode 1 Header Card
+  html += '<div style="background:#eaf5e6;border:1.5px solid #a3cf9b;border-radius:12px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
+    '<div>' +
+    '<span style="font-size:10.5px;font-weight:750;letter-spacing:.05em;color:#134e2c;background:#fff;padding:2px 8px;border-radius:999px;border:1px solid #b8e6a0">MODE 1: DEPARTMENT HEAD JURISDICTION</span>' +
+    '<h3 style="font-size:16px;color:#134e2c;margin:6px 0 2px;">' + currentUser.departmentName + '</h3>' +
+    '<div style="font-size:12px;color:#3b5634">Chairman in Charge: <strong>' + currentUser.name + '</strong> · ' + currentUser.roleTitle + '</div>' +
     '</div>' +
-    '<div style="font-size:11.5px;color:var(--olive);font-weight:600">' +
-    'Logged in as: ' + currentUser.name + ' (' + currentUser.departmentName + ')' +
+    '<div style="text-align:right">' +
+    '<div style="font-size:11px;color:#5a7a40">Active SLA Window</div>' +
+    '<div style="font-size:14px;font-weight:700;color:#134e2c">24 – 48 Hours</div>' +
     '</div>' +
     '</div>';
 
-  if(visible.length === 0){
-    html += '<div style="text-align:center;padding:36px;color:#555;font-size:13px">No complaints found in this jurisdiction queue.</div>';
+  // Department KPIs
+  html += '<div class="kpi-row">' +
+    '<div class="kpi-card"><div class="kpi-val" style="color:#134e2c">' + deptComplaints.length + '</div><div class="kpi-lbl">Total in Queue</div></div>' +
+    '<div class="kpi-card"><div class="kpi-val" style="color:#d97706">' + pending.length + '</div><div class="kpi-lbl">Awaiting Action</div></div>' +
+    '<div class="kpi-card"><div class="kpi-val" style="color:#0284c7">' + solving.length + '</div><div class="kpi-lbl">Crews Dispatched</div></div>' +
+    '<div class="kpi-card"><div class="kpi-val" style="color:#16a34a">' + resolved.length + '</div><div class="kpi-lbl">Resolved Cases</div></div>' +
+    '</div>';
+
+  // Filter Buttons
+  html += '<div style="display:flex;gap:6px;border-bottom:1px solid #d4e0ce;padding-bottom:10px;flex-wrap:wrap;">' +
+    '<button onclick="setWsTab(\'all\')" class="btn' + (wsActiveTab === 'all' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">All Queue (' + deptComplaints.length + ')</button>' +
+    '<button onclick="setWsTab(\'pending\')" class="btn' + (wsActiveTab === 'pending' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">Pending (' + pending.length + ')</button>' +
+    '<button onclick="setWsTab(\'solving\')" class="btn' + (wsActiveTab === 'solving' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">In Progress (' + solving.length + ')</button>' +
+    '<button onclick="setWsTab(\'resolved\')" class="btn' + (wsActiveTab === 'resolved' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">Resolved (' + resolved.length + ')</button>' +
+    '</div>';
+
+  if (filteredList.length === 0) {
+    html += '<div style="text-align:center;padding:40px;color:#557048;background:#fff;border-radius:12px;border:1px solid var(--line)">' +
+      '✅ All issues in this department queue are resolved or clear.' +
+      '</div>';
+  } else {
+    filteredList.forEach(function(c) {
+      html += renderDeptComplaintCard(c);
+    });
   }
-
-  visible.forEach(function(c){
-    var isSolved = c.status === 'resolved' || c.status === 'closed';
-    var isEscalated = c.status === 'escalated';
-    var isIP = c.status === 'in_progress' || c.status === 'investigating' || isEscalated;
-    var statusColor = isSolved ? '#1EA854' : isEscalated ? '#d03020' : isIP ? '#0036FF' : '#e6a800';
-    var statusText = isSolved ? 'Resolved' : isEscalated ? 'Escalated' : isIP ? 'In Progress' : 'Open';
-
-    var ai = c.aiAnalysis || {};
-
-    html += '<div style="border:1.5px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;background:#fff" data-cid="' + c.id + '">';
-    
-    // Header
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">' +
-      '<div>' +
-      '<div style="font-size:13.5px;font-weight:700;color:var(--olive);display:flex;align-items:center;gap:6px;">' +
-      c.id + ' · ' + (c.catName || ai.category || c.cat) +
-      (ai.sensitive ? '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#ffebee;color:#c02010;border:1px solid #f8bbd0;">🛡️ Confidential</span>' : '') +
-      '</div>' +
-      '<div style="font-size:11.5px;color:#2a3820;margin-top:2px">' +
-      c.location + ' · Priority: ' + (ai.priority ? 'P' + ai.priority : c.urgency || 'P3') + ' · Lang: ' + (ai.language || 'en') + ' · Confidence: ' + Math.round((ai.confidence || 0.9) * 100) + '%' +
-      '</div>' +
-      '</div>' +
-      '<div style="display:flex;gap:6px;align-items:center">' +
-      '<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:' + statusColor + '22;color:' + statusColor + ';border:1px solid ' + statusColor + '55">' + statusText + '</span>' +
-      '</div>' +
-      '</div>';
-
-    // Original complaint text
-    html += '<div style="font-size:13px;color:#1a2e10;line-height:1.45;background:#fcfdfa;padding:8px 12px;border-radius:8px;border:1px solid #eef2e6;"><strong>Complaint:</strong> ' + c.desc + '</div>';
-
-    // Bilingual AI Summaries & Embedding
-    html += '<div style="background:#f4fbf0;border:1px solid #c0e0b0;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;font-size:12px;">' +
-      (ai.summary_en ? '<div><strong>English Summary:</strong> ' + ai.summary_en + '</div>' : '') +
-      (ai.summary_as ? '<div><strong>অসমীয়া সাৰাংশ:</strong> ' + ai.summary_as + '</div>' : '') +
-      (ai.embedding_text ? '<div style="font-size:11px;color:#4a6838;"><strong>Embedding Normalizer:</strong> <code style="background:#e0f0d6;padding:1px 5px;border-radius:3px;">' + ai.embedding_text + '</code></div>' : '') +
-      '</div>';
-
-    // Replies
-    if(c.replies && c.replies.length > 0){
-      var lr = c.replies[c.replies.length - 1];
-      html += '<div style="font-size:12px;color:#1a3010;padding:8px 12px;background:#f0ffe8;border-radius:8px;border:1px solid #d0f0c0"><strong>' + (lr.author || lr.by) + ':</strong> ' + (lr.message || lr.text) + '</div>';
-    }
-
-    // Action buttons
-    html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">';
-    if(!isSolved){
-      html += '<button onclick="wsSetStatus(\'' + c.id + '\',\'in_progress\')" class="btn" style="font-size:11px;height:28px;padding:0 10px;background:' + (isIP ? 'var(--olive)' : '#555') + '">In Progress</button>' +
-        '<button onclick="wsSetStatus(\'' + c.id + '\',\'resolved\')" class="btn" style="font-size:11px;height:28px;padding:0 10px;background:var(--green)">Mark Solved</button>' +
-        '<button onclick="wsReply(\'' + c.id + '\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px">Post Official Reply</button>';
-      if(currentUser.mode === 1){
-        html += '<button onclick="wsEscalate(\'' + c.id + '\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px;border-color:#d03020;color:#c03020">Escalate to DUSU GS</button>';
-      }
-    } else {
-      html += '<span style="font-size:11px;color:var(--olive);font-weight:600">✓ Case Solved & Verified</span>' +
-        '<button onclick="wsReply(\'' + c.id + '\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px;margin-left:auto">Add Note</button>';
-    }
-    html += '<button onclick="openTrackerWithId(\'' + c.id + '\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px;margin-left:auto">View Public Tracker</button>';
-    html += '</div>';
-
-    html += '</div>';
-  });
 
   html += '</div>';
   body.innerHTML = html;
 }
 
-function wsSetStatus(id, status){
-  var c = getById(id);
-  if(!c) return;
-  var note = prompt('Enter official status note for ' + id + ' (' + status + '):', status==='resolved' ? 'Issue resolved on-site and verified by department inspection.' : 'Field crew deployed to location.');
-  if(note === null) return;
-  c.status = status;
-  if(status === 'resolved'){
-    c.resolvedAt = Date.now();
-    c.resolutionNote = note;
+function renderDeptComplaintCard(c) {
+  var ai = c.aiAnalysis || {};
+  var isSolved = c.status === 'resolved' || c.status === 'closed';
+  var isIP = c.status === 'in_progress';
+  var statusBadge = isSolved ? '<span style="background:#e0f5d0;color:#15803d;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700">✓ RESOLVED</span>' :
+    isIP ? '<span style="background:#e0f2fe;color:#0284c7;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700">⚙️ IN PROGRESS</span>' :
+    '<span style="background:#fef3c7;color:#b45309;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700">⏳ PENDING</span>';
+
+  return '<div style="background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 3px 10px rgba(0,0,0,0.02)">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">' +
+    '<div>' +
+    '<div style="font-size:14px;font-weight:750;color:#134e2c;display:flex;align-items:center;gap:6px">' +
+    c.id + ' · ' + (c.title || c.desc).slice(0, 60) +
+    (ai.sensitive ? '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;">🛡️ Confidential</span>' : '') +
+    '</div>' +
+    '<div style="font-size:11.5px;color:#4b5563;margin-top:2px">' +
+    '📍 ' + (c.location || 'Campus') + ' · Reported: ' + new Date(c.ts).toLocaleString() + ' · Priority: ' + (c.urgency || 'Normal') +
+    '</div>' +
+    '</div>' +
+    '<div>' + statusBadge + '</div>' +
+    '</div>' +
+
+    // Stepper
+    '<div class="stage-stepper">' +
+    '<span class="stage-dot done">● Report Lodged</span> <span class="stage-arrow">→</span>' +
+    '<span class="stage-dot done">● AI Triaged</span> <span class="stage-arrow">→</span>' +
+    '<span class="stage-dot ' + (isIP || isSolved ? 'done' : 'active') + '">● ' + (isIP ? 'Field Crew Deployed' : 'Dept Queue') + '</span> <span class="stage-arrow">→</span>' +
+    '<span class="stage-dot ' + (isSolved ? 'done' : '') + '">● Resolved</span>' +
+    '</div>' +
+
+    // Description & AI findings
+    '<div style="font-size:13px;color:#1e293b;background:#f8faf6;padding:10px 12px;border-radius:8px;border:1px solid #e2ebd8;">' +
+    '<strong>Issue Details:</strong> ' + c.desc +
+    (ai.summary_as ? '<div style="margin-top:4px;color:#334155;"><strong>অসমীয়া:</strong> ' + ai.summary_as + '</div>' : '') +
+    '</div>' +
+
+    // Replies history
+    (c.replies && c.replies.length > 0 ?
+      '<div style="font-size:12px;background:#f0fdf4;padding:8px 12px;border-radius:8px;border:1px solid #bbf7d0;">' +
+      '<strong>Latest Official Update:</strong> ' + c.replies[c.replies.length - 1].message +
+      ' <span style="font-size:10.5px;color:#6b7280;">(' + c.replies[c.replies.length - 1].author + ')</span>' +
+      '</div>' : '') +
+
+    // Actions
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid #f1f5f9;padding-top:10px;margin-top:2px;">' +
+    (!isSolved ?
+      '<button onclick="wsDispatchCrew(\'' + c.id + '\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#0284c7">🛠️ Dispatch Field Crew</button>' +
+      '<button onclick="wsSetStatus(\'' + c.id + '\',\'resolved\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#16a34a">✅ Mark Resolved on Site</button>' :
+      '<button onclick="wsSetStatus(\'' + c.id + '\',\'in_progress\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px">Reopen for Inspection</button>'
+    ) +
+    '<button onclick="wsReply(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px">💬 Post Note to Citizen</button>' +
+    '<button onclick="openTrackerWithId(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px;margin-left:auto">👁️ View User Tracker</button>' +
+    '</div>' +
+
+    '</div>';
+}
+
+// ─────────────────────────────────────────────────────────────
+// PAGE 2: ADMINISTRATION DASHBOARD (REGISTRAR & PROCTOR)
+// ─────────────────────────────────────────────────────────────
+function renderAdminWorkspace(body, all) {
+  var needsReviewList = all.filter(function(c) {
+    var ai = c.aiAnalysis || {};
+    return ai.needs_review || (ai.confidence && ai.confidence < 0.6) || ai.category === 'other';
+  });
+
+  var sensitiveList = all.filter(function(c) {
+    var ai = c.aiAnalysis || {};
+    return ai.sensitive;
+  });
+
+  var activeAdminTab = wsActiveTab === 'all' ? 'review' : wsActiveTab;
+  var displayList = all;
+  if (activeAdminTab === 'review') displayList = needsReviewList;
+  else if (activeAdminTab === 'sensitive') displayList = sensitiveList;
+  else if (activeAdminTab === 'master') displayList = all;
+
+  var html = '<div style="display:flex;flex-direction:column;gap:14px;">';
+
+  // Mode 2 Header Card
+  html += '<div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:12px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
+    '<div>' +
+    '<span style="font-size:10.5px;font-weight:750;letter-spacing:.05em;color:#1e40af;background:#fff;padding:2px 8px;border-radius:999px;border:1px solid #bfdbfe">MODE 2: CENTRAL ADMINISTRATION &amp; OMBUDSMAN</span>' +
+    '<h3 style="font-size:16px;color:#1e40af;margin:6px 0 2px;">Office of the Registrar &amp; Central Registry</h3>' +
+    '<div style="font-size:12px;color:#1e3a8a">Registrar / Administrator: <strong>' + currentUser.name + '</strong> · ' + currentUser.roleTitle + '</div>' +
+    '</div>' +
+    '<div style="text-align:right">' +
+    '<div style="font-size:11px;color:#64748b">Campus Resolution Rate</div>' +
+    '<div style="font-size:15px;font-weight:800;color:#1e40af">92.4% on Target</div>' +
+    '</div>' +
+    '</div>';
+
+  // Administration KPIs
+  html += '<div class="kpi-row">' +
+    '<div class="kpi-card"><div class="kpi-val" style="color:#1e40af">' + all.length + '</div><div class="kpi-lbl">Campus Total</div></div>' +
+    '<div class="kpi-card"><div class="kpi-val" style="color:#dc2626">' + needsReviewList.length + '</div><div class="kpi-lbl">Held for Admin Review</div></div>' +
+    '<div class="kpi-card"><div class="kpi-val" style="color:#7c3aed">' + sensitiveList.length + '</div><div class="kpi-lbl">Confidential Vault</div></div>' +
+    '<div class="kpi-card"><div class="kpi-val" style="color:#16a34a">' + all.filter(function(c){return c.status==='resolved'}).length + '</div><div class="kpi-lbl">Total Solved</div></div>' +
+    '</div>';
+
+  // Administration Mode Tabs
+  html += '<div style="display:flex;gap:6px;border-bottom:1px solid #cbd5e1;padding-bottom:10px;flex-wrap:wrap;">' +
+    '<button onclick="setWsTab(\'review\')" class="btn' + (activeAdminTab === 'review' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px;background:' + (activeAdminTab==='review'?'#dc2626':'') + ';color:' + (activeAdminTab==='review'?'#fff':'#dc2626') + ';border-color:#dc2626">⚠️ Held for Admin Review (' + needsReviewList.length + ')</button>' +
+    '<button onclick="setWsTab(\'sensitive\')" class="btn' + (activeAdminTab === 'sensitive' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px;background:' + (activeAdminTab==='sensitive'?'#7c3aed':'') + ';color:' + (activeAdminTab==='sensitive'?'#fff':'#7c3aed') + ';border-color:#7c3aed">🛡️ Confidential Proctorial Docket (' + sensitiveList.length + ')</button>' +
+    '<button onclick="setWsTab(\'master\')" class="btn' + (activeAdminTab === 'master' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">🌐 All Campus Departments Audit (' + all.length + ')</button>' +
+    '</div>';
+
+  if (displayList.length === 0) {
+    html += '<div style="text-align:center;padding:40px;color:#64748b;background:#fff;border-radius:12px;border:1px solid var(--line)">' +
+      'No complaints currently in this administration queue.' +
+      '</div>';
+  } else {
+    displayList.forEach(function(c) {
+      html += renderAdminComplaintCard(c);
+    });
   }
-  if(!c.routeHistory) c.routeHistory = [];
+
+  html += '</div>';
+  body.innerHTML = html;
+}
+
+function renderAdminComplaintCard(c) {
+  var ai = c.aiAnalysis || {};
+  var isNeedsReview = ai.needs_review || (ai.confidence && ai.confidence < 0.6);
+
+  return '<div style="background:#fff;border:1.5px solid ' + (isNeedsReview ? '#fca5a5' : 'var(--line)') + ';border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 3px 10px rgba(0,0,0,0.02)">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">' +
+    '<div>' +
+    '<div style="font-size:14px;font-weight:750;color:#1e3a8a;display:flex;align-items:center;gap:6px">' +
+    c.id + ' · ' + (c.title || c.desc).slice(0, 60) +
+    (isNeedsReview ? '<span style="background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800">⚠️ NEEDS ADMIN TRIAGE</span>' : '') +
+    (ai.sensitive ? '<span style="background:#f3e8ff;color:#7c3aed;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800">🛡️ CONFIDENTIAL</span>' : '') +
+    '</div>' +
+    '<div style="font-size:11.5px;color:#475569;margin-top:2px">' +
+    'Department: <strong>' + (c.catName || c.cat) + '</strong> · Location: ' + c.location + ' · Confidence: ' + Math.round((ai.confidence || 0.9) * 100) + '%' +
+    '</div>' +
+    '</div>' +
+    '<div><span style="font-size:11px;padding:3px 8px;border-radius:999px;background:#f1f5f9;font-weight:700">' + (c.status || 'open').toUpperCase() + '</span></div>' +
+    '</div>' +
+
+    '<div style="font-size:13px;color:#1e293b;background:#f8fafc;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0;">' +
+    '<strong>Reported Text:</strong> ' + c.desc +
+    (ai.priority_reason ? '<div style="margin-top:4px;font-size:12px;color:#dc2626"><strong>Triage Alert:</strong> ' + ai.priority_reason + '</div>' : '') +
+    '</div>' +
+
+    // Administrative Powers
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid #f1f5f9;padding-top:10px;margin-top:2px;">' +
+    '<button onclick="wsReassignDept(\'' + c.id + '\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#1e40af">🔄 Reassign Solver Department</button>' +
+    '<button onclick="wsSetStatus(\'' + c.id + '\',\'resolved\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px;color:#16a34a;border-color:#16a34a">Mark Officially Closed</button>' +
+    '<button onclick="wsReply(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px">📢 Registrar Directive Note</button>' +
+    '<button onclick="openTrackerWithId(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px;margin-left:auto">Public Tracker</button>' +
+    '</div>' +
+
+    '</div>';
+}
+
+// ─────────────────────────────────────────────────────────────
+// PAGE 3: SOCIAL PARTY DASHBOARD (STUDENT UNION - DUSU)
+// ─────────────────────────────────────────────────────────────
+function renderSocialPartyWorkspace(body, all) {
+  var activeSocialTab = wsActiveTab === 'all' ? 'all' : wsActiveTab;
+
+  var hostelReports = all.filter(function(c) { return c.cat === 'hostel' || (c.location||'').toLowerCase().includes('hostel'); });
+  var wifiReports = all.filter(function(c) { return c.cat === 'internet' || (c.location||'').toLowerCase().includes('ccsa'); });
+  var facilityReports = all.filter(function(c) { return c.cat === 'water' || c.cat === 'sanitation' || c.cat === 'library'; });
+
+  var displayList = all;
+  if (activeSocialTab === 'hostel') displayList = hostelReports;
+  else if (activeSocialTab === 'wifi') displayList = wifiReports;
+  else if (activeSocialTab === 'facilities') displayList = facilityReports;
+  else if (activeSocialTab === 'escalated') displayList = all.filter(function(c){ return c.status === 'escalated'; });
+
+  var html = '<div style="display:flex;flex-direction:column;gap:14px;">';
+
+  // Mode 3 Header Card
+  html += '<div style="background:#eef2ff;border:1.5px solid #80a2ff;border-radius:12px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
+    '<div>' +
+    '<span style="font-size:10.5px;font-weight:750;letter-spacing:.05em;color:#0036FF;background:#fff;padding:2px 8px;border-radius:999px;border:1px solid #a5b4fc">MODE 3: SOCIAL PARTY (STUDENT UNION — DUSU)</span>' +
+    '<h3 style="font-size:16px;color:#0036FF;margin:6px 0 2px;">DUSU Executive Council · Student Welfare Docket</h3>' +
+    '<div style="font-size:12px;color:#3730a3">Student Union Leader: <strong>' + currentUser.name + '</strong> · ' + currentUser.roleTitle + '</div>' +
+    '</div>' +
+    '<div style="text-align:right">' +
+    '<div style="font-size:11px;color:#6366f1">All Student Issues Copied to GS</div>' +
+    '<div style="font-size:15px;font-weight:800;color:#0036FF">' + all.length + ' Total Monitored</div>' +
+    '</div>' +
+    '</div>';
+
+  // Social Party KPIs
+  html += '<div class="kpi-row">' +
+    '<div class="kpi-card"><div class="kpi-val" style="color:#0036FF">' + all.length + '</div><div class="kpi-lbl">Student Complaints Copied</div></div>' +
+    '<div class="kpi-card"><div class="kpi-val" style="color:#d97706">' + hostelReports.length + '</div><div class="kpi-lbl">Hostels Watch</div></div>' +
+    '<div class="kpi-card"><div class="kpi-val" style="color:#0284c7">' + wifiReports.length + '</div><div class="kpi-lbl">Wi-Fi &amp; Internet</div></div>' +
+    '<div class="kpi-card"><div class="kpi-val" style="color:#dc2626">' + all.filter(function(c){return c.status==='escalated'}).length + '</div><div class="kpi-lbl">Council Escalations</div></div>' +
+    '</div>';
+
+  // Social Mode Tabs
+  html += '<div style="display:flex;gap:6px;border-bottom:1px solid #cbd5e1;padding-bottom:10px;flex-wrap:wrap;">' +
+    '<button onclick="setWsTab(\'all\')" class="btn' + (activeSocialTab === 'all' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">All Student Reports (' + all.length + ')</button>' +
+    '<button onclick="setWsTab(\'hostel\')" class="btn' + (activeSocialTab === 'hostel' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">🏠 Hostels (' + hostelReports.length + ')</button>' +
+    '<button onclick="setWsTab(\'wifi\')" class="btn' + (activeSocialTab === 'wifi' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">📶 Wi-Fi &amp; Labs (' + wifiReports.length + ')</button>' +
+    '<button onclick="setWsTab(\'facilities\')" class="btn' + (activeSocialTab === 'facilities' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">💧 Water &amp; Campus (' + facilityReports.length + ')</button>' +
+    '<button onclick="setWsTab(\'escalated\')" class="btn' + (activeSocialTab === 'escalated' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px;border-color:#dc2626;color:#dc2626">🚨 Escalated to Registrar (' + all.filter(function(c){return c.status==='escalated'}).length + ')</button>' +
+    '</div>';
+
+  if (displayList.length === 0) {
+    html += '<div style="text-align:center;padding:40px;color:#64748b;background:#fff;border-radius:12px;border:1px solid var(--line)">' +
+      'No complaints under this student advocacy category.' +
+      '</div>';
+  } else {
+    displayList.forEach(function(c) {
+      html += renderSocialComplaintCard(c);
+    });
+  }
+
+  html += '</div>';
+  body.innerHTML = html;
+}
+
+function renderSocialComplaintCard(c) {
+  var isEscalated = c.status === 'escalated';
+  var isSolved = c.status === 'resolved' || c.status === 'closed';
+
+  return '<div style="background:#fff;border:1.5px solid ' + (isEscalated ? '#fca5a5' : 'var(--line)') + ';border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 3px 10px rgba(0,0,0,0.02)">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">' +
+    '<div>' +
+    '<div style="font-size:14px;font-weight:750;color:#0036FF;display:flex;align-items:center;gap:6px">' +
+    c.id + ' · ' + (c.title || c.desc).slice(0, 60) +
+    (isEscalated ? '<span style="background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800">🚨 DUSU ESCALATED</span>' : '') +
+    (c.studentVerified ? '<span style="background:#e0f5d0;color:#15803d;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800">✓ STUDENT VERIFIED</span>' : '') +
+    '</div>' +
+    '<div style="font-size:11.5px;color:#475569;margin-top:2px">' +
+    'Assigned Department: <strong>' + (c.catName || c.cat) + '</strong> · 📍 ' + c.location +
+    '</div>' +
+    '</div>' +
+    '<div><span style="font-size:11px;padding:3px 8px;border-radius:999px;background:#e0e7ff;color:#3730a3;font-weight:700">' + (c.status || 'open').toUpperCase() + '</span></div>' +
+    '</div>' +
+
+    '<div style="font-size:13px;color:#1e293b;background:#f8faff;padding:10px 12px;border-radius:8px;border:1px solid #e0e7ff;">' +
+    '<strong>Student Complaint:</strong> ' + c.desc +
+    '</div>' +
+
+    // Social Party Powers
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid #f1f5f9;padding-top:10px;margin-top:2px;">' +
+    '<button onclick="wsEndorseCouncil(\'' + c.id + '\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#0036FF">🤝 DUSU Executive Follow-Up Note</button>' +
+    (!isEscalated && !isSolved ?
+      '<button onclick="wsEscalateToRegistrar(\'' + c.id + '\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#dc2626">🚨 Escalate to Registrar Emergency Docket</button>' : ''
+    ) +
+    '<button onclick="wsVerifyStudentResolution(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px;color:#16a34a;border-color:#16a34a">✓ Verify Student Ground Fix</button>' +
+    '<button onclick="openTrackerWithId(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px;margin-left:auto">View User Tracker</button>' +
+    '</div>' +
+
+    '</div>';
+}
+
+// ─────────────────────────────────────────────────────────────
+// OFFICIAL WORKSPACE ACTIONS & STATUS UPDATES
+// ─────────────────────────────────────────────────────────────
+function wsDispatchCrew(id) {
+  var c = getById(id);
+  if (!c) return;
+  var crew = prompt('Enter field team name & assigned technician (e.g. "PHE Line Crew #2 — Plumber R. Das"):', 'Department Field Maintenance Crew');
+  if (!crew || !crew.trim()) return;
+  var eta = prompt('Estimated repair time / ETA (e.g. "Within 4 hours"):', 'Within 12 hours');
+  if (eta === null) return;
+
+  c.status = 'in_progress';
+  c.fieldCrew = { crewName: crew.trim(), eta: eta.trim(), dispatchedAt: Date.now(), dispatchedBy: currentUser.name };
+  var note = 'Field crew dispatched: ' + crew.trim() + ' (ETA: ' + eta.trim() + '). On-site inspection and repairs underway.';
+  if (!c.routeHistory) c.routeHistory = [];
   c.routeHistory.push({
     id: 'm_' + Date.now(),
     ts: Date.now(),
-    stage: 'Status: ' + status.toUpperCase(),
+    stage: 'Solving (Crew Dispatched)',
     actor: currentUser.name,
-    role: currentUser.roleTitle || 'Official',
+    role: currentUser.roleTitle,
     note: note
   });
-  saveComplaints(getComplaints());
+
+  saveOne(c);
   renderWorkspace();
+  renderMapExistingComplaints();
+}
+window.wsDispatchCrew = wsDispatchCrew;
+
+function wsSetStatus(id, status) {
+  var c = getById(id);
+  if (!c) return;
+  var defaultMsg = status === 'resolved' ? 'Defect repaired, tested and verified on-site by department head.' : 'Case status updated.';
+  var note = prompt('Enter official status note for ' + id + ' (' + status.toUpperCase() + '):', defaultMsg);
+  if (note === null) return;
+
+  c.status = status;
+  if (status === 'resolved') {
+    c.resolvedAt = Date.now();
+    c.resolutionNote = note.trim();
+  }
+  if (!c.routeHistory) c.routeHistory = [];
+  c.routeHistory.push({
+    id: 'm_' + Date.now(),
+    ts: Date.now(),
+    stage: status === 'resolved' ? 'Completed & Resolved' : ('Status: ' + status.toUpperCase()),
+    actor: currentUser.name,
+    role: currentUser.roleTitle,
+    note: note.trim()
+  });
+
+  saveOne(c);
+  renderWorkspace();
+  renderMapExistingComplaints();
 }
 window.wsSetStatus = wsSetStatus;
 
-function wsReply(id){
+function wsReassignDept(id) {
   var c = getById(id);
-  if(!c) return;
-  var text = prompt('Post official public update for ' + id + ':');
-  if(!text || !text.trim()) return;
-  if(!c.replies) c.replies = [];
-  c.replies.push({
-    id: 'r_' + Date.now(),
-    complaintId: id,
-    author: currentUser.name + ' (' + (currentUser.departmentName || 'Official') + ')',
-    role: currentUser.roleTitle,
-    message: text.trim(),
-    ts: Date.now()
-  });
-  if(!c.routeHistory) c.routeHistory = [];
+  if (!c) return;
+  var depts = [
+    'electricity (Electrical & Power Maintenance)',
+    'water (PHE & Water Facilities)',
+    'sanitation (Estates & Cleanliness)',
+    'hostel (Hostels & Housing Board)',
+    'internet (CCSA IT & Connectivity)',
+    'safety (Campus Security & Proctorial Safety)',
+    'classroom (Classrooms & Audio-Visual)',
+    'library (Central Library Services)'
+  ];
+  var choice = prompt('Select new department code to re-route this complaint to:\\n\\n' + depts.join('\\n'), 'electricity');
+  if (!choice || !choice.trim()) return;
+
+  var newCat = choice.trim().toLowerCase();
+  var solver = SOLVER_MAP[newCat] || { name: choice.trim(), desk: choice.trim() };
+
+  c.cat = newCat;
+  c.catName = solver.name;
+  c.dept = solver.desk;
+
+  if (!c.routeHistory) c.routeHistory = [];
   c.routeHistory.push({
     id: 'm_' + Date.now(),
     ts: Date.now(),
-    stage: 'Official Reply Posted',
+    stage: 'Admin Re-routed',
     actor: currentUser.name,
-    role: currentUser.roleTitle || 'Official',
-    note: text.trim()
+    role: currentUser.roleTitle,
+    note: 'Complaint reassigned to ' + solver.name + ' by Office of the Registrar.'
   });
-  saveComplaints(getComplaints());
-  renderWorkspace();
-}
-window.wsReply = wsReply;
 
-function wsEscalate(id){
+  saveOne(c);
+  renderWorkspace();
+  renderMapExistingComplaints();
+}
+window.wsReassignDept = wsReassignDept;
+
+function wsEscalateToRegistrar(id) {
   var c = getById(id);
-  if(!c) return;
-  var reason = prompt('Reason for escalation to DUSU General Secretary:');
-  if(!reason || !reason.trim()) return;
+  if (!c) return;
+  var reason = prompt('Enter DUSU escalation notice to the Registrar (e.g. "Department has not taken action after 48h SLA breach"):', 'SLA deadline exceeded. Urgent intervention requested on behalf of students.');
+  if (!reason || !reason.trim()) return;
+
   c.status = 'escalated';
   c.escalation = {
     isEscalated: true,
@@ -2283,41 +2977,149 @@ function wsEscalate(id){
     reason: reason.trim(),
     escalatedBy: currentUser.name + ' (' + currentUser.roleTitle + ')'
   };
-  if(!c.routeHistory) c.routeHistory = [];
+
+  if (!c.routeHistory) c.routeHistory = [];
   c.routeHistory.push({
     id: 'm_' + Date.now(),
     ts: Date.now(),
-    stage: 'Escalated to DUSU General Secretary',
+    stage: '🚨 Escalated to Registrar Docket',
     actor: currentUser.name,
     role: currentUser.roleTitle,
-    note: reason.trim()
+    note: 'DUSU Executive formal escalation: ' + reason.trim()
   });
-  saveComplaints(getComplaints());
+
+  saveOne(c);
+  renderWorkspace();
+  renderMapExistingComplaints();
+}
+window.wsEscalateToRegistrar = wsEscalateToRegistrar;
+
+function wsEndorseCouncil(id) {
+  var c = getById(id);
+  if (!c) return;
+  var note = prompt('Enter DUSU Executive Council remark on this complaint:', 'DUSU student council inspected this site with students and endorsed immediate department action.');
+  if (!note || !note.trim()) return;
+
+  c.dusuEndorsement = { note: note.trim(), endorsedBy: currentUser.name, ts: Date.now() };
+  if (!c.replies) c.replies = [];
+  c.replies.push({
+    id: 'r_' + Date.now(),
+    complaintId: id,
+    author: currentUser.name + ' (' + currentUser.roleTitle + ')',
+    role: 'Student Union Executive',
+    message: note.trim(),
+    ts: Date.now()
+  });
+
+  if (!c.routeHistory) c.routeHistory = [];
+  c.routeHistory.push({
+    id: 'm_' + Date.now(),
+    ts: Date.now(),
+    stage: 'DUSU Council Endorsement',
+    actor: currentUser.name,
+    role: currentUser.roleTitle,
+    note: note.trim()
+  });
+
+  saveOne(c);
   renderWorkspace();
 }
-window.wsEscalate = wsEscalate;
+window.wsEndorseCouncil = wsEndorseCouncil;
 
-function wsMergeDuplicates(){
+function wsVerifyStudentResolution(id) {
+  var c = getById(id);
+  if (!c) return;
+  c.studentVerified = true;
+  c.groundVerification = { verified: true, verifiedBy: currentUser.name, ts: Date.now() };
+  if (!c.routeHistory) c.routeHistory = [];
+  c.routeHistory.push({
+    id: 'm_' + Date.now(),
+    ts: Date.now(),
+    stage: 'Student Council Verified',
+    actor: currentUser.name,
+    role: currentUser.roleTitle,
+    note: 'Resolution verified on ground by student representatives.'
+  });
+  saveOne(c);
+  renderWorkspace();
+}
+window.wsVerifyStudentResolution = wsVerifyStudentResolution;
+
+function wsReply(id) {
+  var c = getById(id);
+  if (!c) return;
+  var text = prompt('Post official public update for ticket ' + id + ':');
+  if (!text || !text.trim()) return;
+
+  c.dusuEndorsement = { note: note.trim(), endorsedBy: currentUser.name, ts: Date.now() };
+  if (!c.replies) c.replies = [];
+  c.replies.push({
+    id: 'r_' + Date.now(),
+    complaintId: id,
+    author: currentUser.name + ' (' + (currentUser.departmentName || currentUser.roleTitle) + ')',
+    role: currentUser.roleTitle,
+    message: text.trim(),
+    ts: Date.now()
+  });
+
+  if (!c.routeHistory) c.routeHistory = [];
+  c.routeHistory.push({
+    id: 'm_' + Date.now(),
+    ts: Date.now(),
+    stage: 'Official Response Posted',
+    actor: currentUser.name,
+    role: currentUser.roleTitle,
+    note: text.trim()
+  });
+
+  saveOne(c);
+  renderWorkspace();
+}
+window.wsReply = wsReply;
+
+
+function wsMergeDuplicates() {
   var masterId = prompt('Enter Master Complaint ID (e.g. CS-8921):');
-  if(!masterId) return;
+  if (!masterId) return;
   var dupId = prompt('Enter Duplicate Complaint ID to merge into #' + masterId + ':');
-  if(!dupId) return;
+  if (!dupId) return;
   var master = getById(masterId.trim());
   var dup = getById(dupId.trim());
-  if(!master || !dup){ alert('Could not find one or both tickets.'); return; }
+  if (!master || !dup) {
+    alert('Could not find one or both tickets.');
+    return;
+  }
   dup.status = 'closed';
   dup.mergedInto = masterId;
+  if (!dup.routeHistory) dup.routeHistory = [];
+  dup.routeHistory.push({
+    id: 'm_' + Date.now(),
+    ts: Date.now(),
+    stage: 'Merged into Master Case #' + masterId,
+    actor: currentUser.name,
+    role: currentUser.roleTitle,
+    note: 'Duplicate of ticket #' + masterId
+  });
   saveOne(dup);
   alert('Successfully merged ticket #' + dupId + ' into master case #' + masterId + '!');
   renderWorkspace();
 }
 window.wsMergeDuplicates = wsMergeDuplicates;
 
-function exportAuditCsv(){
+function exportAuditCsv() {
   var all = getComplaints();
-  var headers = ['Ticket ID','Category','Location','Urgency','Status','Department','Logged At','Description'];
-  var rows = all.map(function(c){
-    return [c.id, '"'+(c.catName||c.cat||'')+'"', '"'+(c.location||'')+'"', c.urgency||'Normal', c.status||'open', '"'+(c.dept||'')+'"', new Date(c.ts||Date.now()).toISOString(), '"'+(c.desc||'')+'"'].join(',');
+  var headers = ['Ticket ID', 'Category', 'Location', 'Urgency', 'Status', 'Department', 'Logged At', 'Description'];
+  var rows = all.map(function(c) {
+    return [
+      c.id,
+      '"' + (c.catName || c.cat || '') + '"',
+      '"' + (c.location || '') + '"',
+      c.urgency || 'Normal',
+      c.status || 'open',
+      '"' + (c.dept || '') + '"',
+      new Date(c.ts || Date.now()).toISOString(),
+      '"' + ((c.desc || '').replace(/"/g, '""')) + '"'
+    ].join(',');
   });
   var csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent([headers.join(','), ...rows].join('\n'));
   var link = document.createElement('a');
@@ -2328,6 +3130,7 @@ function exportAuditCsv(){
   document.body.removeChild(link);
 }
 window.exportAuditCsv = exportAuditCsv;
+
 
 
 /* ══════════ DIBRUGARH UNIVERSITY CAMPUS MAP LOGIC ══════════ */
