@@ -568,7 +568,7 @@ nav.f-links a:hover{text-decoration:underline}
     <div class="nav-actions">
       <button class="btn-outline" id="openTrackerBtn" onclick="openTracker()" style="height:32px;font-size:12px;padding:0 14px;">Track Status</button>
       <a href="admin.html" class="btn btn-blue" id="openAdminPageLink" style="height:32px;font-size:12px;padding:0 14px;display:inline-flex;align-items:center;text-decoration:none;gap:4px;">Official Portal ↗</a>
-      <button class="btn-outline" id="openLoginBtn" onclick="openLogin()" style="height:32px;font-size:12px;padding:0 10px;" title="Quick Login Dialog">⚙️</button>
+      <button class="btn-outline" id="openLoginBtn" onclick="openLogin()" style="height:32px;font-size:12px;padding:0 10px;" title="Quick Login Dialog">Login</button>
     </div>
   </nav>
 
@@ -727,7 +727,7 @@ nav.f-links a:hover{text-decoration:underline}
         <div class="step">
           <img class="mini-cloud" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093215_0f37c0c3-f82c-485b-87dd-5a35b75a8782.png" alt="" aria-hidden="true" />
           <h3>Official Action &amp; Approval</h3>
-          <p>Department officers use a Status Checklist — Confirmed → In Progress → Delivered → Completed. Each stage is timestamped and publicly visible. Escalations go to DUSU GS.</p>
+          <p>Department officers use a clear status workflow from Confirmed to In Progress to Delivered to Completed. Each stage is timestamped and publicly visible. Escalations route directly to DUSU GS.</p>
         </div>
       </div>
     </div>
@@ -828,7 +828,7 @@ nav.f-links a:hover{text-decoration:underline}
         <div class="map-clean-controls" aria-label="Map zoom controls">
           <button type="button" class="map-clean-btn" onclick="campusMapZoom(1.5)" title="Zoom in" aria-label="Zoom in">+</button>
           <button type="button" class="map-clean-btn" onclick="campusMapZoom(1/1.5)" title="Zoom out" aria-label="Zoom out">−</button>
-          <button type="button" class="map-clean-btn" onclick="campusMapFitCampus(false)" title="Center Campus" aria-label="Center Campus">⌖</button>
+          <button type="button" class="map-clean-btn" onclick="campusMapFitCampus(false)" title="Center Campus" aria-label="Center Campus">Center</button>
         </div>
         <button type="button" class="map-info-pill" title="Dibrugarh University Vector Map" aria-label="Map information" onclick="alert('Dibrugarh University Vector Map · Drag to explore, pinch or scroll to zoom, tap anywhere to pin issue location.')">ⓘ</button>
         <div id="mapComplaintPopover" class="map-popover" style="display:none;"></div>
@@ -844,7 +844,7 @@ nav.f-links a:hover{text-decoration:underline}
           <label class="form-label" for="fDesc" style="margin:0">Describe the Issue (অসমীয়া / English) *</label>
           <div style="display:flex;gap:6px;align-items:center;">
             <span id="aiLangIndicator" style="font-size:11px;font-weight:600;color:var(--olive);background:var(--pill);padding:3px 9px;border-radius:999px;">
-              🌐 Auto-Detecting...
+              Auto-Detecting...
             </span>
             <span id="aiAccuracyBadge" style="font-size:11px;font-weight:700;color:var(--olive);background:#e0f5d0;padding:3px 10px;border-radius:999px;border:1px solid #c0e8a8;">
               AI Accuracy: 95%
@@ -888,7 +888,7 @@ nav.f-links a:hover{text-decoration:underline}
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
           <input type="file" id="fPhoto" accept="image/*" class="form-input" style="padding:8px;font-size:12px;flex:1;" onchange="handlePhotoUpload(event)" />
           <button type="button" class="btn" style="height:38px;font-size:12px;padding:0 14px;background:var(--olive);gap:6px;" onclick="triggerCameraCapture()">
-            📸 Open Camera
+            Open Camera
           </button>
           <input type="file" id="fCameraCapture" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload(event)" />
           <img id="photoPreview" style="display:none;width:52px;height:52px;object-fit:cover;border-radius:8px;border:1.5px solid var(--olive);" alt="Uploaded preview" />
@@ -935,7 +935,7 @@ nav.f-links a:hover{text-decoration:underline}
       <p>Already filed? Track your complaint:</p>
       <div class="track-input-row">
         <input class="track-input" id="ctaTrackInput" type="text" placeholder="Complaint ID (e.g. CS-8921)" />
-        <button class="btn" onclick="openTrackerWithId(document.getElementById('ctaTrackInput').value)">Track →</button>
+        <button class="btn" onclick="openTrackerWithId(document.getElementById('ctaTrackInput').value)">Track</button>
       </div>
     </div>
     <p class="reveal" style="margin-top:18px;font-size:11.5px;color:#2a3a10">
@@ -984,7 +984,7 @@ nav.f-links a:hover{text-decoration:underline}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
         Complaint Status Tracker
       </div>
-      <button class="modal-close" onclick="closeTracker()" aria-label="Close">✕</button>
+      <button class="modal-close" onclick="closeTracker()" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">
       <!-- Search -->
@@ -1040,23 +1040,23 @@ nav.f-links a:hover{text-decoration:underline}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
         Dibrugarh University · Official Redressal Access Portal
       </div>
-      <button class="modal-close" onclick="closeLogin()" aria-label="Close">✕</button>
+      <button class="modal-close" onclick="closeLogin()" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">
       <!-- 3 MODE SWITCHER TABS -->
       <div class="login-mode-tabs" role="tablist" aria-label="Official Modes">
         <button type="button" class="login-mode-tab active dept" id="tabModeDept" onclick="switchLoginMode('dept_head')" role="tab" aria-selected="true">
-          <span style="font-size:17px;">🏛️</span>
+          <span style="font-size:13px;font-weight:700;">DH</span>
           <span>Department Head</span>
           <small style="font-size:9.5px;opacity:.85;font-weight:600">Chairmen &amp; HODs</small>
         </button>
         <button type="button" class="login-mode-tab admin" id="tabModeAdmin" onclick="switchLoginMode('admin')" role="tab" aria-selected="false">
-          <span style="font-size:17px;">⚖️</span>
+          <span style="font-size:13px;font-weight:700;">AD</span>
           <span>Administration</span>
           <small style="font-size:9.5px;opacity:.85;font-weight:600">Registrar &amp; Proctor</small>
         </button>
         <button type="button" class="login-mode-tab social" id="tabModeSocial" onclick="switchLoginMode('social')" role="tab" aria-selected="false">
-          <span style="font-size:17px;">🎓</span>
+          <span style="font-size:13px;font-weight:700;">SU</span>
           <span>Social Party</span>
           <small style="font-size:9.5px;opacity:.85;font-weight:600">DUSU President &amp; GS</small>
         </button>
@@ -1108,7 +1108,7 @@ nav.f-links a:hover{text-decoration:underline}
         <a href="admin.html" style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:11.5px;padding:5px 12px;border-radius:6px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px">Full Page Portal ↗</a>
         <button onclick="switchRoleInsideWorkspace()" style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:11.5px;padding:5px 12px;border-radius:6px;cursor:pointer">Switch Mode</button>
         <button onclick="logoutWorkspace()" style="background:#dc2626;border:none;color:#fff;font-size:11.5px;padding:5px 12px;border-radius:6px;cursor:pointer">Logout</button>
-        <button class="modal-close" onclick="closeWorkspace()" aria-label="Close" style="color:#fff;">✕</button>
+        <button class="modal-close" onclick="closeWorkspace()" aria-label="Close" style="color:#fff;">&times;</button>
       </div>
     </div>
     <div class="modal-body" id="wsBody" style="background:#f9fbf7;padding:18px 22px;max-height:80vh;overflow-y:auto;"></div>
@@ -1139,26 +1139,26 @@ var CAMPUS_LOCATIONS = [
 ];
 
 var SOLVER_MAP = {
-  water: { name: 'Water & Plumbing', desk: 'PHE & Facilities Operations Depot', head: 'Shri Biren Gogoi', sla: 18, icon: '💧' },
-  electricity: { name: 'Power & Lighting', desk: 'Electrical Maintenance & Substation Desk', head: 'Er. Deepshikha Kalita', sla: 8, icon: '⚡' },
-  sanitation: { name: 'Clean Campus & Sanitation', desk: 'Estates & Sanitation Operations Desk', head: 'Dr. Mukul Barua', sla: 12, icon: '🧹' },
-  hostel: { name: 'Hostel & Residential Welfare', desk: 'Hostels & Housing Board', head: 'Dr. J. Hazarika', sla: 24, icon: '🏠' },
-  library: { name: 'Central Library Support', desk: 'Lakshminath Bezbaroa Library Directorate', head: 'Chief Librarian', sla: 24, icon: '📚' },
-  classroom: { name: 'Academic Labs & Classrooms', desk: 'Academic Computing & Instrumentation Desk', head: 'Prof. Sanjib Bordoloi', sla: 16, icon: '🖥️' },
-  road_transport: { name: 'Campus Roads & Transport', desk: 'Estate & University Transport Cell', head: 'Transport Officer', sla: 36, icon: '🚌' },
-  safety: { name: 'Campus Safety Command', desk: 'Proctorial Command & Security House', head: 'Dr. P. Barua', sla: 4, icon: '🛡️' },
-  internet: { name: 'CCSA IT & Connectivity', desk: 'Central IT Network Operations Centre', head: 'Prof. T. Saikia', sla: 12, icon: '📶' },
-  sports: { name: 'Sports & Athletics', desk: 'Directorate of Sports & Physical Education', head: 'Director of Sports', sla: 48, icon: '⚽' },
-  cricket: { name: 'Cricket Section', desk: 'University Cricket Pavilion Desk', head: 'Cricket Coach In-Charge', sla: 48, icon: '🏏' },
-  music: { name: 'Cultural & Music', desk: 'DUSU Cultural Affairs & Music Section', head: 'Cultural Secretary', sla: 48, icon: '🎵' },
-  debating: { name: 'Debating & Symposiums', desk: 'DUSU Literary & Debating Society', head: 'Debating Secretary', sla: 48, icon: '🎙️' },
-  fine_arts_literary: { name: 'Fine Arts & Literary', desk: 'DUSU Arts & Literary Affairs', head: 'Fine Arts Secretary', sla: 48, icon: '🎨' },
-  magazine: { name: 'Magazine & Publications', desk: 'University Magazine Editorial Board', head: 'Magazine Editor', sla: 72, icon: '📰' },
-  girls_common_room: { name: "Girls' Common Room", desk: "Student Welfare & Girls' Common Room Cell", head: 'GCR In-Charge', sla: 24, icon: '🌸' },
-  boys_common_room: { name: "Boys' Common Room", desk: "Student Welfare & Boys' Common Room Cell", head: 'BCR In-Charge', sla: 24, icon: '🪴' },
-  social_service: { name: 'Campus Social Service', desk: 'NSS & Social Service Directorate', head: 'NSS Programme Coordinator', sla: 36, icon: '🤝' },
-  general: { name: 'General Student Welfare', desk: 'DUSU Executive Council & General Secretary', head: 'Nabajyoti Bora (GS)', sla: 24, icon: '🏛️' },
-  other: { name: 'Central Administration Review', desk: 'Registrar Office & Redressal Ombudsman', head: 'Prof. Hemanga Sharma', sla: 48, icon: '📋' }
+  water: { name: 'Water & Plumbing', desk: 'PHE & Facilities Operations Depot', head: 'Shri Biren Gogoi', sla: 18, icon: '' },
+  electricity: { name: 'Power & Lighting', desk: 'Electrical Maintenance & Substation Desk', head: 'Er. Deepshikha Kalita', sla: 8, icon: '' },
+  sanitation: { name: 'Clean Campus & Sanitation', desk: 'Estates & Sanitation Operations Desk', head: 'Dr. Mukul Barua', sla: 12, icon: '' },
+  hostel: { name: 'Hostel & Residential Welfare', desk: 'Hostels & Housing Board', head: 'Dr. J. Hazarika', sla: 24, icon: '' },
+  library: { name: 'Central Library Support', desk: 'Lakshminath Bezbaroa Library Directorate', head: 'Chief Librarian', sla: 24, icon: '' },
+  classroom: { name: 'Academic Labs & Classrooms', desk: 'Academic Computing & Instrumentation Desk', head: 'Prof. Sanjib Bordoloi', sla: 16, icon: '' },
+  road_transport: { name: 'Campus Roads & Transport', desk: 'Estate & University Transport Cell', head: 'Transport Officer', sla: 36, icon: '' },
+  safety: { name: 'Campus Safety Command', desk: 'Proctorial Command & Security House', head: 'Dr. P. Barua', sla: 4, icon: '' },
+  internet: { name: 'CCSA IT & Connectivity', desk: 'Central IT Network Operations Centre', head: 'Prof. T. Saikia', sla: 12, icon: '' },
+  sports: { name: 'Sports & Athletics', desk: 'Directorate of Sports & Physical Education', head: 'Director of Sports', sla: 48, icon: '' },
+  cricket: { name: 'Cricket Section', desk: 'University Cricket Pavilion Desk', head: 'Cricket Coach In-Charge', sla: 48, icon: '' },
+  music: { name: 'Cultural & Music', desk: 'DUSU Cultural Affairs & Music Section', head: 'Cultural Secretary', sla: 48, icon: '' },
+  debating: { name: 'Debating & Symposiums', desk: 'DUSU Literary & Debating Society', head: 'Debating Secretary', sla: 48, icon: '' },
+  fine_arts_literary: { name: 'Fine Arts & Literary', desk: 'DUSU Arts & Literary Affairs', head: 'Fine Arts Secretary', sla: 48, icon: '' },
+  magazine: { name: 'Magazine & Publications', desk: 'University Magazine Editorial Board', head: 'Magazine Editor', sla: 72, icon: '' },
+  girls_common_room: { name: "Girls' Common Room", desk: "Student Welfare & Girls' Common Room Cell", head: 'GCR In-Charge', sla: 24, icon: '' },
+  boys_common_room: { name: "Boys' Common Room", desk: "Student Welfare & Boys' Common Room Cell", head: 'BCR In-Charge', sla: 24, icon: '' },
+  social_service: { name: 'Campus Social Service', desk: 'NSS & Social Service Directorate', head: 'NSS Programme Coordinator', sla: 36, icon: '' },
+  general: { name: 'General Student Welfare', desk: 'DUSU Executive Council & General Secretary', head: 'Nabajyoti Bora (GS)', sla: 24, icon: '' },
+  other: { name: 'Central Administration Review', desk: 'Registrar Office & Redressal Ombudsman', head: 'Prof. Hemanga Sharma', sla: 48, icon: '' }
 };
 
 // ════════════ OFFICIALS & 3 DISTINCT WORKSPACE MODES ════════════
@@ -1175,7 +1175,7 @@ var OFFICIALS = [
     departmentId: 'electricity',
     departmentName: 'Electrical & Power Works',
     email: 'chairman.electrical@dibru.ac.in',
-    avatar: '⚡',
+    avatar: 'EE',
     badge: 'Chairman · Power Desk',
     handlesConfidential: false
   },
@@ -1188,7 +1188,7 @@ var OFFICIALS = [
     departmentId: 'hostel',
     departmentName: 'Hostels & Housing Board',
     email: 'chiefwarden.hostels@dibru.ac.in',
-    avatar: '🏠',
+    avatar: 'HS',
     badge: 'Chairman · Hostels Board',
     handlesConfidential: true
   },
@@ -1201,7 +1201,7 @@ var OFFICIALS = [
     departmentId: 'internet',
     departmentName: 'CCSA IT & Campus Network',
     email: 'director.ccsa@dibru.ac.in',
-    avatar: '📶',
+    avatar: 'IT',
     badge: 'Chairman · IT Network',
     handlesConfidential: false
   },
@@ -1214,7 +1214,7 @@ var OFFICIALS = [
     departmentId: 'sanitation',
     departmentName: 'Sanitation & Estates Office',
     email: 'estates.head@dibru.ac.in',
-    avatar: '🧹',
+    avatar: 'SC',
     badge: 'Chairman · Sanitation',
     handlesConfidential: false
   },
@@ -1227,7 +1227,7 @@ var OFFICIALS = [
     departmentId: 'water',
     departmentName: 'PHE & Water Facilities',
     email: 'phe.water@dibru.ac.in',
-    avatar: '💧',
+    avatar: 'PH',
     badge: 'Chairman · PHE Water',
     handlesConfidential: false
   },
@@ -1242,7 +1242,7 @@ var OFFICIALS = [
     departmentId: 'admin',
     departmentName: 'Office of the Registrar & University Ombudsman',
     email: 'registrar@dibru.ac.in',
-    avatar: '🏛️',
+    avatar: 'REG',
     badge: 'Registrar & Ombudsman',
     handlesConfidential: true
   },
@@ -1255,7 +1255,7 @@ var OFFICIALS = [
     departmentId: 'safety',
     departmentName: 'Proctorial Board & Confidential Safety Registry',
     email: 'proctor@dibru.ac.in',
-    avatar: '⚖️',
+    avatar: 'PRC',
     badge: 'Chief Proctor · Safety',
     handlesConfidential: true
   },
@@ -1270,7 +1270,7 @@ var OFFICIALS = [
     departmentId: 'general',
     departmentName: 'DUSU Presidential Executive',
     email: 'president.dusu@dibru.ac.in',
-    avatar: '🎓',
+    avatar: 'DUSU',
     badge: 'DUSU President',
     handlesConfidential: false
   },
@@ -1283,7 +1283,7 @@ var OFFICIALS = [
     departmentId: 'general',
     departmentName: 'DUSU Secretariat (Copied Official)',
     email: 'gs.dusu@dibru.ac.in',
-    avatar: '🤝',
+    avatar: 'GS',
     badge: 'DUSU General Secretary',
     handlesConfidential: false
   },
@@ -1296,7 +1296,7 @@ var OFFICIALS = [
     departmentId: 'general',
     departmentName: 'DUSU Student Welfare Committee',
     email: 'vp.dusu@dibru.ac.in',
-    avatar: '🌟',
+    avatar: 'VP',
     badge: 'DUSU Vice President',
     handlesConfidential: false
   }
@@ -2078,7 +2078,7 @@ function updateAI() {
   var langEl = document.getElementById('aiLangIndicator');
   if (langEl) {
     var lText = analysis.language === 'as' ? 'অসমীয়া লিপি (Assamese)' : analysis.language === 'mixed' ? 'Mixed / Romanised Assamese' : 'English (en)';
-    langEl.textContent = '🌐 ' + lText;
+    langEl.textContent = lText;
   }
 
   // Accuracy Percentage Badge
@@ -2102,7 +2102,7 @@ function updateAI() {
   // Dept & Routing Notice
   var deptEl = document.getElementById('aiDept');
   if (deptEl) {
-    var routeTarget = analysis.sensitive ? '🛡️ Dr. P. Barua (Head, Proctorial Board Strictly)' : solver.desk + ' · Copy to DUSU GS';
+    var routeTarget = analysis.sensitive ? 'Dr. P. Barua (Head, Proctorial Board Strictly)' : solver.desk + ' · Copy to DUSU GS';
     deptEl.textContent = solver.icon + ' ' + routeTarget;
   }
   var catEl = document.getElementById('aiCategory');
@@ -2474,12 +2474,12 @@ function buildPresets() {
     var badgeClass = o.mode === 'dept_head' ? 'dept' : o.mode === 'admin' ? 'admin' : 'social';
     card.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
       '<span class="profile-badge ' + badgeClass + '">' + o.badge + '</span>' +
-      (isSel ? '<span style="font-size:12px;color:var(--olive);font-weight:800;">✓</span>' : '') +
+      (isSel ? '<span style="font-size:12px;color:var(--olive);font-weight:800;">Selected</span>' : '') +
       '</div>' +
       '<div class="profile-name"><span>' + o.avatar + '</span> <span>' + o.name + '</span></div>' +
       '<div class="profile-title">' + o.roleTitle + '</div>' +
-      '<div class="profile-dept">🏢 ' + o.departmentName + '</div>' +
-      '<div style="font-size:10px;color:#9ca3af;margin-top:3px;">✉️ ' + o.email + '</div>';
+      '<div class="profile-dept">' + o.departmentName + '</div>' +
+      '<div style="font-size:10px;color:#9ca3af;margin-top:3px;">' + o.email + '</div>';
 
     grid.appendChild(card);
   });
@@ -2511,13 +2511,13 @@ function openWorkspace() {
 
   if (currentUser.mode === 'dept_head') {
     if (wsHeader) wsHeader.style.background = '#134e2c';
-    if (wsRoleLabel) wsRoleLabel.textContent = '🏛️ Department Head (Chairman) Workspace';
+    if (wsRoleLabel) wsRoleLabel.textContent = 'Department Head (Chairman) Workspace';
   } else if (currentUser.mode === 'admin') {
     if (wsHeader) wsHeader.style.background = '#1e3a8a';
-    if (wsRoleLabel) wsRoleLabel.textContent = '⚖️ Central Administration & Proctorial Registry';
+    if (wsRoleLabel) wsRoleLabel.textContent = 'Central Administration & Proctorial Registry';
   } else if (currentUser.mode === 'social') {
     if (wsHeader) wsHeader.style.background = '#0036FF';
-    if (wsRoleLabel) wsRoleLabel.textContent = '🎓 Student Union Executive (DUSU) Workspace';
+    if (wsRoleLabel) wsRoleLabel.textContent = 'Student Union Executive (DUSU) Workspace';
   }
 
   if (wsUserName) wsUserName.textContent = currentUser.name + ' (' + currentUser.badge + ')';
@@ -2622,7 +2622,7 @@ function renderDeptHeadWorkspace(body, all) {
 
   if (filteredList.length === 0) {
     html += '<div style="text-align:center;padding:40px;color:#557048;background:#fff;border-radius:12px;border:1px solid var(--line)">' +
-      '✅ All issues in this department queue are resolved or clear.' +
+      'All issues in this department queue are resolved or clear.' +
       '</div>';
   } else {
     filteredList.forEach(function(c) {
@@ -2638,19 +2638,19 @@ function renderDeptComplaintCard(c) {
   var ai = c.aiAnalysis || {};
   var isSolved = c.status === 'resolved' || c.status === 'closed';
   var isIP = c.status === 'in_progress';
-  var statusBadge = isSolved ? '<span style="background:#e0f5d0;color:#15803d;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700">✓ RESOLVED</span>' :
-    isIP ? '<span style="background:#e0f2fe;color:#0284c7;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700">⚙️ IN PROGRESS</span>' :
-    '<span style="background:#fef3c7;color:#b45309;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700">⏳ PENDING</span>';
+  var statusBadge = isSolved ? '<span style="background:#e0f5d0;color:#15803d;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700">RESOLVED</span>' :
+    isIP ? '<span style="background:#e0f2fe;color:#0284c7;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700">IN PROGRESS</span>' :
+    '<span style="background:#fef3c7;color:#b45309;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700">PENDING</span>';
 
   return '<div style="background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 3px 10px rgba(0,0,0,0.02)">' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">' +
     '<div>' +
     '<div style="font-size:14px;font-weight:750;color:#134e2c;display:flex;align-items:center;gap:6px">' +
     c.id + ' · ' + (c.title || c.desc).slice(0, 60) +
-    (ai.sensitive ? '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;">🛡️ Confidential</span>' : '') +
+    (ai.sensitive ? '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;">Confidential</span>' : '') +
     '</div>' +
     '<div style="font-size:11.5px;color:#4b5563;margin-top:2px">' +
-    '📍 ' + (c.location || 'Campus') + ' · Reported: ' + new Date(c.ts).toLocaleString() + ' · Priority: ' + (c.urgency || 'Normal') +
+    (c.location || 'Campus') + ' · Reported: ' + new Date(c.ts).toLocaleString() + ' · Priority: ' + (c.urgency || 'Normal') +
     '</div>' +
     '</div>' +
     '<div>' + statusBadge + '</div>' +
@@ -2680,12 +2680,12 @@ function renderDeptComplaintCard(c) {
     // Actions
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid #f1f5f9;padding-top:10px;margin-top:2px;">' +
     (!isSolved ?
-      '<button onclick="wsDispatchCrew(\'' + c.id + '\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#0284c7">🛠️ Dispatch Field Crew</button>' +
-      '<button onclick="wsSetStatus(\'' + c.id + '\',\'resolved\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#16a34a">✅ Mark Resolved on Site</button>' :
+      '<button onclick="wsDispatchCrew(\'' + c.id + '\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#0284c7">Dispatch Field Crew</button>' +
+      '<button onclick="wsSetStatus(\'' + c.id + '\',\'resolved\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#16a34a">Mark Resolved on Site</button>' :
       '<button onclick="wsSetStatus(\'' + c.id + '\',\'in_progress\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px">Reopen for Inspection</button>'
     ) +
-    '<button onclick="wsReply(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px">💬 Post Note to Citizen</button>' +
-    '<button onclick="openTrackerWithId(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px;margin-left:auto">👁️ View User Tracker</button>' +
+    '<button onclick="wsReply(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px">Post Note to Citizen</button>' +
+    '<button onclick="openTrackerWithId(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px;margin-left:auto">View User Tracker</button>' +
     '</div>' +
 
     '</div>';
@@ -2736,9 +2736,9 @@ function renderAdminWorkspace(body, all) {
 
   // Administration Mode Tabs
   html += '<div style="display:flex;gap:6px;border-bottom:1px solid #cbd5e1;padding-bottom:10px;flex-wrap:wrap;">' +
-    '<button onclick="setWsTab(\'review\')" class="btn' + (activeAdminTab === 'review' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px;background:' + (activeAdminTab==='review'?'#dc2626':'') + ';color:' + (activeAdminTab==='review'?'#fff':'#dc2626') + ';border-color:#dc2626">⚠️ Held for Admin Review (' + needsReviewList.length + ')</button>' +
-    '<button onclick="setWsTab(\'sensitive\')" class="btn' + (activeAdminTab === 'sensitive' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px;background:' + (activeAdminTab==='sensitive'?'#7c3aed':'') + ';color:' + (activeAdminTab==='sensitive'?'#fff':'#7c3aed') + ';border-color:#7c3aed">🛡️ Confidential Proctorial Docket (' + sensitiveList.length + ')</button>' +
-    '<button onclick="setWsTab(\'master\')" class="btn' + (activeAdminTab === 'master' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">🌐 All Campus Departments Audit (' + all.length + ')</button>' +
+    '<button onclick="setWsTab(\'review\')" class="btn' + (activeAdminTab === 'review' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px;background:' + (activeAdminTab==='review'?'#dc2626':'') + ';color:' + (activeAdminTab==='review'?'#fff':'#dc2626') + ';border-color:#dc2626">Held for Admin Review (' + needsReviewList.length + ')</button>' +
+    '<button onclick="setWsTab(\'sensitive\')" class="btn' + (activeAdminTab === 'sensitive' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px;background:' + (activeAdminTab==='sensitive'?'#7c3aed':'') + ';color:' + (activeAdminTab==='sensitive'?'#fff':'#7c3aed') + ';border-color:#7c3aed">Confidential Proctorial Docket (' + sensitiveList.length + ')</button>' +
+    '<button onclick="setWsTab(\'master\')" class="btn' + (activeAdminTab === 'master' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">All Campus Departments Audit (' + all.length + ')</button>' +
     '</div>';
 
   if (displayList.length === 0) {
@@ -2764,8 +2764,8 @@ function renderAdminComplaintCard(c) {
     '<div>' +
     '<div style="font-size:14px;font-weight:750;color:#1e3a8a;display:flex;align-items:center;gap:6px">' +
     c.id + ' · ' + (c.title || c.desc).slice(0, 60) +
-    (isNeedsReview ? '<span style="background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800">⚠️ NEEDS ADMIN TRIAGE</span>' : '') +
-    (ai.sensitive ? '<span style="background:#f3e8ff;color:#7c3aed;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800">🛡️ CONFIDENTIAL</span>' : '') +
+    (isNeedsReview ? '<span style="background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800">NEEDS ADMIN TRIAGE</span>' : '') +
+    (ai.sensitive ? '<span style="background:#f3e8ff;color:#7c3aed;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800">CONFIDENTIAL</span>' : '') +
     '</div>' +
     '<div style="font-size:11.5px;color:#475569;margin-top:2px">' +
     'Department: <strong>' + (c.catName || c.cat) + '</strong> · Location: ' + c.location + ' · Confidence: ' + Math.round((ai.confidence || 0.9) * 100) + '%' +
@@ -2781,9 +2781,9 @@ function renderAdminComplaintCard(c) {
 
     // Administrative Powers
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid #f1f5f9;padding-top:10px;margin-top:2px;">' +
-    '<button onclick="wsReassignDept(\'' + c.id + '\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#1e40af">🔄 Reassign Solver Department</button>' +
+    '<button onclick="wsReassignDept(\'' + c.id + '\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#1e40af">Reassign Solver Department</button>' +
     '<button onclick="wsSetStatus(\'' + c.id + '\',\'resolved\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px;color:#16a34a;border-color:#16a34a">Mark Officially Closed</button>' +
-    '<button onclick="wsReply(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px">📢 Registrar Directive Note</button>' +
+    '<button onclick="wsReply(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px">Registrar Directive Note</button>' +
     '<button onclick="openTrackerWithId(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px;margin-left:auto">Public Tracker</button>' +
     '</div>' +
 
@@ -2832,10 +2832,10 @@ function renderSocialPartyWorkspace(body, all) {
   // Social Mode Tabs
   html += '<div style="display:flex;gap:6px;border-bottom:1px solid #cbd5e1;padding-bottom:10px;flex-wrap:wrap;">' +
     '<button onclick="setWsTab(\'all\')" class="btn' + (activeSocialTab === 'all' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">All Student Reports (' + all.length + ')</button>' +
-    '<button onclick="setWsTab(\'hostel\')" class="btn' + (activeSocialTab === 'hostel' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">🏠 Hostels (' + hostelReports.length + ')</button>' +
-    '<button onclick="setWsTab(\'wifi\')" class="btn' + (activeSocialTab === 'wifi' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">📶 Wi-Fi &amp; Labs (' + wifiReports.length + ')</button>' +
-    '<button onclick="setWsTab(\'facilities\')" class="btn' + (activeSocialTab === 'facilities' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">💧 Water &amp; Campus (' + facilityReports.length + ')</button>' +
-    '<button onclick="setWsTab(\'escalated\')" class="btn' + (activeSocialTab === 'escalated' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px;border-color:#dc2626;color:#dc2626">🚨 Escalated to Registrar (' + all.filter(function(c){return c.status==='escalated'}).length + ')</button>' +
+    '<button onclick="setWsTab(\'hostel\')" class="btn' + (activeSocialTab === 'hostel' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">Hostels (' + hostelReports.length + ')</button>' +
+    '<button onclick="setWsTab(\'wifi\')" class="btn' + (activeSocialTab === 'wifi' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">Wi-Fi &amp; Labs (' + wifiReports.length + ')</button>' +
+    '<button onclick="setWsTab(\'facilities\')" class="btn' + (activeSocialTab === 'facilities' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px">Water &amp; Campus (' + facilityReports.length + ')</button>' +
+    '<button onclick="setWsTab(\'escalated\')" class="btn' + (activeSocialTab === 'escalated' ? '' : '-outline') + '" style="height:30px;font-size:11.5px;padding:0 12px;border-color:#dc2626;color:#dc2626">Escalated to Registrar (' + all.filter(function(c){return c.status==='escalated'}).length + ')</button>' +
     '</div>';
 
   if (displayList.length === 0) {
@@ -2861,11 +2861,11 @@ function renderSocialComplaintCard(c) {
     '<div>' +
     '<div style="font-size:14px;font-weight:750;color:#0036FF;display:flex;align-items:center;gap:6px">' +
     c.id + ' · ' + (c.title || c.desc).slice(0, 60) +
-    (isEscalated ? '<span style="background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800">🚨 DUSU ESCALATED</span>' : '') +
-    (c.studentVerified ? '<span style="background:#e0f5d0;color:#15803d;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800">✓ STUDENT VERIFIED</span>' : '') +
+    (isEscalated ? '<span style="background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800">DUSU ESCALATED</span>' : '') +
+    (c.studentVerified ? '<span style="background:#e0f5d0;color:#15803d;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800">STUDENT VERIFIED</span>' : '') +
     '</div>' +
     '<div style="font-size:11.5px;color:#475569;margin-top:2px">' +
-    'Assigned Department: <strong>' + (c.catName || c.cat) + '</strong> · 📍 ' + c.location +
+    'Assigned Department: <strong>' + (c.catName || c.cat) + '</strong> · ' + c.location +
     '</div>' +
     '</div>' +
     '<div><span style="font-size:11px;padding:3px 8px;border-radius:999px;background:#e0e7ff;color:#3730a3;font-weight:700">' + (c.status || 'open').toUpperCase() + '</span></div>' +
@@ -2877,11 +2877,11 @@ function renderSocialComplaintCard(c) {
 
     // Social Party Powers
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid #f1f5f9;padding-top:10px;margin-top:2px;">' +
-    '<button onclick="wsEndorseCouncil(\'' + c.id + '\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#0036FF">🤝 DUSU Executive Follow-Up Note</button>' +
+    '<button onclick="wsEndorseCouncil(\'' + c.id + '\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#0036FF">DUSU Executive Follow-Up Note</button>' +
     (!isEscalated && !isSolved ?
-      '<button onclick="wsEscalateToRegistrar(\'' + c.id + '\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#dc2626">🚨 Escalate to Registrar Emergency Docket</button>' : ''
+      '<button onclick="wsEscalateToRegistrar(\'' + c.id + '\')" class="btn" style="height:32px;font-size:11.5px;padding:0 12px;background:#dc2626">Escalate to Registrar Emergency Docket</button>' : ''
     ) +
-    '<button onclick="wsVerifyStudentResolution(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px;color:#16a34a;border-color:#16a34a">✓ Verify Student Ground Fix</button>' +
+    '<button onclick="wsVerifyStudentResolution(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px;color:#16a34a;border-color:#16a34a">Verify Student Ground Fix</button>' +
     '<button onclick="openTrackerWithId(\'' + c.id + '\')" class="btn-outline" style="height:32px;font-size:11.5px;padding:0 10px;margin-left:auto">View User Tracker</button>' +
     '</div>' +
 
@@ -3003,7 +3003,7 @@ function wsEscalateToRegistrar(id) {
   c.routeHistory.push({
     id: 'm_' + Date.now(),
     ts: Date.now(),
-    stage: '🚨 Escalated to Registrar Docket',
+    stage: 'Escalated to Registrar Docket',
     actor: currentUser.name,
     role: currentUser.roleTitle,
     note: 'DUSU Executive formal escalation: ' + reason.trim()
@@ -3612,7 +3612,7 @@ function showComplaintPopover(c, sx, sy) {
     '<span style="font-size:10px;padding:2px 7px;border-radius:999px;background:' + (isUrgent ? '#fee2e2' : '#e0f5d0') + ';color:' + (isUrgent ? '#b91c1c' : 'var(--olive)') + ';font-weight:700;">' + (c.status || 'open').toUpperCase() + '</span>' +
     '</div>' +
     '<div style="font-size:12px;font-weight:600;color:#1a3010;margin-bottom:3px;">' + (c.title || c.desc).slice(0, 52) + '...</div>' +
-    '<div style="font-size:11px;color:#557048;margin-bottom:8px;">📍 ' + (c.location || 'Dibrugarh University') + '</div>' +
+    '<div style="font-size:11px;color:#557048;margin-bottom:8px;">Location: ' + (c.location || 'Dibrugarh University') + '</div>' +
     '<button type="button" onclick="openTrackerWithId(\'' + c.id + '\')" class="btn" style="height:26px;font-size:11px;padding:0 10px;width:100%;">View Live Status</button>';
   pop.style.left = sx + 'px';
   pop.style.top = sy + 'px';
@@ -3629,7 +3629,7 @@ function setDraftPinLocation(lat, lng, label) {
   if (coordsEl) coordsEl.textContent = currentDraftCoords.lat.toFixed(6) + '° N, ' + currentDraftCoords.lng.toFixed(6) + '° E';
 
   var pill = document.getElementById('mapStatusText');
-  if (pill) pill.textContent = '📍 Pinned: ' + currentDraftLocationLabel.slice(0, 22);
+  if (pill) pill.textContent = 'Pinned: ' + currentDraftLocationLabel.slice(0, 22);
 
   mapDirty = true;
 }
@@ -3996,7 +3996,7 @@ function drawDraftIssuePin(ctx, sx, sy) {
   ctx.fill();
 
   ctx.font = '700 10.5px system-ui, -apple-system, sans-serif';
-  var tagText = '📍 ' + (currentDraftLocationLabel.length > 24 ? currentDraftLocationLabel.slice(0, 22) + '...' : currentDraftLocationLabel);
+  var tagText =  (currentDraftLocationLabel.length > 24 ? currentDraftLocationLabel.slice(0, 22) + '...' : currentDraftLocationLabel);
   var tw = ctx.measureText(tagText).width;
   var bw = tw + 14;
   var bh = 22;
@@ -4020,7 +4020,7 @@ function drawDraftIssuePin(ctx, sx, sy) {
 
 function locateUserGps() {
   var pill = document.getElementById('mapStatusText');
-  if (pill) pill.textContent = '📡 Acquiring GPS satellite fix...';
+  if (pill) pill.textContent = 'Acquiring GPS fix...';
 
   if (typeof navigator !== 'undefined' && navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
@@ -4035,7 +4035,7 @@ function locateUserGps() {
             if (CampusGPS.inExtent(p, D.meta)) {
               setDraftPinLocation(lat, lon, 'Device GPS Spot (±' + acc + 'm)');
               flyMapToWorld(p.x, p.y, 2.0);
-              if (pill) pill.textContent = '📍 GPS Located (±' + acc + 'm)';
+              if (pill) pill.textContent = 'GPS Located (±' + acc + 'm)';
               return;
             }
           } catch (e) {}
@@ -4060,7 +4060,7 @@ function fallbackLandmarkPin(reason) {
     setDraftPinLocation(spot.lat, spot.lng, spot.name);
     flyMapToGps(spot.lat, spot.lng, 1.8);
     var pill = document.getElementById('mapStatusText');
-    if (pill) pill.textContent = '📍 ' + spot.name.slice(0, 22);
+    if (pill) pill.textContent = spot.name.slice(0, 22);
   }
 }
 

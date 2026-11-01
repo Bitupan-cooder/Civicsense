@@ -768,7 +768,7 @@
           <span id="headerModeText">Mode 1: Department Head</span>
         </span>
         <div class="user-badge" id="headerUserBadge">
-          <span id="headerAvatar">⚡</span>
+          <span id="headerAvatar">EE</span>
           <span id="headerUserName">Prof. A. K. Buragohain</span>
         </div>
       </div>
@@ -787,7 +787,7 @@
     <!-- 3 MODE SELECTION TABS -->
     <section class="mode-tabs-row" aria-label="Official Modes">
       <button class="mode-tab-btn active dept" id="navTabDept" onclick="selectMode('dept_head')">
-        <div class="mode-tab-icon">🏛️</div>
+        <div class="mode-tab-icon">DH</div>
         <div class="mode-tab-texts">
           <h3>Department Head (Chairmen)</h3>
           <p>Field maintenance crew dispatch, ETA logging &amp; defect resolution</p>
@@ -795,7 +795,7 @@
       </button>
 
       <button class="mode-tab-btn admin" id="navTabAdmin" onclick="selectMode('admin')">
-        <div class="mode-tab-icon">⚖️</div>
+        <div class="mode-tab-icon">AD</div>
         <div class="mode-tab-texts">
           <h3>Administration (Registrar &amp; Proctor)</h3>
           <p>Admin triage review queue, solver desk reassignments &amp; sensitive vault</p>
@@ -803,7 +803,7 @@
       </button>
 
       <button class="mode-tab-btn social" id="navTabSocial" onclick="selectMode('social')">
-        <div class="mode-tab-icon">🎓</div>
+        <div class="mode-tab-icon">SU</div>
         <div class="mode-tab-texts">
           <h3>Social Party (DUSU Council)</h3>
           <p>Executive oversight, 1-click Registrar escalation &amp; ground verifications</p>
@@ -826,7 +826,7 @@
         <div style="background:var(--pill);padding:6px 16px;border-radius:999px;font-size:12px;font-weight:700;color:#0e3018">
           SLA Window: <span id="bannerSla">24 Hours Target</span>
         </div>
-        <button class="btn btn-outline" onclick="exportAuditCsv()">📥 Export Audit CSV</button>
+        <button class="btn btn-outline" onclick="exportAuditCsv()">Export Audit CSV</button>
       </div>
     </section>
 
@@ -858,14 +858,14 @@
     <div class="auth-box">
       <div class="auth-box-header">
         <div class="auth-box-title">Official Redressal Access Console</div>
-        <button onclick="closeAuthModal()" style="background:none;border:none;color:#fff;font-size:16px;font-weight:700;cursor:pointer">✕</button>
+        <button onclick="closeAuthModal()" style="background:none;border:none;color:#fff;font-size:16px;font-weight:700;cursor:pointer">&times;</button>
       </div>
 
       <div class="auth-box-body">
         <div class="auth-subtabs">
-          <button type="button" class="auth-subtab active" id="authSubDept" onclick="switchAuthMode('dept_head')">🏛️ Department Head</button>
-          <button type="button" class="auth-subtab" id="authSubAdmin" onclick="switchAuthMode('admin')">⚖️ Administration</button>
-          <button type="button" class="auth-subtab" id="authSubSocial" onclick="switchAuthMode('social')">🎓 Social Party</button>
+          <button type="button" class="auth-subtab active" id="authSubDept" onclick="switchAuthMode('dept_head')">Department Head</button>
+          <button type="button" class="auth-subtab" id="authSubAdmin" onclick="switchAuthMode('admin')">Administration</button>
+          <button type="button" class="auth-subtab" id="authSubSocial" onclick="switchAuthMode('social')">Social Party</button>
         </div>
 
         <div style="font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">Select Official Profile:</div>
@@ -883,7 +883,7 @@
 
         <div style="display:flex;gap:10px;margin-top:18px;">
           <button type="button" class="btn-outline" style="flex:1" onclick="closeAuthModal()">Cancel</button>
-          <button type="button" class="btn" style="flex:2" onclick="submitAuth()">Sign In to Dedicated Console →</button>
+          <button type="button" class="btn" style="flex:2" onclick="submitAuth()">Sign In to Dedicated Console</button>
         </div>
       </div>
     </div>
@@ -906,7 +906,7 @@
         departmentId: 'electricity',
         departmentName: 'Electrical & Power Works',
         email: 'chairman.electrical@dibru.ac.in',
-        avatar: '⚡',
+        avatar: 'EE',
         badge: 'Chairman · Power Desk',
         slaHours: 24
       },
@@ -919,7 +919,7 @@
         departmentId: 'hostel',
         departmentName: 'Hostels & Housing Board',
         email: 'chiefwarden.hostels@dibru.ac.in',
-        avatar: '🏠',
+        avatar: 'HS',
         badge: 'Chairman · Hostels Board',
         slaHours: 24
       },
@@ -932,7 +932,7 @@
         departmentId: 'internet',
         departmentName: 'CCSA IT & Campus Network',
         email: 'director.ccsa@dibru.ac.in',
-        avatar: '📶',
+        avatar: 'IT',
         badge: 'Chairman · IT Network',
         slaHours: 12
       },
@@ -945,7 +945,7 @@
         departmentId: 'sanitation',
         departmentName: 'Clean Campus & Sanitation Operations',
         email: 'estates.sanitation@dibru.ac.in',
-        avatar: '🧹',
+        avatar: 'SC',
         badge: 'Chairman · Sanitation Desk',
         slaHours: 18
       },
@@ -958,7 +958,7 @@
         departmentId: 'library',
         departmentName: 'Lakshminath Bezbaroa Central Library',
         email: 'head.library@dibru.ac.in',
-        avatar: '📚',
+        avatar: 'LB',
         badge: 'Chairman · Library Desk',
         slaHours: 24
       },
@@ -973,7 +973,7 @@
         departmentId: 'admin',
         departmentName: 'Registrar Office & University Ombudsman',
         email: 'registrar@dibru.ac.in',
-        avatar: '🏛️',
+        avatar: 'REG',
         badge: 'University Registrar',
         slaHours: 48
       },
@@ -986,7 +986,7 @@
         departmentId: 'safety',
         departmentName: 'Proctorial Command & Security House',
         email: 'proctor@dibru.ac.in',
-        avatar: '🛡️',
+        avatar: 'PRC',
         badge: 'Proctorial Board Head',
         slaHours: 6
       },
@@ -1001,7 +1001,7 @@
         departmentId: 'general',
         departmentName: 'DUSU Presidential Secretariat',
         email: 'president.dusu@dibru.ac.in',
-        avatar: '🎓',
+        avatar: 'DUSU',
         badge: 'DUSU President',
         slaHours: 24
       },
@@ -1014,7 +1014,7 @@
         departmentId: 'general',
         departmentName: 'DUSU General Secretariat',
         email: 'gs.dusu@dibru.ac.in',
-        avatar: '📋',
+        avatar: 'GS',
         badge: 'DUSU General Secretary',
         slaHours: 24
       },
@@ -1027,7 +1027,7 @@
         departmentId: 'girls_common_room',
         departmentName: "DUSU Women Students' Affairs",
         email: 'vp.dusu@dibru.ac.in',
-        avatar: '🌟',
+        avatar: 'VP',
         badge: 'DUSU Vice President',
         slaHours: 24
       }
@@ -1217,7 +1217,7 @@
       if (modePillText) {
         modePillText.textContent = currentOfficial.mode === 'dept_head' ? 'Mode 1: Department Head' : currentOfficial.mode === 'admin' ? 'Mode 2: Central Administration' : 'Mode 3: Social Party';
       }
-      if (avatar) avatar.textContent = currentOfficial.avatar || '🏛️';
+      if (avatar) avatar.textContent = currentOfficial.avatar || 'DU';
       if (userName) userName.textContent = currentOfficial.name;
 
       // Mode tabs highlighting
@@ -1403,7 +1403,7 @@
 
       if (displayTickets.length === 0) {
         stack.innerHTML = '<div style="background:#fff;border:1.5px dashed var(--line);border-radius:20px;padding:48px 24px;text-align:center;color:#64748b">' +
-          '<div style="font-size:32px;margin-bottom:8px">📋</div>' +
+          '' +
           '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px">No complaints found in this view</h3>' +
           '<p style="font-size:13px;color:#51684c">New reports filed via CivicSense appear here immediately.</p>' +
           '</div>';
@@ -1476,20 +1476,20 @@
 
       var statusBadge = '';
       if (c.status === 'resolved' || c.status === 'closed') {
-        statusBadge = '<span class="chip chip-resolved">✓ Resolved</span>';
+        statusBadge = '<span class="chip chip-resolved">Resolved</span>';
       } else if (c.status === 'in_progress' || c.status === 'solving') {
-        statusBadge = '<span class="chip chip-ip">⚙️ Solving (Crew Out)</span>';
+        statusBadge = '<span class="chip chip-ip">In Progress (Crew Deployed)</span>';
       } else if (c.status === 'escalated') {
-        statusBadge = '<span class="chip chip-escalated">⚡ Escalated to GS</span>';
+        statusBadge = '<span class="chip chip-escalated">Escalated to GS</span>';
       } else {
         statusBadge = '<span class="chip chip-open">Pending Action</span>';
       }
 
       var priorityBadge = '<span class="chip chip-p4">P4 · Low</span>';
       if (c.urgency === 'Immediate Hazard' || (c.aiAnalysis && c.aiAnalysis.priority === 1)) {
-        priorityBadge = '<span class="chip chip-p1">🚨 P1 · Urgent Hazard</span>';
+        priorityBadge = '<span class="chip chip-p1">P1 Urgent Hazard</span>';
       } else if (c.urgency === 'High' || (c.aiAnalysis && c.aiAnalysis.priority === 2)) {
-        priorityBadge = '<span class="chip chip-p2">⚠️ P2 · High Priority</span>';
+        priorityBadge = '<span class="chip chip-p2">P2 High Priority</span>';
       } else if (c.urgency === 'Medium' || (c.aiAnalysis && c.aiAnalysis.priority === 3)) {
         priorityBadge = '<span class="chip chip-p3">P3 · Medium</span>';
       }
@@ -1502,19 +1502,19 @@
       var isDone4 = c.status === 'resolved' || c.status === 'closed';
 
       var stepperHtml = '<div class="stepper-track">' +
-        '<span class="stepper-node done">✓ Report Lodged</span>' +
+        '<span class="stepper-node done">Report Lodged</span>' +
         '<span class="stepper-arrow">→</span>' +
-        '<span class="stepper-node ' + (isDone2 ? 'done' : '') + '">✓ AI Triaged</span>' +
+        '<span class="stepper-node ' + (isDone2 ? 'done' : '') + '">Triaged</span>' +
         '<span class="stepper-arrow">→</span>' +
-        '<span class="stepper-node ' + (isDone3 ? 'active done' : '') + '">' + (c.fieldCrew ? '🛠️ Crew Deployed' : 'Solving') + '</span>' +
+        '<span class="stepper-node ' + (isDone3 ? 'active done' : '') + '">' + (c.fieldCrew ? 'Crew Deployed' : 'Solving') + '</span>' +
         '<span class="stepper-arrow">→</span>' +
-        '<span class="stepper-node ' + (isDone4 ? 'done' : '') + '">' + (isDone4 ? '✓ Resolved & Verified' : 'Resolved') + '</span>' +
+        '<span class="stepper-node ' + (isDone4 ? 'done' : '') + '">' + (isDone4 ? 'Resolved & Verified' : 'Resolved') + '</span>' +
         '</div>';
 
       var crewCalloutHtml = '';
       if (c.fieldCrew) {
         crewCalloutHtml = '<div class="crew-info-bar">' +
-          '<span style="font-size:16px">🛠️</span>' +
+          '<span style="font-size:12px;font-weight:700;">Crew:</span>' +
           '<div><strong>Field Crew Active:</strong> ' + c.fieldCrew.crewName + ' · ETA: ' + c.fieldCrew.eta + ' (Dispatched by ' + (c.fieldCrew.dispatchedBy || 'Dept Head') + ')</div>' +
           '</div>';
       }
@@ -1522,32 +1522,32 @@
       var endorsementHtml = '';
       if (c.dusuEndorsement) {
         endorsementHtml = '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:9px 14px;font-size:12.5px;color:#1e40af;margin-bottom:14px">' +
-          '<strong>🎓 DUSU Council Endorsement:</strong> ' + c.dusuEndorsement.note + ' <small style="opacity:.85">(' + c.dusuEndorsement.endorsedBy + ')</small>' +
+          '<strong>DUSU Council Endorsement:</strong> ' + c.dusuEndorsement.note + ' <small style="opacity:.85">(' + c.dusuEndorsement.endorsedBy + ')</small>' +
           '</div>';
       }
 
       var actionsHtml = '';
       if (currentOfficial.mode === 'dept_head') {
         actionsHtml = '<div class="ticket-actions-row">' +
-          '<button class="btn" style="height:32px;font-size:12px;padding:0 14px;" onclick="opDispatchCrew(&quot;' + c.id + '&quot;)">🛠️ Dispatch Field Crew</button>' +
-          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opSetStatus(&quot;' + c.id + '&quot;, &quot;resolved&quot;)">✓ Mark Resolved</button>' +
-          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opPostReply(&quot;' + c.id + '&quot;)">💬 Post Official Update</button>' +
-          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="openPublicTracker(&quot;' + c.id + '&quot;)">🔍 Student View</button>' +
+          '<button class="btn" style="height:32px;font-size:12px;padding:0 14px;" onclick="opDispatchCrew(&quot;' + c.id + '&quot;)">Dispatch Field Crew</button>' +
+          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opSetStatus(&quot;' + c.id + '&quot;, &quot;resolved&quot;)">Mark Resolved</button>' +
+          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opPostReply(&quot;' + c.id + '&quot;)">Post Official Update</button>' +
+          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="openPublicTracker(&quot;' + c.id + '&quot;)">Student View</button>' +
           '</div>';
       } else if (currentOfficial.mode === 'admin') {
         actionsHtml = '<div class="ticket-actions-row">' +
-          '<button class="btn btn-blue" style="height:32px;font-size:12px;padding:0 14px;" onclick="opReassignDept(&quot;' + c.id + '&quot;)">🔄 Reassign Solver Desk</button>' +
-          '<button class="btn-outline btn-amber" style="height:32px;font-size:12px;padding:0 14px;" onclick="opOverridePriority(&quot;' + c.id + '&quot;)">⚠️ Override Priority</button>' +
-          (isSensitive ? '<button class="btn-outline btn-red" style="height:32px;font-size:12px;padding:0 14px;" onclick="opConfidentialInquiry(&quot;' + c.id + '&quot;)">🛡️ Proctorial Inquiry</button>' : '') +
-          '<button class="btn" style="height:32px;font-size:12px;padding:0 14px;" onclick="opSetStatus(&quot;' + c.id + '&quot;, &quot;resolved&quot;)">✓ Official Sign-Off</button>' +
-          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opPostReply(&quot;' + c.id + '&quot;)">💬 Post Note</button>' +
+          '<button class="btn btn-blue" style="height:32px;font-size:12px;padding:0 14px;" onclick="opReassignDept(&quot;' + c.id + '&quot;)">Reassign Solver Desk</button>' +
+          '<button class="btn-outline btn-amber" style="height:32px;font-size:12px;padding:0 14px;" onclick="opOverridePriority(&quot;' + c.id + '&quot;)">Override Priority</button>' +
+          (isSensitive ? '<button class="btn-outline btn-red" style="height:32px;font-size:12px;padding:0 14px;" onclick="opConfidentialInquiry(&quot;' + c.id + '&quot;)">Proctorial Inquiry</button>' : '') +
+          '<button class="btn" style="height:32px;font-size:12px;padding:0 14px;" onclick="opSetStatus(&quot;' + c.id + '&quot;, &quot;resolved&quot;)">Official Sign-Off</button>' +
+          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opPostReply(&quot;' + c.id + '&quot;)">Post Note</button>' +
           '</div>';
       } else if (currentOfficial.mode === 'social') {
         actionsHtml = '<div class="ticket-actions-row">' +
-          '<button class="btn btn-blue" style="height:32px;font-size:12px;padding:0 14px;" onclick="opEscalateToRegistrar(&quot;' + c.id + '&quot;)">⚡ Escalate to Registrar</button>' +
-          '<button class="btn-outline btn-amber" style="height:32px;font-size:12px;padding:0 14px;" onclick="opEndorseCouncil(&quot;' + c.id + '&quot;)">🤝 Add Endorsement</button>' +
-          '<button class="btn" style="height:32px;font-size:12px;padding:0 14px;" onclick="opVerifyStudent(&quot;' + c.id + '&quot;)">✅ Student Ground Verification</button>' +
-          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opPostReply(&quot;' + c.id + '&quot;)">💬 Council Remark</button>' +
+          '<button class="btn btn-blue" style="height:32px;font-size:12px;padding:0 14px;" onclick="opEscalateToRegistrar(&quot;' + c.id + '&quot;)">Escalate to Registrar</button>' +
+          '<button class="btn-outline btn-amber" style="height:32px;font-size:12px;padding:0 14px;" onclick="opEndorseCouncil(&quot;' + c.id + '&quot;)">Add Endorsement</button>' +
+          '<button class="btn" style="height:32px;font-size:12px;padding:0 14px;" onclick="opVerifyStudent(&quot;' + c.id + '&quot;)">Student Ground Verification</button>' +
+          '<button class="btn-outline" style="height:32px;font-size:12px;padding:0 14px;" onclick="opPostReply(&quot;' + c.id + '&quot;)">Council Remark</button>' +
           '</div>';
       }
 
@@ -1561,14 +1561,14 @@
         '</div>' +
 
         '<div class="ticket-meta-row">' +
-          '<span>📍 ' + (c.location || 'Dibrugarh University Campus') + '</span>' +
-          '<span>🏢 Assigned: <strong>' + (c.dept || 'Department Desk') + '</strong></span>' +
-          '<span>🕒 ' + new Date(c.ts || Date.now()).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + '</span>' +
+          '<span>Location: ' + (c.location || 'Dibrugarh University Campus') + '</span>' +
+          '<span>Assigned: <strong>' + (c.dept || 'Department Desk') + '</strong></span>' +
+          '<span>Reported: ' + new Date(c.ts || Date.now()).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + '</span>' +
         '</div>' +
 
         '<div class="ai-snapshot-card">' +
           '<div class="ai-snapshot-top">' +
-            '<span>CivicSense AI Engine Analysis Snapshot</span>' +
+            '<span>Grievance Summary & Details</span>' +
             accuracyPill +
           '</div>' +
           '<div class="ai-english-summary"><strong>English Summary:</strong> ' + ((c.aiAnalysis && c.aiAnalysis.summary_en) || c.desc || 'No summary available.') + '</div>' +
