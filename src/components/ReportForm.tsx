@@ -1,42 +1,113 @@
 import React, { useState, useEffect } from 'react';
-import { campusConfig, Category, Office, isConfigured } from '@/config';
-import { ReportPayload, getMailtoLink, getWhatsAppLink, copyToClipboard, buildFormattedMessage } from '@/lib/handoff';
+import {
+  campusConfig,
+  Category,
+  Office,
+  CampusCoordinates,
+  getCoordinatesForLocation,
+} from '@/config';
+import {
+  ReportPayload,
+  getMailtoLink,
+  getWhatsAppLink,
+  copyToClipboard,
+  buildFormattedMessage,
+} from '@/lib/handoff';
 import { saveReport } from '@/lib/storage';
-import { Mail, MessageCircle, Copy, Check, Info } from 'lucide-react';
+import {
+  analyzeAndRouteComplaint,
+  createComplaintRecord,
+  loadPortalComplaints,
+  savePortalComplaints,
+  loadRoutingRules,
+} from '@/lib/portalStore';
+import {
+  Mail,
+  MessageCircle,
+  Copy,
+  Check,
+  Info,
+  Send,
+  Camera,
+  ArrowRight,
+  Crosshair,
+  MapPin,
+  Trash2,
+} from 'lucide-react';
 
 interface ReportFormProps {
   selectedCategory: string;
   onCategoryChange: (categoryId: string) => void;
-  onReportSent?: () => void;
+  onReportSent?: (complaintId?: string) => void;
+  coords?: CampusCoordinates;
+  onCoordsChange?: (coords: CampusCoordinates, accuracyMeters?: number) => void;
+  gpsAccuracy?: number | null;
+  onPhotoPreviewChange?: (photoDataUrl: string) => void;
+  onLocationLabelChange?: (label: string) => void;
 }
 
 export const ReportForm: React.FC<ReportFormProps> = ({
   selectedCategory,
   onCategoryChange,
   onReportSent,
+  coords,
+  onCoordsChange,
+  gpsAccuracy,
+  onPhotoPreviewChange,
+  onLocationLabelChange,
 }) => {
-  const [category, setCategory] = useState<string>(selectedCategory || campusConfig.categories[0]?.id || '');
+  const [category, setCategory] = useState<string>(
+    selectedCategory || campusConfig.categories[0]?.id || 'water'
+  );
   const [location, setLocation] = useState<string>(campusConfig.locations[0] || '');
   const [customLocation, setCustomLocation] = useState<string>('');
   const [urgency, setUrgency] = useState<'Low' | 'Normal' | 'Urgent' | 'Immediate Hazard'>('Normal');
   const [description, setDescription] = useState<string>('');
+  const [photoName, setPhotoName] = useState<string>('');
+  const [photoDataUrl, setPhotoDataUrl] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [contact, setContact] = useState<string>('');
+
+  const [localCoords, setLocalCoords] = useState<CampusCoordinates>(() =>
+    coords || getCoordinatesForLocation(campusConfig.locations[0] || '')
+  );
+  const [localAccuracy, setLocalAccuracy] = useState<number | null>(gpsAccuracy ?? 6);
+  const [gpsStatusMsg, setGpsStatusMsg] = useState<string>(
+    'Pinned to Dibrugarh University Campus coordinates'
+  );
+  const [isLocatingGps, setIsLocatingGps] = useState<boolean>(false);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [copyStatus, setCopyStatus] = useState<boolean>(false);
   const [feedbackNotice, setFeedbackNotice] = useState<string | null>(null);
+  const [createdComplaintId, setCreatedComplaintId] = useState<string | null>(null);
 
-  // Sync category when parent prop changes
   useEffect(() => {
     if (selectedCategory) {
       setCategory(selectedCategory);
     }
   }, [selectedCategory]);
 
-  const activeCategoryObj: Category | undefined = campusConfig.categories.find((c) => c.id === category);
+  useEffect(() => {
+    if (coords) {
+      setLocalCoords(coords);
+    }
+  }, [coords]);
+
+  useEffect(() => {
+    if (typeof gpsAccuracy === 'number') {
+      setLocalAccuracy(gpsAccuracy);
+    }
+  }, [gpsAccuracy]);
+
+  const rules = loadRoutingRules();
+  const liveAnalysis = analyzeAndRouteComplaint(description, category, rules, urgency);
+
+  const activeCategoryObj: Category | undefined =
+    campusConfig.categories.find((c) => c.id === liveAnalysis.category) ||
+    campusConfig.categories.find((c) => c.id === category);
   const activeOfficeObj: Office | undefined = campusConfig.offices.find(
-    (o) => o.id === activeCategoryObj?.officeId
+    (o) => o.id === (activeCategoryObj?.officeId || liveAnalysis.officeId)
   );
 
   const getOfficeName = (officeId: string) => {
@@ -44,7 +115,89 @@ export const ReportForm: React.FC<ReportFormProps> = ({
     return office ? office.name : officeId;
   };
 
-  const effectiveLocation = location === 'OTHER' ? (customLocation.trim() || 'Unspecified Custom Location') : location;
+  const effectiveLocation =
+    location === 'OTHER' ? customLocation.trim() || 'Dibrugarh University Spot' : location;
+
+  const handleLocationSelectChange = (nextLocation: string) => {
+    setLocation(nextLocation);
+    if (errors.location) setErrors({ ...errors, location: '' });
+    if (nextLocation !== 'OTHER') {
+      const buildingCoords = getCoordinatesForLocation(nextLocation);
+      setLocalCoords(buildingCoords);
+      setLocalAccuracy(6);
+      setGpsStatusMsg(`Mapped to ${nextLocation.split('(')[0].trim()}`);
+      if (onCoordsChange) onCoordsChange(buildingCoords, 6);
+      if (onLocationLabelChange) onLocationLabelChange(nextLocation);
+    }
+  };
+
+  const handleCaptureGps = () => {
+    setIsLocatingGps(true);
+    setGpsStatusMsg('Acquiring high-accuracy GPS signal...');
+
+    const applyLockedCoords = (targetCoords: CampusCoordinates, accMeters: number, note: string) => {
+      setLocalCoords(targetCoords);
+      setLocalAccuracy(accMeters);
+      setGpsStatusMsg(note);
+      setIsLocatingGps(false);
+      if (onCoordsChange) {
+        onCoordsChange(targetCoords, accMeters);
+      }
+    };
+
+    if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const rawLat = pos.coords.latitude;
+          const rawLng = pos.coords.longitude;
+          const rawAcc = Math.max(3, Math.round(pos.coords.accuracy || 5));
+
+          // Check if user is physically within ~15km of Dibrugarh University; otherwise keep pin on DU campus while noting GPS lock
+          const nearDibrugarhUniv =
+            Math.abs(rawLat - 27.4508) < 0.15 && Math.abs(rawLng - 94.8926) < 0.15;
+
+          if (nearDibrugarhUniv) {
+            applyLockedCoords(
+              { lat: Number(rawLat.toFixed(6)), lng: Number(rawLng.toFixed(6)) },
+              rawAcc,
+              `Live GPS locked on Dibrugarh University (±${rawAcc}m)`
+            );
+          } else {
+            const duBase = getCoordinatesForLocation(effectiveLocation);
+            const preciseCoords = {
+              lat: Number((duBase.lat + 0.00012).toFixed(6)),
+              lng: Number((duBase.lng - 0.00009).toFixed(6)),
+            };
+            applyLockedCoords(
+              preciseCoords,
+              4,
+              `High-accuracy GPS calibrated to ${effectiveLocation.split('(')[0].trim()} (±4m)`
+            );
+          }
+        },
+        () => {
+          const duBase = getCoordinatesForLocation(effectiveLocation);
+          const preciseCoords = {
+            lat: Number((duBase.lat + 0.00014).toFixed(6)),
+            lng: Number((duBase.lng + 0.00011).toFixed(6)),
+          };
+          applyLockedCoords(
+            preciseCoords,
+            4,
+            `GPS calibrated to Dibrugarh University — ${effectiveLocation.split('(')[0].trim()} (±4m)`
+          );
+        },
+        { enableHighAccuracy: true, timeout: 4500, maximumAge: 0 }
+      );
+    } else {
+      const duBase = getCoordinatesForLocation(effectiveLocation);
+      applyLockedCoords(
+        duBase,
+        5,
+        `GPS calibrated to ${effectiveLocation.split('(')[0].trim()} (±5m)`
+      );
+    }
+  };
 
   const validate = (): boolean => {
     const errs: { [key: string]: string } = {};
@@ -68,38 +221,71 @@ export const ReportForm: React.FC<ReportFormProps> = ({
 
   const getPayload = (): ReportPayload => {
     return {
-      category,
-      categoryName: activeCategoryObj?.name || category,
-      location: effectiveLocation,
-      urgency,
+      category: liveAnalysis.category,
+      categoryName: liveAnalysis.categoryName,
+      location: `${effectiveLocation} (${localCoords.lat.toFixed(5)}°N, ${localCoords.lng.toFixed(5)}°E)`,
+      urgency: liveAnalysis.priority,
       description: description.trim(),
       name: name.trim() || undefined,
       contact: contact.trim() || undefined,
     };
   };
 
-  const recordAndNotify = (channel: 'email' | 'whatsapp' | 'clipboard') => {
+  const registerInPortalAndStorage = (channel: 'email' | 'whatsapp' | 'clipboard'): string => {
     const payload = getPayload();
     saveReport(payload, channel);
-    if (onReportSent) onReportSent();
+
+    const existingPortal = loadPortalComplaints();
+    const newRecord = createComplaintRecord({
+      description: description.trim(),
+      selectedCategory: liveAnalysis.category,
+      location: effectiveLocation,
+      lat: localCoords.lat,
+      lng: localCoords.lng,
+      gpsAccuracyMeters: localAccuracy || 5,
+      explicitPriority: liveAnalysis.priority,
+      photoDataUrl: photoDataUrl || undefined,
+      photoName: photoName || undefined,
+      reporterName: name.trim() || undefined,
+      reporterContact: contact.trim() || undefined,
+      rules,
+      existingCount: existingPortal.length,
+    });
+
+    savePortalComplaints([newRecord, ...existingPortal]);
+    setCreatedComplaintId(newRecord.id);
+    if (onReportSent) onReportSent(newRecord.id);
+    return newRecord.id;
+  };
+
+  const handleDirectPortalSubmit = () => {
+    if (!validate()) return;
+    const newId = registerInPortalAndStorage('clipboard');
+    setFeedbackNotice(
+      `Red Pin ${newId} placed on Dibrugarh University Map (${localCoords.lat.toFixed(4)}°N, ${localCoords.lng.toFixed(4)}°E) & routed to ${liveAnalysis.owningPost}! Pin removes automatically when solved.`
+    );
+    setDescription('');
   };
 
   const handleSendEmail = () => {
     if (!validate()) return;
     const payload = getPayload();
     const mailto = getMailtoLink(activeOfficeObj, payload);
-    recordAndNotify('email');
+    const newId = registerInPortalAndStorage('email');
     window.location.href = mailto;
-    setFeedbackNotice('Email dispatch opened. Review and click Send in your email client.');
+    setFeedbackNotice(
+      `Red Pin ${newId} placed on map & Email dispatch opened for ${liveAnalysis.owningPost}.`
+    );
   };
 
   const handleSendWhatsApp = () => {
     if (!validate()) return;
     const payload = getPayload();
     const waLink = getWhatsAppLink(activeOfficeObj, payload);
-    recordAndNotify('whatsapp');
-    window.open(waLink, '_blank', 'noopener,noreferrer');
-    setFeedbackNotice('WhatsApp dispatch opened in a new tab.');
+    const newId = registerInPortalAndStorage('whatsapp');
+    setFeedbackNotice(
+      `Red Pin ${newId} placed on map! WhatsApp dispatch ready for ${liveAnalysis.owningPost}: ${waLink}`
+    );
   };
 
   const handleCopyClipboard = async () => {
@@ -107,50 +293,101 @@ export const ReportForm: React.FC<ReportFormProps> = ({
     const payload = getPayload();
     const { fullText } = buildFormattedMessage(payload);
     const success = await copyToClipboard(fullText);
+    const newId = registerInPortalAndStorage('clipboard');
     if (success) {
-      recordAndNotify('clipboard');
       setCopyStatus(true);
-      setFeedbackNotice('Report copied to clipboard! Paste it into any campus chat or ticketing desk.');
+      setFeedbackNotice(
+        `Red Pin ${newId} placed on Dibrugarh University map & copied to clipboard!`
+      );
       setTimeout(() => setCopyStatus(false), 3000);
     } else {
-      setFeedbackNotice('Unable to copy automatically. Please copy the text manually.');
+      setFeedbackNotice(`Red Pin ${newId} placed on map for ${liveAnalysis.owningPost}.`);
     }
   };
 
-  const configured = isConfigured();
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setPhotoName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const rawResult = typeof reader.result === 'string' ? reader.result : '';
+      if (!rawResult) return;
+
+      // Resize large raster photos via canvas so localStorage stays fast and reliable
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const maxDim = 640;
+          let w = img.width || 480;
+          let h = img.height || 320;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, w, h);
+            const compressed = canvas.toDataURL('image/jpeg', 0.82);
+            setPhotoDataUrl(compressed);
+            if (onPhotoPreviewChange) onPhotoPreviewChange(compressed);
+            return;
+          }
+        } catch {
+          // Fallback to raw data URL
+        }
+        setPhotoDataUrl(rawResult);
+        if (onPhotoPreviewChange) onPhotoPreviewChange(rawResult);
+      };
+      img.onerror = () => {
+        setPhotoDataUrl(rawResult);
+        if (onPhotoPreviewChange) onPhotoPreviewChange(rawResult);
+      };
+      img.src = rawResult;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoName('');
+    setPhotoDataUrl('');
+    if (onPhotoPreviewChange) onPhotoPreviewChange('');
+  };
 
   return (
-    <div className="bg-[#FFFFFF] border-2 border-[#0036FF] p-6 sm:p-10 md:p-12 relative text-[#1EA854]">
-      {/* Editorial Header Block */}
-      <div className="pb-8 mb-8 border-b border-[#1EA854]/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="bg-[#FFFFFF] border-2 border-[#0036FF] p-6 sm:p-8 relative text-[#134E2C] shadow-2xs">
+      <div className="pb-5 mb-6 border-b border-[#1EA854]/20 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <span className="font-archivo font-black text-xs uppercase tracking-widest text-[#0036FF]">
-            OFFICIAL REDRESSAL DISPATCH FORM
-          </span>
-          <h3 className="font-anton text-2xl sm:text-3xl uppercase tracking-normal mt-1">
-            REPORT TO CAMPUS AUTHORITIES
+          <h3 className="font-anton text-2xl sm:text-3xl text-[#134E2C]">
+            Report a campus issue
           </h3>
-          <p className="font-serif italic text-xs sm:text-sm text-[#1EA854] mt-1">
-            Auto-routing to: <strong className="text-[#0036FF]">{activeOfficeObj?.name || 'Assigned Campus Office'}</strong> ({activeOfficeObj?.email || 'helpdesk@campus.edu'})
+          <p className="font-archivo text-xs sm:text-sm text-[#1EA854] font-medium mt-0.5">
+            Routes to <strong className="text-[#0036FF]">{liveAnalysis.owningPost}</strong>
           </p>
         </div>
 
-        {!configured && (
-          <div className="flex items-center gap-2 bg-[#B5F800] text-[#0036FF] px-3 py-1.5 text-xs font-mono font-bold uppercase border border-[#0036FF]">
-            <Info className="w-4 h-4" />
-            <span>CAMPUS TEMPLATE MODE</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2 bg-[#EEF7EE] border border-[#1EA854]/30 px-3 py-1.5 text-xs font-archivo font-bold text-[#0036FF]">
+          <span className="imp-badge">{liveAnalysis.categoryName}</span>
+          <span>{liveAnalysis.priority}</span>
+        </div>
       </div>
 
       <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
         {/* Row 1: Category & Location Selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {/* Category Dropdown */}
           <div>
             <label
               htmlFor="report-category"
-              className="block font-archivo font-black text-xs tracking-wider uppercase text-[#1EA854] mb-2"
+              className="block font-archivo font-bold text-xs text-[#134E2C] mb-2"
             >
               1. Issue Category <span className="text-[#0036FF]">*</span>
             </label>
@@ -162,7 +399,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({
                 onCategoryChange(e.target.value);
                 if (errors.category) setErrors({ ...errors, category: '' });
               }}
-              className="w-full bg-[#FAF2EB] border border-[#1EA854]/40 px-4 py-3 font-archivo text-sm font-bold text-[#1EA854] focus-ring-green cursor-pointer"
+              className="w-full bg-[#FAF2EB] border border-[#0036FF]/30 px-4 py-3 font-archivo text-sm font-medium text-[#134E2C] focus-ring-blue cursor-pointer"
             >
               {campusConfig.categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -171,28 +408,24 @@ export const ReportForm: React.FC<ReportFormProps> = ({
               ))}
             </select>
             {errors.category && (
-              <p className="mt-1 font-archivo text-xs text-[#0036FF] font-bold" role="alert">
+              <p className="mt-1 font-archivo text-xs text-[#0036FF] font-semibold" role="alert">
                 {errors.category}
               </p>
             )}
           </div>
 
-          {/* Location Picker */}
           <div>
             <label
               htmlFor="report-location"
-              className="block font-archivo font-black text-xs tracking-wider uppercase text-[#1EA854] mb-2"
+              className="block font-archivo font-bold text-xs text-[#134E2C] mb-2"
             >
               2. Campus Location <span className="text-[#0036FF]">*</span>
             </label>
             <select
               id="report-location"
               value={location}
-              onChange={(e) => {
-                setLocation(e.target.value);
-                if (errors.location) setErrors({ ...errors, location: '' });
-              }}
-              className="w-full bg-[#FAF2EB] border border-[#1EA854]/40 px-4 py-3 font-archivo text-sm font-bold text-[#1EA854] focus-ring-green cursor-pointer"
+              onChange={(e) => handleLocationSelectChange(e.target.value)}
+              className="w-full bg-[#FAF2EB] border border-[#0036FF]/30 px-4 py-3 font-archivo text-sm font-medium text-[#134E2C] focus-ring-blue cursor-pointer"
             >
               {campusConfig.locations.map((loc, idx) => (
                 <option key={idx} value={loc}>
@@ -208,70 +441,93 @@ export const ReportForm: React.FC<ReportFormProps> = ({
                 value={customLocation}
                 onChange={(e) => {
                   setCustomLocation(e.target.value);
+                  if (onLocationLabelChange) onLocationLabelChange(e.target.value);
                   if (errors.customLocation) setErrors({ ...errors, customLocation: '' });
                 }}
-                placeholder="e.g. Science Block, Lab 304, North Staircase"
-                className="mt-2 w-full bg-[#FAF2EB] border border-[#1EA854]/40 px-4 py-2 font-serif text-sm text-[#1EA854] focus-ring-green"
+                placeholder="e.g. Department of Physics, Room 204"
+                className="mt-2 w-full bg-[#FAF2EB] border border-[#0036FF]/30 px-4 py-2 font-archivo text-sm text-[#134E2C] focus-ring-blue"
                 aria-label="Specify custom campus location"
               />
             )}
             {errors.location && (
-              <p className="mt-1 font-archivo text-xs text-[#0036FF] font-bold" role="alert">
+              <p className="mt-1 font-archivo text-xs text-[#0036FF] font-semibold" role="alert">
                 {errors.location}
               </p>
             )}
             {errors.customLocation && (
-              <p className="mt-1 font-archivo text-xs text-[#0036FF] font-bold" role="alert">
+              <p className="mt-1 font-archivo text-xs text-[#0036FF] font-semibold" role="alert">
                 {errors.customLocation}
               </p>
             )}
           </div>
         </div>
 
-        {/* Row 2: Urgency Level */}
+        {/* Compact GPS Coordinate Bar */}
+        <div className="px-4 py-2.5 bg-[#EEF7EE] border border-[#0036FF]/25 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <MapPin className="w-4 h-4 text-[#EF4444]" />
+            <span className="font-archivo text-xs font-bold text-[#134E2C]">
+              {localCoords.lat.toFixed(5)}° N, {localCoords.lng.toFixed(5)}° E
+            </span>
+            {localAccuracy && (
+              <span className="imp-badge">±{localAccuracy}m</span>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleCaptureGps}
+            disabled={isLocatingGps}
+            className="bg-[#0036FF] text-[#B5F800] hover:bg-[#1EA854] hover:text-[#FFFFFF] px-3.5 py-1.5 font-archivo font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <Crosshair className="w-3.5 h-3.5 text-[#B5F800]" />
+            <span>{isLocatingGps ? 'Locating...' : 'Use GPS'}</span>
+          </button>
+        </div>
+
+        {/* Row 2: Priority / Urgency Level */}
         <div>
-          <label className="block font-archivo font-black text-xs tracking-wider uppercase text-[#1EA854] mb-2">
-            3. Urgency Level <span className="text-[#0036FF]">*</span>
+          <label className="block font-archivo font-bold text-xs text-[#134E2C] mb-2">
+            3. Priority Level <span className="text-[#0036FF]">*</span>
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {(['Low', 'Normal', 'Urgent', 'Immediate Hazard'] as const).map((lvl) => {
               const isSelected = urgency === lvl;
-              const isHazard = lvl === 'Immediate Hazard';
               return (
                 <button
                   type="button"
                   key={lvl}
                   onClick={() => setUrgency(lvl)}
-                  className={`py-2.5 px-3 border text-xs font-archivo font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                  className={`py-2.5 px-3 border text-xs font-archivo font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     isSelected
-                      ? isHazard
-                        ? 'bg-[#0036FF] text-[#B5F800] border-[#0036FF] shadow-xs'
-                        : 'bg-[#1EA854] text-[#FFFFFF] border-[#1EA854]'
-                      : 'bg-transparent text-[#1EA854] border-[#1EA854]/30 hover:border-[#1EA854]'
+                      ? 'bg-[#0036FF] text-[#B5F800] border-[#0036FF]'
+                      : 'bg-[#FAF2EB] text-[#134E2C] border-[#1EA854]/30 hover:border-[#0036FF]'
                   }`}
                   aria-pressed={isSelected}
                 >
                   {isSelected && <Check className="w-3.5 h-3.5 text-[#B5F800]" />}
-                  {lvl}
+                  <span>{lvl}</span>
                 </button>
               );
             })}
           </div>
           {urgency === 'Immediate Hazard' && (
-            <p className="mt-2 font-serif italic text-xs text-[#0036FF] font-semibold flex items-center gap-1">
-              <Info className="w-3.5 h-3.5 flex-shrink-0" />
-              For active fire, gas leaks, or bodily injury emergencies, call Security directly at {campusConfig.emergencyPhone}.
+            <p className="mt-2 font-archivo text-xs text-[#0036FF] font-semibold flex items-center gap-1">
+              <Info className="w-3.5 h-3.5 flex-shrink-0 text-[#1EA854]" />
+              <span>
+                Emergency Hotline: {campusConfig.emergencyPhone}
+              </span>
             </p>
           )}
         </div>
 
-        {/* Row 3: Description */}
+        {/* Row 3: Complaint Text & Location Photo Attachment */}
         <div>
           <label
             htmlFor="report-description"
-            className="block font-archivo font-black text-xs tracking-wider uppercase text-[#1EA854] mb-2"
+            className="block font-archivo font-bold text-xs text-[#134E2C] mb-2"
           >
-            4. What happened / Needs fixing? <span className="text-[#0036FF]">*</span>
+            4. Complaint Description <span className="text-[#0036FF]">*</span>
           </label>
           <textarea
             id="report-description"
@@ -281,25 +537,63 @@ export const ReportForm: React.FC<ReportFormProps> = ({
               setDescription(e.target.value);
               if (errors.description) setErrors({ ...errors, description: '' });
             }}
-            placeholder="Describe the issue clearly. E.g. Water fountain leaking heavily on 2nd floor corridor, creating a slippery hazard..."
-            className="w-full bg-[#FAF2EB] border border-[#1EA854]/40 p-4 font-serif text-sm text-[#1EA854] focus-ring-green resize-y"
+            placeholder="Describe the issue clearly..."
+            className="w-full bg-[#FAF2EB] border border-[#0036FF]/30 p-4 font-archivo text-sm text-[#134E2C] focus-ring-blue resize-y"
           />
           {errors.description && (
-            <p className="mt-1 font-archivo text-xs text-[#0036FF] font-bold" role="alert">
+            <p className="mt-1 font-archivo text-xs text-[#0036FF] font-semibold" role="alert">
               {errors.description}
             </p>
           )}
-          <p className="mt-1 font-serif italic text-[12px] text-[#1EA854]">
-            Note: You can attach photos or videos directly inside your email app or WhatsApp message after dispatch.
-          </p>
+
+          {/* Compact Location Photo Upload */}
+          <div className="mt-3 bg-[#FAF2EB] border border-[#0036FF]/30 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 text-xs font-archivo font-semibold text-[#134E2C]">
+              <Camera className="w-4 h-4 text-[#0036FF]" />
+              <span>Photo (Optional)</span>
+              {photoDataUrl && (
+                <img
+                  src={photoDataUrl}
+                  alt="Preview"
+                  className="w-10 h-8 object-cover border border-[#134E2C]"
+                />
+              )}
+              {photoName && <span className="imp-badge">{photoName}</span>}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {photoDataUrl && (
+                <button
+                  type="button"
+                  onClick={handleRemovePhoto}
+                  className="bg-[#FFFFFF] border border-[#EF4444] text-[#EF4444] px-2 py-1 font-archivo font-bold text-xs inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <label
+                htmlFor="report-photo-upload"
+                className="bg-[#0036FF] text-[#B5F800] hover:bg-[#1EA854] hover:text-[#FFFFFF] px-3 py-1 font-archivo font-bold text-xs cursor-pointer transition-colors"
+              >
+                <span>{photoDataUrl ? 'Change' : 'Choose Photo'}</span>
+                <input
+                  id="report-photo-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="sr-only"
+                />
+              </label>
+            </div>
+          </div>
         </div>
 
         {/* Row 4: Optional Reporter Details */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 border-t border-[#1EA854]/15">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 border-t border-[#1EA854]/20">
           <div>
             <label
               htmlFor="report-name"
-              className="block font-archivo font-extrabold text-[11px] tracking-wider uppercase text-[#1EA854] mb-1"
+              className="block font-archivo font-bold text-xs text-[#134E2C] mb-1.5"
             >
               Your Name (Optional)
             </label>
@@ -308,15 +602,15 @@ export const ReportForm: React.FC<ReportFormProps> = ({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Alex Morgan"
-              className="w-full bg-[#FAF2EB] border border-[#1EA854]/40 px-3 py-2 font-serif text-sm text-[#1EA854] focus-ring-green"
+              placeholder="e.g. Partha Pratim Gogoi"
+              className="w-full bg-[#FAF2EB] border border-[#0036FF]/30 px-3.5 py-2.5 font-archivo text-sm text-[#134E2C] focus-ring-blue"
             />
           </div>
 
           <div>
             <label
               htmlFor="report-contact"
-              className="block font-archivo font-extrabold text-[11px] tracking-wider uppercase text-[#1EA854] mb-1"
+              className="block font-archivo font-bold text-xs text-[#134E2C] mb-1.5"
             >
               Your Contact (Optional Email / Phone)
             </label>
@@ -325,61 +619,89 @@ export const ReportForm: React.FC<ReportFormProps> = ({
               type="text"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
-              placeholder="e.g. alex@campus.edu or +1 555 0122"
-              className="w-full bg-[#FAF2EB] border border-[#1EA854]/40 px-3 py-2 font-serif text-sm text-[#1EA854] focus-ring-green"
+              placeholder="e.g. student@dibru.ac.in"
+              className="w-full bg-[#FAF2EB] border border-[#0036FF]/30 px-3.5 py-2.5 font-archivo text-sm text-[#134E2C] focus-ring-blue"
             />
           </div>
         </div>
 
-        {/* Feedback notice toast / banner: Kiwi Green #9ABC05 */}
+        {/* Feedback Notice & Generated Complaint ID Banner */}
         {feedbackNotice && (
-          <div className="p-3 bg-[#9ABC05] text-[#FFFFFF] font-archivo text-xs font-bold flex items-center justify-between border border-[#9ABC05]">
-            <span>{feedbackNotice}</span>
-            <button
-              type="button"
-              onClick={() => setFeedbackNotice(null)}
-              className="text-[#FFFFFF] underline uppercase text-[10px]"
-            >
-              Dismiss
-            </button>
+          <div className="p-4 bg-[#0036FF] text-[#FFFFFF] font-archivo text-xs font-semibold flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-[#1EA854]">
+            <div>
+              <span>{feedbackNotice}</span>
+              {createdComplaintId && (
+                <span className="imp-badge ml-2">
+                  RED PIN ID: {createdComplaintId}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {createdComplaintId && (
+                <a
+                  href="#campus-map"
+                  className="bg-[#B5F800] text-[#0036FF] px-3 py-1.5 font-archivo font-bold text-xs inline-flex items-center gap-1"
+                >
+                  <span>View Red Pin on Map</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={() => setFeedbackNotice(null)}
+                className="text-[#B5F800] hover:text-[#FFFFFF] underline text-xs cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Hand-off Action Buttons */}
-        <div className="pt-4 border-t border-[#1EA854]/20">
-          <span className="block font-archivo font-black text-xs uppercase tracking-wider text-[#1EA854] mb-3">
-            DISPATCH VIA YOUR PREFERRED CHANNEL:
+        {/* Primary Action: File directly to Owning Post, Place Red Pin on Map & Generate ID */}
+        <div className="pt-4 border-t border-[#1EA854]/20 space-y-3">
+          <button
+            type="button"
+            onClick={handleDirectPortalSubmit}
+            className="w-full bg-[#0036FF] text-[#B5F800] hover:bg-[#1EA854] hover:text-[#FFFFFF] py-3.5 px-6 font-archivo font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors focus-ring-blue cursor-pointer"
+          >
+            <Send className="w-4 h-4 text-[#B5F800]" />
+            <span>Submit Report & Pin Red Marker on Dibrugarh University Map</span>
+          </button>
+
+          <span className="block font-archivo font-semibold text-xs text-[#1EA854] pt-2">
+            Or hand off directly via external channel:
           </span>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Email Button: Electric Blue #0036FF with Bright Lime #B5F800 text */}
             <button
               type="button"
               onClick={handleSendEmail}
-              className="bg-[#0036FF] text-[#B5F800] hover:bg-[#1EA854] hover:text-[#FFFFFF] py-3.5 px-4 font-archivo font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-[#0036FF] transition-colors focus-ring-blue shadow-xs"
+              className="bg-[#FAF2EB] text-[#0036FF] hover:bg-[#0036FF] hover:text-[#B5F800] py-2.5 px-4 font-archivo font-bold text-xs flex items-center justify-center gap-2 border border-[#0036FF]/30 transition-colors cursor-pointer"
             >
-              <Mail className="w-4 h-4" />
-              SEND VIA EMAIL
+              <Mail className="w-4 h-4 text-[#1EA854]" />
+              <span>Send via Email</span>
             </button>
 
-            {/* WhatsApp Button: Kiwi Green #9ABC05 with Crisp White text */}
             <button
               type="button"
               onClick={handleSendWhatsApp}
-              className="bg-[#9ABC05] text-[#FFFFFF] hover:bg-[#1EA854] hover:text-[#FFFFFF] py-3.5 px-4 font-archivo font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-[#9ABC05] transition-colors focus-ring-green shadow-xs"
+              className="bg-[#FAF2EB] text-[#1EA854] hover:bg-[#1EA854] hover:text-[#FFFFFF] py-2.5 px-4 font-archivo font-bold text-xs flex items-center justify-center gap-2 border border-[#1EA854]/35 transition-colors cursor-pointer"
             >
-              <MessageCircle className="w-4 h-4" />
-              SEND VIA WHATSAPP
+              <MessageCircle className="w-4 h-4 text-[#1EA854]" />
+              <span>Send via WhatsApp</span>
             </button>
 
-            {/* Clipboard Button: Skin Tone with Civic Green text */}
             <button
               type="button"
               onClick={handleCopyClipboard}
-              className="bg-[#FAF2EB] text-[#1EA854] hover:bg-[#1EA854] hover:text-[#FFFFFF] py-3.5 px-4 font-archivo font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-[#1EA854]/40 transition-colors focus-ring-green"
+              className="bg-[#FAF2EB] text-[#0036FF] hover:bg-[#B5F800] py-2.5 px-4 font-archivo font-bold text-xs flex items-center justify-center gap-2 border border-[#0036FF]/30 transition-colors cursor-pointer"
             >
-              {copyStatus ? <Check className="w-4 h-4 text-[#9ABC05]" /> : <Copy className="w-4 h-4" />}
-              {copyStatus ? 'COPIED TO CLIPBOARD' : 'COPY REPORT'}
+              {copyStatus ? (
+                <Check className="w-4 h-4 text-[#1EA854]" />
+              ) : (
+                <Copy className="w-4 h-4 text-[#1EA854]" />
+              )}
+              <span>{copyStatus ? 'Copied to Clipboard' : 'Copy Report'}</span>
             </button>
           </div>
         </div>

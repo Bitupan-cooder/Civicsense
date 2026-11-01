@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowUp, ShieldCheck, X } from 'lucide-react';
+import { ArrowUp, X } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const [showCredits, setShowCredits] = useState(false);
@@ -11,60 +11,65 @@ export const Footer: React.FC = () => {
   return (
     <>
       <footer
-        className="w-full bg-[#1EA854] text-[#FFFFFF] py-16 md:py-24 px-4 sm:px-8 border-t border-[#FFFFFF]/15 relative z-20"
+        className="w-full bg-[#EEF7EE] text-[#134E2C] py-12 px-4 sm:px-8 md:px-14 border-t border-[#0036FF]/20 relative z-20"
         role="contentinfo"
       >
-        <div className="max-w-[1200px] mx-auto">
-          {/* Top Bar: Wordmark & Back to Top */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-12 border-b border-[#FFFFFF]/15">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="w-3 h-3 bg-[#B5F800]" />
-                <span className="font-archivo font-extrabold text-xs tracking-widest text-[#B5F800] uppercase">
-                  CIVICSENSE CAMPUS DISPATCH
-                </span>
-              </div>
-              <h2 className="font-anton text-4xl sm:text-6xl md:text-8xl tracking-normal text-[#FFFFFF] uppercase leading-none">
-                CIVICSENSE
-              </h2>
-              <p className="font-serif italic text-sm text-[#FAF2EB] mt-2">
-                Crafted with Palatino Linotype typography for clear, legible campus governance.
-              </p>
-            </div>
+        <div className="max-w-[1480px] mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+          {/* Left: Impeccable-style Spaced Wordmark in Blue + Green */}
+          <div className="flex items-center gap-3">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 20 20"
+              fill="none"
+              aria-hidden="true"
+              className="shrink-0 border border-[#0036FF]"
+            >
+              <rect width="20" height="20" fill="#B5F800" />
+              <polygon points="0,0 13,0 7,20 0,20" fill="#0036FF" />
+            </svg>
+            <span className="font-archivo font-bold text-xs tracking-[0.28em] uppercase text-[#538306]">
+              CIVICSENSE
+            </span>
+          </div>
 
+          {/* Center Links */}
+          <div className="flex flex-wrap items-center gap-6 font-archivo font-semibold text-xs text-[#1EA854]">
+            <a href="#categories" className="hover:text-[#0036FF] transition-colors">
+              Categories
+            </a>
+            <a href="#how" className="hover:text-[#0036FF] transition-colors">
+              How it works
+            </a>
+            <a href="#report" className="hover:text-[#0036FF] transition-colors">
+              Report Issue
+            </a>
+            <a href="#tracker" className="hover:text-[#0036FF] transition-colors">
+              Status Tracker
+            </a>
             <button
               type="button"
-              onClick={scrollToTop}
-              className="self-start md:self-end border border-[#FFFFFF]/40 hover:border-[#B5F800] hover:bg-[#0036FF] hover:text-[#B5F800] px-5 py-3 font-archivo font-black text-xs uppercase tracking-wider text-[#FFFFFF] flex items-center gap-2 transition-colors focus-ring-lime"
-              aria-label="Scroll back to top"
+              onClick={() => setShowCredits(true)}
+              className="hover:text-[#0036FF] underline underline-offset-4 cursor-pointer"
             >
-              <span>BACK TO TOP</span>
-              <ArrowUp className="w-4 h-4" />
+              Vector Credits
             </button>
           </div>
 
-          {/* Middle & Bottom Notice */}
-          <div className="pt-10 flex flex-col md:flex-row md:items-center justify-between gap-6 font-archivo text-xs text-[#FAF2EB]">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-[#B5F800]" />
-              <p className="font-bold uppercase tracking-wider text-[#FFFFFF]">
-                Zero logins. Nothing is stored on intermediate servers.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-6">
-              <button
-                type="button"
-                onClick={() => setShowCredits(true)}
-                className="hover:text-[#B5F800] underline uppercase font-bold flex items-center gap-1.5 focus-ring-lime text-[#FAF2EB]"
-              >
-                <span>Vector Credits</span>
-              </button>
-
-              <span className="mono opacity-80 text-[#FAF2EB]">
-                CAMPUS DISPATCH PLATFORM
-              </span>
-            </div>
+          {/* Right: Back to Top */}
+          <div className="flex items-center gap-4">
+            <span className="font-archivo font-semibold text-xs text-[#0036FF]">
+              Campus Redressal Portal
+            </span>
+            <button
+              type="button"
+              onClick={scrollToTop}
+              className="bg-[#0036FF] text-[#B5F800] hover:bg-[#1EA854] hover:text-[#FFFFFF] px-3 py-1.5 font-archivo font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+              aria-label="Scroll back to top"
+            >
+              <span>Top</span>
+              <ArrowUp className="w-3.5 h-3.5 text-[#B5F800]" />
+            </button>
           </div>
         </div>
       </footer>
@@ -72,41 +77,39 @@ export const Footer: React.FC = () => {
       {/* Vector Credits Modal */}
       {showCredits && (
         <div
-          className="fixed inset-0 z-50 bg-[#1EA854]/80 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-[#134E2C]/65 backdrop-blur-xs flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="credits-title"
         >
-          <div className="bg-[#FFFFFF] text-[#1EA854] max-w-lg w-full p-6 sm:p-8 border-2 border-[#1EA854] shadow-2xl relative">
+          <div className="bg-[#FFFFFF] text-[#134E2C] max-w-lg w-full p-6 sm:p-8 border-2 border-[#0036FF] shadow-xl relative">
             <button
               type="button"
               onClick={() => setShowCredits(false)}
-              className="absolute top-4 right-4 p-1 hover:bg-[#1EA854] hover:text-[#FFFFFF] transition-colors"
+              className="absolute top-4 right-4 p-1 hover:bg-[#0036FF] hover:text-[#B5F800] transition-colors cursor-pointer"
               aria-label="Close Credits Modal"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <span className="font-archivo font-black text-xs text-[#0036FF] tracking-widest uppercase">
-              CREDITS & LICENSES
-            </span>
-            <h3 id="credits-title" className="font-anton text-2xl uppercase mt-1 mb-4 text-[#1EA854]">
-              ILLUSTRATION ATTRIBUTION
+            <span className="imp-badge mb-2">CREDITS & LICENSES</span>
+            <h3 id="credits-title" className="font-anton text-2xl text-[#134E2C] mb-3">
+              Illustration Attribution
             </h3>
 
-            <div className="space-y-4 font-serif text-sm text-[#1EA854] max-h-[60vh] overflow-y-auto pr-2">
+            <div className="space-y-3 font-archivo text-xs text-[#134E2C] max-h-[60vh] overflow-y-auto pr-2">
               <p>
                 All illustrations and iconography used in CivicSense adhere strictly to open licenses:
               </p>
-              <ul className="list-disc pl-5 space-y-2 font-mono text-xs">
+              <ul className="list-disc pl-5 space-y-2">
                 <li>
-                  <strong>campus-base.svg</strong>: Custom CivicSense Vector Quad (MIT License).
+                  <strong className="text-[#0036FF]">campus-base.svg</strong>: Custom CivicSense Vector Quad (MIT License).
                 </li>
                 <li>
-                  <strong>tap-fix.svg, lamp-fix.svg, wifi-fix.svg, bins-fix.svg, safety-fix.svg</strong>: Custom vector fix models adapted under the unDraw Open License (Free for commercial and noncommercial use).
+                  <strong className="text-[#0036FF]">tap-fix.svg, lamp-fix.svg, wifi-fix.svg, bins-fix.svg, safety-fix.svg</strong>: Custom vector fix models adapted under the unDraw Open License.
                 </li>
                 <li>
-                  <strong>student-reporter.svg</strong>: Pablo Stanley Open Doodles (CC0 1.0 Universal Public Domain).
+                  <strong className="text-[#0036FF]">student-reporter.svg</strong>: Pablo Stanley Open Doodles (CC0 1.0 Universal Public Domain).
                 </li>
               </ul>
             </div>
@@ -115,9 +118,9 @@ export const Footer: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowCredits(false)}
-                className="bg-[#0036FF] text-[#B5F800] px-4 py-2 font-archivo font-black text-xs uppercase tracking-wider hover:bg-[#1EA854] hover:text-[#FFFFFF] transition-colors"
+                className="bg-[#0036FF] text-[#B5F800] px-4 py-2 font-archivo font-bold text-xs hover:bg-[#1EA854] hover:text-[#FFFFFF] transition-colors cursor-pointer"
               >
-                CLOSE
+                Close
               </button>
             </div>
           </div>
