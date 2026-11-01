@@ -54,7 +54,7 @@ export const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KE
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-function sendJson(res: ServerResponse, status: number, data: any) {
+function sendJson(res: ServerResponse, status: number, data: any): boolean {
   res.writeHead(status, {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
@@ -62,6 +62,7 @@ function sendJson(res: ServerResponse, status: number, data: any) {
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   });
   res.end(JSON.stringify(data));
+  return true;
 }
 
 function parseBody(req: IncomingMessage): Promise<any> {
