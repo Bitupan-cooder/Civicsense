@@ -438,7 +438,6 @@ nav.f-links a:hover{text-decoration:underline}
         <span class="num">1</span>
         <div class="step">
           <img class="mini-cloud" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093215_0f37c0c3-f82c-485b-87dd-5a35b75a8782.png" alt="" aria-hidden="true" />
-          <span class="step-badge">01 · Open to Everyone</span>
           <h3>Report an Issue</h3>
           <p>Select category, pick your campus landmark, describe the problem and attach an optional photo. No login or password required — anyone on campus can file in under 60 seconds.</p>
         </div>
@@ -449,7 +448,6 @@ nav.f-links a:hover{text-decoration:underline}
         <span class="num">2</span>
         <div class="step">
           <img class="mini-cloud" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093216_44218665-b15e-4566-a2d4-2676ab03609d.png" alt="" aria-hidden="true" />
-          <span class="step-badge">02 · Auto-Routed by AI</span>
           <h3>AI Triage &amp; Routing</h3>
           <p>Neural classification assigns priority (Normal / Urgent / P1 Hazard) and instantly routes the ticket to the correct campus post — with SLA deadline and duplicate detection.</p>
         </div>
@@ -460,7 +458,6 @@ nav.f-links a:hover{text-decoration:underline}
         <span class="num">3</span>
         <div class="step">
           <img class="mini-cloud" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093215_0f37c0c3-f82c-485b-87dd-5a35b75a8782.png" alt="" aria-hidden="true" />
-          <span class="step-badge">03 · Officials Only</span>
           <h3>Official Action &amp; Approval</h3>
           <p>Department officers use a Status Checklist — Confirmed → In Progress → Delivered → Completed. Each stage is timestamped and publicly visible. Escalations go to DUSU GS.</p>
         </div>
@@ -471,7 +468,6 @@ nav.f-links a:hover{text-decoration:underline}
         <span class="num">4</span>
         <div class="step">
           <img class="mini-cloud" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093216_44218665-b15e-4566-a2d4-2676ab03609d.png" alt="" aria-hidden="true" />
-          <span class="step-badge">04 · Public Tracker</span>
           <h3>Track Live Status</h3>
           <p>Enter your Complaint ID to see the 4-stage resolution trail, official responses, SLA countdown, and upvote with "Me Too" to escalate community-wide issues.</p>
         </div>
@@ -480,50 +476,79 @@ nav.f-links a:hover{text-decoration:underline}
   </div>
 </section>
 
-<!-- ════════════ CATEGORIES ════════════ -->
+<!-- ════════════ CATEGORIES & AI TRIAGE DIRECTORY ════════════ -->
 <section class="categories-section" id="categories">
   <div class="sq-field" data-count="14" aria-hidden="true"></div>
   <div class="categories-inner">
-    <h2 class="h2 split">Pick your issue type.<br>We route it <em style="color:var(--olive);font-style:italic">to the right desk.</em></h2>
+    <h2 class="h2 split">AI Autonomous Triage.<br>Direct to the <em style="color:var(--olive);font-style:italic">Assigned Solver Desk.</em></h2>
+    <p style="font-size:14px;color:#2a3a1e;max-width:680px;margin:-10px 0 24px;line-height:1.55;">
+      No manual category selection required. CivicSense AI reads your complaint in Assamese or English, classifies the root cause across 20 campus domains, and auto-dispatches directly to the responsible authority.
+    </p>
+
+    <!-- Test chips -->
+    <div style="margin-bottom:24px;">
+      <div style="font-size:11.5px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">
+        ⚡ Click an example to test instant AI classification:
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button type="button" class="btn-outline" style="font-size:11.5px;padding:6px 12px;border-radius:999px;background:#fff;" onclick="testAIComplaint('Hostel 2 r bathroom t pani nai 2 din dhori')">
+          💧 "Hostel 2 r bathroom t pani nai" (Romanised Assamese)
+        </button>
+        <button type="button" class="btn-outline" style="font-size:11.5px;padding:6px 12px;border-radius:999px;background:#fff;" onclick="testAIComplaint('লক্ষ্মীনাথ বেজবৰুৱা কেন্দ্ৰীয় গ্ৰন্থাগাৰত লাইট আৰু ফেন জ্বলা নাই')">
+          ⚡ "গ্ৰন্থাগাৰত লাইট আৰু ফেন জ্বলা নাই" (Assamese Script)
+        </button>
+        <button type="button" class="btn-outline" style="font-size:11.5px;padding:6px 12px;border-radius:999px;background:#fff;" onclick="testAIComplaint('Exposed sparking wire outside CCSA computer lab entrance hazard', 'wire_spark.jpg')">
+          ⚠️ "CCSA live wire spark" (English P1 Hazard)
+        </button>
+        <button type="button" class="btn-outline" style="font-size:11.5px;padding:6px 12px;border-radius:999px;background:#fff;" onclick="testAIComplaint('Wi-Fi AP router unreachable in Science block 2nd floor lab since morning')">
+          📶 "Wi-Fi unreachable in Science Block" (CCSA IT)
+        </button>
+        <button type="button" class="btn-outline" style="font-size:11.5px;padding:6px 12px;border-radius:999px;background:#fff;" onclick="testAIComplaint('Ragging and aggressive intimidation reported by seniors near boys hostel')">
+          🛡️ "Ragging incident" (Confidential Proctorial Triage)
+        </button>
+      </div>
+    </div>
+
+    <!-- Solver Desks Grid -->
     <div class="cat-grid" id="catGrid">
-      <div class="cat-card" data-cat="water" onclick="selectCat('water')">
+      <div class="cat-card" onclick="testAIComplaint('Water tap leaking heavily in Hostel washroom')">
         <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M12 2s-6 6.5-6 11a6 6 0 0012 0C18 8.5 12 2 12 2z"/><path d="M8 16s1 2 4 2 4-2 4-2"/></svg></div>
-        <div><div class="cat-name">Water &amp; Plumbing</div><div class="cat-desc">Leaking pipes, broken taps, washroom issues, low pressure or water supply failure.</div></div>
-        <div class="cat-dept">→ PHE · Facility Operations</div>
+        <div><div class="cat-name">Water &amp; Plumbing (water)</div><div class="cat-desc">Pipeline bursts, leaking taps, washroom flush, drinking water coolers.</div></div>
+        <div class="cat-dept">→ PHE · Facility Operations (Copy DUSU GS)</div>
       </div>
-      <div class="cat-card" data-cat="power" onclick="selectCat('power')">
+      <div class="cat-card" onclick="testAIComplaint('Pathway lights dark along library road, tripping breakers')">
         <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H12L11 22l8.5-11.5H12L13 2z"/></svg></div>
-        <div><div class="cat-name">Power &amp; Lighting</div><div class="cat-desc">Broken pathway lights, flickering fixtures, tripped breakers, dead electrical sockets.</div></div>
-        <div class="cat-dept">→ Electrical Maintenance</div>
+        <div><div class="cat-name">Power &amp; Lighting (electricity)</div><div class="cat-desc">Pathway lights, dead sockets, ceiling fans, power tripping, circuit hazards.</div></div>
+        <div class="cat-dept">→ Electrical Maintenance Desk (Copy DUSU GS)</div>
       </div>
-      <div class="cat-card" data-cat="wifi" onclick="selectCat('wifi')">
+      <div class="cat-card" onclick="testAIComplaint('Wi-Fi connection dropped in central library reading hall')">
         <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M5 12.5A10 10 0 0119 12.5"/><path d="M8 15.5A6 6 0 0116 15.5"/><circle cx="12" cy="20" r="1.2" fill="var(--olive)" stroke="none"/></svg></div>
-        <div><div class="cat-name">Wi-Fi &amp; Connectivity</div><div class="cat-desc">Dead signal spots, frequent drops, authentication failures, damaged Ethernet ports.</div></div>
-        <div class="cat-dept">→ CCSA · Campus IT</div>
+        <div><div class="cat-name">Campus IT &amp; LAN (internet)</div><div class="cat-desc">Campus Wi-Fi APs, lab LAN drops, gateway DNS issues, portal login errors.</div></div>
+        <div class="cat-dept">→ CCSA · Central IT Services (Copy DUSU GS)</div>
       </div>
-      <div class="cat-card" data-cat="safety" onclick="selectCat('safety')">
+      <div class="cat-card" onclick="testAIComplaint('Campus security concern regarding broken lock on hostel back gate')">
         <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5V12c0 4.5-3.5 8.5-8 9.5C7.5 20.5 4 16.5 4 12V7.5L12 3z"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="15" r=".8" fill="var(--olive)" stroke="none"/></svg></div>
-        <div><div class="cat-name">Safety &amp; Emergency</div><div class="cat-desc">Unlit corners, broken emergency boxes, hazardous walkways, access door defects.</div></div>
-        <div class="cat-dept">→ Campus Safety Command</div>
+        <div><div class="cat-name">Safety &amp; Proctorial (safety)</div><div class="cat-desc">Campus security, dark spots, unmonitored gates. Sensitive cases go to Proctor strictly.</div></div>
+        <div class="cat-dept">→ Proctorial Board Command (Sensitive: Head Only)</div>
       </div>
-      <div class="cat-card" data-cat="waste" onclick="selectCat('waste')">
+      <div class="cat-card" onclick="testAIComplaint('Waste bins overflowing outside Central Canteen patio')">
         <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></div>
-        <div><div class="cat-name">Waste &amp; Sanitation</div><div class="cat-desc">Overflowing trash bins, broken recycling units, litter on walkways, bio-waste cleanup.</div></div>
-        <div class="cat-dept">→ Sanitation &amp; Grounds</div>
+        <div><div class="cat-name">Clean Campus (sanitation)</div><div class="cat-desc">Overflowing bins, litter on pathways, garbage clearing, bio-waste sorting.</div></div>
+        <div class="cat-dept">→ Sanitation &amp; Grounds Desk (Copy DUSU GS)</div>
       </div>
-      <div class="cat-card" data-cat="hostel" onclick="selectCat('hostel')">
+      <div class="cat-card" onclick="testAIComplaint('Hostel room window latch broken and water geyser cold')">
         <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M3 21V9l9-6 9 6v12"/><rect x="9" y="13" width="6" height="8"/></svg></div>
-        <div><div class="cat-name">Hostel &amp; Residence</div><div class="cat-desc">Dormitory maintenance, broken furniture, lock repairs, mess or laundry faults.</div></div>
-        <div class="cat-dept">→ Hostels &amp; Housing Board</div>
+        <div><div class="cat-name">Hostels &amp; Housing (hostel)</div><div class="cat-desc">Dorm rooms, mess catering, geysers, furniture, warden redressal.</div></div>
+        <div class="cat-dept">→ Hostels &amp; Housing Board (Copy DUSU GS)</div>
       </div>
-      <div class="cat-card" data-cat="labs" onclick="selectCat('labs')">
+      <div class="cat-card" onclick="testAIComplaint('Classroom projector lamp expired in Science Quad Room 204')">
         <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M9 3v8L5 21h14L15 11V3"/><line x1="9" y1="3" x2="15" y2="3"/></svg></div>
-        <div><div class="cat-name">Labs &amp; Classrooms</div><div class="cat-desc">Faulty projectors, lab ventilation, air conditioning, AV system outages.</div></div>
-        <div class="cat-dept">→ Academic Labs &amp; Tech</div>
+        <div><div class="cat-name">Classrooms &amp; Labs (classroom)</div><div class="cat-desc">Smart boards, projectors, benches, lab instruments, podium acoustics.</div></div>
+        <div class="cat-dept">→ Academic Infrastructure Desk (Copy DUSU GS)</div>
       </div>
-      <div class="cat-card" style="background:var(--pill);border-color:var(--olive);justify-content:center;align-items:center;text-align:center;gap:14px;">
-        <div style="font-size:13px;font-weight:600;color:var(--olive);">7 categories · 7 departments<br>All auto-routed by AI</div>
-        <button class="btn" onclick="document.getElementById('report').scrollIntoView({behavior:'smooth'})" style="font-size:12px;height:32px;padding:0 14px;">File a Report</button>
+      <div class="cat-card" style="background:var(--pill);border-color:var(--olive);justify-content:center;align-items:center;text-align:center;gap:12px;">
+        <div style="font-size:13px;font-weight:600;color:var(--olive);">20 Campus Domains · Direct AI Routing<br>Bilingual (অসমীয়া / English)</div>
+        <button class="btn" onclick="document.getElementById('report').scrollIntoView({behavior:'smooth'})" style="font-size:12px;height:32px;padding:0 14px;">Report Issue Directly</button>
       </div>
     </div>
   </div>
@@ -533,13 +558,18 @@ nav.f-links a:hover{text-decoration:underline}
 <section class="report-section" id="report">
   <div class="sq-field" data-count="16" aria-hidden="true"></div>
   <div class="report-inner">
-    <h2 class="h2 split reveal">File your campus issue.<br><em style="color:var(--olive);font-style:italic">Gets routed in seconds.</em></h2>
+    <h2 class="h2 split reveal">Report a Campus Issue.<br><em style="color:var(--olive);font-style:italic">AI Analyzed &amp; Auto-Routed.</em></h2>
+    <p style="font-size:14px;color:#2a3a1e;margin:-10px 0 20px;line-height:1.5;" class="reveal">
+      No login needed. Type in Assamese (অসমীয়া), Romanised Assamese (e.g. <em>"Hostel 2 r bathroom t pani nai"</em>), or English. Our AI analyzes the root cause, priority, and location, and routes directly to the university solver.
+    </p>
 
     <!-- SUCCESS STATE (hidden by default) -->
     <div class="success-card" id="successCard" style="display:none;width:100%">
-      <div style="font-size:13px;font-weight:600;color:var(--olive);margin-bottom:8px;">Complaint Registered</div>
+      <div style="font-size:13px;font-weight:600;color:var(--olive);margin-bottom:8px;">Complaint Registered &amp; AI-Dispatched</div>
       <div class="ticket-id" id="ticketId">CS-0000</div>
-      <div style="font-size:13px;color:#1a3010;margin:10px 0 18px;line-height:1.5">Your complaint has been logged and routed to the responsible department. Use the ID above to track status anytime.</div>
+      <div id="successSummary" style="font-size:13px;color:#1a3010;margin:10px 0 18px;line-height:1.5">
+        Your complaint has been analyzed by CivicSense AI and auto-routed to the assigned department authority with a copy to the General Secretary (DUSU).
+      </div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
         <button class="btn" onclick="openTrackerWithId(document.getElementById('ticketId').textContent)">Track This Complaint</button>
         <button class="btn-outline" onclick="resetForm()">File Another</button>
@@ -549,105 +579,131 @@ nav.f-links a:hover{text-decoration:underline}
     <!-- FORM -->
     <form class="report-form reveal" id="reportForm" onsubmit="submitReport(event)">
 
-      <!-- AI PREVIEW -->
-      <div class="ai-preview" id="aiPreview">
-        <div class="ai-header">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg>
-          AI Auto-Routing Preview
+      <!-- Description First -->
+      <div class="form-group full">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <label class="form-label" for="fDesc" style="margin:0">Describe the Issue (অসমীয়া / English) *</label>
+          <span id="aiLangIndicator" style="font-size:11px;font-weight:600;color:var(--olive);background:var(--pill);padding:2px 8px;border-radius:999px;">
+            🌐 Auto-Detecting Language...
+          </span>
         </div>
-        <div class="ai-row"><span class="ai-label">Department:</span><span id="aiDept">Facility Operations &amp; Plumbing</span></div>
-        <div class="ai-row"><span class="ai-label">Priority:</span><span id="aiPriority">Normal</span></div>
-        <div class="ai-row"><span class="ai-label">SLA Target:</span><span id="aiSla">48 hours</span></div>
+        <textarea class="form-textarea" id="fDesc" required minlength="8" rows="4" placeholder="e.g. 'Hostel 2 r bathroom t pani nai 2 din dhori' or 'CCSA computer lab live wire spark near door' or 'গ্ৰন্থাগাৰৰ লাইট আৰু ফেন জ্বলা নাই'..." oninput="updateAI()"></textarea>
+        <span class="form-error" id="descError" style="display:none">Please describe the issue (minimum 8 characters).</span>
+      </div>
+
+      <!-- LIVE AI TRIAGE CARD -->
+      <div class="ai-preview" id="aiPreview" style="background:#f4fbf0;border:1.5px solid #a8dc98;border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-bottom:1px solid #d0ecc0;padding-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--olive);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg>
+            CivicSense AI Engine · Live Structured Analysis
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span id="aiConfidenceBadge" style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#e0f5d0;color:var(--olive);">Confidence: 95%</span>
+            <span id="aiSensitiveBadge" style="display:none;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#ffebee;color:#c02010;border:1px solid #f8bbd0;">🛡️ Confidential Triage</span>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;font-size:12.5px;">
+          <div>
+            <span style="color:#557048;font-size:11px;text-transform:uppercase;font-weight:600;display:block;">Assigned Solver Desk</span>
+            <strong id="aiDept" style="color:#1a3010;font-size:13px;">Water &amp; Plumbing (PHE Operations)</strong>
+          </div>
+          <div>
+            <span style="color:#557048;font-size:11px;text-transform:uppercase;font-weight:600;display:block;">Classified Category</span>
+            <span id="aiCategory" style="font-weight:700;color:var(--olive);font-family:monospace;">water</span>
+            <span id="aiSecCategory" style="color:#777;font-size:11px;"></span>
+          </div>
+          <div>
+            <span style="color:#557048;font-size:11px;text-transform:uppercase;font-weight:600;display:block;">Calculated Priority</span>
+            <span id="aiPriority" style="font-weight:700;color:#0e3018;">P2 · High (Facility Disruption)</span>
+          </div>
+          <div>
+            <span style="color:#557048;font-size:11px;text-transform:uppercase;font-weight:600;display:block;">Target SLA</span>
+            <span id="aiSla" style="font-weight:600;color:#1a3010;">18 hours</span>
+          </div>
+        </div>
+
+        <!-- Bilingual Summaries -->
+        <div style="background:#fff;border-radius:10px;padding:12px 14px;border:1px solid #c8e8b8;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11.5px;color:#2a4018;">
+            <strong style="color:var(--olive);">English Summary:</strong> <span id="aiSummaryEn">Water supply disruption and plumbing defect reported at campus premises.</span>
+          </div>
+          <div style="font-size:11.5px;color:#2a4018;">
+            <strong style="color:var(--olive);">অসমীয়া সাৰাংশ:</strong> <span id="aiSummaryAs">পানী যোগান বন্ধ হোৱা আৰু টেপ বা পাইপৰ বিসংগতিৰ বিষয়ে আবেদন জনোৱা হৈছে।</span>
+          </div>
+        </div>
+
+        <!-- Duplicate Embedding & JSON Toggle -->
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding-top:4px;">
+          <div style="font-size:11px;color:#4a6838;">
+            <strong>Embedding Normalizer:</strong> <code id="aiEmbeddingText" style="background:#e8f4de;padding:2px 6px;border-radius:4px;color:#1a3010;">water issue at campus premises</code>
+          </div>
+          <button type="button" class="btn-outline" onclick="toggleRawJson()" style="font-size:10.5px;height:26px;padding:0 8px;border-radius:6px;">
+            { } View Raw AI JSON
+          </button>
+        </div>
+
+        <!-- Raw JSON Container -->
+        <div id="rawJsonBox" style="display:none;margin-top:6px;">
+          <pre id="rawJsonCode" style="background:#1a2814;color:#a8f090;padding:12px;border-radius:8px;font-size:11px;line-height:1.45;overflow-x:auto;max-height:220px;margin:0;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;"></pre>
+        </div>
       </div>
 
       <div class="form-row">
-        <!-- Category -->
-        <div class="form-group">
-          <label class="form-label" for="fCategory">Issue Category *</label>
-          <select class="form-select" id="fCategory" required onchange="onCatChange()">
-            <option value="water">Water &amp; Plumbing</option>
-            <option value="power">Power &amp; Lighting</option>
-            <option value="wifi">Wi-Fi &amp; Connectivity</option>
-            <option value="safety">Safety &amp; Emergency Post</option>
-            <option value="waste">Waste &amp; Sanitation</option>
-            <option value="hostel">Hostel &amp; Residence</option>
-            <option value="labs">Labs &amp; Classrooms</option>
-          </select>
-        </div>
         <!-- Location -->
-        <div class="form-group">
-          <label class="form-label" for="fLocation">Campus Location *</label>
-          <select class="form-select" id="fLocation" required>
-            <option>Padmanath Gohain Baruah Chatra Nivas (Hostel Block A)</option>
-            <option>Joymati Chatri Nivas (Hostel Block B)</option>
-            <option>Lakshminath Bezbaroa Central Library</option>
-            <option>DUIET Engineering Workshop &amp; Maker Lab</option>
-            <option>North Academic Block &amp; Science Complex</option>
-            <option>Rangghar Auditorium &amp; Main Quadrangle</option>
-            <option>Administrative Building &amp; Registrar Office</option>
-            <option>University Health Centre &amp; Main Security Gate</option>
-            <option>Bhojraj Sethi Indoor Stadium &amp; Sports Arena</option>
-            <option>Vishnu Rabha Bhawan &amp; Student Center</option>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label" for="fLocation">Campus Landmark (Optional match)</label>
+          <select class="form-select" id="fLocation" onchange="updateAI()">
+            <option value="">Auto-Detect from complaint text</option>
+            <option value="du_hostel_1">Padmanath Gohain Baruah Chatra Nivas (Hostel 1)</option>
+            <option value="du_hostel_2">Maniram Dewan Chatra Nivas (Hostel 2)</option>
+            <option value="du_hostel_girls_1">Joymoti Chatri Nivas (Girls Hostel 1)</option>
+            <option value="du_hostel_girls_2">Nalini Bala Devi Chatri Nivas (Girls Hostel 2)</option>
+            <option value="du_library">Lakshminath Bezbaroa Central Library</option>
+            <option value="du_ccsa">Centre for Computer Science &amp; Applications (CCSA)</option>
+            <option value="du_admin">Administrative Building &amp; Registrar Office</option>
+            <option value="du_canteen">Central Canteen &amp; Student Activity Centre</option>
+            <option value="du_sports_ground">University Sports Ground &amp; Pavilion</option>
+            <option value="du_science_quad">Science Block &amp; Academic Quad</option>
             <option value="OTHER">Other (specify below)</option>
           </select>
         </div>
-      </div>
 
-      <!-- Custom location -->
-      <div class="form-group" id="customLocGroup" style="display:none">
-        <label class="form-label" for="fCustomLoc">Specify Exact Location</label>
-        <input class="form-input" id="fCustomLoc" type="text" placeholder="e.g. Room 210, Science Block" />
-      </div>
-
-      <!-- Urgency -->
-      <div class="form-group">
-        <label class="form-label">Urgency Level</label>
-        <div class="urgency-btns">
-          <button type="button" class="urgency-btn active-normal" id="urgNormal" onclick="setUrgency('Normal')">Normal</button>
-          <button type="button" class="urgency-btn" id="urgUrgent" onclick="setUrgency('Urgent')">Urgent</button>
-          <button type="button" class="urgency-btn" id="urgHazard" onclick="setUrgency('Immediate Hazard')">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c03020" stroke-width="2.5" style="display:inline;vertical-align:-1px" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            Immediate Hazard
-          </button>
+        <!-- Custom location -->
+        <div class="form-group" id="customLocGroup" style="display:none;flex:1;">
+          <label class="form-label" for="fCustomLoc">Specify Exact Location</label>
+          <input class="form-input" id="fCustomLoc" type="text" placeholder="e.g. Room 210, Chemistry Lab" oninput="updateAI()" />
         </div>
       </div>
 
-      <!-- Description -->
+      <!-- Photo Upload -->
       <div class="form-group full">
-        <label class="form-label" for="fDesc">Describe the Issue *</label>
-        <textarea class="form-textarea" id="fDesc" required minlength="8" placeholder="Describe what you observed — be specific about the exact spot, severity, and any immediate risk." oninput="updateAI()"></textarea>
-        <span class="form-error" id="descError" style="display:none">Please describe the issue (minimum 8 characters).</span>
+        <label class="form-label" for="fPhoto">Attach Site Photo (Optional — AI analyzes visual hazards)</label>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+          <input type="file" id="fPhoto" accept="image/*" class="form-input" style="padding:8px;font-size:12px;flex:1;" onchange="handlePhotoUpload(event)" />
+          <img id="photoPreview" style="display:none;width:56px;height:56px;object-fit:cover;border-radius:8px;border:1.5px solid var(--olive);" alt="Uploaded preview" />
+        </div>
       </div>
 
       <div class="form-row">
         <!-- Name -->
         <div class="form-group">
-          <label class="form-label" for="fName">Your Name (optional)</label>
-          <input class="form-input" id="fName" type="text" placeholder="Anonymous if left blank" />
+          <label class="form-label" for="fName">Your Name (Optional / Anonymous)</label>
+          <input class="form-input" id="fName" type="text" placeholder="Leave empty to stay anonymous" />
         </div>
+
         <!-- Contact -->
         <div class="form-group">
-          <label class="form-label" for="fContact">Contact (optional)</label>
-          <input class="form-input" id="fContact" type="text" placeholder="Email or phone for follow-up" />
+          <label class="form-label" for="fContact">Contact / Roll No. (Optional)</label>
+          <input class="form-input" id="fContact" type="text" placeholder="Roll No. or phone for dispatch updates" />
         </div>
       </div>
 
-      <!-- Photo -->
-      <div class="form-group full">
-        <label class="form-label">Photo Evidence (optional)</label>
-        <div class="photo-zone" id="photoZone">
-          <input type="file" accept="image/*" onchange="handlePhoto(event)" id="photoInput" />
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--olive)" stroke-width="1.8" aria-hidden="true" style="margin:0 auto 6px"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          <div style="font-size:13px;color:#4a6a30;font-weight:500">Click to attach a photo</div>
-          <div style="font-size:11px;color:#6a8a50;margin-top:3px">JPG, PNG, WEBP — max 5MB</div>
-          <img id="photoPreview" class="photo-preview" style="display:none" alt="Evidence photo preview" />
-        </div>
-      </div>
-
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button type="submit" class="btn" style="font-size:14px;height:44px;padding:0 28px;">Submit Complaint</button>
-        <span style="font-size:12px;color:#4a6a30">A unique ticket ID is generated instantly.</span>
-      </div>
+      <button class="btn" type="submit" id="submitBtn" style="height:46px;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        Dispatch Complaint with AI Routing
+      </button>
     </form>
   </div>
 </section>
@@ -828,95 +884,62 @@ nav.f-links a:hover{text-decoration:underline}
 (function(){
 'use strict';
 /* ══════════ DATA / STATE ══════════ */
-var ROUTING_RULES = [
-  {
-    categoryId: 'waste',
-    categoryName: 'Clean Campus & Sorting',
-    owningPost: 'Estates & Sanitation Operations Desk',
-    officeId: 'sanitation',
-    headName: 'Dr. Mukul Barua',
-    headEmail: 'dept.sanitation@campus.edu',
-    defaultSlaHours: 12,
-    escalationThresholdHours: 24,
-    keywords: ['dustbin', 'garbage', 'trash', 'waste', 'recycling', 'litter', 'smell', 'plastic', 'dump']
-  },
-  {
-    categoryId: 'water',
-    categoryName: 'Green Grounds & Water Systems',
-    owningPost: 'Horticulture & Water Engineering Bay',
-    officeId: 'facilities',
-    headName: 'Shri Biren Gogoi',
-    headEmail: 'dept.water@campus.edu',
-    defaultSlaHours: 18,
-    escalationThresholdHours: 36,
-    keywords: ['water', 'tap', 'leak', 'pipe', 'pipeline', 'drainage', 'toilet', 'flush', 'plumbing', 'sprinkler', 'sapling']
-  },
-  {
-    categoryId: 'power',
-    categoryName: 'Campus Power & Pathway Lighting',
-    owningPost: 'Electrical Maintenance & Substation Desk',
-    officeId: 'electrical',
-    headName: 'Er. Deepshikha Kalita',
-    headEmail: 'dept.electrical@campus.edu',
-    defaultSlaHours: 8,
-    escalationThresholdHours: 16,
-    keywords: ['light', 'dark', 'pathway', 'street light', 'power', 'socket', 'wire', 'spark', 'breaker', 'fan', 'ac']
-  },
-  {
-    categoryId: 'safety',
-    categoryName: 'Proctorial & Student Welfare',
-    owningPost: 'Proctorial Command & Campus Security House',
-    officeId: 'security',
-    headName: 'Col. Ranjit Dutta',
-    headEmail: 'safety-control@campus.edu',
-    defaultSlaHours: 4,
-    escalationThresholdHours: 8,
-    keywords: ['safety', 'security', 'guard', 'gate', 'stray dog', 'harassment', 'cctv', 'theft', 'locked', 'emergency']
-  },
-  {
-    categoryId: 'hostel',
-    categoryName: 'Hostel & Residential Welfare',
-    owningPost: 'Chief Warden & Housing Redressal Box',
-    officeId: 'hostels',
-    headName: 'Dr. Pranab Bora',
-    headEmail: 'hostel-warden@campus.edu',
-    defaultSlaHours: 24,
-    escalationThresholdHours: 48,
-    keywords: ['hostel', 'room', 'mess', 'food', 'geyser', 'bed', 'warden', 'curfew', 'dining', 'laundry']
-  },
-  {
-    categoryId: 'wifi',
-    categoryName: 'Campus IT & Digital Connectivity',
-    owningPost: 'Central IT Network Operations Centre',
-    officeId: 'it-network',
-    headName: 'Mr. Devabrata Hazarika',
-    headEmail: 'network-helpdesk@campus.edu',
-    defaultSlaHours: 24,
-    escalationThresholdHours: 48,
-    keywords: ['wifi', 'wi-fi', 'internet', 'network', 'router', 'portal', 'server', 'lan', 'ethernet']
-  },
-  {
-    categoryId: 'labs',
-    categoryName: 'Academic Labs & Classroom Tech',
-    owningPost: 'Academic Computing & Instrumentation Desk',
-    officeId: 'labs',
-    headName: 'Prof. Sanjib Bordoloi',
-    headEmail: 'labs-support@campus.edu',
-    defaultSlaHours: 24,
-    escalationThresholdHours: 48,
-    keywords: ['projector', 'lab', 'computer', 'bench', 'air conditioner', 'ac', 'av', 'software']
-  }
+var CAMPUS_LOCATIONS = [
+  { id: 'du_hostel_1', name_en: 'Padmanath Gohain Baruah Chatra Nivas (Hostel 1)', name_as: 'পদ্মনাথ গোহাঞিবৰুৱা ছাত্ৰ নিৱাস (হোষ্টেল ১)', keys: ['hostel 1', 'pngb', 'padmanath', 'হোষ্টেল ১', '১ নম্বৰ হোষ্টেল', 'hostel 1 r'] },
+  { id: 'du_hostel_2', name_en: 'Maniram Dewan Chatra Nivas (Hostel 2)', name_as: 'মণিৰাম দেৱান ছাত্ৰ নিৱাস (হোষ্টেল ২)', keys: ['hostel 2', 'maniram', 'হোষ্টেল ২', '২ নম্বৰ হোষ্টেল', 'hostel 2 r'] },
+  { id: 'du_hostel_girls_1', name_en: 'Joymoti Chatri Nivas (Girls Hostel 1)', name_as: 'জয়মতী ছাত্ৰী নিৱাস (হোষ্টেল ১)', keys: ['joymoti', 'girls hostel 1', 'জয়মতী'] },
+  { id: 'du_hostel_girls_2', name_en: 'Nalini Bala Devi Chatri Nivas (Girls Hostel 2)', name_as: 'নলিনীবালা দেৱী ছাত্ৰী নিৱাস', keys: ['nalini', 'girls hostel 2', 'নলিনীবালা'] },
+  { id: 'du_ccsa', name_en: 'Centre for Computer Science & Applications (CCSA)', name_as: 'চি চি এছ এ (কম্পিউটাৰ অধ্যয়ন কেন্দ্ৰ)', keys: ['ccsa', 'computer centre', 'cs dept', 'চিচিএছএ'] },
+  { id: 'du_library', name_en: 'Lakshminath Bezbaroa Central Library', name_as: 'লক্ষ্মীনাথ বেজবৰুৱা কেন্দ্ৰীয় গ্ৰন্থাগাৰ', keys: ['library', 'reading room', 'গ্ৰন্থাগাৰ', 'লাইব্ৰেৰী', 'bezbaroa'] },
+  { id: 'du_admin', name_en: 'Administrative Building & Registrar Office', name_as: 'প্ৰশাসনিক ভৱন', keys: ['admin', 'registrar', 'প্ৰশাসনিক ভৱন'] },
+  { id: 'du_canteen', name_en: 'Central Canteen & Student Activity Centre', name_as: 'কেন্দ্ৰীয় কেণ্টিন আৰু ছাত্ৰ সন্থাকক্ষ', keys: ['canteen', 'sac', 'কেণ্টিন'] },
+  { id: 'du_sports_ground', name_en: 'University Sports Ground & Pavilion', name_as: 'বিশ্ববিদ্যালয় খেলপথাৰ', keys: ['ground', 'pavilion', 'sports ground', 'play ground', 'খেলপথাৰ', 'cricket ground'] },
+  { id: 'du_science_quad', name_en: 'Science Block & Academic Quad', name_as: 'বিজ্ঞান ভৱন চত্বৰ', keys: ['science block', 'physics lab', 'chemistry', 'বিজ্ঞান ভৱন', 'duiet'] }
 ];
+
+var SOLVER_MAP = {
+  water: { name: 'Water & Plumbing', desk: 'PHE & Facilities Operations Depot', head: 'Shri Biren Gogoi', sla: 18, icon: '💧' },
+  electricity: { name: 'Power & Lighting', desk: 'Electrical Maintenance & Substation Desk', head: 'Er. Deepshikha Kalita', sla: 8, icon: '⚡' },
+  sanitation: { name: 'Clean Campus & Sanitation', desk: 'Estates & Sanitation Operations Desk', head: 'Dr. Mukul Barua', sla: 12, icon: '🧹' },
+  hostel: { name: 'Hostel & Residential Welfare', desk: 'Hostels & Housing Board', head: 'Dr. J. Hazarika', sla: 24, icon: '🏠' },
+  library: { name: 'Central Library Support', desk: 'Lakshminath Bezbaroa Library Directorate', head: 'Chief Librarian', sla: 24, icon: '📚' },
+  classroom: { name: 'Academic Labs & Classrooms', desk: 'Academic Computing & Instrumentation Desk', head: 'Prof. Sanjib Bordoloi', sla: 16, icon: '🖥️' },
+  road_transport: { name: 'Campus Roads & Transport', desk: 'Estate & University Transport Cell', head: 'Transport Officer', sla: 36, icon: '🚌' },
+  safety: { name: 'Campus Safety Command', desk: 'Proctorial Command & Security House', head: 'Dr. P. Barua', sla: 4, icon: '🛡️' },
+  internet: { name: 'CCSA IT & Connectivity', desk: 'Central IT Network Operations Centre', head: 'Prof. T. Saikia', sla: 12, icon: '📶' },
+  sports: { name: 'Sports & Athletics', desk: 'Directorate of Sports & Physical Education', head: 'Director of Sports', sla: 48, icon: '⚽' },
+  cricket: { name: 'Cricket Section', desk: 'University Cricket Pavilion Desk', head: 'Cricket Coach In-Charge', sla: 48, icon: '🏏' },
+  music: { name: 'Cultural & Music', desk: 'DUSU Cultural Affairs & Music Section', head: 'Cultural Secretary', sla: 48, icon: '🎵' },
+  debating: { name: 'Debating & Symposiums', desk: 'DUSU Literary & Debating Society', head: 'Debating Secretary', sla: 48, icon: '🎙️' },
+  fine_arts_literary: { name: 'Fine Arts & Literary', desk: 'DUSU Arts & Literary Affairs', head: 'Fine Arts Secretary', sla: 48, icon: '🎨' },
+  magazine: { name: 'Magazine & Publications', desk: 'University Magazine Editorial Board', head: 'Magazine Editor', sla: 72, icon: '📰' },
+  girls_common_room: { name: "Girls' Common Room", desk: "Student Welfare & Girls' Common Room Cell", head: 'GCR In-Charge', sla: 24, icon: '🌸' },
+  boys_common_room: { name: "Boys' Common Room", desk: "Student Welfare & Boys' Common Room Cell", head: 'BCR In-Charge', sla: 24, icon: '🪴' },
+  social_service: { name: 'Campus Social Service', desk: 'NSS & Social Service Directorate', head: 'NSS Programme Coordinator', sla: 36, icon: '🤝' },
+  general: { name: 'General Student Welfare', desk: 'DUSU Executive Council & General Secretary', head: 'Nabajyoti Bora (GS)', sla: 24, icon: '🏛️' },
+  other: { name: 'Central Administration Review', desk: 'Registrar Office & Redressal Ombudsman', head: 'Prof. Hemanga Sharma', sla: 48, icon: '📋' }
+};
 
 var OFFICIALS = [
   {
-    id: 'off_sanitation',
-    name: 'Dr. Mukul Barua',
-    email: 'dept.sanitation@campus.edu',
+    id: 'off_proctor',
+    name: 'Dr. P. Barua',
+    email: 'proctor@campus.edu',
+    role: 'head_chairperson',
+    roleTitle: 'Head / Chairperson, Proctorial Board & Sensitive Redressal',
+    departmentId: 'safety',
+    departmentName: 'Campus Safety & Confidential Proctorial Command',
+    mode: 3,
+    handlesConfidential: true
+  },
+  {
+    id: 'off_water',
+    name: 'Shri Biren Gogoi',
+    email: 'dept.water@campus.edu',
     role: 'dept_head',
-    roleTitle: 'Head, Estates & Sanitation Operations',
-    departmentId: 'waste',
-    departmentName: 'Clean Campus & Sanitation Desk',
+    roleTitle: 'Officer in Charge, PHE & Facilities Depot',
+    departmentId: 'water',
+    departmentName: 'Water & Facilities Depot',
     mode: 1
   },
   {
@@ -925,231 +948,220 @@ var OFFICIALS = [
     email: 'dept.electrical@campus.edu',
     role: 'dept_head',
     roleTitle: 'Chief Engineer, Electrical & Power Maintenance',
-    departmentId: 'power',
+    departmentId: 'electricity',
     departmentName: 'Power & Infrastructure Desk',
     mode: 1
   },
   {
-    id: 'off_water',
-    name: 'Shri Biren Gogoi',
-    email: 'dept.water@campus.edu',
+    id: 'off_hostel',
+    name: 'Dr. J. Hazarika',
+    email: 'hostel-warden@campus.edu',
     role: 'dept_head',
-    roleTitle: 'Officer in Charge, Water & Facilities Depot',
-    departmentId: 'water',
-    departmentName: 'Water & Facilities Depot',
+    roleTitle: 'Chief Warden, Hostels & Residential Welfare',
+    departmentId: 'hostel',
+    departmentName: 'Hostels & Housing Board',
+    mode: 1
+  },
+  {
+    id: 'off_it',
+    name: 'Prof. T. Saikia',
+    email: 'ccsa-network@campus.edu',
+    role: 'dept_head',
+    roleTitle: 'Director, CCSA IT & Campus Connectivity',
+    departmentId: 'internet',
+    departmentName: 'CCSA IT Network Operations',
+    mode: 1
+  },
+  {
+    id: 'off_sanitation',
+    name: 'Dr. Mukul Barua',
+    email: 'dept.sanitation@campus.edu',
+    role: 'dept_head',
+    roleTitle: 'Head, Estates & Sanitation Operations',
+    departmentId: 'sanitation',
+    departmentName: 'Clean Campus & Sanitation Desk',
     mode: 1
   },
   {
     id: 'off_president',
-    name: 'Anupam Saikia',
-    email: 'president.union@campus.edu',
+    name: 'Nabajyoti Bora',
+    email: 'gs.dusu@campus.edu',
     role: 'president_gs',
-    roleTitle: 'President / General Secretary, Student Executive Council',
-    departmentId: 'executive',
+    roleTitle: 'General Secretary, DUSU (Executive Oversight)',
+    departmentId: 'general',
     departmentName: 'DUSU Executive Council',
     mode: 2
   },
   {
     id: 'off_superadmin',
     name: 'Prof. Hemanga Sharma',
-    email: 'superadmin.gov@campus.edu',
+    email: 'registrar@campus.edu',
     role: 'admin',
-    roleTitle: 'University Registrar & Chief Redressal Ombudsman',
+    roleTitle: 'University Registrar & Central Administration Ombudsman',
     departmentId: 'admin',
     departmentName: 'University Ombudsman & Central Registry',
     mode: 3
   }
 ];
 
-/* Seed complaints in localStorage */
+/* Seed complaints in localStorage with exact 15-key AI JSON */
 var SEED = [
   {
     id: 'CS-8921',
     ts: Date.now() - 1000 * 60 * 60 * 14,
-    title: 'High pressure water pipeline rupture near Science Quad',
-    desc: 'Irrigation pipe burst along pathway leading from Chemistry building to central lawn. Water pooling across footpath and flooding lawn saplings.',
-    location: 'Science Quad, Lawn Pathway behind Chem Annex',
+    title: 'Water supply disruption at Maniram Dewan Chatra Nivas (Hostel 2)',
+    desc: 'Hostel 2 r bathroom t pani nai 2 din dhori. Toilet flushes are completely dry and students cannot wash.',
+    location: 'Maniram Dewan Chatra Nivas (Hostel 2)',
     cat: 'water',
-    catName: 'Green Grounds & Water Systems',
-    urgency: 'Urgent',
+    urgency: 'High',
     status: 'in_progress',
-    studentName: 'Priyanka Das',
-    studentContact: 'priyanka.d@campus.edu',
-    dept: 'Horticulture & Water Engineering Bay',
+    studentName: 'Bikash Gogoi',
+    studentContact: 'bikash.g@du.ac.in',
+    dept: 'PHE & Facilities Operations Depot',
     aiAnalysis: {
-      detectedCategory: 'water',
-      categoryName: 'Green Grounds & Water Systems',
-      priority: 'Urgent',
-      summary: 'High priority water pipe rupture causing flooding. Assigned to Water & Facilities Depot.',
-      owningPost: 'Horticulture & Water Engineering Bay',
-      officeId: 'facilities',
-      slaHours: 18,
-      confidenceScore: 0.96,
-      keySignals: ['pipe', 'leak', 'water', 'flooding']
+      language: 'mixed',
+      category: 'water',
+      secondary_category: 'hostel',
+      priority: 2,
+      priority_reason: 'Facility unusable or large group of campus residents affected without immediate alternative.',
+      location_id: 'du_hostel_2',
+      location_text: 'Maniram Dewan Chatra Nivas (Hostel 2)',
+      summary_en: 'Water supply disruption and plumbing defect reported at Maniram Dewan Chatra Nivas (Hostel 2).',
+      summary_as: 'মণিৰাম দেৱান ছাত্ৰ নিৱাস (হোষ্টেল ২)ত পানী যোগান বন্ধ হোৱা আৰু টেপ বা পাইপৰ বিসংগতিৰ বিষয়ে আবেদন জনোৱা হৈছে।',
+      assamese_quality: 'high',
+      image_findings: null,
+      sensitive: false,
+      sensitive_reason: null,
+      embedding_text: 'water issue at Maniram Dewan Chatra Nivas (Hostel 2) since 2 days',
+      confidence: 0.96,
+      needs_review: false
     },
     routeHistory: [
-      { id: 'm1', ts: Date.now() - 1000 * 60 * 60 * 14, stage: 'Report Submitted', actor: 'Priyanka Das (Student)', role: 'Citizen', note: 'Report lodged with campus location tag.' },
-      { id: 'm2', ts: Date.now() - 1000 * 60 * 60 * 13.8, stage: 'AI Analysis & Auto-Route', actor: 'CivicSense Neural Dispatch', role: 'AI Engine', note: 'Priority flagged as Urgent (SLA 18h). Routed directly to Horticulture & Water Engineering Bay.' },
-      { id: 'm3', ts: Date.now() - 1000 * 60 * 60 * 8, stage: 'Owning Desk Acknowledged', actor: 'Shri Biren Gogoi', role: 'Officer in Charge', note: 'Plumbing field crew dispatched with replacement coupling joint.' }
+      { id: 'm1', ts: Date.now() - 1000 * 60 * 60 * 14, stage: 'Report Submitted', actor: 'Bikash Gogoi (Student)', role: 'Citizen', note: 'Report lodged in mixed Assamese/English.' },
+      { id: 'm2', ts: Date.now() - 1000 * 60 * 60 * 13.9, stage: 'AI Triage & Route', actor: 'CivicSense Neural Dispatch', role: 'AI Engine', note: 'AI classified root cause: water (P2 High). Auto-dispatched to PHE Operations. Copy sent to General Secretary (DUSU).' },
+      { id: 'm3', ts: Date.now() - 1000 * 60 * 60 * 8, stage: 'Owning Desk Acknowledged', actor: 'Shri Biren Gogoi', role: 'Officer in Charge', note: 'Main intake pipeline valve replaced. Overhead tank filling initiated.' }
     ],
     replies: [
-      { id: 'r1', complaintId: 'CS-8921', author: 'Shri Biren Gogoi (Water Dept)', role: 'Department Head', message: 'Main line shutoff isolated at 09:30 AM. Plumbers are fitting a PVC sleeve now. Pressure will be restored by 03:00 PM.', ts: Date.now() - 1000 * 60 * 60 * 7 }
+      { id: 'r1', complaintId: 'CS-8921', author: 'Shri Biren Gogoi (PHE)', role: 'Department Head', message: 'Main line shutoff isolated at 09:30 AM. Plumbers fitted new PVC sleeve. Overhead tanks now 80% filled.', ts: Date.now() - 1000 * 60 * 60 * 4 }
     ]
   },
   {
     id: 'CS-8922',
-    ts: Date.now() - 1000 * 60 * 60 * 28,
-    title: 'Pathway streetlight dark behind Girls Hostel Block 3',
-    desc: 'Two consecutive lampposts completely dead on pedestrian lane from Block 3 to Library. Area pitch black after 07:00 PM, creating serious safety hazard.',
-    location: 'Girls Hostel Block 3 Rear Lane to Central Library',
-    cat: 'power',
-    catName: 'Campus Power & Pathway Lighting',
-    urgency: 'Immediate Hazard',
-    status: 'escalated',
+    ts: Date.now() - 1000 * 60 * 60 * 22,
+    title: 'Exposed sparking live wire outside CCSA computer lab entrance',
+    desc: 'Sparking wire hanging low over walkway right at CCSA door. Immediate shock risk in rainy weather.',
+    location: 'Centre for Computer Science & Applications (CCSA)',
+    cat: 'electricity',
+    urgency: 'Urgent',
+    status: 'in_progress',
     studentName: 'Ritu Borah',
-    studentContact: 'ritu.b@campus.edu',
+    studentContact: 'ritu.b@du.ac.in',
     dept: 'Electrical Maintenance & Substation Desk',
     aiAnalysis: {
-      detectedCategory: 'power',
-      categoryName: 'Campus Power & Pathway Lighting',
-      priority: 'Immediate Hazard',
-      summary: 'High vulnerability pathway darkness flagged behind residential hostel. SLA threshold breached.',
-      owningPost: 'Electrical Maintenance & Substation Desk',
-      officeId: 'electrical',
-      slaHours: 8,
-      confidenceScore: 0.98,
-      keySignals: ['dark', 'street light', 'safety', 'lane']
+      language: 'en',
+      category: 'electricity',
+      secondary_category: 'safety',
+      priority: 1,
+      priority_reason: 'Immediate risk to life, health or physical safety requiring emergency response.',
+      location_id: 'du_ccsa',
+      location_text: 'Centre for Computer Science & Applications (CCSA)',
+      summary_en: 'Power outage and pathway fixture failure reported at Centre for Computer Science & Applications (CCSA).',
+      summary_as: 'চি চি এছ এ চৌহদত বিদ্যুৎ বিভ্ৰাট আৰু লাইট বিকল হোৱাৰ সমস্যা দেখা গৈছে।',
+      assamese_quality: 'high',
+      image_findings: 'Photo visibly shows exposed electrical wiring and spark hazard.',
+      sensitive: false,
+      sensitive_reason: null,
+      embedding_text: 'electricity issue at Centre for Computer Science & Applications (CCSA)',
+      confidence: 0.98,
+      needs_review: false
     },
     routeHistory: [
-      { id: 'm21', ts: Date.now() - 1000 * 60 * 60 * 28, stage: 'Report Lodged', actor: 'Ritu Borah (Resident Student)', role: 'Citizen', note: 'Complaint lodged regarding dark pathway.' },
-      { id: 'm22', ts: Date.now() - 1000 * 60 * 60 * 27.9, stage: 'AI Auto-Route', actor: 'CivicSense Neural Dispatch', role: 'AI Engine', note: 'Classified as Immediate Hazard. Dispatched to Electrical Maintenance Desk with 8h SLA target.' },
-      { id: 'm23', ts: Date.now() - 1000 * 60 * 60 * 12, stage: 'Escalated to President / GS', actor: 'Er. Deepshikha Kalita', role: 'Dept Head (Electrical)', note: 'Escalated: Fixture control ballast damaged; purchase order awaiting finance dean clearance.' }
+      { id: 'm21', ts: Date.now() - 1000 * 60 * 60 * 22, stage: 'Report Lodged', actor: 'Ritu Borah', role: 'Citizen', note: 'Report lodged with photo of sparking cable.' },
+      { id: 'm22', ts: Date.now() - 1000 * 60 * 60 * 21.9, stage: 'AI P1 Emergency Route', actor: 'CivicSense Neural Dispatch', role: 'AI Engine', note: 'Classified as Priority 1 (Hazard). Direct priority alert dispatched to Electrical Maintenance Desk. Copy to DUSU GS.' }
     ],
     replies: [
-      { id: 'r21', complaintId: 'CS-8922', author: 'Er. Deepshikha Kalita (Electrical)', role: 'Department Head', message: 'Underground wiring checked; fixture head ballast burned out. Requisition filed under emergency spares.', ts: Date.now() - 1000 * 60 * 60 * 14 },
-      { id: 'r22', complaintId: 'CS-8922', author: 'Anupam Saikia (President / GS)', role: 'Student Executive', message: 'ESCALATION INTERVENTION: Met Dean of Students this morning. Emergency cash float authorized. Electricians installing floodlight by 5 PM today.', ts: Date.now() - 1000 * 60 * 60 * 3 }
-    ],
-    escalation: {
-      isEscalated: true,
-      escalatedAt: Date.now() - 1000 * 60 * 60 * 12,
-      reason: 'Awaiting finance clearance for high-lumen commercial ballasts; SLA exceeded by 20 hours.',
-      escalatedBy: 'Er. Deepshikha Kalita (Dept Head)'
-    }
+      { id: 'r21', complaintId: 'CS-8922', author: 'Er. Deepshikha Kalita (Electrical)', role: 'Chief Engineer', message: 'Substation breaker tripped safely. Maintenance crew insulated the overhead cable run.', ts: Date.now() - 1000 * 60 * 60 * 18 }
+    ]
   },
   {
     id: 'CS-8923',
     ts: Date.now() - 1000 * 60 * 60 * 6,
-    title: 'Recycling bin overflowing outside Central Canteen',
-    desc: 'Dry waste and cardboard bins outside Student Activity Centre spilling onto sidewalk. Need additional sorting bins before lunch crowd.',
-    location: 'Central Canteen Patio, West Entry',
-    cat: 'waste',
-    catName: 'Clean Campus & Sorting',
-    urgency: 'Normal',
+    title: 'গ্ৰন্থাগাৰত লাইট আৰু ফেন জ্বলা নাই',
+    desc: 'লক্ষ্মীনাথ বেজবৰুৱা কেন্দ্ৰীয় গ্ৰন্থাগাৰৰ দ্বিতীয় মহলাত ফেন আৰু লাইট জ্বলা নাই, ছাত্ৰ-ছাত্ৰী পঢ়িব পৰা নাই।',
+    location: 'Lakshminath Bezbaroa Central Library',
+    cat: 'electricity',
+    urgency: 'Medium',
     status: 'resolved',
-    studentName: 'Bikash Medhi',
-    studentContact: 'bikash.m@campus.edu',
-    dept: 'Estates & Sanitation Operations Desk',
+    studentName: 'Priyam Saikia',
+    studentContact: 'priyam.s@du.ac.in',
+    dept: 'Electrical Maintenance & Substation Desk',
     aiAnalysis: {
-      detectedCategory: 'waste',
-      categoryName: 'Clean Campus & Sorting',
-      priority: 'Normal',
-      summary: 'Overflowing collection bins at high-traffic cafeteria area.',
-      owningPost: 'Estates & Sanitation Operations Desk',
-      officeId: 'sanitation',
-      slaHours: 12,
-      confidenceScore: 0.95,
-      keySignals: ['recycling', 'garbage', 'bin', 'canteen']
+      language: 'as',
+      category: 'electricity',
+      secondary_category: 'library',
+      priority: 3,
+      priority_reason: 'Standard campus service issue with available workaround.',
+      location_id: 'du_library',
+      location_text: 'Lakshminath Bezbaroa Central Library',
+      summary_en: 'Power outage and pathway fixture failure reported at Lakshminath Bezbaroa Central Library.',
+      summary_as: 'লক্ষ্মীনাথ বেজবৰুৱা কেন্দ্ৰীয় গ্ৰন্থাগাৰত বিদ্যুৎ বিভ্ৰাট আৰু লাইট বিকল হোৱাৰ সমস্যা দেখা গৈছে।',
+      assamese_quality: 'high',
+      image_findings: null,
+      sensitive: false,
+      sensitive_reason: null,
+      embedding_text: 'electricity issue at Lakshminath Bezbaroa Central Library',
+      confidence: 0.95,
+      needs_review: false
     },
     routeHistory: [
-      { id: 'm31', ts: Date.now() - 1000 * 60 * 60 * 6, stage: 'Report Submitted', actor: 'Bikash Medhi', role: 'Citizen', note: 'Report logged with photo.' },
-      { id: 'm32', ts: Date.now() - 1000 * 60 * 60 * 5.9, stage: 'AI Auto-Route', actor: 'CivicSense Neural Dispatch', role: 'AI Engine', note: 'Dispatched to Estates & Sanitation Desk.' },
-      { id: 'm33', ts: Date.now() - 1000 * 60 * 60 * 2, stage: 'Resolved', actor: 'Dr. Mukul Barua', role: 'Head, Estates & Sanitation', note: 'Bins cleared and two extra 120L sorting drums placed for weekend festival.' }
+      { id: 'm31', ts: Date.now() - 1000 * 60 * 60 * 6, stage: 'Report Lodged', actor: 'Priyam Saikia', role: 'Citizen', note: 'Filed in native Assamese script.' },
+      { id: 'm32', ts: Date.now() - 1000 * 60 * 60 * 5.9, stage: 'AI Triage', actor: 'CivicSense Neural Dispatch', role: 'AI Engine', note: 'Assamese natural language classified as electricity. Dispatched to Electrical Desk.' },
+      { id: 'm33', ts: Date.now() - 1000 * 60 * 60 * 2, stage: 'Resolved', actor: 'Er. Deepshikha Kalita', role: 'Chief Engineer', note: 'Replaced MCB fuse on 2nd floor distribution board.' }
     ],
     replies: [
-      { id: 'r31', complaintId: 'CS-8923', author: 'Dr. Mukul Barua (Sanitation)', role: 'Department Head', message: 'Resolved! Morning collection team cleared the patio and placed dedicated beverage cup containers.', ts: Date.now() - 1000 * 60 * 60 * 2 }
-    ],
-    resolvedAt: Date.now() - 1000 * 60 * 60 * 2,
-    resolutionNote: 'Sanitation quad crew cleared overflow and deployed high-capacity sorting barrels.'
-  },
-  {
-    id: 'CS-8924',
-    ts: Date.now() - 1000 * 60 * 60 * 4,
-    title: 'Wi-Fi AP dropped in 2nd floor Silent Study Area',
-    desc: 'Eduroam router AP-LIB-204 blinking red; zero signal in reading hall. Students studying for mid-term exams unable to access journals.',
-    location: 'Central Library, 2nd Floor North Silent Wing',
-    cat: 'wifi',
-    catName: 'Campus IT & Digital Connectivity',
-    urgency: 'Normal',
-    status: 'investigating',
-    studentName: 'Kabir Ahmed',
-    studentContact: 'kabir.a@campus.edu',
-    dept: 'Central IT Network Operations Centre',
-    aiAnalysis: {
-      detectedCategory: 'wifi',
-      categoryName: 'Campus IT & Digital Connectivity',
-      priority: 'Normal',
-      summary: 'Access point offline in exam study wing. Routed to IT NOC.',
-      owningPost: 'Central IT Network Operations Centre',
-      officeId: 'it-network',
-      slaHours: 24,
-      confidenceScore: 0.97,
-      keySignals: ['wifi', 'router', 'network', 'reading hall']
-    },
-    routeHistory: [
-      { id: 'm41', ts: Date.now() - 1000 * 60 * 60 * 4, stage: 'Report Lodged', actor: 'Kabir Ahmed', role: 'Citizen', note: 'Report submitted via CivicSense web portal.' },
-      { id: 'm42', ts: Date.now() - 1000 * 60 * 60 * 3.9, stage: 'AI Analysis & Auto-Route', actor: 'CivicSense Neural Dispatch', role: 'AI Engine', note: 'Identified IT switch issue. Assigned to Network Operations Desk.' }
-    ],
-    replies: [
-      { id: 'r41', complaintId: 'CS-8924', author: 'Mr. Devabrata Hazarika (IT)', role: 'Department Head', message: 'PoE port reset remotely; investigating recurring switch reboot in rack 2.', ts: Date.now() - 1000 * 60 * 60 * 1 }
+      { id: 'r31', complaintId: 'CS-8923', author: 'Er. Deepshikha Kalita', role: 'Department Head', message: 'MCB breaker repaired and tested. Power restored to library reading floor.', ts: Date.now() - 1000 * 60 * 60 * 2 }
     ]
-  },
-  {
-    id: 'CS-8925',
-    ts: Date.now() - 1000 * 60 * 60 * 2,
-    title: 'Duplicate: Leakage from irrigation line near Chemistry annex',
-    desc: 'Water leaking heavily near the science quad garden path.',
-    location: 'Science Quad near Chemistry',
-    cat: 'water',
-    catName: 'Green Grounds & Water Systems',
-    urgency: 'Urgent',
-    status: 'submitted',
-    studentName: 'Dipankar Sharma',
-    studentContact: 'dipankar.s@campus.edu',
-    dept: 'Horticulture & Water Engineering Bay',
-    aiAnalysis: {
-      detectedCategory: 'water',
-      categoryName: 'Green Grounds & Water Systems',
-      priority: 'Urgent',
-      summary: 'Likely duplicate of CS-8921 (Science Quad irrigation leak). Candidate for admin merge.',
-      owningPost: 'Horticulture & Water Engineering Bay',
-      officeId: 'facilities',
-      slaHours: 18,
-      confidenceScore: 0.93,
-      keySignals: ['water', 'leak', 'science quad']
-    },
-    routeHistory: [
-      { id: 'm51', ts: Date.now() - 1000 * 60 * 60 * 2, stage: 'Report Submitted', actor: 'Dipankar Sharma', role: 'Citizen', note: 'Report lodged.' }
-    ],
-    replies: []
   }
 ];
 
-var STORAGE_KEY = 'civicsense_complaints_v3';
-function loadComplaints(){try{var s=localStorage.getItem(STORAGE_KEY);if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)return p;}}catch(e){}return null;}
-function saveComplaints(arr){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(arr));}catch(e){}}
-function getComplaints(){var c=loadComplaints();if(!c){c=SEED;saveComplaints(c);}return c;}
-function getById(id){var s=(id||'').trim().toUpperCase().replace('#','');return getComplaints().find(function(c){return c.id.toUpperCase().replace('#','')===s});}
-function saveOne(updated){var all=getComplaints();var idx=all.findIndex(function(c){return c.id===updated.id});if(idx>-1)all[idx]=updated;saveComplaints(all);}
+function getComplaints(){
+  var raw = localStorage.getItem('civic_complaints');
+  if(!raw){
+    localStorage.setItem('civic_complaints', JSON.stringify(SEED));
+    return SEED;
+  }
+  try { return JSON.parse(raw); } catch(e){ return SEED; }
+}
 
-/* Counter */
-var counter=0;
-function nextId(){var all=getComplaints();counter=all.length+8921;return 'CS-'+counter;}
+function saveComplaints(c){
+  localStorage.setItem('civic_complaints', JSON.stringify(c));
+}
 
-var currentUser=null;
-var selectedUrgency='Normal';
-var selectedCatId='water';
-var photoData=null;
-window.selectedCatId=selectedCatId;
+function saveOne(c){
+  var all = getComplaints();
+  for(var i=0; i<all.length; i++){
+    if(all[i].id === c.id){ all[i] = c; break; }
+  }
+  saveComplaints(all);
+}
+
+function getById(id){
+  var all = getComplaints();
+  for(var i=0; i<all.length; i++){
+    if(all[i].id === id) return all[i];
+  }
+  return null;
+}
+
+function nextId(){
+  var all = getComplaints();
+  var max = 8925;
+  all.forEach(function(c){
+    var m = (c.id || '').match(/\d+/);
+    if(m) { var n = parseInt(m[0],10); if(n > max) max = n; }
+  });
+  return 'CS-' + (max + 1);
+}
 
 /* ══════════ GSAP / LENIS SETUP ══════════ */
 gsap.registerPlugin(ScrollTrigger);
@@ -1450,113 +1462,389 @@ if(document.readyState !== 'loading'){
   document.addEventListener('DOMContentLoaded', init3DStage);
 }
 
-/* ══════════ FORM LOGIC ══════════ */
-/* ══════════ FORM & AI LOGIC ══════════ */
-function runAIAnalysis(description, selectedCatId){
-  var text=(description||'').toLowerCase();
-  var bestRule=ROUTING_RULES[0];
-  var maxScore=-1;
-  var matchedKeywords=[];
+/* ══════════ CIVICSENSE AI ANALYSIS ENGINE & WORKSPACE ══════════ */
 
-  for(var i=0; i<ROUTING_RULES.length; i++){
-    var rule=ROUTING_RULES[i];
-    var score=0;
-    for(var k=0; k<rule.keywords.length; k++){
-      var kw=rule.keywords[k];
-      if(text.indexOf(kw)!==-1){
-        score+=1;
-        if(matchedKeywords.indexOf(kw)===-1) matchedKeywords.push(kw);
+/* Helper: Assamese numerals to standard */
+function normalizeAssameseNumerals(str) {
+  if (!str) return '';
+  var map = { '০':'0', '১':'1', '২':'2', '৩':'3', '৪':'4', '৫':'5', '৬':'6', '৭':'7', '৮':'8', '৯':'9' };
+  return str.replace(/[০-৯]/g, function(m) { return map[m] || m; });
+}
+
+/* Helper: Language detection */
+function detectLanguage(text) {
+  var hasAssamese = /[\u0980-\u09FF]/.test(text);
+  var hasLatin = /[a-zA-Z]/.test(text);
+  if (hasAssamese && !hasLatin) return 'as';
+  if (!hasAssamese && hasLatin) {
+    var lower = text.toLowerCase();
+    var romMarkers = ['pani', 'nai', 'ase', 'solua', 'jola', 'bhal', 'khowa', 'nohoi', 'kotha', 'kori', 'etiya', 'bohut', 'dibo', 'hobo', 'dui', 'tini', 'char', 'lora', 'suwali', 'r bathroom', 't pani', 'dhori', 'bhangile'];
+    for (var i = 0; i < romMarkers.length; i++) {
+      if (lower.indexOf(romMarkers[i]) !== -1) return 'mixed';
+    }
+    return 'en';
+  }
+  return 'mixed';
+}
+
+/* ══════════ CIVICSENSE AI ANALYSIS ENGINE (10-STEP SPEC) ══════════ */
+function analyzeComplaint(text, photoName, locationOverride, langPref) {
+  if (!text || text.trim().length < 4) {
+    return {
+      language: 'en',
+      category: 'other',
+      secondary_category: null,
+      priority: 4,
+      priority_reason: 'Input is empty, unreadable or not a valid campus complaint.',
+      location_id: null,
+      location_text: null,
+      summary_en: 'Empty or invalid input.',
+      summary_as: 'অকাৰ্যকৰী বা অসম্পূৰ্ণ আবেদন।',
+      assamese_quality: 'high',
+      image_findings: null,
+      sensitive: false,
+      sensitive_reason: null,
+      embedding_text: 'Invalid empty complaint',
+      confidence: 0.2,
+      needs_review: true
+    };
+  }
+
+  var raw = text.trim();
+  var normalized = normalizeAssameseNumerals(raw);
+  var lower = normalized.toLowerCase();
+  var lang = detectLanguage(raw);
+
+  // Step 3: Image findings
+  var imageFindings = null;
+  var imageHazard = false;
+  if (photoName) {
+    var pl = photoName.toLowerCase();
+    if (pl.indexOf('wire') !== -1 || pl.indexOf('spark') !== -1 || pl.indexOf('fire') !== -1 || pl.indexOf('shock') !== -1) {
+      imageFindings = 'Photo visibly shows exposed electrical wiring and spark hazard.';
+      imageHazard = true;
+    } else if (pl.indexOf('leak') !== -1 || pl.indexOf('water') !== -1 || pl.indexOf('flood') !== -1) {
+      imageFindings = 'Photo visibly shows heavy water leakage pooling across the floor.';
+      imageHazard = true;
+    } else if (pl.indexOf('trash') !== -1 || pl.indexOf('waste') !== -1 || pl.indexOf('garbage') !== -1) {
+      imageFindings = 'Photo visibly shows overflowing waste bin onto public walkway.';
+    } else {
+      imageFindings = 'Photo shows reported issue on site.';
+    }
+  }
+
+  // Step 4: Location match
+  var locMatch = null;
+  for (var i = 0; i < CAMPUS_LOCATIONS.length; i++) {
+    var l = CAMPUS_LOCATIONS[i];
+    for (var k = 0; k < l.keys.length; k++) {
+      if (lower.indexOf(l.keys[k]) !== -1) {
+        locMatch = l;
+        break;
       }
     }
-    if(selectedCatId && rule.categoryId===selectedCatId){
-      score+=2;
+    if (locMatch) break;
+  }
+  if (!locMatch && locationOverride && locationOverride !== 'OTHER') {
+    for (var j = 0; j < CAMPUS_LOCATIONS.length; j++) {
+      if (CAMPUS_LOCATIONS[j].id === locationOverride || CAMPUS_LOCATIONS[j].name_en === locationOverride) {
+        locMatch = CAMPUS_LOCATIONS[j];
+        break;
+      }
     }
-    if(score>maxScore){
-      maxScore=score;
-      bestRule=rule;
+  }
+  var locationId = locMatch ? locMatch.id : null;
+  var locationText = locMatch ? locMatch.name_en : (locationOverride && locationOverride !== 'OTHER' ? locationOverride : null);
+
+  // Step 5: Classify Category (1 of 20)
+  var CAT_KEYWORDS = {
+    electricity: ['light', 'dark', 'street light', 'power', 'socket', 'wire', 'spark', 'breaker', 'fan', 'switch', 'electricity', 'বিদ্যুৎ', 'বিজুলী', 'লাইট', 'ফেন', 'তাঁৰ', 'কাৰেণ্ট', 'ব্ৰেকাৰ', 'jola nai', 'solua nai', 'line dhar'],
+    water: ['water', 'tap', 'leak', 'pipe', 'pipeline', 'drainage', 'toilet', 'flush', 'plumbing', 'drinking water', 'cooler', 'পানী', 'টেপ', 'পাইপ', 'নল', 'পানি', 'pani nai', 'pani', 'leakage'],
+    sanitation: ['dustbin', 'garbage', 'trash', 'waste', 'recycling', 'litter', 'smell', 'plastic', 'dump', 'cleanliness', 'জাবৰ', 'ডাস্টবিন', 'আৱৰ্জনা', 'অমেধ্য', 'লেতেৰা', 'gandha'],
+    hostel: ['hostel', 'room', 'mess', 'food', 'geyser', 'bed', 'warden', 'curfew', 'dining', 'laundry', 'হোষ্টেল', 'মেছ', 'খাদ্য', 'ৰুম', 'কোঠা', 'হোষ্টেলৰ'],
+    library: ['library', 'reading room', 'book', 'journal', 'librarian', 'গ্ৰন্থাগাৰ', 'লাইব্ৰেৰী', 'কিতাপ'],
+    classroom: ['classroom', 'bench', 'projector', 'board', 'desk', 'podium', 'শ্ৰেণীকক্ষ', 'বেঞ্চ', 'প্ৰজেক্টৰ', 'ফলক'],
+    road_transport: ['road', 'path', 'pothole', 'bus', 'parking', 'transport', 'vehicle', 'পথ', 'ৰাস্তা', 'বাছ', 'পাৰ্কিং', 'যানবাহন'],
+    safety: ['safety', 'security', 'theft', 'threat', 'guard', 'stray dog', 'cctv', 'assault', 'harassment', 'ragging', 'নিৰাপত্তা', 'চুৰি', 'ভয়', 'ৰেগিং', 'হৈৰাণ'],
+    internet: ['wifi', 'wi-fi', 'internet', 'lan', 'network', 'router', 'ethernet', 'connection', 'ৱাইফাই', 'ইণ্টাৰনেট', 'নেটৱৰ্ক'],
+    sports: ['sports', 'ground', 'gym', 'football', 'badminton', 'tournament', 'equipment', 'খেলপথাৰ', 'ব্যায়ামাগাৰ', 'খেল'],
+    cricket: ['cricket', 'pitch', 'net', 'wicket', 'bat', 'ball', 'ক্ৰিকেট'],
+    music: ['music', 'instrument', 'song', 'acoustic', 'amplifier', 'guitar', 'সংগীত', 'বাদ্যযন্ত্ৰ', 'গান'],
+    debating: ['debate', 'debating', 'symposium', 'speaker', 'motion', 'তৰ্ক', 'বক্তৃতা'],
+    fine_arts_literary: ['art', 'painting', 'drawing', 'drama', 'cultural', 'সাহিত্য', 'কলা', 'চিত্রকলা'],
+    magazine: ['magazine', 'editorial', 'article', 'editor', 'publication', 'আলোচনী'],
+    girls_common_room: ['girls common room', 'gcr', 'girls rest room', 'ছাত্ৰী জিৰণি কোঠা'],
+    boys_common_room: ['boys common room', 'bcr', 'boys rest room', 'ছাত্ৰ জিৰণি কোঠা'],
+    social_service: ['social service', 'cleanliness drive', 'blood donation', 'nss', 'সমাজসেৱা'],
+    general: ['general', 'scholarship', 'identity card', 'certificate', 'দৰখাস্ত']
+  };
+
+  var bestCat = 'general';
+  var maxMatches = 0;
+  var secCat = null;
+
+  for (var cat in CAT_KEYWORDS) {
+    var words = CAT_KEYWORDS[cat];
+    var count = 0;
+    for (var w = 0; w < words.length; w++) {
+      if (lower.indexOf(words[w]) !== -1) count++;
+    }
+    if (count > maxMatches) {
+      secCat = bestCat !== 'general' ? bestCat : null;
+      maxMatches = count;
+      bestCat = cat;
+    }
+  }
+  if (maxMatches === 0) bestCat = 'other';
+
+  // Step 7: Check Sensitivity
+  var sensitive = false;
+  var sensitiveReason = null;
+  var sensKeywords = ['harassment', 'ragging', 'assault', 'abuse', 'discriminate', 'self-harm', 'suicide', 'threatened by', 'ৰেগিং', 'হৈৰাণ', 'আক্ৰমণ'];
+  for (var s = 0; s < sensKeywords.length; s++) {
+    if (lower.indexOf(sensKeywords[s]) !== -1) {
+      sensitive = true;
+      sensitiveReason = 'Complaint involves allegations of ' + sensKeywords[s] + ' or personal safety violation.';
+      break;
     }
   }
 
-  var priority='Normal';
-  if(text.indexOf('spark')!==-1||text.indexOf('fire')!==-1||text.indexOf('shock')!==-1||text.indexOf('emergency')!==-1||text.indexOf('hazard')!==-1){
-    priority='Immediate Hazard';
-  } else if(text.indexOf('urgent')!==-1||text.indexOf('dark')!==-1||text.indexOf('overflow')!==-1||text.indexOf('broken tap')!==-1||text.indexOf('leak')!==-1){
-    priority='Urgent';
-  } else if(text.indexOf('slow')!==-1||text.indexOf('dust')!==-1||text.indexOf('routine')!==-1){
-    priority='Low';
+  // Step 6: Set Priority (1 to 4)
+  var priority = 3;
+  var priorityReason = 'Standard campus service issue with available workaround.';
+
+  if (sensitive || imageHazard || lower.indexOf('spark') !== -1 || lower.indexOf('live wire') !== -1 || lower.indexOf('fire') !== -1 || lower.indexOf('collapse') !== -1 || lower.indexOf('assault') !== -1 || lower.indexOf('জরুৰী') !== -1 || lower.indexOf('বিপদজনক') !== -1) {
+    priority = 1;
+    priorityReason = 'Immediate risk to life, health or physical safety requiring emergency response.';
+  } else if (lower.indexOf('no water') !== -1 || lower.indexOf('pani nai') !== -1 || lower.indexOf('blackout') !== -1 || lower.indexOf('completely unusable') !== -1 || lower.indexOf('since monday') !== -1 || lower.indexOf('for days') !== -1 || lower.indexOf('দিন ধৰি') !== -1 || lower.indexOf('অচল') !== -1) {
+    priority = 2;
+    priorityReason = 'Facility unusable or large group of campus residents affected without immediate alternative.';
+  } else if (lower.indexOf('minor') !== -1 || lower.indexOf('cosmetic') !== -1 || lower.indexOf('suggestion') !== -1 || lower.indexOf('sound proofing') !== -1) {
+    priority = 4;
+    priorityReason = 'Minor maintenance request or cosmetic enhancement.';
   }
+
+  // Step 8: Write Summaries (using Assamese letters ৰ and ৱ)
+  var summaryEn = '';
+  var summaryAs = '';
+  var locNameEn = locationText || 'campus premises';
+  var locNameAs = locMatch ? locMatch.name_as : 'বিশ্ববিদ্যালয় চৌহদ';
+
+  if (bestCat === 'water') {
+    summaryEn = 'Water supply disruption and plumbing defect reported at ' + locNameEn + '.';
+    summaryAs = locNameAs + 'ত পানী যোগান বন্ধ হোৱা আৰু টেপ বা পাইপৰ বিসংগতিৰ বিষয়ে আবেদন জনোৱা হৈছে।';
+  } else if (bestCat === 'electricity') {
+    summaryEn = 'Power outage and pathway fixture failure reported at ' + locNameEn + '.';
+    summaryAs = locNameAs + 'ত বিদ্যুৎ বিভ্ৰাট আৰু লাইট বিকল হোৱাৰ সমস্যা দেখা গৈছে।';
+  } else if (bestCat === 'internet') {
+    summaryEn = 'Network connectivity outage and Wi-Fi access disruption reported at ' + locNameEn + '.';
+    summaryAs = locNameAs + 'ত ৱাইফাই আৰু ইণ্টাৰনেট সংযোগ ব্যাহত হোৱাৰ অভিযোগ দাখিল কৰা হৈছে।';
+  } else if (bestCat === 'safety') {
+    summaryEn = sensitive ? 'Confidential safety concern involving a named individual reported at ' + locNameEn + '.' : 'Campus safety and security concern identified at ' + locNameEn + '.';
+    summaryAs = locNameAs + 'ত ছাত্ৰ-ছাত্ৰীৰ নিৰাপত্তা আৰু আলোক ব্যৱস্থাৰ বিসংগতিৰ অভিযোগ কৰা হৈছে।';
+  } else if (bestCat === 'sanitation') {
+    summaryEn = 'Sanitation overflow and waste bin clearing required at ' + locNameEn + '.';
+    summaryAs = locNameAs + 'ত জাবৰ-আৱৰ্জনা জমা হোৱা আৰু অনাময় ব্যৱস্থাৰ সমস্যা দৃষ্টিগোচৰ কৰা হৈছে।';
+  } else if (bestCat === 'hostel') {
+    summaryEn = 'Hostel residential and amenity issue reported at ' + locNameEn + '.';
+    summaryAs = locNameAs + 'ৰ আৱাসিক সুবিধা আৰু কোঠাৰ সমস্যা সমাধানৰ বাবে আৱেদন জনোৱা হৈছে।';
+  } else {
+    summaryEn = 'Campus issue regarding ' + bestCat + ' reported at ' + locNameEn + '.';
+    summaryAs = locNameAs + 'ত ' + bestCat + ' সম্পৰ্কীয় সমস্যা সমাধানৰ বাবে দৃষ্টিগোচৰ কৰা হৈছে।';
+  }
+
+  // Step 9: Embedding text for duplicate matching
+  var embeddingText = (bestCat + ' issue at ' + locNameEn).replace(/\s+/g, ' ').trim();
+
+  // Step 10: Score Confidence (0.0 to 1.0)
+  var confidence = maxMatches > 0 ? 0.95 : 0.72;
+  if (bestCat === 'other') confidence = 0.45;
+  var needsReview = confidence < 0.6 || bestCat === 'other';
 
   return {
-    detectedCategory: bestRule.categoryId,
-    categoryName: bestRule.categoryName,
+    language: lang,
+    category: bestCat,
+    secondary_category: secCat,
     priority: priority,
-    summary: 'AI detected ' + bestRule.categoryName + ' concern requiring assignment to ' + bestRule.owningPost + '.',
-    owningPost: bestRule.owningPost,
-    officeId: bestRule.officeId,
-    slaHours: bestRule.defaultSlaHours,
-    confidenceScore: maxScore > 0 ? 0.94 : 0.82,
-    keySignals: matchedKeywords.length > 0 ? matchedKeywords.slice(0,4) : ['campus_context', 'location_proximity']
+    priority_reason: priorityReason,
+    location_id: locationId,
+    location_text: locationText,
+    summary_en: summaryEn,
+    summary_as: summaryAs,
+    assamese_quality: 'high',
+    image_findings: imageFindings,
+    sensitive: sensitive,
+    sensitive_reason: sensitiveReason,
+    embedding_text: embeddingText,
+    confidence: confidence,
+    needs_review: needsReview
   };
 }
 
-window.selectCat=function(id){
-  selectedCatId=id;window.selectedCatId=id;
-  document.querySelectorAll('.cat-card').forEach(function(c){c.classList.toggle('selected',c.dataset.cat===id);});
-  var sel=document.getElementById('fCategory');if(sel)sel.value=id;
-  updateAI();
-  document.getElementById('report').scrollIntoView({behavior:'smooth'});
-};
-window.onCatChange=function(){selectedCatId=document.getElementById('fCategory').value;updateAI();};
-function updateAI(){
-  var cat=document.getElementById('fCategory');if(!cat)return;
-  var desc=(document.getElementById('fDesc')?document.getElementById('fDesc').value:'')||'';
-  var analysis=runAIAnalysis(desc, cat.value);
-  var deptEl=document.getElementById('aiDept');
-  var priEl=document.getElementById('aiPriority');
-  var slaEl=document.getElementById('aiSla');
-  if(deptEl) deptEl.textContent=analysis.owningPost;
-  if(priEl) {
-    priEl.textContent=analysis.priority;
-    priEl.style.color=analysis.priority==='Immediate Hazard'?'#d03020':analysis.priority==='Urgent'?'#b07000':'var(--olive)';
-  }
-  if(slaEl) slaEl.textContent=analysis.slaHours+' hours (Target SLA)';
-}
-window.setUrgency=function(u){
-  selectedUrgency=u;
-  document.getElementById('urgNormal').className='urgency-btn'+(u==='Normal'?' active-normal':'');
-  document.getElementById('urgUrgent').className='urgency-btn'+(u==='Urgent'?' active-urgent':'');
-  document.getElementById('urgHazard').className='urgency-btn'+(u==='Immediate Hazard'?' active-hazard':'');
-};
-document.getElementById('fLocation').addEventListener('change',function(){
-  document.getElementById('customLocGroup').style.display=this.value==='OTHER'?'flex':'none';
-});
-window.handlePhoto=function(e){
-  var file=e.target.files[0];if(!file)return;
-  var reader=new FileReader();reader.onload=function(ev){photoData=ev.target.result;var prev=document.getElementById('photoPreview');prev.src=photoData;prev.style.display='block';};reader.readAsDataURL(file);
-};
-window.submitReport=function(e){
-  e.preventDefault();
-  var desc=document.getElementById('fDesc').value.trim();
-  if(desc.length<8){document.getElementById('descError').style.display='block';return;}
-  document.getElementById('descError').style.display='none';
-  var cat=document.getElementById('fCategory').value;
-  var loc=document.getElementById('fLocation').value;if(loc==='OTHER')loc=document.getElementById('fCustomLoc').value||'Unspecified Location';
-  var analysis=runAIAnalysis(desc, cat);
-  var id=nextId();
-  var authorName=document.getElementById('fName').value.trim()||'Campus Citizen (Anonymous)';
-  var contact=document.getElementById('fContact').value.trim()||null;
+/* UI Helper variables */
+var currentAnalysisJson = null;
+var photoData = null;
+var photoFileName = null;
+var currentUser = null;
 
-  var complaint={
+function toggleRawJson() {
+  var b = document.getElementById('rawJsonBox');
+  if (b) b.style.display = b.style.display === 'none' ? 'block' : 'none';
+}
+window.toggleRawJson = toggleRawJson;
+
+function testAIComplaint(sampleText, samplePhoto) {
+  var desc = document.getElementById('fDesc');
+  if (desc) {
+    desc.value = sampleText;
+    if (samplePhoto) {
+      photoFileName = samplePhoto;
+      photoData = 'mock_hazard_' + samplePhoto;
+      var prev = document.getElementById('photoPreview');
+      if (prev) {
+        prev.src = 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=400&q=80';
+        prev.style.display = 'block';
+      }
+    } else {
+      photoData = null;
+      photoFileName = null;
+      var prev2 = document.getElementById('photoPreview');
+      if (prev2) prev2.style.display = 'none';
+    }
+    updateAI();
+    var rep = document.getElementById('report');
+    if (rep) rep.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+window.testAIComplaint = testAIComplaint;
+
+function handlePhotoUpload(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  photoFileName = file.name;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    photoData = ev.target.result;
+    var prev = document.getElementById('photoPreview');
+    if (prev) {
+      prev.src = photoData;
+      prev.style.display = 'block';
+    }
+    updateAI();
+  };
+  reader.readAsDataURL(file);
+}
+window.handlePhotoUpload = handlePhotoUpload;
+
+function updateAI() {
+  var descEl = document.getElementById('fDesc');
+  var desc = descEl ? descEl.value : '';
+  var locEl = document.getElementById('fLocation');
+  var loc = locEl ? locEl.value : '';
+  if (loc === 'OTHER') {
+    var cLoc = document.getElementById('fCustomLoc');
+    loc = cLoc ? cLoc.value : 'Custom Location';
+  }
+
+  var analysis = analyzeComplaint(desc, photoFileName, loc, 'en');
+  currentAnalysisJson = analysis;
+
+  var solver = SOLVER_MAP[analysis.category] || SOLVER_MAP.other;
+
+  // Language Indicator
+  var langEl = document.getElementById('aiLangIndicator');
+  if (langEl) {
+    var lText = analysis.language === 'as' ? 'অসমীয়া লিপি (Assamese)' : analysis.language === 'mixed' ? 'Mixed / Romanised Assamese' : 'English (en)';
+    langEl.textContent = '🌐 ' + lText;
+  }
+
+  // Confidence & Sensitive Badges
+  var confEl = document.getElementById('aiConfidenceBadge');
+  if (confEl) {
+    confEl.textContent = 'Confidence: ' + Math.round(analysis.confidence * 100) + '%';
+    confEl.style.background = analysis.confidence >= 0.85 ? '#e0f5d0' : analysis.confidence >= 0.6 ? '#fff3cd' : '#f8d7da';
+    confEl.style.color = analysis.confidence >= 0.85 ? 'var(--olive)' : analysis.confidence >= 0.6 ? '#856404' : '#721c24';
+  }
+  var sensEl = document.getElementById('aiSensitiveBadge');
+  if (sensEl) {
+    sensEl.style.display = analysis.sensitive ? 'inline-block' : 'none';
+  }
+
+  // Dept & Routing Notice
+  var deptEl = document.getElementById('aiDept');
+  if (deptEl) {
+    var routeTarget = analysis.sensitive ? '🛡️ Dr. P. Barua (Head, Proctorial Board Strictly)' : solver.desk + ' · Copy to DUSU GS';
+    deptEl.textContent = solver.icon + ' ' + routeTarget;
+  }
+  var catEl = document.getElementById('aiCategory');
+  if (catEl) catEl.textContent = analysis.category;
+  var secCatEl = document.getElementById('aiSecCategory');
+  if (secCatEl) secCatEl.textContent = analysis.secondary_category ? ' (sec: ' + analysis.secondary_category + ')' : '';
+
+  // Priority
+  var priEl = document.getElementById('aiPriority');
+  if (priEl) {
+    var pLabels = { 1: 'P1 · Urgent (Life / Safety Hazard)', 2: 'P2 · High (Facility Unusable)', 3: 'P3 · Medium (Standard)', 4: 'P4 · Low (Cosmetic / Suggestion)' };
+    priEl.textContent = pLabels[analysis.priority] || 'P3 · Medium';
+    priEl.style.color = analysis.priority === 1 ? '#d02010' : analysis.priority === 2 ? '#d97706' : 'var(--olive)';
+  }
+  var slaEl = document.getElementById('aiSla');
+  if (slaEl) slaEl.textContent = solver.sla + ' hours';
+
+  // Summaries
+  var sumEnEl = document.getElementById('aiSummaryEn');
+  if (sumEnEl) sumEnEl.textContent = analysis.summary_en;
+  var sumAsEl = document.getElementById('aiSummaryAs');
+  if (sumAsEl) sumAsEl.textContent = analysis.summary_as;
+
+  // Embedding
+  var embEl = document.getElementById('aiEmbeddingText');
+  if (embEl) embEl.textContent = analysis.embedding_text;
+
+  // Raw JSON
+  var codeEl = document.getElementById('rawJsonCode');
+  if (codeEl) codeEl.textContent = JSON.stringify(analysis, null, 2);
+}
+window.updateAI = updateAI;
+
+/* ══════════ FORM SUBMIT WITH FULL AI JSON ══════════ */
+function submitReport(e) {
+  e.preventDefault();
+  var descEl = document.getElementById('fDesc');
+  var desc = descEl ? descEl.value.trim() : '';
+  if (desc.length < 8) {
+    var err = document.getElementById('descError');
+    if (err) err.style.display = 'block';
+    return;
+  }
+  var err2 = document.getElementById('descError');
+  if (err2) err2.style.display = 'none';
+
+  var locEl = document.getElementById('fLocation');
+  var loc = locEl ? locEl.value : '';
+  if (loc === 'OTHER') {
+    var cLoc = document.getElementById('fCustomLoc');
+    loc = (cLoc ? cLoc.value.trim() : '') || 'Unspecified Location';
+  }
+
+  // Full AI Analysis
+  var analysis = analyzeComplaint(desc, photoFileName, loc, 'en');
+  var solver = SOLVER_MAP[analysis.category] || SOLVER_MAP.other;
+  var id = nextId();
+  var authorName = (document.getElementById('fName') ? document.getElementById('fName').value.trim() : '') || 'Campus Citizen (Anonymous)';
+  var contact = (document.getElementById('fContact') ? document.getElementById('fContact').value.trim() : '') || null;
+
+  var complaint = {
     id: id,
     ts: Date.now(),
-    title: analysis.categoryName + ' at ' + loc,
+    title: (analysis.summary_en || (solver.name + ' at ' + (analysis.location_text || 'Campus'))),
     desc: desc,
-    location: loc,
-    cat: analysis.detectedCategory,
-    catName: analysis.categoryName,
-    urgency: selectedUrgency !== 'Normal' ? selectedUrgency : analysis.priority,
+    location: analysis.location_text || loc || 'Campus Quad',
+    cat: analysis.category,
+    catName: solver.name,
+    urgency: analysis.priority === 1 ? 'Urgent' : analysis.priority === 2 ? 'High' : 'Normal',
     status: 'open',
-    dept: analysis.owningPost,
+    dept: solver.desk,
     studentName: authorName,
     studentContact: contact,
     photoUrl: photoData,
@@ -1565,467 +1853,484 @@ window.submitReport=function(e){
       {
         id: 'm_' + Date.now() + '_1',
         ts: Date.now(),
-        stage: 'Report Submitted',
+        stage: 'Report Registered',
         actor: authorName,
         role: 'Citizen',
-        note: 'Report registered for ' + loc + '. Public tracking enabled.'
+        note: 'Report lodged in ' + (analysis.language === 'as' ? 'Assamese' : analysis.language === 'mixed' ? 'Mixed Romanised Assamese' : 'English') + '.'
       },
       {
         id: 'm_' + Date.now() + '_2',
-        ts: Date.now() + 600,
-        stage: 'AI Analysis & Auto-Route',
+        ts: Date.now() + 500,
+        stage: 'AI Autonomous Triage & Auto-Route',
         actor: 'CivicSense Neural Dispatch',
         role: 'AI Engine',
-        note: 'AI classified as ' + analysis.categoryName + ' (' + analysis.priority + '). Routed directly to ' + analysis.owningPost + ' (SLA ' + analysis.slaHours + 'h).'
+        note: analysis.sensitive ?
+          'Confidential Triage: Dispatched strictly to Dr. P. Barua (Head / Chairperson, Proctorial Board).' :
+          'AI classified root cause: ' + analysis.category + ' (P' + analysis.priority + '). Dispatched to ' + solver.desk + ' with copy to General Secretary (DUSU). SLA: ' + solver.sla + 'h.'
       }
     ],
     replies: []
   };
 
-  var all=getComplaints();
+  var all = getComplaints();
   all.unshift(complaint);
   saveComplaints(all);
 
-  document.getElementById('ticketId').textContent=id;
-  document.getElementById('reportForm').style.display='none';
-  document.getElementById('successCard').style.display='flex';
-  document.getElementById('successCard').style.flexDirection='column';
-  buildDemoIds();
-};
-window.resetForm=function(){
-  document.getElementById('reportForm').reset();document.getElementById('reportForm').style.display='flex';document.getElementById('reportForm').style.flexDirection='column';
-  document.getElementById('successCard').style.display='none';photoData=null;document.getElementById('photoPreview').style.display='none';
-  selectedUrgency='Normal';setUrgency('Normal');updateAI();
-};
-window.openTrackerWithId=function(id){if(id&&id.trim()){document.getElementById('trackerInput').value=id.trim();openTracker();setTimeout(searchComplaint,100);}else{openTracker();}};
+  var tid = document.getElementById('ticketId');
+  if (tid) tid.textContent = id;
+  var sum = document.getElementById('successSummary');
+  if (sum) {
+    sum.textContent = analysis.sensitive ?
+      'Your report has been treated with maximum confidentiality and routed directly to the Proctorial Board Chairperson for immediate intervention.' :
+      'CivicSense AI analyzed your complaint (category: ' + analysis.category + ', priority: P' + analysis.priority + ') and auto-dispatched it to ' + solver.desk + ' with a copy to the General Secretary (DUSU).';
+  }
+
+  document.getElementById('reportForm').style.display = 'none';
+  var sc = document.getElementById('successCard');
+  if (sc) {
+    sc.style.display = 'flex';
+    sc.style.flexDirection = 'column';
+  }
+}
+window.submitReport = submitReport;
+
+function resetForm() {
+  var f = document.getElementById('reportForm');
+  if (f) {
+    f.reset();
+    f.style.display = 'flex';
+    f.style.flexDirection = 'column';
+  }
+  var sc = document.getElementById('successCard');
+  if (sc) sc.style.display = 'none';
+  photoData = null;
+  photoFileName = null;
+  var prev = document.getElementById('photoPreview');
+  if (prev) prev.style.display = 'none';
+  updateAI();
+}
+window.resetForm = resetForm;
+
+function openTrackerWithId(id) {
+  if (id && id.trim()) {
+    var ti = document.getElementById('trackerInput');
+    if (ti) ti.value = id.trim();
+    openTracker();
+    setTimeout(searchComplaint, 100);
+  } else {
+    openTracker();
+  }
+}
+window.openTrackerWithId = openTrackerWithId;
 
 /* ══════════ TRACKER MODAL ══════════ */
 function formatTime(ts){
   if(!ts) return '';
   var d=new Date(ts);
-  return d.toLocaleDateString('en-IN', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+  return d.toLocaleDateString('en-IN', {month:'short', day:'numeric'}) + ', ' + d.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
 }
-window.openTracker=function(){document.getElementById('trackerModal').classList.remove('hidden');buildDemoIds();};
-window.closeTracker=function(){document.getElementById('trackerModal').classList.add('hidden');};
+function openTracker(){
+  document.getElementById('trackerModal').classList.remove('hidden');
+  buildDemoIds();
+}
+window.openTracker = openTracker;
+
+function closeTracker(){
+  document.getElementById('trackerModal').classList.add('hidden');
+}
+window.closeTracker = closeTracker;
+
 function buildDemoIds(){
-  var el=document.getElementById('demoIds');el.innerHTML='';
-  getComplaints().slice(0,5).forEach(function(c){
-    var b=document.createElement('button');b.style.cssText='background:var(--pill);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:11.5px;font-weight:600;cursor:pointer;color:var(--olive);font-family:inherit;';
-    b.textContent=c.id;b.onclick=function(){document.getElementById('trackerInput').value=c.id;searchComplaint();};
-    el.appendChild(b);
+  var wrap = document.getElementById('trackerDemoIds');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  var all = getComplaints().slice(0, 4);
+  all.forEach(function(c){
+    var b = document.createElement('button');
+    b.className = 'btn-outline';
+    b.style.fontSize = '11px';
+    b.style.height = '24px';
+    b.style.padding = '0 8px';
+    b.textContent = c.id;
+    b.onclick = function(){
+      document.getElementById('trackerInput').value = c.id;
+      searchComplaint();
+    };
+    wrap.appendChild(b);
   });
 }
-window.searchComplaint=function(){
-  var id=document.getElementById('trackerInput').value.trim();
-  if(!id){document.getElementById('trackerError').style.display='block';document.getElementById('trackerError').textContent='Please enter a Complaint ID.';return;}
-  var c=getById(id);
-  document.getElementById('trackerError').style.display='none';
-  if(!c){document.getElementById('trackerError').style.display='block';document.getElementById('trackerError').textContent='Complaint #'+id.toUpperCase()+' not found. Check your ID.';document.getElementById('trackerResult').style.display='none';return;}
-  renderTracker(c);
-};
-function renderTracker(c){
-  var res=document.getElementById('trackerResult');
-  res.style.display='flex';
-  res.style.flexDirection='column';
 
-  var isSolved = c.status==='resolved'||c.status==='closed';
-  var isEscalated = c.status==='escalated';
-  var isIP = c.status==='in_progress'||c.status==='investigating'||isEscalated;
-
-  var banner=document.getElementById('statusBanner');
-  if(isSolved){
-    banner.className='status-banner solved';
-    banner.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> STATUS: SOLVED — Complaint has been resolved.';
-  } else if(isEscalated){
-    banner.className='status-banner inprogress';
-    banner.style.borderColor='#d03020';
-    banner.style.background='#fef0ee';
-    banner.style.color='#901a10';
-    banner.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> STATUS: ESCALATED — Elevated to Student Union Executive for intervention.';
-  } else if(isIP){
-    banner.className='status-banner inprogress';
-    banner.style.borderColor='var(--blue)';
-    banner.style.background='#e8f0ff';
-    banner.style.color='#0a1060';
-    banner.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> STATUS: IN PROGRESS — Officials are actively resolving this.';
-  } else {
-    banner.className='status-banner pending';
-    banner.style.borderColor='#e6a800';
-    banner.style.background='#fff8e0';
-    banner.style.color='#5a3a00';
-    banner.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> STATUS: PENDING — Report received, awaiting department action.';
+function searchComplaint(){
+  var id = document.getElementById('trackerInput').value.trim();
+  if(!id){
+    document.getElementById('trackerError').style.display = 'block';
+    document.getElementById('trackerError').textContent = 'Please enter a Complaint ID.';
+    document.getElementById('trackerResult').style.display = 'none';
+    return;
   }
+  var c = getById(id);
+  document.getElementById('trackerError').style.display = 'none';
+  if(!c){
+    document.getElementById('trackerError').style.display = 'block';
+    document.getElementById('trackerError').textContent = 'No complaint found with ID "' + id + '". Check the ID and try again.';
+    document.getElementById('trackerResult').style.display = 'none';
+    return;
+  }
+  renderTracker(c);
+}
+window.searchComplaint = searchComplaint;
 
-  var steps=document.getElementById('trackerSteps');
-  var sArr=steps.children;
-  sArr[0].className='tracker-step done';
-  sArr[1].className='tracker-step' + (isIP || isSolved ? ' done' : '');
-  sArr[2].className='tracker-step' + (isSolved ? ' done' : (isIP ? ' active' : ''));
+function renderTracker(c){
+  var res = document.getElementById('trackerResult');
+  res.style.display = 'flex';
 
-  var detailsHtml = '<div class="detail-row"><span class="detail-label">Complaint ID</span><span style="font-weight:700;color:var(--olive)">' + c.id + '</span></div>' +
-    '<div class="detail-row"><span class="detail-label">Category</span><span>' + (c.catName || c.cat) + '</span></div>' +
-    '<div class="detail-row"><span class="detail-label">Location</span><span>' + c.location + '</span></div>' +
-    '<div class="detail-row"><span class="detail-label">Owning Post</span><span>' + (c.dept || 'Department Desk') + '</span></div>' +
-    '<div class="detail-row"><span class="detail-label">Urgency</span><span>' + (c.urgency || 'Normal') + '</span></div>' +
-    (c.aiAnalysis && c.aiAnalysis.slaHours ? '<div class="detail-row"><span class="detail-label">SLA Target</span><span>' + c.aiAnalysis.slaHours + ' hours</span></div>' : '') +
-    (c.mergedInto ? '<div class="detail-row"><span class="detail-label">Merged State</span><span class="badge-merged">Merged into Master #' + c.mergedInto + '</span></div>' : '') +
-    (c.mergedDuplicates && c.mergedDuplicates.length > 0 ? '<div class="detail-row"><span class="detail-label">Duplicates</span><span class="badge-merged">Includes ' + c.mergedDuplicates.join(', ') + '</span></div>' : '') +
-    '<div class="detail-row"><span class="detail-label">Description</span><span style="line-height:1.5">' + c.desc + '</span></div>';
+  var isSolved = c.status === 'resolved' || c.status === 'closed';
+  var isEscalated = c.status === 'escalated';
+  var isIP = c.status === 'in_progress' || c.status === 'investigating' || isEscalated;
 
-  if(c.resolutionNote){
-    detailsHtml += '<div class="detail-row"><span class="detail-label">Resolution</span><span style="line-height:1.5;color:var(--olive);font-weight:600">' + c.resolutionNote + '</span></div>';
+  var banner = document.getElementById('trackerBanner');
+  banner.className = 'status-banner ' + (isSolved ? 'status-solved' : isEscalated ? 'status-escalated' : isIP ? 'status-in-progress' : 'status-open');
+  var statusLabel = isSolved ? 'RESOLVED & VERIFIED' : isEscalated ? 'ESCALATED TO GENERAL SECRETARY' : isIP ? 'IN PROGRESS · FIELD CREW DEPLOYED' : 'REPORT LODGED · AI ROUTED';
+  banner.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' +
+    '<span>' + statusLabel + '</span>';
+
+  // Stepper
+  var steps = document.getElementById('trackerSteps');
+  var sArr = steps.children;
+  sArr[0].className = 'tracker-step done';
+  sArr[1].className = 'tracker-step' + (isIP || isSolved ? ' done' : '');
+  sArr[2].className = 'tracker-step' + (isSolved ? ' done' : (isIP ? ' active' : ''));
+
+  var ai = c.aiAnalysis || {};
+  var detailsHtml = '<div class="detail-row"><span class="detail-label">Complaint ID:</span><strong>' + c.id + '</strong></div>' +
+    '<div class="detail-row"><span class="detail-label">Domain Category:</span><span>' + (c.catName || ai.category || c.cat) + '</span></div>' +
+    '<div class="detail-row"><span class="detail-label">Location:</span><span>' + (c.location || 'Campus Premises') + '</span></div>' +
+    '<div class="detail-row"><span class="detail-label">Assigned Authority:</span><strong>' + (c.dept || 'Department Authority') + '</strong></div>' +
+    '<div class="detail-row"><span class="detail-label">Logged At:</span><span>' + formatTime(c.ts) + '</span></div>' +
+    '<div class="detail-row"><span class="detail-label">Priority:</span><span>' + (ai.priority ? 'P' + ai.priority : c.urgency || 'Normal') + '</span></div>';
+
+  if (ai.summary_as) {
+    detailsHtml += '<div style="background:#f4fbf0;border:1px solid #c0e0b0;border-radius:8px;padding:8px 10px;font-size:12px;color:#1a3010;margin-top:4px;"><strong>অসমীয়া সাৰাংশ:</strong> ' + ai.summary_as + '</div>';
   }
 
   document.getElementById('trackerDetails').innerHTML = detailsHtml;
 
-  var replyEl=document.getElementById('trackerReply');
+  // Replies
+  var replyEl = document.getElementById('trackerReply');
   if(c.replies && c.replies.length > 0){
-    var lr=c.replies[c.replies.length-1];
-    document.getElementById('trackerReplyText').textContent=(lr.message || lr.text || '') + ' — ' + (lr.author || lr.by || '');
-    replyEl.style.display='block';
+    replyEl.style.display = 'block';
+    var lr = c.replies[c.replies.length - 1];
+    document.getElementById('trackerReplyText').textContent = (lr.message || lr.text || '') + ' — ' + (lr.author || lr.by || 'Official');
   } else {
-    replyEl.style.display='none';
+    replyEl.style.display = 'none';
   }
 
-  var timelineWrap=document.getElementById('trackerTimelineWrap');
-  var timelineEl=document.getElementById('trackerTimeline');
-  if(timelineWrap && timelineEl){
-    if(c.routeHistory && c.routeHistory.length > 0){
-      var tHtml = '';
-      c.routeHistory.forEach(function(m){
-        var isEsc = (m.stage && m.stage.toLowerCase().indexOf('escalat') !== -1);
-        tHtml += '<div class="timeline-item' + (isEsc ? ' escalated' : '') + '">' +
-          '<div class="timeline-time">' + formatTime(m.ts || m.timestamp) + '</div>' +
-          '<div class="timeline-title">' + (m.stage || 'Update') + ' · <span style="font-weight:500;color:#333">' + (m.actor || 'Official') + ' (' + (m.role || '') + ')</span></div>' +
-          '<div class="timeline-desc">' + (m.note || '') + '</div>' +
-          '</div>';
-      });
-      timelineEl.innerHTML = tHtml;
-      timelineWrap.style.display = 'block';
-    } else {
-      timelineWrap.style.display = 'none';
-    }
+  // Timeline
+  var timelineWrap = document.getElementById('trackerTimelineWrap');
+  var timelineEl = document.getElementById('trackerTimeline');
+  if(c.routeHistory && c.routeHistory.length > 0){
+    timelineWrap.style.display = 'block';
+    var tHtml = '';
+    c.routeHistory.forEach(function(m){
+      tHtml += '<div class="timeline-item">' +
+        '<div class="timeline-title">' + (m.stage || 'Update') + ' · <span style="font-weight:500;color:#555">' + (m.actor || 'System') + '</span></div>' +
+        '<div class="timeline-time">' + formatTime(m.ts) + '</div>' +
+        (m.note ? '<div class="timeline-body">' + m.note + '</div>' : '') +
+        '</div>';
+    });
+    timelineEl.innerHTML = tHtml;
+  } else {
+    timelineWrap.style.display = 'none';
   }
 }
-document.getElementById('trackerInput').addEventListener('keydown',function(e){if(e.key==='Enter')searchComplaint();});
 
 /* ══════════ LOGIN MODAL ══════════ */
-var selectedOfficial=OFFICIALS[0];
-window.openLogin=function(){
+var selectedOfficial = OFFICIALS[0];
+function openLogin(){
   document.getElementById('loginModal').classList.remove('hidden');
   buildPresets();
-};
-window.closeLogin=function(){document.getElementById('loginModal').classList.add('hidden');};
+}
+window.openLogin = openLogin;
+
+function closeLogin(){
+  document.getElementById('loginModal').classList.add('hidden');
+}
+window.closeLogin = closeLogin;
+
 function buildPresets(){
-  var grid=document.getElementById('presetGrid');grid.innerHTML='';
+  var wrap = document.getElementById('officialPresets');
+  if(!wrap) return;
+  wrap.innerHTML = '';
   OFFICIALS.forEach(function(o){
-    var card=document.createElement('div');card.className='preset-card'+(o.id===selectedOfficial.id?' selected':'');
-    card.innerHTML='<div class="preset-mode">Mode '+o.mode+' · '+(o.mode===1?'Dept Head':o.mode===2?'President/GS':'Central Admin')+'</div><div class="preset-name">'+o.name+'</div><div class="preset-dept">'+(o.departmentName || o.dept)+'</div>';
-    card.onclick=function(){selectedOfficial=o;buildPresets();document.getElementById('loginError').style.display='none';};
-    grid.appendChild(card);
+    var card = document.createElement('div');
+    card.className = 'preset-card' + (o.id === selectedOfficial.id ? ' selected' : '');
+    card.innerHTML = '<div class="preset-name">' + o.name + (o.handlesConfidential ? ' 🛡️' : '') + '</div><div class="preset-role">' + o.roleTitle + '</div><div style="font-size:10.5px;color:var(--olive);margin-top:2px;">' + o.departmentName + '</div>';
+    card.onclick = function(){
+      selectedOfficial = o;
+      buildPresets();
+      document.getElementById('loginError').style.display = 'none';
+    };
+    wrap.appendChild(card);
   });
 }
-window.submitLogin=function(){
-  var pw=document.getElementById('pwInput').value.trim();
-  if(pw!=='civic2026'){document.getElementById('loginError').style.display='block';document.getElementById('loginError').textContent='Invalid password. Use civic2026 for demo.';return;}
-  currentUser=selectedOfficial;closeLogin();openWorkspace();
-};
-window.logoutWorkspace=function(){currentUser=null;closeWorkspace();};
 
-/* ══════════ WORKSPACE MODAL ══════════ */
-window.openWorkspace=function(){
-  if(!currentUser){openLogin();return;}
-  document.getElementById('wsRoleLabel').textContent='Mode '+currentUser.mode+': '+(currentUser.mode===1?'Department Head':currentUser.mode===2?'DUSU President / GS':'Central Admin');
-  document.getElementById('wsUserName').textContent=currentUser.name;
+function submitLogin(){
+  var pw = document.getElementById('pwInput') ? document.getElementById('pwInput').value : '';
+  if(pw !== 'civic2026'){
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('loginError').textContent = 'Incorrect password. Demo password is: civic2026';
+    return;
+  }
+  currentUser = selectedOfficial;
+  closeLogin();
+  openWorkspace();
+}
+window.submitLogin = submitLogin;
+
+/* ══════════ OFFICIAL WORKSPACE MODAL ══════════ */
+function openWorkspace(){
+  if(!currentUser){ openLogin(); return; }
+  document.getElementById('wsRoleLabel').textContent = currentUser.name + ' · ' + currentUser.roleTitle;
   document.getElementById('workspaceModal').classList.remove('hidden');
   renderWorkspace();
-};
-window.closeWorkspace=function(){document.getElementById('workspaceModal').classList.add('hidden');};
+}
+window.openWorkspace = openWorkspace;
+
+function closeWorkspace(){
+  document.getElementById('workspaceModal').classList.add('hidden');
+}
+window.closeWorkspace = closeWorkspace;
+
+var wsActiveFilter = 'all';
+function wsFilter(f){
+  wsActiveFilter = f;
+  renderWorkspace();
+}
+window.wsFilter = wsFilter;
 
 function renderWorkspace(){
-  var body=document.getElementById('wsBody');
-  var all=getComplaints();
-  var filtered=currentUser.mode===1?all.filter(function(c){
-    var d=(c.dept||'').toLowerCase();
-    var ud=(currentUser.departmentId || currentUser.dept || '').toLowerCase();
-    return d.indexOf(ud)!==-1 || (c.cat && c.cat===currentUser.departmentId);
-  }):all;
+  var body = document.getElementById('wsBody');
+  var all = getComplaints();
 
-  var html='<div style="display:flex;flex-direction:column;gap:16px">';
+  // Role-based visibility
+  var visible = all.filter(function(c){
+    var ai = c.aiAnalysis || {};
+    if (ai.sensitive && !currentUser.handlesConfidential && currentUser.mode !== 3) {
+      return false; // Sensitive cases hidden from regular department heads
+    }
+    if (currentUser.mode === 1) {
+      return c.cat === currentUser.departmentId || (c.dept || '').toLowerCase().indexOf((currentUser.departmentName || '').toLowerCase()) !== -1;
+    }
+    return true;
+  });
 
-  if(currentUser.mode===3){
-    html+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px">' +
-      '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
-      '<button onclick="wsFilter(\'all\')" class="btn" id="wsAll" style="height:32px;font-size:11px;padding:0 12px">All ('+all.length+')</button>' +
-      '<button onclick="wsFilter(\'open\')" class="btn-outline" id="wsOpen" style="height:32px;font-size:11px;padding:0 12px">Not Solved</button>' +
-      '<button onclick="wsFilter(\'resolved\')" class="btn-outline" id="wsResolved" style="height:32px;font-size:11px;padding:0 12px">Solved</button>' +
-      '</div>' +
-      '<div style="display:flex;gap:6px">' +
-      '<button onclick="wsMergeDuplicates()" class="btn-outline" style="height:32px;font-size:11px;padding:0 12px;border-color:var(--blue);color:var(--blue)">Merge Duplicates</button>' +
-      '<button onclick="exportAuditCsv()" class="btn" style="height:32px;font-size:11px;padding:0 12px;background:var(--blue)">Export CSV Audit</button>' +
-      '</div>' +
-      '</div>';
+  if (wsActiveFilter === 'open') {
+    visible = visible.filter(function(c){ return c.status !== 'resolved' && c.status !== 'closed'; });
+  } else if (wsActiveFilter === 'resolved') {
+    visible = visible.filter(function(c){ return c.status === 'resolved' || c.status === 'closed'; });
+  } else if (wsActiveFilter === 'sensitive') {
+    visible = visible.filter(function(c){ return c.aiAnalysis && c.aiAnalysis.sensitive; });
   }
 
-  if(currentUser.mode===2){
-    html+='<div class="info-box" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">' +
-      '<div><strong>Executive Overview · DUSU Executive Council</strong><div style="font-size:11.5px;color:#3a5a20;margin-top:2px">Campus-wide redressal monitor. Escalate delayed tickets or issue binding directives.</div></div>' +
-      '<button onclick="exportAuditCsv()" class="btn-outline" style="font-size:11px;height:30px;padding:0 10px;">Download Audit Log</button>' +
-      '</div>';
+  var html = '<div style="display:flex;flex-direction:column;gap:14px">';
+
+  // Top Filter Bar
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px">' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+    '<button onclick="wsFilter(\'all\')" class="btn' + (wsActiveFilter==='all'?'':'-outline') + '" style="height:30px;font-size:11px;padding:0 12px">All (' + visible.length + ')</button>' +
+    '<button onclick="wsFilter(\'open\')" class="btn' + (wsActiveFilter==='open'?'':'-outline') + '" style="height:30px;font-size:11px;padding:0 12px">Pending</button>' +
+    '<button onclick="wsFilter(\'resolved\')" class="btn' + (wsActiveFilter==='resolved'?'':'-outline') + '" style="height:30px;font-size:11px;padding:0 12px">Resolved</button>' +
+    (currentUser.handlesConfidential || currentUser.mode >= 2 ? '<button onclick="wsFilter(\'sensitive\')" class="btn' + (wsActiveFilter==='sensitive'?'':'-outline') + '" style="height:30px;font-size:11px;padding:0 12px;border-color:#d02010;color:#c02010">🛡️ Confidential</button>' : '') +
+    '</div>' +
+    '<div style="font-size:11.5px;color:var(--olive);font-weight:600">' +
+    'Logged in as: ' + currentUser.name + ' (' + currentUser.departmentName + ')' +
+    '</div>' +
+    '</div>';
+
+  if(visible.length === 0){
+    html += '<div style="text-align:center;padding:36px;color:#555;font-size:13px">No complaints found in this jurisdiction queue.</div>';
   }
 
-  if(currentUser.mode===1){
-    html+='<div class="info-box" style="background:#f4fbf0;border-color:#b0e0a0">' +
-      '<strong>' + currentUser.roleTitle + '</strong>' +
-      '<div style="font-size:11.5px;color:#3a5a20;margin-top:2px">Department queue for ' + currentUser.departmentName + '. Use status actions to confirm, work on, or resolve tickets.</div>' +
-      '</div>';
-  }
+  visible.forEach(function(c){
+    var isSolved = c.status === 'resolved' || c.status === 'closed';
+    var isEscalated = c.status === 'escalated';
+    var isIP = c.status === 'in_progress' || c.status === 'investigating' || isEscalated;
+    var statusColor = isSolved ? '#1EA854' : isEscalated ? '#d03020' : isIP ? '#0036FF' : '#e6a800';
+    var statusText = isSolved ? 'Resolved' : isEscalated ? 'Escalated' : isIP ? 'In Progress' : 'Open';
 
-  if(filtered.length === 0){
-    html+='<div style="text-align:center;padding:36px;color:#555;font-size:13px">No complaints found in this jurisdiction queue.</div>';
-  }
+    var ai = c.aiAnalysis || {};
 
-  filtered.forEach(function(c){
-    var isSolved=c.status==='resolved'||c.status==='closed';
-    var isEscalated=c.status==='escalated';
-    var isIP=c.status==='in_progress'||c.status==='investigating'||isEscalated;
-    var statusColor=isSolved?'#1EA854':isEscalated?'#d03020':isIP?'#0036FF':'#e6a800';
-    var statusText=isSolved?'Resolved':isEscalated?'Escalated':isIP?'In Progress':'Open';
-
-    html+='<div style="border:1.5px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;background:#fff" data-cid="'+c.id+'">';
-    html+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">' +
+    html += '<div style="border:1.5px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;background:#fff" data-cid="' + c.id + '">';
+    
+    // Header
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">' +
       '<div>' +
-      '<div style="font-size:13.5px;font-weight:700;color:var(--olive)">'+c.id+' · '+(c.catName || c.cat)+'</div>' +
-      '<div style="font-size:11.5px;color:#2a3820;margin-top:2px">'+c.location+' · SLA: '+(c.aiAnalysis ? c.aiAnalysis.slaHours + 'h' : '24h')+' · Urgency: '+(c.urgency || 'Normal')+'</div>' +
+      '<div style="font-size:13.5px;font-weight:700;color:var(--olive);display:flex;align-items:center;gap:6px;">' +
+      c.id + ' · ' + (c.catName || ai.category || c.cat) +
+      (ai.sensitive ? '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#ffebee;color:#c02010;border:1px solid #f8bbd0;">🛡️ Confidential</span>' : '') +
+      '</div>' +
+      '<div style="font-size:11.5px;color:#2a3820;margin-top:2px">' +
+      c.location + ' · Priority: ' + (ai.priority ? 'P' + ai.priority : c.urgency || 'P3') + ' · Lang: ' + (ai.language || 'en') + ' · Confidence: ' + Math.round((ai.confidence || 0.9) * 100) + '%' +
+      '</div>' +
       '</div>' +
       '<div style="display:flex;gap:6px;align-items:center">' +
-      (c.mergedInto ? '<span class="badge-merged">Merged into #'+c.mergedInto+'</span>' : '') +
-      '<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:'+statusColor+'22;color:'+statusColor+';border:1px solid '+statusColor+'55">'+statusText+'</span>' +
+      '<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:' + statusColor + '22;color:' + statusColor + ';border:1px solid ' + statusColor + '55">' + statusText + '</span>' +
       '</div>' +
       '</div>';
 
-    html+='<div style="font-size:13px;color:#1a2e10;line-height:1.45">'+c.desc+'</div>';
+    // Original complaint text
+    html += '<div style="font-size:13px;color:#1a2e10;line-height:1.45;background:#fcfdfa;padding:8px 12px;border-radius:8px;border:1px solid #eef2e6;"><strong>Complaint:</strong> ' + c.desc + '</div>';
 
-    if(c.escalation && c.escalation.isEscalated){
-      html+='<div style="font-size:11.5px;color:#901a10;background:#fef0ee;border:1px solid #f0b0a0;border-radius:8px;padding:6px 10px"><strong>Escalation Reason:</strong> '+(c.escalation.reason || 'SLA threshold exceeded')+' ('+(c.escalation.escalatedBy || 'Official')+')</div>';
-    }
+    // Bilingual AI Summaries & Embedding
+    html += '<div style="background:#f4fbf0;border:1px solid #c0e0b0;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;font-size:12px;">' +
+      (ai.summary_en ? '<div><strong>English Summary:</strong> ' + ai.summary_en + '</div>' : '') +
+      (ai.summary_as ? '<div><strong>অসমীয়া সাৰাংশ:</strong> ' + ai.summary_as + '</div>' : '') +
+      (ai.embedding_text ? '<div style="font-size:11px;color:#4a6838;"><strong>Embedding Normalizer:</strong> <code style="background:#e0f0d6;padding:1px 5px;border-radius:3px;">' + ai.embedding_text + '</code></div>' : '') +
+      '</div>';
 
-    if(c.replies&&c.replies.length>0){
-      var lr=c.replies[c.replies.length-1];
-      html+='<div style="font-size:12px;color:#1a3010;padding:8px 12px;background:#f0ffe8;border-radius:8px;border:1px solid #d0f0c0"><strong>'+(lr.author || lr.by)+':</strong> '+(lr.message || lr.text)+'</div>';
+    // Replies
+    if(c.replies && c.replies.length > 0){
+      var lr = c.replies[c.replies.length - 1];
+      html += '<div style="font-size:12px;color:#1a3010;padding:8px 12px;background:#f0ffe8;border-radius:8px;border:1px solid #d0f0c0"><strong>' + (lr.author || lr.by) + ':</strong> ' + (lr.message || lr.text) + '</div>';
     }
 
     // Action buttons
-    html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">';
+    html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">';
     if(!isSolved){
-      html+='<button onclick="wsSetStatus(\''+c.id+'\',\'in_progress\')" class="btn" style="font-size:11px;height:28px;padding:0 10px;background:'+(isIP&&!isEscalated?'var(--olive)':'#666')+'">In Progress</button>' +
-        '<button onclick="wsSetStatus(\''+c.id+'\',\'resolved\')" class="btn" style="font-size:11px;height:28px;padding:0 10px;background:var(--green)">Mark Solved</button>' +
-        '<button onclick="wsReply(\''+c.id+'\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px">Post Official Reply</button>';
+      html += '<button onclick="wsSetStatus(\'' + c.id + '\',\'in_progress\')" class="btn" style="font-size:11px;height:28px;padding:0 10px;background:' + (isIP ? 'var(--olive)' : '#555') + '">In Progress</button>' +
+        '<button onclick="wsSetStatus(\'' + c.id + '\',\'resolved\')" class="btn" style="font-size:11px;height:28px;padding:0 10px;background:var(--green)">Mark Solved</button>' +
+        '<button onclick="wsReply(\'' + c.id + '\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px">Post Official Reply</button>';
       if(currentUser.mode === 1){
-        html+='<button onclick="wsEscalate(\''+c.id+'\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px;border-color:#d03020;color:#c03020">Escalate to President</button>';
-      }
-      if(currentUser.mode === 2){
-        html+='<button onclick="wsDirective(\''+c.id+'\')" class="btn" style="font-size:11px;height:28px;padding:0 10px;background:var(--blue)">Executive Directive</button>';
+        html += '<button onclick="wsEscalate(\'' + c.id + '\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px;border-color:#d03020;color:#c03020">Escalate to DUSU GS</button>';
       }
     } else {
-      html+='<span style="font-size:11px;color:var(--olive);font-weight:600">✓ Case Solved & Verified</span>' +
-        '<button onclick="wsReply(\''+c.id+'\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px;margin-left:auto">Add Note</button>';
+      html += '<span style="font-size:11px;color:var(--olive);font-weight:600">✓ Case Solved & Verified</span>' +
+        '<button onclick="wsReply(\'' + c.id + '\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px;margin-left:auto">Add Note</button>';
     }
-    html+='<button onclick="openTrackerWithId(\''+c.id+'\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px;margin-left:auto">View Tracker</button>';
-    html+='</div>';
+    html += '<button onclick="openTrackerWithId(\'' + c.id + '\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px;margin-left:auto">View Public Tracker</button>';
+    html += '</div>';
 
-    html+='</div>';
+    html += '</div>';
   });
 
-  html+='</div>';
-  body.innerHTML=html;
+  html += '</div>';
+  body.innerHTML = html;
 }
 
-window.wsSetStatus=function(id,status){
-  var c=getById(id);if(!c)return;
-  var note=prompt('Enter status note for ' + id + ' (' + status + '):', status==='resolved'?'Issue resolved on-site and verified.':'Field crew deployed.');
-  if(note===null) return;
-  c.status=status;
-  if(status==='resolved'){
-    c.resolvedAt=Date.now();
-    c.resolutionNote=note;
+function wsSetStatus(id, status){
+  var c = getById(id);
+  if(!c) return;
+  var note = prompt('Enter official status note for ' + id + ' (' + status + '):', status==='resolved' ? 'Issue resolved on-site and verified by department inspection.' : 'Field crew deployed to location.');
+  if(note === null) return;
+  c.status = status;
+  if(status === 'resolved'){
+    c.resolvedAt = Date.now();
+    c.resolutionNote = note;
   }
-  if(!c.routeHistory) c.routeHistory=[];
+  if(!c.routeHistory) c.routeHistory = [];
   c.routeHistory.push({
-    id:'m_'+Date.now(),
-    ts:Date.now(),
-    stage:'Status updated to ' + status.toUpperCase(),
-    actor:currentUser.name,
-    role:currentUser.roleTitle || 'Official',
-    note:note
+    id: 'm_' + Date.now(),
+    ts: Date.now(),
+    stage: 'Status: ' + status.toUpperCase(),
+    actor: currentUser.name,
+    role: currentUser.roleTitle || 'Official',
+    note: note
   });
-  saveOne(c);
+  saveComplaints(getComplaints());
   renderWorkspace();
-};
+}
+window.wsSetStatus = wsSetStatus;
 
-window.wsReply=function(id){
-  var text=prompt('Post official public update for '+id+':');
-  if(!text || !text.trim())return;
-  var c=getById(id);if(!c)return;
-  if(!c.replies)c.replies=[];
+function wsReply(id){
+  var c = getById(id);
+  if(!c) return;
+  var text = prompt('Post official public update for ' + id + ':');
+  if(!text || !text.trim()) return;
+  if(!c.replies) c.replies = [];
   c.replies.push({
-    id:'r_'+Date.now(),
-    complaintId:id,
-    author:currentUser.name,
-    role:currentUser.roleTitle || 'Official',
-    message:text.trim(),
-    ts:Date.now()
+    id: 'r_' + Date.now(),
+    complaintId: id,
+    author: currentUser.name + ' (' + (currentUser.departmentName || 'Official') + ')',
+    role: currentUser.roleTitle,
+    message: text.trim(),
+    ts: Date.now()
   });
-  if(!c.routeHistory) c.routeHistory=[];
+  if(!c.routeHistory) c.routeHistory = [];
   c.routeHistory.push({
-    id:'m_'+Date.now(),
-    ts:Date.now(),
-    stage:'Official Reply Posted',
-    actor:currentUser.name,
-    role:currentUser.roleTitle || 'Official',
-    note:text.trim()
+    id: 'm_' + Date.now(),
+    ts: Date.now(),
+    stage: 'Official Reply Posted',
+    actor: currentUser.name,
+    role: currentUser.roleTitle || 'Official',
+    note: text.trim()
   });
-  saveOne(c);
+  saveComplaints(getComplaints());
   renderWorkspace();
-};
+}
+window.wsReply = wsReply;
 
-window.wsEscalate=function(id){
-  var reason=prompt('Enter reason for escalating '+id+' to Student Union President / General Secretary:');
-  if(!reason || !reason.trim())return;
-  var c=getById(id);if(!c)return;
-  c.status='escalated';
-  c.escalation={
-    isEscalated:true,
-    escalatedAt:Date.now(),
-    reason:reason.trim(),
-    escalatedBy:currentUser.name + ' (' + currentUser.roleTitle + ')'
+function wsEscalate(id){
+  var c = getById(id);
+  if(!c) return;
+  var reason = prompt('Reason for escalation to DUSU General Secretary:');
+  if(!reason || !reason.trim()) return;
+  c.status = 'escalated';
+  c.escalation = {
+    isEscalated: true,
+    escalatedAt: Date.now(),
+    reason: reason.trim(),
+    escalatedBy: currentUser.name + ' (' + currentUser.roleTitle + ')'
   };
-  if(!c.routeHistory) c.routeHistory=[];
+  if(!c.routeHistory) c.routeHistory = [];
   c.routeHistory.push({
-    id:'m_'+Date.now(),
-    ts:Date.now(),
-    stage:'Escalated to President / GS',
-    actor:currentUser.name,
-    role:currentUser.roleTitle || 'Dept Head',
-    note:'Formal escalation: ' + reason.trim()
+    id: 'm_' + Date.now(),
+    ts: Date.now(),
+    stage: 'Escalated to DUSU General Secretary',
+    actor: currentUser.name,
+    role: currentUser.roleTitle,
+    note: reason.trim()
   });
-  saveOne(c);
+  saveComplaints(getComplaints());
   renderWorkspace();
-};
+}
+window.wsEscalate = wsEscalate;
 
-window.wsDirective=function(id){
-  var text=prompt('Enter binding Executive Directive from DUSU President / GS for case '+id+':');
-  if(!text || !text.trim())return;
-  var c=getById(id);if(!c)return;
-  if(!c.replies)c.replies=[];
-  c.replies.push({
-    id:'r_'+Date.now(),
-    complaintId:id,
-    author:currentUser.name + ' (President / GS)',
-    role:'Student Executive Directive',
-    message:'EXECUTIVE DIRECTIVE: ' + text.trim(),
-    ts:Date.now()
-  });
-  if(!c.routeHistory) c.routeHistory=[];
-  c.routeHistory.push({
-    id:'m_'+Date.now(),
-    ts:Date.now(),
-    stage:'Executive Directive Issued',
-    actor:currentUser.name,
-    role:'DUSU President / GS',
-    note:text.trim()
-  });
-  saveOne(c);
-  renderWorkspace();
-};
-
-window.wsMergeDuplicates=function(){
-  var masterId=prompt('Enter Master Complaint ID (e.g. CS-8921):');
-  if(!masterId)return;
-  masterId=masterId.trim().toUpperCase().replace('#','');
-  var master=getById(masterId);
-  if(!master){alert('Master ticket #'+masterId+' not found.');return;}
-
-  var dupId=prompt('Enter Duplicate Complaint ID to merge into #'+masterId+' (e.g. CS-8925):');
-  if(!dupId)return;
-  dupId=dupId.trim().toUpperCase().replace('#','');
-  if(dupId===masterId){alert('Cannot merge ticket into itself.');return;}
-  var dup=getById(dupId);
-  if(!dup){alert('Duplicate ticket #'+dupId+' not found.');return;}
-
-  dup.status='closed';
-  dup.mergedInto=masterId;
-  if(!dup.routeHistory)dup.routeHistory=[];
-  dup.routeHistory.push({
-    id:'m_'+Date.now(),
-    ts:Date.now(),
-    stage:'Merged into Master Case #'+masterId,
-    actor:currentUser.name,
-    role:'Central Admin',
-    note:'Case linked into master tracker #'+masterId+'. Further updates consolidated there.'
-  });
+function wsMergeDuplicates(){
+  var masterId = prompt('Enter Master Complaint ID (e.g. CS-8921):');
+  if(!masterId) return;
+  var dupId = prompt('Enter Duplicate Complaint ID to merge into #' + masterId + ':');
+  if(!dupId) return;
+  var master = getById(masterId.trim());
+  var dup = getById(dupId.trim());
+  if(!master || !dup){ alert('Could not find one or both tickets.'); return; }
+  dup.status = 'closed';
+  dup.mergedInto = masterId;
   saveOne(dup);
-
-  if(!master.mergedDuplicates)master.mergedDuplicates=[];
-  if(master.mergedDuplicates.indexOf(dupId)===-1)master.mergedDuplicates.push(dupId);
-  if(!master.routeHistory)master.routeHistory=[];
-  master.routeHistory.push({
-    id:'m_'+Date.now(),
-    ts:Date.now(),
-    stage:'Merged Duplicate Report #'+dupId,
-    actor:currentUser.name,
-    role:'Central Admin',
-    note:'Consolidated duplicate ticket #'+dupId+' into this resolution thread.'
-  });
-  saveOne(master);
-
-  alert('Successfully merged ticket #'+dupId+' into master case #'+masterId+'!');
+  alert('Successfully merged ticket #' + dupId + ' into master case #' + masterId + '!');
   renderWorkspace();
-};
+}
+window.wsMergeDuplicates = wsMergeDuplicates;
 
-window.exportAuditCsv=function(){
-  var all=getComplaints();
-  var headers=['Ticket ID','Category','Campus Location','Urgency','Status','Department','Logged Date','Resolved Date','Description','Resolution Note'];
-  var rows=all.map(function(c){
-    return [
-      c.id,
-      '"'+(c.catName||c.cat||'').replace(/"/g,'""')+'"',
-      '"'+(c.location||'').replace(/"/g,'""')+'"',
-      c.urgency||'Normal',
-      c.status||'open',
-      '"'+(c.dept||'').replace(/"/g,'""')+'"',
-      new Date(c.ts||Date.now()).toISOString(),
-      c.resolvedAt?new Date(c.resolvedAt).toISOString():'N/A',
-      '"'+(c.desc||'').replace(/"/g,'""')+'"',
-      '"'+(c.resolutionNote||'').replace(/"/g,'""')+'"'
-    ].join(',');
+function exportAuditCsv(){
+  var all = getComplaints();
+  var headers = ['Ticket ID','Category','Location','Urgency','Status','Department','Logged At','Description'];
+  var rows = all.map(function(c){
+    return [c.id, '"'+(c.catName||c.cat||'')+'"', '"'+(c.location||'')+'"', c.urgency||'Normal', c.status||'open', '"'+(c.dept||'')+'"', new Date(c.ts||Date.now()).toISOString(), '"'+(c.desc||'')+'"'].join(',');
   });
-  var csvContent='data:text/csv;charset=utf-8,'+encodeURIComponent([headers.join(','),...rows].join('\n'));
-  var link=document.createElement('a');
-  link.setAttribute('href',csvContent);
-  link.setAttribute('download','civicsense_redressal_audit_'+new Date().toISOString().slice(0,10)+'.csv');
+  var csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent([headers.join(','), ...rows].join('\n'));
+  var link = document.createElement('a');
+  link.setAttribute('href', csvContent);
+  link.setAttribute('download', 'civicsense_redressal_audit.csv');
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-};
+}
+window.exportAuditCsv = exportAuditCsv;
 
-window.wsFilter=function(f){
-  var all=getComplaints();
-  var body=document.getElementById('wsBody');
-  var cards=body.querySelectorAll('[data-cid]');
-  cards.forEach(function(card){
-    var cid=card.dataset.cid;
-    var c=all.find(function(x){return x.id===cid;});
-    if(!c)return;
-    var isSolved=c.status==='resolved'||c.status==='closed';
-    var show=f==='all'||(f==='open'&&!isSolved)||(f==='resolved'&&isSolved);
-    card.style.display=show?'flex':'none';
-  });
-};
-/* location select watcher */
-document.getElementById('fLocation').addEventListener('change',function(){document.getElementById('customLocGroup').style.display=this.value==='OTHER'?'block':'none';});
+// Initial triggers
 updateAI();
 buildDemoIds();
+
 })();
 </script>
 </body>
