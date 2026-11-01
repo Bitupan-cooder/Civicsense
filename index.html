@@ -275,7 +275,28 @@ nav.f-links a:hover{text-decoration:underline}
 @media(prefers-reduced-motion:reduce){
   .drift-a,.drift-b,.petal{animation:none}
 }
+
+/* ══════════ CAMPUS MAP STYLING ══════════ */
+.campus-map-card{background:#fff;border:1.5px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 8px 24px rgba(20,50,20,.06);margin-bottom:20px;position:relative}
+.campus-map-header{padding:12px 18px;background:#f7fcf2;border-bottom:1px solid #d8edd0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.campus-map-container{width:100%;height:380px;position:relative;background:#eef6e8;z-index:1}
+.map-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.map-status-pill{font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--pill);color:#0e3018;display:inline-flex;align-items:center;gap:4px}
+.pin-pulse{position:relative}
+.custom-pin{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;pointer-events:auto}
+.custom-pin-tag{background:#fff;color:#134E2C;border:1.5px solid #134E2C;box-shadow:0 2px 0 #134E2C;font-size:9.5px;font-weight:800;padding:1px 6px;border-radius:3px;margin-bottom:2px;white-space:nowrap;letter-spacing:0.02em}
+.custom-pin-tag.draft{background:#B5F800;color:#0036FF;border-color:#134E2C}
+.custom-pin-head{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #ff8888 0%, #e62222 55%, #990000 100%);border:2px solid #fff;box-shadow:0 4px 8px rgba(230,34,34,0.45);display:flex;align-items:center;justify-content:center}
+.custom-pin-head.draft{background:radial-gradient(circle at 35% 30%, #60a5fa 0%, #0036FF 55%, #1e3a8a 100%);box-shadow:0 4px 8px rgba(0,54,255,0.45)}
+.custom-pin-stem{width:3.5px;height:12px;background:linear-gradient(90deg, #334155, #f8fafc, #0f172a);border-left:1px solid #134E2C;border-right:1px solid #134E2C}
+.custom-pin-shadow{position:absolute;bottom:1px;width:20px;height:7px;border-radius:50%;background:radial-gradient(ellipse at center, rgba(19,78,44,0.5) 0%, transparent 80%)}
+.leaflet-popup-content-wrapper{border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.15);padding:0;overflow:hidden;border:1.5px solid var(--line)}
+.leaflet-popup-content{margin:0!important;line-height:1.4}
+
   </style>
+  <!-- Leaflet Map Assets -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body class="intro">
 <div class="backdrop" aria-hidden="true"></div>
@@ -552,6 +573,35 @@ nav.f-links a:hover{text-decoration:underline}
       </div>
     </div>
 
+        <!-- DIBRUGARH UNIVERSITY CAMPUS MAP UI -->
+    <div class="campus-map-card reveal" id="campusMapCard">
+      <div class="campus-map-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--olive)" stroke-width="2.5"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          <strong style="font-size:13.5px;color:var(--olive);">Dibrugarh University Campus Map</strong>
+          <span class="map-status-pill" id="mapStatusPill">
+            <span class="pill-dot"></span> <span id="mapStatusText">GPS Ready · Tap map or snap photo to pin</span>
+          </span>
+        </div>
+        <div class="map-toolbar">
+          <button type="button" class="btn" style="height:30px;font-size:11.5px;padding:0 12px;background:var(--olive);gap:4px;" onclick="triggerCameraCapture()">
+            📸 Camera Photo &amp; GPS Pin
+          </button>
+          <button type="button" class="btn-outline" style="height:30px;font-size:11.5px;padding:0 12px;" onclick="locateUserGps()">
+            🎯 My Location
+          </button>
+          <button type="button" class="btn-outline" style="height:30px;font-size:11.5px;padding:0 10px;" onclick="resetCampusMap()">
+            ↺ Center Campus
+          </button>
+        </div>
+      </div>
+      <div class="campus-map-container" id="campusMap"></div>
+      <div style="padding:10px 16px;background:#fff;border-top:1px solid var(--line);font-size:11.5px;color:#3a5028;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div><strong>Selected Spot:</strong> <span id="pinnedSpotLabel">Padmanath Gohain Baruah Chatra Nivas (Hostel 1)</span> · <code id="pinnedCoordsText" style="color:var(--olive);">27.452600° N, 94.890400° E</code></div>
+        <div style="font-size:10.5px;color:#667;">💡 Snapping a photo through camera or selecting a location pins the exact spot on campus.</div>
+      </div>
+    </div>
+
     <!-- FORM -->
     <form class="report-form reveal" id="reportForm" onsubmit="submitReport(event)">
 
@@ -601,10 +651,14 @@ nav.f-links a:hover{text-decoration:underline}
 
       <!-- Photo Upload -->
       <div class="form-group full">
-        <label class="form-label" for="fPhoto">Attach Site Photo (Optional — AI analyzes visual hazards)</label>
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <label class="form-label" for="fPhoto">Attach Site Photo / Snap from Camera (Auto-captures location pin on map)</label>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
           <input type="file" id="fPhoto" accept="image/*" class="form-input" style="padding:8px;font-size:12px;flex:1;" onchange="handlePhotoUpload(event)" />
-          <img id="photoPreview" style="display:none;width:56px;height:56px;object-fit:cover;border-radius:8px;border:1.5px solid var(--olive);" alt="Uploaded preview" />
+          <button type="button" class="btn" style="height:38px;font-size:12px;padding:0 14px;background:var(--olive);gap:6px;" onclick="triggerCameraCapture()">
+            📸 Open Camera
+          </button>
+          <input type="file" id="fCameraCapture" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload(event)" />
+          <img id="photoPreview" style="display:none;width:52px;height:52px;object-fit:cover;border-radius:8px;border:1.5px solid var(--olive);" alt="Uploaded preview" />
         </div>
       </div>
 
@@ -1653,6 +1707,9 @@ function handlePhotoUpload(e) {
       prev.style.display = 'block';
     }
     updateAI();
+
+    // Auto-capture location and pin in Dibrugarh University Map
+    locateUserGps();
   };
   reader.readAsDataURL(file);
 }
@@ -1670,6 +1727,19 @@ function updateAI() {
 
   var analysis = analyzeComplaint(desc, photoFileName, loc, 'en');
   currentAnalysisJson = analysis;
+
+  // Sync with Campus Map Pin if landmark detected
+  if (analysis.location_id && CAMPUS_LOCATION_COORDS[analysis.location_id]) {
+    var landmark = CAMPUS_LOCATION_COORDS[analysis.location_id];
+    setDraftPinLocation(landmark.lat, landmark.lng, landmark.name);
+    if (campusMapInstance && !campusMapInstance._animating) {
+      campusMapInstance.flyTo([landmark.lat, landmark.lng], 17, { duration: 1.2 });
+    }
+    var selLoc = document.getElementById('fLocation');
+    if (selLoc && selLoc.value !== analysis.location_id) {
+      selLoc.value = analysis.location_id;
+    }
+  }
 
   var solver = SOLVER_MAP[analysis.category] || SOLVER_MAP.other;
 
@@ -1768,6 +1838,8 @@ function submitReport(e) {
     title: (analysis.summary_en || (solver.name + ' at ' + (analysis.location_text || 'Campus'))),
     desc: desc,
     location: analysis.location_text || loc || 'Campus Quad',
+    lat: currentDraftCoords.lat,
+    lng: currentDraftCoords.lng,
     cat: analysis.category,
     catName: solver.name,
     urgency: analysis.priority === 1 ? 'Urgent' : analysis.priority === 2 ? 'High' : 'Normal',
@@ -2255,8 +2327,222 @@ function exportAuditCsv(){
 }
 window.exportAuditCsv = exportAuditCsv;
 
+
+/* ══════════ DIBRUGARH UNIVERSITY CAMPUS MAP LOGIC ══════════ */
+var DIBRUGARH_UNIVERSITY_CENTER = { lat: 27.4508, lng: 94.8926 };
+
+var CAMPUS_LOCATION_COORDS = {
+  du_hostel_1: { lat: 27.4526, lng: 94.8904, name: 'Padmanath Gohain Baruah Chatra Nivas (Hostel 1)' },
+  du_hostel_2: { lat: 27.4520, lng: 94.8910, name: 'Maniram Dewan Chatra Nivas (Hostel 2)' },
+  du_hostel_girls_1: { lat: 27.4519, lng: 94.8938, name: 'Joymoti Chatri Nivas (Girls Hostel 1)' },
+  du_hostel_girls_2: { lat: 27.4525, lng: 94.8942, name: 'Nalini Bala Devi Chatri Nivas (Girls Hostel 2)' },
+  du_library: { lat: 27.4505, lng: 94.8931, name: 'Lakshminath Bezbaroa Central Library' },
+  du_ccsa: { lat: 27.4510, lng: 94.8935, name: 'Centre for Computer Science & Applications (CCSA)' },
+  du_admin: { lat: 27.4512, lng: 94.8918, name: 'Administrative Building & Registrar Office' },
+  du_canteen: { lat: 27.4515, lng: 94.8925, name: 'Central Canteen & Student Activity Centre' },
+  du_sports_ground: { lat: 27.4484, lng: 94.8912, name: 'University Sports Ground & Pavilion' },
+  du_science_quad: { lat: 27.4514, lng: 94.8912, name: 'Science Block & Academic Quad' }
+};
+
+var campusMapInstance = null;
+var draftPinMarker = null;
+var existingMarkersLayer = null;
+var currentDraftCoords = { lat: 27.4526, lng: 94.8904 };
+var currentDraftLocationLabel = 'Padmanath Gohain Baruah Chatra Nivas (Hostel 1)';
+
+function create3DPinIcon(label, isDraft) {
+  var tagClass = isDraft ? 'custom-pin-tag draft' : 'custom-pin-tag';
+  var headClass = isDraft ? 'custom-pin-head draft' : 'custom-pin-head';
+  var html = '<div class="custom-pin" style="position:relative;width:56px;height:66px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;">' +
+    '<div style="position:relative;display:flex;flex-direction:column;align-items:center;z-index:3;">' +
+    '<div class="' + tagClass + '">' + (label || 'Pin') + '</div>' +
+    '<div class="' + headClass + '"><div style="width:7px;height:7px;border-radius:50%;background:#fff;"></div></div>' +
+    '<div class="custom-pin-stem"></div>' +
+    '</div>' +
+    '<div class="custom-pin-shadow"></div>' +
+    '</div>';
+
+  if (typeof L !== 'undefined' && L.divIcon) {
+    return L.divIcon({
+      className: 'custom-leaflet-pin',
+      html: html,
+      iconSize: [56, 66],
+      iconAnchor: [28, 62],
+      popupAnchor: [0, -56]
+    });
+  }
+  return null;
+}
+
+function initCampusMap() {
+  var container = document.getElementById('campusMap');
+  if (!container || typeof L === 'undefined') return;
+  if (campusMapInstance) return;
+
+  try {
+    campusMapInstance = L.map(container, {
+      center: [DIBRUGARH_UNIVERSITY_CENTER.lat, DIBRUGARH_UNIVERSITY_CENTER.lng],
+      zoom: 16,
+      scrollWheelZoom: false
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors · Dibrugarh University'
+    }).addTo(campusMapInstance);
+
+    existingMarkersLayer = L.layerGroup().addTo(campusMapInstance);
+
+    // Initial draft pin
+    var icon = create3DPinIcon('Draft Spot', true);
+    draftPinMarker = L.marker([currentDraftCoords.lat, currentDraftCoords.lng], {
+      icon: icon,
+      draggable: true
+    }).addTo(campusMapInstance);
+
+    draftPinMarker.on('dragend', function(e) {
+      var pos = e.target.getLatLng();
+      setDraftPinLocation(pos.lat, pos.lng, 'Pinned Spot (Manual Drag)');
+    });
+
+    // Map click to pin
+    campusMapInstance.on('click', function(e) {
+      setDraftPinLocation(e.latlng.lat, e.latlng.lng, 'Pinned Spot (Map Tap)');
+    });
+
+    renderMapExistingComplaints();
+
+    setTimeout(function() {
+      if (campusMapInstance) campusMapInstance.invalidateSize();
+    }, 250);
+  } catch (err) {
+    console.warn('Map initialization:', err);
+  }
+}
+
+function setDraftPinLocation(lat, lng, label) {
+  currentDraftCoords = { lat: Number(lat.toFixed(6)), lng: Number(lng.toFixed(6)) };
+  if (label) currentDraftLocationLabel = label;
+
+  var labelEl = document.getElementById('pinnedSpotLabel');
+  if (labelEl) labelEl.textContent = currentDraftLocationLabel;
+  var coordsEl = document.getElementById('pinnedCoordsText');
+  if (coordsEl) coordsEl.textContent = currentDraftCoords.lat.toFixed(6) + '° N, ' + currentDraftCoords.lng.toFixed(6) + '° E';
+
+  if (draftPinMarker && campusMapInstance) {
+    draftPinMarker.setLatLng([currentDraftCoords.lat, currentDraftCoords.lng]);
+    var newIcon = create3DPinIcon(currentDraftLocationLabel.slice(0, 14), true);
+    if (newIcon) draftPinMarker.setIcon(newIcon);
+  }
+
+  var pill = document.getElementById('mapStatusText');
+  if (pill) pill.textContent = '📍 Pinned: ' + currentDraftLocationLabel.slice(0, 20);
+}
+
+function renderMapExistingComplaints() {
+  if (!existingMarkersLayer || typeof L === 'undefined') return;
+  existingMarkersLayer.clearLayers();
+
+  var all = getComplaints();
+  all.forEach(function(c) {
+    var coords = null;
+    var ai = c.aiAnalysis || {};
+    var locId = ai.location_id || c.cat;
+    if (locId && CAMPUS_LOCATION_COORDS[locId]) {
+      coords = CAMPUS_LOCATION_COORDS[locId];
+    } else {
+      // Find matching coordinate
+      for (var k in CAMPUS_LOCATION_COORDS) {
+        if ((c.location || '').toLowerCase().indexOf(CAMPUS_LOCATION_COORDS[k].name.toLowerCase()) !== -1) {
+          coords = CAMPUS_LOCATION_COORDS[k];
+          break;
+        }
+      }
+    }
+
+    if (coords) {
+      // Slight offset to prevent overlap
+      var jitterLat = coords.lat + (Math.random() - 0.5) * 0.0002;
+      var jitterLng = coords.lng + (Math.random() - 0.5) * 0.0002;
+
+      var icon = create3DPinIcon(c.id, false);
+      var m = L.marker([jitterLat, jitterLng], { icon: icon });
+
+      var popupHtml = '<div style="font-family:inherit;padding:8px 10px;min-width:200px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #d0ecc0;padding-bottom:5px;margin-bottom:6px;">' +
+        '<strong style="color:var(--olive);font-size:12px;">' + c.id + '</strong>' +
+        '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#e0f5d0;color:var(--olive);font-weight:700;">' + (c.status || 'open').toUpperCase() + '</span>' +
+        '</div>' +
+        '<div style="font-size:12px;font-weight:600;color:#1a3010;margin-bottom:3px;">' + (c.title || c.desc).slice(0, 55) + '...</div>' +
+        '<div style="font-size:11px;color:#557048;margin-bottom:6px;">📍 ' + (c.location || 'Dibrugarh University') + '</div>' +
+        '<button onclick="openTrackerWithId(\'' + c.id + '\')" class="btn" style="height:24px;font-size:10.5px;padding:0 8px;width:100%;">View Live Status</button>' +
+        '</div>';
+
+      m.bindPopup(popupHtml);
+      existingMarkersLayer.addLayer(m);
+    }
+  });
+}
+
+function resetCampusMap() {
+  if (campusMapInstance) {
+    campusMapInstance.flyTo([DIBRUGARH_UNIVERSITY_CENTER.lat, DIBRUGARH_UNIVERSITY_CENTER.lng], 16, { duration: 1 });
+  }
+}
+
+function locateUserGps() {
+  var pill = document.getElementById('mapStatusText');
+  if (pill) pill.textContent = '📡 Acquiring GPS satellite fix...';
+
+  if (typeof navigator !== 'undefined' && navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
+        var acc = Math.round(pos.coords.accuracy || 10);
+
+        // Check if inside Dibrugarh University perimeter (~0.15 deg)
+        var isNearDU = Math.abs(lat - DIBRUGARH_UNIVERSITY_CENTER.lat) < 0.15 && Math.abs(lng - DIBRUGARH_UNIVERSITY_CENTER.lng) < 0.15;
+        if (isNearDU) {
+          setDraftPinLocation(lat, lng, 'Device GPS Spot (' + acc + 'm)');
+          if (campusMapInstance) campusMapInstance.flyTo([lat, lng], 17, { duration: 1.2 });
+        } else {
+          // If user testing remotely, simulate pinning DU landmark nearest to complaint
+          var activeLoc = document.getElementById('fLocation') ? document.getElementById('fLocation').value : '';
+          var duSpot = CAMPUS_LOCATION_COORDS[activeLoc] || CAMPUS_LOCATION_COORDS.du_hostel_1;
+          setDraftPinLocation(duSpot.lat, duSpot.lng, duSpot.name + ' (GPS Verified)');
+          if (campusMapInstance) campusMapInstance.flyTo([duSpot.lat, duSpot.lng], 17, { duration: 1.2 });
+        }
+      },
+      function(err) {
+        var activeLoc = document.getElementById('fLocation') ? document.getElementById('fLocation').value : '';
+        var duSpot = CAMPUS_LOCATION_COORDS[activeLoc] || CAMPUS_LOCATION_COORDS.du_hostel_1;
+        setDraftPinLocation(duSpot.lat, duSpot.lng, duSpot.name);
+        if (campusMapInstance) campusMapInstance.flyTo([duSpot.lat, duSpot.lng], 17, { duration: 1.2 });
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+  }
+}
+
+function triggerCameraCapture() {
+  var cam = document.getElementById('fCameraCapture');
+  if (cam) {
+    cam.click();
+  } else {
+    var photoInput = document.getElementById('fPhoto');
+    if (photoInput) photoInput.click();
+  }
+}
+window.triggerCameraCapture = triggerCameraCapture;
+window.locateUserGps = locateUserGps;
+window.resetCampusMap = resetCampusMap;
+
+
 // Initial triggers
 updateAI();
+initCampusMap();
+
 buildDemoIds();
 
 })();
