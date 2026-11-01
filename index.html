@@ -1,15 +1,1773 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CivicSense — Campus Issue Reporting</title>
-    <meta name="description" content="Report campus issues (water, power, wifi, hostel, safety, labs) to the right office in under a minute. No account, no database, frontend-only." />
-    <!-- SVG Favicon with the civic green mark -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%231EA854'/%3E%3Ctext x='16' y='22' fill='%23B5F800' font-family='sans-serif' font-weight='900' font-size='16' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E" />
-  </head>
-  <body class="bg-[#FAF2EB] text-[#1EA854] selection:bg-[#0036FF] selection:text-[#B5F800]">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <title>CivicSense — Smart Campus Redressal · Dibrugarh University</title>
+  <meta name="description" content="Report campus issues at Dibrugarh University. AI-routed directly to the right department with live tracking. No login needed." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet" />
+  <style>
+/* ── TOKENS ─────────────────────────────────────────── */
+:root{
+  --ink:#121410; --olive:#1a7a3a; --green:#1EA854; --lime:#B5F800;
+  --pill:#d4f5c0; --line:#e0f0d0; --bg:#FAF2EB; --blue:#0036FF;
+  --radius:18px; --nav:54px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{background:#c8e0b0}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{font-family:"Inter Tight",system-ui,sans-serif;color:var(--ink);background:transparent;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+img,video{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+
+/* ── SHARED ──────────────────────────────────────────── */
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:5px 11px;border-radius:999px;background:var(--pill);color:#0e3018;letter-spacing:.01em}
+.pill-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.h2{font-size:clamp(24px,3vw,42px);font-weight:400;letter-spacing:-.03em;line-height:1.12;text-align:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 18px;border-radius:999px;background:var(--olive);color:#f0ffe8;font-size:13px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;border:none;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 2px 6px rgba(20,80,30,.25);transition:transform .25s,background .25s}
+.btn:hover{transform:translateY(-1px);background:#0e5c28}
+.btn-blue{background:var(--blue);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 2px 6px rgba(0,54,255,.2)}
+.btn-blue:hover{background:#0025c4}
+.btn-outline{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 18px;border-radius:999px;background:transparent;color:var(--olive);font-size:13px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;border:1.5px solid var(--olive);cursor:pointer;transition:transform .25s,background .25s,color .25s}
+.btn-outline:hover{transform:translateY(-1px);background:var(--olive);color:#f0ffe8}
+.w{display:inline-block;will-change:transform,filter,opacity}
+.glass{position:absolute;border-radius:12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.55);-webkit-backdrop-filter:blur(10px) saturate(1.2);backdrop-filter:blur(10px) saturate(1.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.grid-sq{position:absolute;border:1px solid #c8e8c0;border-radius:10px;pointer-events:none}
+
+/* ── KEYFRAMES ───────────────────────────────────────── */
+@keyframes driftA{to{transform:translateX(26px) translateY(4px)}}
+@keyframes driftB{to{transform:translateX(-30px) translateY(6px)}}
+@keyframes fall{to{transform:translate(var(--dx),110vh) rotate(540deg)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.drift-a{animation:driftA 14s ease-in-out infinite alternate}
+.drift-b{animation:driftB 17s ease-in-out infinite alternate}
+
+/* ── BACKDROP ────────────────────────────────────────── */
+.backdrop{position:fixed;inset:-40px;z-index:0;background:linear-gradient(150deg,#0e3018 0%,#1EA854 40%,#9ABC05 75%,#B5F800 100%);filter:blur(18px) saturate(1.1);transform:scale(1.3)}
+
+/* ── APP ─────────────────────────────────────────────── */
+#app{position:relative;z-index:1;background:#fff;transform-origin:50% 50vh;overflow:clip}
+body.intro #app{transform:scale(.9);border-radius:28px}
+
+/* ══════════════════════ HERO ════════════════════════ */
+.hero{position:relative;height:100vh;min-height:640px;overflow:hidden;background:var(--bg)}
+.nav{position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:28px;padding:5px 5px 5px 18px;border-radius:999px;background:rgba(250,242,235,.95);box-shadow:0 0 0 1px rgba(0,0,0,.06),0 6px 18px rgba(0,0,0,.08);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);white-space:nowrap}
+.brand{display:flex;align-items:center;gap:8px;font-size:19px;font-weight:600;letter-spacing:-.04em;color:var(--olive)}
+.nav-links{display:flex;gap:20px;font-size:13px;font-weight:500;color:#1a3a10}
+.nav-links a:hover{color:var(--olive)}
+.nav-actions{display:flex;gap:8px;align-items:center}
+.cloud{position:absolute}
+.cloud-l{top:-3%;left:-5%;width:min(44vw,640px);z-index:4}
+.cloud-r{top:2%;right:-6%;width:min(42vw,620px);z-index:4}
+#heroTitle{position:absolute;z-index:6;top:30%;width:100%;text-align:center;font-size:clamp(28px,4.8vw,70px);font-weight:400;letter-spacing:-.045em;line-height:1.04;padding:0 16px}
+#heroTitle em{color:var(--olive);font-style:italic;font-weight:500}
+.hero-badges{position:absolute;z-index:7;top:54%;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 20px}
+.hero-media{position:absolute;left:0;right:0;bottom:0;height:66%;z-index:2;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 20%);mask-image:linear-gradient(to bottom,transparent 0,#000 20%)}
+.hero-media video{width:100%;height:100%;object-fit:cover;object-position:center 60%}
+.hero-glass{position:absolute;inset:0;z-index:5;pointer-events:none}
+
+/* ══════════════════════ STATS ═════════════════════════ */
+.stats{position:relative;height:100vh;min-height:680px;overflow:hidden;background:#fff}
+.sq-field{position:absolute;inset:0 0 auto 0;height:42%;z-index:1;pointer-events:none;-webkit-mask-image:linear-gradient(#000,transparent);mask-image:linear-gradient(#000,transparent)}
+.tree-wrap{position:absolute;z-index:2;left:50%;transform:translateX(-50%);bottom:-2%;width:min(340px,58vw)}
+.tree-wrap img{width:100%;display:block}
+.stats-inner{position:relative;z-index:3;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:0 16px}
+.cards{position:relative;z-index:4;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:min(880px,100%)}
+.card{height:148px;padding:18px 20px;border-radius:20px;background:var(--lime);display:flex;flex-direction:column;justify-content:space-between;-webkit-mask:radial-gradient(circle 17px at 0 55%,#0000 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 17px at 100% 55%,#0000 97%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 17px at 0 55%,#0000 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 17px at 100% 55%,#0000 97%,#000) right/51% 100% no-repeat}
+.card-label{font-size:10.5px;font-weight:500;color:#1a3008}
+.card-value{font-size:clamp(28px,3.4vw,42px);font-weight:600;letter-spacing:-.04em;color:#0a1a04;font-variant-numeric:tabular-nums}
+.cards-shadow{width:min(820px,94%);height:10px;margin-top:-16px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.07),transparent);z-index:3}
+.logos-wrap{position:relative;width:min(860px,100%);display:flex;align-items:center;justify-content:center}
+.band{position:absolute;z-index:5;left:50%;transform:translateX(-50%);top:-6px;width:min(340px,58vw);height:64px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);background:rgba(255,255,255,.12);-webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);pointer-events:none}
+.logos{position:relative;z-index:6;display:flex;align-items:center;justify-content:space-between;gap:18px;width:min(860px,100%);padding:6px 10px;color:#0a1e06}
+.logo-item{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;white-space:nowrap;opacity:.75}
+.logo-dot{width:7px;height:7px;border-radius:50%;background:var(--olive);flex-shrink:0}
+
+/* ══════════════════════ ACCORDION / HOW ══════════════════ */
+.loop{position:relative;height:100vh;min-height:680px;overflow:hidden;background:#fff}
+.loop-cloud{position:absolute;z-index:3;top:4vh;left:-4vw;width:min(36vw,520px)}
+.loop-head{position:absolute;z-index:4;top:9vh;width:100%;display:flex;flex-direction:column;align-items:center;gap:14px;padding:0 16px}
+.track{position:absolute;z-index:2;inset:0;display:flex}
+.panel{position:relative;flex:0 0 clamp(96px,11vw,170px);height:100%;overflow:hidden;border-right:1px solid var(--line);cursor:pointer;outline:none;transition:flex-grow .9s cubic-bezier(.77,0,.18,1)}
+.panel:last-child{border-right:none}
+.panel.is-active{flex-grow:1;cursor:default}
+.panel-in{position:absolute;left:clamp(14px,1.8vw,28px);bottom:10vh;display:flex;align-items:flex-end;gap:clamp(16px,2vw,30px);width:max-content}
+.num{font-size:clamp(160px,34vh,360px);font-weight:600;line-height:.74;letter-spacing:-.07em}
+.panel:nth-child(1) .num{color:var(--olive)}
+.panel:nth-child(2) .num{color:var(--green)}
+.panel:nth-child(3) .num{color:#8abe05}
+.panel:nth-child(4) .num{color:#b5d430}
+.step{position:relative;width:min(380px,30vw);padding-bottom:4px;opacity:0;transform:translateX(-24px);filter:blur(6px);transition:opacity .4s,transform .5s,filter .4s}
+.panel.is-active .step{opacity:1;transform:none;filter:none;transition:opacity .7s .4s,transform .9s .35s cubic-bezier(.2,.8,.2,1),filter .7s .4s}
+.step-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:var(--pill);color:#0e3018;margin-bottom:10px}
+.step h3{font-size:clamp(18px,1.6vw,24px);font-weight:400;letter-spacing:-.03em;margin-bottom:10px}
+.step p{font-size:13.5px;line-height:1.45;color:#2a3820}
+.mini-cloud{position:absolute;left:-10%;bottom:calc(100% + clamp(60px,13vh,140px));width:min(18vw,240px);max-width:none;animation:driftA 9s ease-in-out infinite alternate}
+
+/* ══════════════════════ REPORT FORM ══════════════════════ */
+.report-section{position:relative;background:var(--bg);padding:80px 16px 90px}
+.report-inner{max-width:840px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:36px}
+.report-form{width:100%;background:#fff;border:1.5px solid var(--line);border-radius:22px;padding:36px 32px;display:flex;flex-direction:column;gap:22px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{display:flex;flex-direction:column;gap:7px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:11.5px;font-weight:600;color:var(--olive);letter-spacing:.02em;text-transform:uppercase}
+.form-input,.form-select,.form-textarea{width:100%;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13.5px;font-family:inherit;color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--olive);box-shadow:0 0 0 3px rgba(30,168,84,.1)}
+.form-textarea{resize:vertical;min-height:100px;line-height:1.5}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231a7a3a' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;cursor:pointer}
+.urgency-btns{display:flex;gap:8px}
+.urgency-btn{flex:1;padding:9px 6px;border:1.5px solid var(--line);border-radius:9px;font-size:12px;font-weight:600;background:#fff;color:#2a3820;transition:all .2s;cursor:pointer;text-align:center}
+.urgency-btn.active-normal{border-color:var(--green);background:#e8faf0;color:var(--olive)}
+.urgency-btn.active-urgent{border-color:#e6a800;background:#fffae8;color:#7a5000}
+.urgency-btn.active-hazard{border-color:#d03020;background:#fef0ee;color:#8a1a10}
+.ai-preview{background:linear-gradient(135deg,#f0ffe8,#e8f8ff);border:1.5px solid #a0d8a0;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.ai-header{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--olive);text-transform:uppercase;letter-spacing:.04em}
+.ai-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#1a3010}
+.ai-label{font-weight:600;color:var(--olive);min-width:90px}
+.photo-zone{border:2px dashed var(--line);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative}
+.photo-zone:hover{border-color:var(--olive);background:#f0ffe8}
+.photo-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.photo-preview{width:100%;max-height:180px;object-fit:contain;border-radius:8px;margin-top:10px}
+.form-error{font-size:11px;color:#c03020;margin-top:2px}
+.success-card{background:linear-gradient(135deg,#f0fff4,#e8faf0);border:2px solid var(--green);border-radius:18px;padding:28px 24px;text-align:center;animation:slideUp .5s ease-out}
+.ticket-id{font-size:28px;font-weight:700;color:var(--olive);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+
+/* ══════════════════════ CATEGORIES ══════════════════════ */
+.categories-section{position:relative;background:#f0f9e8;padding:80px 16px}
+.categories-inner{max-width:940px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:32px}
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%}
+.cat-card{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:20px 16px 16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s}
+.cat-card:hover{border-color:var(--olive);transform:translateY(-3px);box-shadow:0 8px 28px rgba(26,122,58,.12)}
+.cat-card.selected{border-color:var(--blue);background:#f0f4ff;box-shadow:0 0 0 3px rgba(0,54,255,.08)}
+.cat-icon{width:38px;height:38px;border-radius:10px;background:var(--pill);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cat-icon svg{width:18px;height:18px;stroke:var(--olive);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cat-name{font-size:14px;font-weight:600;letter-spacing:-.02em;color:var(--ink)}
+.cat-desc{font-size:11.5px;line-height:1.45;color:#2a3820}
+.cat-dept{font-size:10px;font-weight:600;color:var(--olive);letter-spacing:.01em}
+
+/* ══════════════════════ CTA ═════════════════════════════ */
+.cta{position:relative;height:110vh;min-height:720px;overflow:hidden;background:#fff}
+.cta-img{position:absolute;left:0;right:0;bottom:0;height:78%;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 24%);mask-image:linear-gradient(to bottom,transparent 0,#000 24%)}
+.cta-img img{width:100%;height:118%;object-fit:cover;object-position:center 60%}
+#petals{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.petal{position:absolute;top:-20px;width:10px;height:8px;border-radius:80% 0 80% 0;opacity:.7;animation:fall linear infinite}
+.cta-card{position:absolute;z-index:4;left:50%;top:28%;transform:translateX(-50%);width:min(720px,calc(100% - 32px));padding:46px 36px 54px;text-align:center;border-radius:26px;background:linear-gradient(to bottom,rgba(250,242,235,.97) 0%,rgba(250,242,235,.82) 35%,rgba(250,242,235,.12) 100%);border:1px solid rgba(255,255,255,.8);-webkit-backdrop-filter:blur(16px) saturate(1.1);backdrop-filter:blur(16px) saturate(1.1);box-shadow:0 30px 60px rgba(10,40,10,.18)}
+.cta-card .h2{margin:16px 0 10px;font-size:clamp(20px,2.6vw,34px)}
+.cta-btns{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:20px}
+.track-form{margin-top:28px;padding-top:22px;border-top:1px solid rgba(0,0,0,.08)}
+.track-form p{font-size:12px;color:#1a2e10;margin-bottom:10px;font-weight:500}
+.track-input-row{display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap}
+.track-input{height:40px;padding:0 16px;border:1.5px solid var(--line);border-radius:999px;font-size:13px;font-family:inherit;outline:none;width:230px;transition:border-color .2s;background:#fff}
+.track-input:focus{border-color:var(--olive)}
+
+/* ══════════════════════ FOOTER ══════════════════════════ */
+footer#footer{background:var(--lime);padding:34px 4vw 22px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;row-gap:22px}
+.f-logo-wrap{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:600;letter-spacing:-.04em;color:#0a1e04}
+.f-logo{width:64px;height:64px;overflow:visible}
+nav.f-links{display:flex;gap:22px;font-size:13px;color:#162a04;justify-self:center}
+nav.f-links a:hover{text-decoration:underline}
+.f-right{justify-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-size:11.5px;color:#1a2e08}
+.f-copy{grid-column:1/-1;text-align:center;font-size:11px;color:#243a0a}
+
+/* ══════════════════════ MODALS ══════════════════════════ */
+.modal-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,54,255,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);animation:fadeIn .2s ease-out}
+.modal-overlay.hidden{display:none}
+.modal{background:#fff;border:2px solid var(--green);border-radius:18px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;animation:slideUp .25s ease-out}
+.modal-header{background:var(--green);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-radius:16px 16px 0 0}
+.modal-title{font-size:16px;font-weight:600;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+.modal-close{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.2);border:none;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s}
+.modal-close:hover{background:rgba(255,255,255,.35)}
+.modal-body{padding:22px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Tracker states */
+.status-banner{border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:12px;font-weight:600;font-size:15px}
+.status-banner.solved{background:#e8fff0;border:2px solid var(--green);color:#0a3018}
+.status-banner.inprogress{background:#e8f0ff;border:2px solid var(--blue);color:#0a1060}
+.status-banner.pending{background:#fff8e0;border:2px solid #e6a800;color:#5a3a00}
+.tracker-steps{display:flex;gap:0;background:#f0f8e8;border-radius:10px;overflow:hidden}
+.tracker-step{flex:1;padding:10px 6px;text-align:center;font-size:11px;font-weight:600;color:#4a6a30;border-right:1px solid var(--line);position:relative}
+.tracker-step:last-child{border-right:none}
+.tracker-step.done{background:var(--green);color:#fff}
+.tracker-step.active{background:#e0ffe8;color:var(--olive)}
+.detail-row{display:flex;align-items:flex-start;gap:10px;font-size:13px}
+.detail-icon{width:18px;height:18px;flex-shrink:0;opacity:.6}
+.detail-label{font-weight:600;color:var(--olive);min-width:100px}
+
+/* Login modal preset cards */
+.preset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.preset-card{border:1.5px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;transition:all .2s;background:#fff}
+.preset-card:hover{border-color:var(--olive);background:#f0ffe8}
+.preset-card.selected{border-color:var(--blue);background:#f0f4ff;box-shadow:0 0 0 3px rgba(0,54,255,.08)}
+.preset-mode{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);margin-bottom:4px}
+.preset-name{font-size:13px;font-weight:600;color:var(--ink)}
+.preset-dept{font-size:11px;color:#4a6a30}
+.pw-input{width:100%;height:42px;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;letter-spacing:.15em}
+.pw-input:focus{border-color:var(--olive)}
+.error-msg{font-size:12px;color:#c03020;padding:8px 12px;background:#fef0ee;border-radius:8px;border:1px solid #f0b0a0}
+.info-box{background:#f0ffe8;border:1px solid #a0d8a0;border-radius:10px;padding:12px 14px;font-size:12.5px;color:#1a3010;line-height:1.5}
+.timeline{display:flex;flex-direction:column;gap:12px;margin-top:8px;padding-left:14px;border-left:2px solid var(--line);position:relative}
+.timeline-item{position:relative}
+.timeline-item::before{content:"";position:absolute;left:-21px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--green);border:2px solid #fff;box-shadow:0 0 0 2px var(--green)}
+.timeline-item.escalated::before{background:#d03020;box-shadow:0 0 0 2px #d03020}
+.timeline-time{font-size:10.5px;color:#5a7a40;font-weight:600}
+.timeline-title{font-size:12.5px;font-weight:700;color:var(--olive)}
+.timeline-desc{font-size:12px;color:#2a3820;line-height:1.45;margin-top:2px}
+.badge-escalated{background:#fef0ee;color:#c03020;border:1px solid #f0b0a0;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;text-transform:uppercase}
+.badge-merged{background:#f0f4ff;color:var(--blue);border:1px solid #a0b8ff;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700}
+
+/* ══════════════════════ RESPONSIVE ══════════════════════ */
+@media(max-width:900px){
+  .nav{gap:16px}.nav-links{display:none}
+  .cards{grid-template-columns:repeat(2,1fr)}.card{height:120px}
+  .logos{flex-wrap:wrap;justify-content:center;gap:10px 20px}.logo-item{font-size:10px}
+  .stats{height:auto;min-height:100vh;padding:90px 0 300px}.tree-wrap{bottom:0}.band{display:none}
+  .cat-grid{grid-template-columns:repeat(2,1fr)}
+  .form-row{grid-template-columns:1fr}
+  .preset-grid{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+  .hero{height:100svh;min-height:560px}
+  #heroTitle{top:24%;font-size:clamp(24px,7vw,46px)}
+  .hero-badges{top:50%;flex-direction:column;gap:6px}
+  .hero-media{height:60%;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14%);mask-image:linear-gradient(to bottom,transparent 0,#000 14%)}
+  .cloud-l{width:70vw;left:-18vw;top:6%}.cloud-r{width:66vw;right:-20vw;top:10%}
+  .nav{top:14px;gap:10px;padding-left:12px}.brand{font-size:16px}
+  .loop{height:auto;min-height:0;padding:12vh 0 40px}.loop-head{position:relative;top:auto}
+  .loop-cloud{width:62vw;left:-14vw;top:2vh;opacity:.9}
+  .track{position:relative;inset:auto;flex-direction:column;margin-top:40px}
+  .panel{flex:none;height:auto;overflow:visible;border-right:none;border-top:1px solid var(--line);cursor:auto}
+  .panel-in{position:relative;left:auto;bottom:auto;width:auto;padding:24px 16px;gap:16px}
+  .num{font-size:110px}
+  .step{opacity:1!important;transform:none!important;filter:none!important;width:auto}
+  .mini-cloud{display:none}
+  .cta{height:auto;min-height:0;padding:60px 0 0}
+  .cta-img{position:relative;height:85vh;min-height:520px}
+  .cta-card{top:90px;padding:30px 18px 40px}
+  .cat-grid{grid-template-columns:1fr}
+  .report-form{padding:24px 16px}
+  footer#footer{grid-template-columns:1fr;justify-items:center}
+  nav.f-links{flex-wrap:wrap;justify-content:center;gap:14px}
+  .f-right{justify-self:center;align-items:center}
+}
+@media(prefers-reduced-motion:reduce){
+  .drift-a,.drift-b,.petal{animation:none}
+}
+  </style>
+</head>
+<body class="intro">
+<div class="backdrop" aria-hidden="true"></div>
+
+<div id="app">
+
+<!-- ════════════ HERO ════════════ -->
+<section class="hero" id="hero">
+  <nav class="nav" aria-label="Main navigation">
+    <a class="brand" href="#hero" aria-label="CivicSense home">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <path d="M11 2C11 2 4 6 4 13a7 7 0 0014 0C18 6 11 2 11 2z" fill="currentColor" opacity=".9"/>
+        <line x1="11" y1="14" x2="11" y2="20" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      CivicSense
+    </a>
+    <div class="nav-links">
+      <a href="#stats">Stats</a>
+      <a href="#how">Workflow</a>
+      <a href="#categories">Categories</a>
+      <a href="#report">Report</a>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-outline" id="openTrackerBtn" onclick="openTracker()" style="height:32px;font-size:12px;padding:0 14px;">Track Status</button>
+      <button class="btn btn-blue" id="openLoginBtn" onclick="openLogin()" style="height:32px;font-size:12px;padding:0 14px;">Official Login</button>
+    </div>
+  </nav>
+
+  <div class="cloud cloud-l" data-par="-60">
+    <img class="drift-a" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093216_44218665-b15e-4566-a2d4-2676ab03609d.png" alt="" />
+  </div>
+  <div class="cloud cloud-r" data-par="-90">
+    <img class="drift-b" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093215_0f37c0c3-f82c-485b-87dd-5a35b75a8782.png" alt="" />
+  </div>
+
+  <h1 id="heroTitle" class="split">
+    Say it. Direct to<br><em>Campus Redressal.</em>
+  </h1>
+
+  <div class="hero-badges" id="heroBadges">
+    <span class="pill"><span class="pill-dot"></span>Dibrugarh University · ANAZORI v16.0</span>
+    <span class="pill">AI-Routed · No Login Needed</span>
+    <span class="pill">PS-04 · Live Status Tracking</span>
+  </div>
+
+  <div class="hero-media">
+    <video id="heroVideo" autoplay muted loop playsinline preload="auto"
+      poster="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093215_b7826239-e451-4e15-b42b-d6bcf9497a32.png"
+      src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093331_5998f443-1b9c-4b62-820c-8219c73c72c4.mp4">
+    </video>
+  </div>
+  <div class="hero-glass" id="heroGlass" aria-hidden="true"></div>
+</section>
+
+<!-- ════════════ STATS ════════════ -->
+<section class="stats" id="stats">
+  <div class="sq-field" data-count="22" aria-hidden="true"></div>
+  <div class="tree-wrap">
+    <img id="tree" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093215_95f11900-c4a0-49ad-bb2d-bb927dd594ee.png" alt="Campus trees" />
+  </div>
+  <div class="stats-inner">
+    <span class="pill reveal"><span class="pill-dot"></span>Live campus metrics</span>
+    <h2 class="h2 split" style="margin-bottom:16px">Every issue resolved,<br><em style="font-style:italic;color:var(--olive)">transparently on record.</em></h2>
+    <div class="cards">
+      <div class="card reveal" data-to="14" data-dec="0" data-suf=" hrs">
+        <span class="card-label">Avg. Turnaround</span>
+        <b class="card-value">0 hrs</b>
+      </div>
+      <div class="card reveal" data-to="6" data-dec="0" data-suf="">
+        <span class="card-label">Departments</span>
+        <b class="card-value">0</b>
+      </div>
+      <div class="card reveal" data-to="98" data-dec="0" data-suf="%">
+        <span class="card-label">Resolution Rate</span>
+        <b class="card-value">0%</b>
+      </div>
+      <div class="card reveal" data-to="60" data-dec="0" data-suf=" s">
+        <span class="card-label">Time to Report</span>
+        <b class="card-value">0 s</b>
+      </div>
+    </div>
+    <div class="cards-shadow"></div>
+    <div class="logos-wrap">
+      <div class="band" id="band" aria-hidden="true"></div>
+      <div class="logos">
+        <span class="logo-item"><span class="logo-dot"></span>PHE · Plumbing</span>
+        <span class="logo-item"><span class="logo-dot"></span>Electrical</span>
+        <span class="logo-item"><span class="logo-dot"></span>CCSA · Wi-Fi</span>
+        <span class="logo-item"><span class="logo-dot"></span>Security</span>
+        <span class="logo-item"><span class="logo-dot"></span>Hostels Board</span>
+        <span class="logo-item"><span class="logo-dot"></span>Academic Labs</span>
+        <span class="logo-item"><span class="logo-dot"></span>Sanitation</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ HOW IT WORKS — ACCORDION ════════════ -->
+<section class="loop" id="how">
+  <div class="loop-cloud" data-par="-50">
+    <img class="drift-a" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093216_44218665-b15e-4566-a2d4-2676ab03609d.png" alt="" />
+    <div class="glass" style="left:6%;top:30%;width:15%;aspect-ratio:1" aria-hidden="true"></div>
+    <div class="glass" style="left:23%;top:58%;width:13%;aspect-ratio:1" aria-hidden="true"></div>
+    <div class="glass" style="left:38%;top:24%;width:13%;aspect-ratio:1" aria-hidden="true"></div>
+  </div>
+  <div class="loop-head">
+    <span class="pill reveal"><span class="pill-dot"></span>4-step workflow</span>
+    <h2 class="h2 split">Complaint filed to problem<br><em style="color:var(--olive);font-style:italic">solved &amp; verified.</em></h2>
+  </div>
+  <div class="track" id="track">
+    <div class="panel is-active" tabindex="0" aria-label="Step 1: Report">
+      <div class="panel-in">
+        <span class="num">1</span>
+        <div class="step">
+          <img class="mini-cloud" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093215_0f37c0c3-f82c-485b-87dd-5a35b75a8782.png" alt="" aria-hidden="true" />
+          <span class="step-badge">01 · Open to Everyone</span>
+          <h3>Report an Issue</h3>
+          <p>Select category, pick your campus landmark, describe the problem and attach an optional photo. No login or password required — anyone on campus can file in under 60 seconds.</p>
+        </div>
+      </div>
+    </div>
+    <div class="panel" tabindex="0" aria-label="Step 2: AI Routes">
+      <div class="panel-in">
+        <span class="num">2</span>
+        <div class="step">
+          <img class="mini-cloud" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093216_44218665-b15e-4566-a2d4-2676ab03609d.png" alt="" aria-hidden="true" />
+          <span class="step-badge">02 · Auto-Routed by AI</span>
+          <h3>AI Triage &amp; Routing</h3>
+          <p>Neural classification assigns priority (Normal / Urgent / P1 Hazard) and instantly routes the ticket to the correct campus post — with SLA deadline and duplicate detection.</p>
+        </div>
+      </div>
+    </div>
+    <div class="panel" tabindex="0" aria-label="Step 3: Official Action">
+      <div class="panel-in">
+        <span class="num">3</span>
+        <div class="step">
+          <img class="mini-cloud" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093215_0f37c0c3-f82c-485b-87dd-5a35b75a8782.png" alt="" aria-hidden="true" />
+          <span class="step-badge">03 · Officials Only</span>
+          <h3>Official Action &amp; Approval</h3>
+          <p>Department officers use a Status Checklist — Confirmed → In Progress → Delivered → Completed. Each stage is timestamped and publicly visible. Escalations go to DUSU GS.</p>
+        </div>
+      </div>
+    </div>
+    <div class="panel" tabindex="0" aria-label="Step 4: Track Live">
+      <div class="panel-in">
+        <span class="num">4</span>
+        <div class="step">
+          <img class="mini-cloud" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093216_44218665-b15e-4566-a2d4-2676ab03609d.png" alt="" aria-hidden="true" />
+          <span class="step-badge">04 · Public Tracker</span>
+          <h3>Track Live Status</h3>
+          <p>Enter your Complaint ID to see the 4-stage resolution trail, official responses, SLA countdown, and upvote with "Me Too" to escalate community-wide issues.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ CATEGORIES ════════════ -->
+<section class="categories-section" id="categories">
+  <div class="sq-field" data-count="14" aria-hidden="true"></div>
+  <div class="categories-inner">
+    <span class="pill reveal"><span class="pill-dot"></span>Campus jurisdictions</span>
+    <h2 class="h2 split">Pick your issue type.<br>We route it <em style="color:var(--olive);font-style:italic">to the right desk.</em></h2>
+    <div class="cat-grid" id="catGrid">
+      <div class="cat-card reveal" data-cat="water" onclick="selectCat('water')">
+        <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M12 2s-6 6.5-6 11a6 6 0 0012 0C18 8.5 12 2 12 2z"/><path d="M8 16s1 2 4 2 4-2 4-2"/></svg></div>
+        <div><div class="cat-name">Water &amp; Plumbing</div><div class="cat-desc">Leaking pipes, broken taps, washroom issues, low pressure or water supply failure.</div></div>
+        <div class="cat-dept">→ PHE · Facility Operations</div>
+      </div>
+      <div class="cat-card reveal" data-cat="power" onclick="selectCat('power')">
+        <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H12L11 22l8.5-11.5H12L13 2z"/></svg></div>
+        <div><div class="cat-name">Power &amp; Lighting</div><div class="cat-desc">Broken pathway lights, flickering fixtures, tripped breakers, dead electrical sockets.</div></div>
+        <div class="cat-dept">→ Electrical Maintenance</div>
+      </div>
+      <div class="cat-card reveal" data-cat="wifi" onclick="selectCat('wifi')">
+        <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M5 12.5A10 10 0 0119 12.5"/><path d="M8 15.5A6 6 0 0116 15.5"/><circle cx="12" cy="20" r="1.2" fill="var(--olive)" stroke="none"/></svg></div>
+        <div><div class="cat-name">Wi-Fi &amp; Connectivity</div><div class="cat-desc">Dead signal spots, frequent drops, authentication failures, damaged Ethernet ports.</div></div>
+        <div class="cat-dept">→ CCSA · Campus IT</div>
+      </div>
+      <div class="cat-card reveal" data-cat="safety" onclick="selectCat('safety')">
+        <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5V12c0 4.5-3.5 8.5-8 9.5C7.5 20.5 4 16.5 4 12V7.5L12 3z"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="15" r=".8" fill="var(--olive)" stroke="none"/></svg></div>
+        <div><div class="cat-name">Safety &amp; Emergency</div><div class="cat-desc">Unlit corners, broken emergency boxes, hazardous walkways, access door defects.</div></div>
+        <div class="cat-dept">→ Campus Safety Command</div>
+      </div>
+      <div class="cat-card reveal" data-cat="waste" onclick="selectCat('waste')">
+        <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></div>
+        <div><div class="cat-name">Waste &amp; Sanitation</div><div class="cat-desc">Overflowing trash bins, broken recycling units, litter on walkways, bio-waste cleanup.</div></div>
+        <div class="cat-dept">→ Sanitation &amp; Grounds</div>
+      </div>
+      <div class="cat-card reveal" data-cat="hostel" onclick="selectCat('hostel')">
+        <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M3 21V9l9-6 9 6v12"/><rect x="9" y="13" width="6" height="8"/></svg></div>
+        <div><div class="cat-name">Hostel &amp; Residence</div><div class="cat-desc">Dormitory maintenance, broken furniture, lock repairs, mess or laundry faults.</div></div>
+        <div class="cat-dept">→ Hostels &amp; Housing Board</div>
+      </div>
+      <div class="cat-card reveal" data-cat="labs" onclick="selectCat('labs')">
+        <div class="cat-icon"><svg viewBox="0 0 24 24"><path d="M9 3v8L5 21h14L15 11V3"/><line x1="9" y1="3" x2="15" y2="3"/></svg></div>
+        <div><div class="cat-name">Labs &amp; Classrooms</div><div class="cat-desc">Faulty projectors, lab ventilation, air conditioning, AV system outages.</div></div>
+        <div class="cat-dept">→ Academic Labs &amp; Tech</div>
+      </div>
+      <div class="cat-card reveal" style="background:var(--pill);border-color:var(--olive);justify-content:center;align-items:center;text-align:center;gap:14px;">
+        <div style="font-size:13px;font-weight:600;color:var(--olive);">7 categories · 7 departments<br>All auto-routed by AI</div>
+        <button class="btn" onclick="document.getElementById('report').scrollIntoView({behavior:'smooth'})" style="font-size:12px;height:32px;padding:0 14px;">File a Report</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ REPORT FORM ════════════ -->
+<section class="report-section" id="report">
+  <div class="sq-field" data-count="16" aria-hidden="true"></div>
+  <div class="report-inner">
+    <span class="pill reveal"><span class="pill-dot"></span>Public complaint form · No login needed</span>
+    <h2 class="h2 split reveal">File your campus issue.<br><em style="color:var(--olive);font-style:italic">Gets routed in seconds.</em></h2>
+
+    <!-- SUCCESS STATE (hidden by default) -->
+    <div class="success-card" id="successCard" style="display:none;width:100%">
+      <div style="font-size:13px;font-weight:600;color:var(--olive);margin-bottom:8px;">Complaint Registered</div>
+      <div class="ticket-id" id="ticketId">CS-0000</div>
+      <div style="font-size:13px;color:#1a3010;margin:10px 0 18px;line-height:1.5">Your complaint has been logged and routed to the responsible department. Use the ID above to track status anytime.</div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn" onclick="openTrackerWithId(document.getElementById('ticketId').textContent)">Track This Complaint</button>
+        <button class="btn-outline" onclick="resetForm()">File Another</button>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <form class="report-form reveal" id="reportForm" onsubmit="submitReport(event)">
+
+      <!-- AI PREVIEW -->
+      <div class="ai-preview" id="aiPreview">
+        <div class="ai-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg>
+          AI Auto-Routing Preview
+        </div>
+        <div class="ai-row"><span class="ai-label">Department:</span><span id="aiDept">Facility Operations &amp; Plumbing</span></div>
+        <div class="ai-row"><span class="ai-label">Priority:</span><span id="aiPriority">Normal</span></div>
+        <div class="ai-row"><span class="ai-label">SLA Target:</span><span id="aiSla">48 hours</span></div>
+      </div>
+
+      <div class="form-row">
+        <!-- Category -->
+        <div class="form-group">
+          <label class="form-label" for="fCategory">Issue Category *</label>
+          <select class="form-select" id="fCategory" required onchange="onCatChange()">
+            <option value="water">Water &amp; Plumbing</option>
+            <option value="power">Power &amp; Lighting</option>
+            <option value="wifi">Wi-Fi &amp; Connectivity</option>
+            <option value="safety">Safety &amp; Emergency Post</option>
+            <option value="waste">Waste &amp; Sanitation</option>
+            <option value="hostel">Hostel &amp; Residence</option>
+            <option value="labs">Labs &amp; Classrooms</option>
+          </select>
+        </div>
+        <!-- Location -->
+        <div class="form-group">
+          <label class="form-label" for="fLocation">Campus Location *</label>
+          <select class="form-select" id="fLocation" required>
+            <option>Padmanath Gohain Baruah Chatra Nivas (Hostel Block A)</option>
+            <option>Joymati Chatri Nivas (Hostel Block B)</option>
+            <option>Lakshminath Bezbaroa Central Library</option>
+            <option>DUIET Engineering Workshop &amp; Maker Lab</option>
+            <option>North Academic Block &amp; Science Complex</option>
+            <option>Rangghar Auditorium &amp; Main Quadrangle</option>
+            <option>Administrative Building &amp; Registrar Office</option>
+            <option>University Health Centre &amp; Main Security Gate</option>
+            <option>Bhojraj Sethi Indoor Stadium &amp; Sports Arena</option>
+            <option>Vishnu Rabha Bhawan &amp; Student Center</option>
+            <option value="OTHER">Other (specify below)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Custom location -->
+      <div class="form-group" id="customLocGroup" style="display:none">
+        <label class="form-label" for="fCustomLoc">Specify Exact Location</label>
+        <input class="form-input" id="fCustomLoc" type="text" placeholder="e.g. Room 210, Science Block" />
+      </div>
+
+      <!-- Urgency -->
+      <div class="form-group">
+        <label class="form-label">Urgency Level</label>
+        <div class="urgency-btns">
+          <button type="button" class="urgency-btn active-normal" id="urgNormal" onclick="setUrgency('Normal')">Normal</button>
+          <button type="button" class="urgency-btn" id="urgUrgent" onclick="setUrgency('Urgent')">Urgent</button>
+          <button type="button" class="urgency-btn" id="urgHazard" onclick="setUrgency('Immediate Hazard')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c03020" stroke-width="2.5" style="display:inline;vertical-align:-1px" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Immediate Hazard
+          </button>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group full">
+        <label class="form-label" for="fDesc">Describe the Issue *</label>
+        <textarea class="form-textarea" id="fDesc" required minlength="8" placeholder="Describe what you observed — be specific about the exact spot, severity, and any immediate risk." oninput="updateAI()"></textarea>
+        <span class="form-error" id="descError" style="display:none">Please describe the issue (minimum 8 characters).</span>
+      </div>
+
+      <div class="form-row">
+        <!-- Name -->
+        <div class="form-group">
+          <label class="form-label" for="fName">Your Name (optional)</label>
+          <input class="form-input" id="fName" type="text" placeholder="Anonymous if left blank" />
+        </div>
+        <!-- Contact -->
+        <div class="form-group">
+          <label class="form-label" for="fContact">Contact (optional)</label>
+          <input class="form-input" id="fContact" type="text" placeholder="Email or phone for follow-up" />
+        </div>
+      </div>
+
+      <!-- Photo -->
+      <div class="form-group full">
+        <label class="form-label">Photo Evidence (optional)</label>
+        <div class="photo-zone" id="photoZone">
+          <input type="file" accept="image/*" onchange="handlePhoto(event)" id="photoInput" />
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--olive)" stroke-width="1.8" aria-hidden="true" style="margin:0 auto 6px"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <div style="font-size:13px;color:#4a6a30;font-weight:500">Click to attach a photo</div>
+          <div style="font-size:11px;color:#6a8a50;margin-top:3px">JPG, PNG, WEBP — max 5MB</div>
+          <img id="photoPreview" class="photo-preview" style="display:none" alt="Evidence photo preview" />
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button type="submit" class="btn" style="font-size:14px;height:44px;padding:0 28px;">Submit Complaint</button>
+        <span style="font-size:12px;color:#4a6a30">A unique ticket ID is generated instantly.</span>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ════════════ CTA ════════════ -->
+<section class="cta" id="cta">
+  <div class="sq-field" data-count="14" aria-hidden="true"></div>
+  <div class="cta-img">
+    <img id="ctaImg" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093217_cc690198-ad8c-4127-8734-8485bd878351.png" alt="Moonlit campus" />
+  </div>
+  <div id="petals" aria-hidden="true"></div>
+  <div class="cta-card" id="ctaCard">
+    <span class="pill"><span class="pill-dot"></span>Every issue counts</span>
+    <h2 class="h2 split">Every campus issue deserves<br>a verified resolution.</h2>
+    <p style="font-size:14px;color:#1a2e10;line-height:1.55" class="reveal">No login. No bureaucracy. Your report lands in the right inbox in seconds and stays public until it's fixed.</p>
+    <div class="cta-btns">
+      <button class="btn reveal" onclick="document.getElementById('report').scrollIntoView({behavior:'smooth'})" style="font-size:14px;height:44px;padding:0 26px;">File a Report Now</button>
+      <button class="btn-outline reveal" onclick="openTracker()">Track Complaint</button>
+    </div>
+    <div class="track-form reveal">
+      <p>Already filed? Track your complaint:</p>
+      <div class="track-input-row">
+        <input class="track-input" id="ctaTrackInput" type="text" placeholder="Complaint ID (e.g. CS-8921)" />
+        <button class="btn" onclick="openTrackerWithId(document.getElementById('ctaTrackInput').value)">Track →</button>
+      </div>
+    </div>
+    <p class="reveal" style="margin-top:18px;font-size:11.5px;color:#2a3a10">
+      Emergency? Call Security: <a href="tel:+913732370239" style="color:var(--olive);font-weight:700">+91 (373) 237-0239</a>
+    </p>
+  </div>
+</section>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer id="footer">
+  <div class="f-logo-wrap">
+    <svg class="f-logo" viewBox="0 0 80 80" overflow="visible" aria-label="CivicSense">
+      <circle id="fRing" cx="40" cy="40" r="37" fill="none" stroke="#0a1e04" stroke-width="2.4" stroke-dasharray="233" stroke-dashoffset="233" transform="rotate(-90 40 40)"/>
+      <circle class="fdot" cx="22" cy="40" r="4.5" fill="#0a1e04"/>
+      <circle class="fdot" cx="40" cy="40" r="4.5" fill="#0a1e04"/>
+      <circle class="fdot" cx="58" cy="40" r="4.5" fill="#0a1e04"/>
+      <path id="fMark" d="M31 52 40 30 56 52" fill="none" stroke="#0a1e04" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="60" stroke-dashoffset="60"/>
+    </svg>
+    CivicSense
+  </div>
+  <nav class="f-links" aria-label="Footer navigation">
+    <a href="#hero">Home</a>
+    <a href="#how">Workflow</a>
+    <a href="#categories">Categories</a>
+    <a href="#report">Report</a>
+    <a href="#" onclick="openTracker();return false">Track</a>
+    <a href="#" onclick="openLogin();return false">Officials</a>
+  </nav>
+  <div class="f-right">
+    <span>Dibrugarh University, Rajabheta, Assam</span>
+    <a href="mailto:network-helpdesk@dibru.ac.in" style="color:var(--olive);font-weight:600">network-helpdesk@dibru.ac.in</a>
+    <span>Emergency: <a href="tel:+913732370239" style="color:var(--olive);font-weight:600">+91 373 237-0239</a></span>
+  </div>
+  <p class="f-copy">CivicSense · Game of Codes | ANAZORI v16.0 · PS-04 · Dibrugarh University · © 2026 · All rights reserved.</p>
+</footer>
+
+</div><!-- /app -->
+
+<!-- ═══════════════════════════════════════
+     COMPLAINT TRACKER MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="trackerModal" role="dialog" aria-modal="true" aria-labelledby="trackerTitle">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        Complaint Status Tracker
+      </div>
+      <button class="modal-close" onclick="closeTracker()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Search -->
+      <div style="display:flex;gap:8px">
+        <input class="track-input" id="trackerInput" type="text" placeholder="Enter Complaint ID (e.g. CS-8921)" style="flex:1;border-radius:10px;height:42px" />
+        <button class="btn" onclick="searchComplaint()" style="height:42px;border-radius:10px;">Search</button>
+      </div>
+      <div id="trackerError" style="display:none" class="error-msg"></div>
+
+      <!-- Result -->
+      <div id="trackerResult" style="display:none;flex-direction:column;gap:14px">
+        <div id="statusBanner" class="status-banner pending"></div>
+
+        <div class="tracker-steps" id="trackerSteps">
+          <div class="tracker-step">Reported</div>
+          <div class="tracker-step">In Progress</div>
+          <div class="tracker-step">Solved</div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px" id="trackerDetails"></div>
+
+        <div id="trackerReply" style="display:none;background:#f0ffe8;border:1px solid #a0d8a0;border-radius:10px;padding:12px 14px">
+          <div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Latest Official Update</div>
+          <div id="trackerReplyText" style="font-size:13px;color:#1a3010;line-height:1.5"></div>
+        </div>
+
+        <div id="trackerTimelineWrap" style="display:none;background:#f8faf4;border-radius:12px;padding:14px 16px;border:1px solid var(--line)">
+          <div style="font-size:11px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Route &amp; Resolution Milestones</div>
+          <div class="timeline" id="trackerTimeline"></div>
+        </div>
+
+        <div style="text-align:right">
+          <button class="btn-outline" onclick="document.getElementById('report').scrollIntoView({behavior:'smooth'});closeTracker();" style="font-size:12px;height:32px;padding:0 14px;">+ File New Report</button>
+        </div>
+      </div>
+
+      <!-- Sample IDs -->
+      <div style="background:#f8faf4;border-radius:10px;padding:12px 14px">
+        <div style="font-size:11px;font-weight:600;color:var(--olive);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Demo Complaints</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="demoIds"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     OFFICIALS LOGIN MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Officials Access Portal
+      </div>
+      <button class="modal-close" onclick="closeLogin()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-box">
+        Password-protected portal for Department Heads, Student Union Executive, and Central Admin. Your role is auto-detected upon login.
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Select Demo Role Preset</div>
+        <div class="preset-grid" id="presetGrid"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="pwInput">Password</label>
+        <input class="pw-input" id="pwInput" type="password" value="civic2026" placeholder="Enter authorized password" />
+      </div>
+
+      <div id="loginError" style="display:none" class="error-msg"></div>
+      <button class="btn" id="loginSubmitBtn" onclick="submitLogin()" style="width:100%;height:44px;font-size:14px;border-radius:10px;">Login to Workspace</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     OFFICIAL WORKSPACE MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="workspaceModal" role="dialog" aria-modal="true" aria-labelledby="wsTitle">
+  <div class="modal" style="max-width:760px;max-height:92vh">
+    <div class="modal-header">
+      <div class="modal-title" id="wsTitle">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+        <span id="wsRoleLabel">Official Workspace</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="wsUserName" style="font-size:12px;opacity:.85"></span>
+        <button onclick="logoutWorkspace()" style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:12px;padding:4px 10px;border-radius:999px;cursor:pointer">Logout</button>
+        <button class="modal-close" onclick="closeWorkspace()" aria-label="Close">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="wsBody"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>
+(function(){
+'use strict';
+/* ══════════ DATA / STATE ══════════ */
+var ROUTING_RULES = [
+  {
+    categoryId: 'waste',
+    categoryName: 'Clean Campus & Sorting',
+    owningPost: 'Estates & Sanitation Operations Desk',
+    officeId: 'sanitation',
+    headName: 'Dr. Mukul Barua',
+    headEmail: 'dept.sanitation@campus.edu',
+    defaultSlaHours: 12,
+    escalationThresholdHours: 24,
+    keywords: ['dustbin', 'garbage', 'trash', 'waste', 'recycling', 'litter', 'smell', 'plastic', 'dump']
+  },
+  {
+    categoryId: 'water',
+    categoryName: 'Green Grounds & Water Systems',
+    owningPost: 'Horticulture & Water Engineering Bay',
+    officeId: 'facilities',
+    headName: 'Shri Biren Gogoi',
+    headEmail: 'dept.water@campus.edu',
+    defaultSlaHours: 18,
+    escalationThresholdHours: 36,
+    keywords: ['water', 'tap', 'leak', 'pipe', 'pipeline', 'drainage', 'toilet', 'flush', 'plumbing', 'sprinkler', 'sapling']
+  },
+  {
+    categoryId: 'power',
+    categoryName: 'Campus Power & Pathway Lighting',
+    owningPost: 'Electrical Maintenance & Substation Desk',
+    officeId: 'electrical',
+    headName: 'Er. Deepshikha Kalita',
+    headEmail: 'dept.electrical@campus.edu',
+    defaultSlaHours: 8,
+    escalationThresholdHours: 16,
+    keywords: ['light', 'dark', 'pathway', 'street light', 'power', 'socket', 'wire', 'spark', 'breaker', 'fan', 'ac']
+  },
+  {
+    categoryId: 'safety',
+    categoryName: 'Proctorial & Student Welfare',
+    owningPost: 'Proctorial Command & Campus Security House',
+    officeId: 'security',
+    headName: 'Col. Ranjit Dutta',
+    headEmail: 'safety-control@campus.edu',
+    defaultSlaHours: 4,
+    escalationThresholdHours: 8,
+    keywords: ['safety', 'security', 'guard', 'gate', 'stray dog', 'harassment', 'cctv', 'theft', 'locked', 'emergency']
+  },
+  {
+    categoryId: 'hostel',
+    categoryName: 'Hostel & Residential Welfare',
+    owningPost: 'Chief Warden & Housing Redressal Box',
+    officeId: 'hostels',
+    headName: 'Dr. Pranab Bora',
+    headEmail: 'hostel-warden@campus.edu',
+    defaultSlaHours: 24,
+    escalationThresholdHours: 48,
+    keywords: ['hostel', 'room', 'mess', 'food', 'geyser', 'bed', 'warden', 'curfew', 'dining', 'laundry']
+  },
+  {
+    categoryId: 'wifi',
+    categoryName: 'Campus IT & Digital Connectivity',
+    owningPost: 'Central IT Network Operations Centre',
+    officeId: 'it-network',
+    headName: 'Mr. Devabrata Hazarika',
+    headEmail: 'network-helpdesk@campus.edu',
+    defaultSlaHours: 24,
+    escalationThresholdHours: 48,
+    keywords: ['wifi', 'wi-fi', 'internet', 'network', 'router', 'portal', 'server', 'lan', 'ethernet']
+  },
+  {
+    categoryId: 'labs',
+    categoryName: 'Academic Labs & Classroom Tech',
+    owningPost: 'Academic Computing & Instrumentation Desk',
+    officeId: 'labs',
+    headName: 'Prof. Sanjib Bordoloi',
+    headEmail: 'labs-support@campus.edu',
+    defaultSlaHours: 24,
+    escalationThresholdHours: 48,
+    keywords: ['projector', 'lab', 'computer', 'bench', 'air conditioner', 'ac', 'av', 'software']
+  }
+];
+
+var OFFICIALS = [
+  {
+    id: 'off_sanitation',
+    name: 'Dr. Mukul Barua',
+    email: 'dept.sanitation@campus.edu',
+    role: 'dept_head',
+    roleTitle: 'Head, Estates & Sanitation Operations',
+    departmentId: 'waste',
+    departmentName: 'Clean Campus & Sanitation Desk',
+    mode: 1
+  },
+  {
+    id: 'off_electrical',
+    name: 'Er. Deepshikha Kalita',
+    email: 'dept.electrical@campus.edu',
+    role: 'dept_head',
+    roleTitle: 'Chief Engineer, Electrical & Power Maintenance',
+    departmentId: 'power',
+    departmentName: 'Power & Infrastructure Desk',
+    mode: 1
+  },
+  {
+    id: 'off_water',
+    name: 'Shri Biren Gogoi',
+    email: 'dept.water@campus.edu',
+    role: 'dept_head',
+    roleTitle: 'Officer in Charge, Water & Facilities Depot',
+    departmentId: 'water',
+    departmentName: 'Water & Facilities Depot',
+    mode: 1
+  },
+  {
+    id: 'off_president',
+    name: 'Anupam Saikia',
+    email: 'president.union@campus.edu',
+    role: 'president_gs',
+    roleTitle: 'President / General Secretary, Student Executive Council',
+    departmentId: 'executive',
+    departmentName: 'DUSU Executive Council',
+    mode: 2
+  },
+  {
+    id: 'off_superadmin',
+    name: 'Prof. Hemanga Sharma',
+    email: 'superadmin.gov@campus.edu',
+    role: 'admin',
+    roleTitle: 'University Registrar & Chief Redressal Ombudsman',
+    departmentId: 'admin',
+    departmentName: 'University Ombudsman & Central Registry',
+    mode: 3
+  }
+];
+
+/* Seed complaints in localStorage */
+var SEED = [
+  {
+    id: 'CS-8921',
+    ts: Date.now() - 1000 * 60 * 60 * 14,
+    title: 'High pressure water pipeline rupture near Science Quad',
+    desc: 'Irrigation pipe burst along pathway leading from Chemistry building to central lawn. Water pooling across footpath and flooding lawn saplings.',
+    location: 'Science Quad, Lawn Pathway behind Chem Annex',
+    cat: 'water',
+    catName: 'Green Grounds & Water Systems',
+    urgency: 'Urgent',
+    status: 'in_progress',
+    studentName: 'Priyanka Das',
+    studentContact: 'priyanka.d@campus.edu',
+    dept: 'Horticulture & Water Engineering Bay',
+    aiAnalysis: {
+      detectedCategory: 'water',
+      categoryName: 'Green Grounds & Water Systems',
+      priority: 'Urgent',
+      summary: 'High priority water pipe rupture causing flooding. Assigned to Water & Facilities Depot.',
+      owningPost: 'Horticulture & Water Engineering Bay',
+      officeId: 'facilities',
+      slaHours: 18,
+      confidenceScore: 0.96,
+      keySignals: ['pipe', 'leak', 'water', 'flooding']
+    },
+    routeHistory: [
+      { id: 'm1', ts: Date.now() - 1000 * 60 * 60 * 14, stage: 'Report Submitted', actor: 'Priyanka Das (Student)', role: 'Citizen', note: 'Report lodged with campus location tag.' },
+      { id: 'm2', ts: Date.now() - 1000 * 60 * 60 * 13.8, stage: 'AI Analysis & Auto-Route', actor: 'CivicSense Neural Dispatch', role: 'AI Engine', note: 'Priority flagged as Urgent (SLA 18h). Routed directly to Horticulture & Water Engineering Bay.' },
+      { id: 'm3', ts: Date.now() - 1000 * 60 * 60 * 8, stage: 'Owning Desk Acknowledged', actor: 'Shri Biren Gogoi', role: 'Officer in Charge', note: 'Plumbing field crew dispatched with replacement coupling joint.' }
+    ],
+    replies: [
+      { id: 'r1', complaintId: 'CS-8921', author: 'Shri Biren Gogoi (Water Dept)', role: 'Department Head', message: 'Main line shutoff isolated at 09:30 AM. Plumbers are fitting a PVC sleeve now. Pressure will be restored by 03:00 PM.', ts: Date.now() - 1000 * 60 * 60 * 7 }
+    ]
+  },
+  {
+    id: 'CS-8922',
+    ts: Date.now() - 1000 * 60 * 60 * 28,
+    title: 'Pathway streetlight dark behind Girls Hostel Block 3',
+    desc: 'Two consecutive lampposts completely dead on pedestrian lane from Block 3 to Library. Area pitch black after 07:00 PM, creating serious safety hazard.',
+    location: 'Girls Hostel Block 3 Rear Lane to Central Library',
+    cat: 'power',
+    catName: 'Campus Power & Pathway Lighting',
+    urgency: 'Immediate Hazard',
+    status: 'escalated',
+    studentName: 'Ritu Borah',
+    studentContact: 'ritu.b@campus.edu',
+    dept: 'Electrical Maintenance & Substation Desk',
+    aiAnalysis: {
+      detectedCategory: 'power',
+      categoryName: 'Campus Power & Pathway Lighting',
+      priority: 'Immediate Hazard',
+      summary: 'High vulnerability pathway darkness flagged behind residential hostel. SLA threshold breached.',
+      owningPost: 'Electrical Maintenance & Substation Desk',
+      officeId: 'electrical',
+      slaHours: 8,
+      confidenceScore: 0.98,
+      keySignals: ['dark', 'street light', 'safety', 'lane']
+    },
+    routeHistory: [
+      { id: 'm21', ts: Date.now() - 1000 * 60 * 60 * 28, stage: 'Report Lodged', actor: 'Ritu Borah (Resident Student)', role: 'Citizen', note: 'Complaint lodged regarding dark pathway.' },
+      { id: 'm22', ts: Date.now() - 1000 * 60 * 60 * 27.9, stage: 'AI Auto-Route', actor: 'CivicSense Neural Dispatch', role: 'AI Engine', note: 'Classified as Immediate Hazard. Dispatched to Electrical Maintenance Desk with 8h SLA target.' },
+      { id: 'm23', ts: Date.now() - 1000 * 60 * 60 * 12, stage: 'Escalated to President / GS', actor: 'Er. Deepshikha Kalita', role: 'Dept Head (Electrical)', note: 'Escalated: Fixture control ballast damaged; purchase order awaiting finance dean clearance.' }
+    ],
+    replies: [
+      { id: 'r21', complaintId: 'CS-8922', author: 'Er. Deepshikha Kalita (Electrical)', role: 'Department Head', message: 'Underground wiring checked; fixture head ballast burned out. Requisition filed under emergency spares.', ts: Date.now() - 1000 * 60 * 60 * 14 },
+      { id: 'r22', complaintId: 'CS-8922', author: 'Anupam Saikia (President / GS)', role: 'Student Executive', message: 'ESCALATION INTERVENTION: Met Dean of Students this morning. Emergency cash float authorized. Electricians installing floodlight by 5 PM today.', ts: Date.now() - 1000 * 60 * 60 * 3 }
+    ],
+    escalation: {
+      isEscalated: true,
+      escalatedAt: Date.now() - 1000 * 60 * 60 * 12,
+      reason: 'Awaiting finance clearance for high-lumen commercial ballasts; SLA exceeded by 20 hours.',
+      escalatedBy: 'Er. Deepshikha Kalita (Dept Head)'
+    }
+  },
+  {
+    id: 'CS-8923',
+    ts: Date.now() - 1000 * 60 * 60 * 6,
+    title: 'Recycling bin overflowing outside Central Canteen',
+    desc: 'Dry waste and cardboard bins outside Student Activity Centre spilling onto sidewalk. Need additional sorting bins before lunch crowd.',
+    location: 'Central Canteen Patio, West Entry',
+    cat: 'waste',
+    catName: 'Clean Campus & Sorting',
+    urgency: 'Normal',
+    status: 'resolved',
+    studentName: 'Bikash Medhi',
+    studentContact: 'bikash.m@campus.edu',
+    dept: 'Estates & Sanitation Operations Desk',
+    aiAnalysis: {
+      detectedCategory: 'waste',
+      categoryName: 'Clean Campus & Sorting',
+      priority: 'Normal',
+      summary: 'Overflowing collection bins at high-traffic cafeteria area.',
+      owningPost: 'Estates & Sanitation Operations Desk',
+      officeId: 'sanitation',
+      slaHours: 12,
+      confidenceScore: 0.95,
+      keySignals: ['recycling', 'garbage', 'bin', 'canteen']
+    },
+    routeHistory: [
+      { id: 'm31', ts: Date.now() - 1000 * 60 * 60 * 6, stage: 'Report Submitted', actor: 'Bikash Medhi', role: 'Citizen', note: 'Report logged with photo.' },
+      { id: 'm32', ts: Date.now() - 1000 * 60 * 60 * 5.9, stage: 'AI Auto-Route', actor: 'CivicSense Neural Dispatch', role: 'AI Engine', note: 'Dispatched to Estates & Sanitation Desk.' },
+      { id: 'm33', ts: Date.now() - 1000 * 60 * 60 * 2, stage: 'Resolved', actor: 'Dr. Mukul Barua', role: 'Head, Estates & Sanitation', note: 'Bins cleared and two extra 120L sorting drums placed for weekend festival.' }
+    ],
+    replies: [
+      { id: 'r31', complaintId: 'CS-8923', author: 'Dr. Mukul Barua (Sanitation)', role: 'Department Head', message: 'Resolved! Morning collection team cleared the patio and placed dedicated beverage cup containers.', ts: Date.now() - 1000 * 60 * 60 * 2 }
+    ],
+    resolvedAt: Date.now() - 1000 * 60 * 60 * 2,
+    resolutionNote: 'Sanitation quad crew cleared overflow and deployed high-capacity sorting barrels.'
+  },
+  {
+    id: 'CS-8924',
+    ts: Date.now() - 1000 * 60 * 60 * 4,
+    title: 'Wi-Fi AP dropped in 2nd floor Silent Study Area',
+    desc: 'Eduroam router AP-LIB-204 blinking red; zero signal in reading hall. Students studying for mid-term exams unable to access journals.',
+    location: 'Central Library, 2nd Floor North Silent Wing',
+    cat: 'wifi',
+    catName: 'Campus IT & Digital Connectivity',
+    urgency: 'Normal',
+    status: 'investigating',
+    studentName: 'Kabir Ahmed',
+    studentContact: 'kabir.a@campus.edu',
+    dept: 'Central IT Network Operations Centre',
+    aiAnalysis: {
+      detectedCategory: 'wifi',
+      categoryName: 'Campus IT & Digital Connectivity',
+      priority: 'Normal',
+      summary: 'Access point offline in exam study wing. Routed to IT NOC.',
+      owningPost: 'Central IT Network Operations Centre',
+      officeId: 'it-network',
+      slaHours: 24,
+      confidenceScore: 0.97,
+      keySignals: ['wifi', 'router', 'network', 'reading hall']
+    },
+    routeHistory: [
+      { id: 'm41', ts: Date.now() - 1000 * 60 * 60 * 4, stage: 'Report Lodged', actor: 'Kabir Ahmed', role: 'Citizen', note: 'Report submitted via CivicSense web portal.' },
+      { id: 'm42', ts: Date.now() - 1000 * 60 * 60 * 3.9, stage: 'AI Analysis & Auto-Route', actor: 'CivicSense Neural Dispatch', role: 'AI Engine', note: 'Identified IT switch issue. Assigned to Network Operations Desk.' }
+    ],
+    replies: [
+      { id: 'r41', complaintId: 'CS-8924', author: 'Mr. Devabrata Hazarika (IT)', role: 'Department Head', message: 'PoE port reset remotely; investigating recurring switch reboot in rack 2.', ts: Date.now() - 1000 * 60 * 60 * 1 }
+    ]
+  },
+  {
+    id: 'CS-8925',
+    ts: Date.now() - 1000 * 60 * 60 * 2,
+    title: 'Duplicate: Leakage from irrigation line near Chemistry annex',
+    desc: 'Water leaking heavily near the science quad garden path.',
+    location: 'Science Quad near Chemistry',
+    cat: 'water',
+    catName: 'Green Grounds & Water Systems',
+    urgency: 'Urgent',
+    status: 'submitted',
+    studentName: 'Dipankar Sharma',
+    studentContact: 'dipankar.s@campus.edu',
+    dept: 'Horticulture & Water Engineering Bay',
+    aiAnalysis: {
+      detectedCategory: 'water',
+      categoryName: 'Green Grounds & Water Systems',
+      priority: 'Urgent',
+      summary: 'Likely duplicate of CS-8921 (Science Quad irrigation leak). Candidate for admin merge.',
+      owningPost: 'Horticulture & Water Engineering Bay',
+      officeId: 'facilities',
+      slaHours: 18,
+      confidenceScore: 0.93,
+      keySignals: ['water', 'leak', 'science quad']
+    },
+    routeHistory: [
+      { id: 'm51', ts: Date.now() - 1000 * 60 * 60 * 2, stage: 'Report Submitted', actor: 'Dipankar Sharma', role: 'Citizen', note: 'Report lodged.' }
+    ],
+    replies: []
+  }
+];
+
+var STORAGE_KEY = 'civicsense_complaints_v3';
+function loadComplaints(){try{var s=localStorage.getItem(STORAGE_KEY);if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)return p;}}catch(e){}return null;}
+function saveComplaints(arr){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(arr));}catch(e){}}
+function getComplaints(){var c=loadComplaints();if(!c){c=SEED;saveComplaints(c);}return c;}
+function getById(id){var s=(id||'').trim().toUpperCase().replace('#','');return getComplaints().find(function(c){return c.id.toUpperCase().replace('#','')===s});}
+function saveOne(updated){var all=getComplaints();var idx=all.findIndex(function(c){return c.id===updated.id});if(idx>-1)all[idx]=updated;saveComplaints(all);}
+
+/* Counter */
+var counter=0;
+function nextId(){var all=getComplaints();counter=all.length+8921;return 'CS-'+counter;}
+
+var currentUser=null;
+var selectedUrgency='Normal';
+var selectedCatId='water';
+var photoData=null;
+window.selectedCatId=selectedCatId;
+
+/* ══════════ GSAP / LENIS SETUP ══════════ */
+gsap.registerPlugin(ScrollTrigger);
+var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var isMobile=window.innerWidth<=760;
+
+function splitWords(el){
+  var nodes=Array.from(el.childNodes);el.innerHTML='';
+  nodes.forEach(function(n){
+    if(n.nodeType===3){n.textContent.split(/(\s+)/).forEach(function(w){if(/^\s+$/.test(w))el.appendChild(document.createTextNode(w));else if(w){var s=document.createElement('span');s.className='w';s.textContent=w;el.appendChild(s);}});}
+    else if(n.nodeType===1){if(n.tagName==='BR')el.appendChild(document.createElement('br'));else{var c=n.cloneNode(false);el.appendChild(c);splitWords(c);}}
+  });
+}
+document.querySelectorAll('.split').forEach(splitWords);
+
+document.querySelectorAll('.sq-field').forEach(function(f){
+  var count=parseInt(f.dataset.count)||16;
+  for(var i=0;i<count;i++){var sq=document.createElement('div');sq.className='grid-sq';sq.style.cssText='width:46px;height:46px;left:'+(Math.floor(Math.random()*30)*48-10)+'px;top:'+(Math.floor(Math.random()*6)*48+6)+'px;';f.appendChild(sq);if(!reduce)gsap.to(sq,{opacity:0,duration:1.2,repeat:-1,yoyo:true,delay:Math.random()*4,repeatDelay:Math.random()*3,ease:'sine.inOut'});}
+});
+
+var gp=[[3,64],[3,71],[6.5,71],[10,71],[3,78],[-1,70],[45.5,76],[49,80],[49,76],[52.5,76],[86,58],[86,67],[82,76],[89.5,76],[86,84]];
+var hg=document.getElementById('heroGlass');
+gp.forEach(function(p,i){
+  if(isMobile&&i%2!==0)return;
+  var isC=p[0]>40&&p[0]<60;var sz=isC?'clamp(28px,3.4vw,44px)':'clamp(36px,5.4vw,74px)';
+  var sq=document.createElement('div');sq.className='glass';sq.style.cssText='left:'+p[0]+'%;top:'+p[1]+'%;width:'+sz+';aspect-ratio:1;';
+  hg.appendChild(sq);if(!reduce)gsap.to(sq,{opacity:.15,duration:.9,repeat:-1,yoyo:true,ease:'sine.inOut',delay:Math.random()*3,repeatDelay:1+Math.random()*3});
+});
+
+/* Petals */
+var pe=document.getElementById('petals');
+var pc=['#a8e070','#84c441','#c8f090','#6aaa30','#b0d860','#d4f0a0'];
+for(var i=0;i<18;i++){var p=document.createElement('span');p.className='petal';var l=Math.random()*100;var dx=(Math.random()-.5)*160;var dur=9+Math.random()*9;var del=-(Math.random()*15);var sc=.6+Math.random()*.8;p.style.cssText='left:'+l+'%;--dx:'+dx+'px;animation-duration:'+dur+'s;animation-delay:'+del+'s;transform:scale('+sc+');background:'+pc[Math.floor(Math.random()*pc.length)]+';';pe.appendChild(p);}
+
+/* Lenis */
+var lenis=new Lenis({duration:1.25,easing:function(t){return Math.min(1,1.001-Math.pow(2,-10*t));},smoothWheel:true});
+lenis.on('scroll',ScrollTrigger.update);
+gsap.ticker.add(function(t){lenis.raf(t*1000);});
+gsap.ticker.lagSmoothing(0);
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+  a.addEventListener('click',function(e){var t=document.querySelector(a.getAttribute('href'));if(t){e.preventDefault();lenis.scrollTo(t,{duration:1.6});}});
+});
+
+/* ══════════ INTRO ══════════ */
+lenis.stop();
+var hw=document.querySelectorAll('#heroTitle .w,#heroTitle em .w');
+gsap.set(hw,{opacity:0,y:24,filter:'blur(10px)'});gsap.set('.nav',{opacity:0,y:-16});gsap.set('#heroBadges',{opacity:0,y:16});
+gsap.timeline({delay:.25,onComplete:function(){
+  document.body.classList.remove('intro');gsap.set('#app',{clearProps:'all'});
+  var bd=document.querySelector('.backdrop');if(bd)bd.remove();lenis.start();setupScroll();
+}})
+.fromTo('#app',{scale:.9,borderRadius:28},{scale:1,borderRadius:0,duration:1.4,ease:'expo.inOut'})
+.to('.nav',{opacity:1,y:0,duration:.8,ease:'power3.out'},'-=.5')
+.to(hw,{opacity:1,y:0,filter:'blur(0px)',duration:1,stagger:.07,ease:'power3.out'},'-=.7')
+.to('#heroBadges',{opacity:1,y:0,duration:.7,ease:'power3.out'},'-=.5')
+.from('.cloud-l',{x:-120,opacity:0,duration:1.6,ease:'power3.out'},.4)
+.from('.cloud-r',{x:120,opacity:0,duration:1.6,ease:'power3.out'},.4)
+.from('#heroGlass .glass',{opacity:0,scale:.6,duration:.6,stagger:{each:.05,from:'random'},ease:'back.out(2)'},'-=1');
+
+/* ══════════ SCROLL ══════════ */
+function setupScroll(){
+  ScrollTrigger.create({trigger:'#hero',start:'top top',end:'bottom top',scrub:true,onUpdate:function(s){gsap.set('#heroTitle',{yPercent:-60*s.progress});gsap.set('#heroBadges',{yPercent:-40*s.progress,opacity:Math.max(0,1-s.progress*2)});document.querySelectorAll('.hero [data-par]').forEach(function(el){gsap.set(el,{y:parseFloat(el.dataset.par)*2*s.progress});});gsap.set('.hero-media',{yPercent:8*s.progress});}});
+  document.querySelectorAll('.reveal').forEach(function(el){gsap.from(el,{opacity:0,y:16,duration:.8,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 85%'}});});
+  document.querySelectorAll('#stats .split .w,#how .split .w,#categories .split .w,#cta .split .w,#report .split .w').forEach(function(el){gsap.from(el,{opacity:0,y:22,filter:'blur(8px)',duration:.9,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 80%'}});});
+
+  function setCounters(p){document.querySelectorAll('.card').forEach(function(c){c.querySelector('.card-value').textContent=(parseFloat(c.dataset.to)*p).toFixed(parseInt(c.dataset.dec))+c.dataset.suf;});}
+
+  var mm=gsap.matchMedia();
+  mm.add('(min-width:901px)',function(){
+    gsap.from('.card',{y:40,opacity:0,stagger:.08,ease:'power3.out',scrollTrigger:{trigger:'.cards',start:'top 70%'}});
+    var px={p:0};var stl=gsap.timeline({scrollTrigger:{trigger:'#stats',start:'top top',end:'+=120%',pin:true,scrub:1}});
+    stl.to(px,{p:1,ease:'none',onUpdate:function(){setCounters(px.p);}}).fromTo('#tree',{yPercent:75},{yPercent:6,ease:'none'},'<');
+    return function(){};
+  });
+  mm.add('(max-width:900px)',function(){
+    gsap.from('.card',{y:30,opacity:0,stagger:.08,ease:'power3.out',scrollTrigger:{trigger:'.cards',start:'top 85%'}});
+    ScrollTrigger.create({trigger:'.cards',start:'top 80%',once:true,onEnter:function(){var o={p:0};gsap.to(o,{p:1,duration:2,ease:'power2.out',onUpdate:function(){setCounters(o.p);}});}});
+    ScrollTrigger.create({trigger:'#stats',start:'top top',end:'bottom bottom',scrub:true,onUpdate:function(s){gsap.set('#tree',{yPercent:40-40*s.progress});}});
+    return function(){};
+  });
+  mm.add('(min-width:761px)',function(){
+    var panels=document.querySelectorAll('.panel');
+    function act(p){panels.forEach(function(x){x.classList.remove('is-active')});p.classList.add('is-active');}
+    panels.forEach(function(p){p.addEventListener('mouseenter',function(){act(p)});p.addEventListener('focus',function(){act(p)});p.addEventListener('click',function(){act(p)});});
+    gsap.from('.panel-in',{y:120,opacity:0,duration:1.1,stagger:.12,ease:'power3.out',scrollTrigger:{trigger:'#how',start:'top 60%'}});
+    ScrollTrigger.create({trigger:'#how',start:'top bottom',end:'bottom top',scrub:true,onUpdate:function(s){gsap.set('.loop-cloud',{x:60*s.progress});}});
+    return function(){};
+  });
+  mm.add('(max-width:760px)',function(){
+    document.querySelectorAll('.panel>*').forEach(function(el){gsap.from(el,{y:40,opacity:0,duration:.9,stagger:.1,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 85%'}});});
+    return function(){};
+  });
+  gsap.from('.cat-card',{y:30,opacity:0,stagger:{each:.06,from:'start'},duration:.8,ease:'power3.out',scrollTrigger:{trigger:'#catGrid',start:'top 80%'}});
+  ScrollTrigger.create({trigger:'#cta',start:'top bottom',end:'bottom bottom',scrub:true,onUpdate:function(s){gsap.set('#ctaImg',{yPercent:-12+12*s.progress});}});
+  gsap.from('#ctaCard',{y:80,scale:.94,opacity:0,filter:'blur(10px)',duration:1.2,ease:'power3.out',scrollTrigger:{trigger:'#cta',start:'top 60%'}});
+  var ftl=gsap.timeline({scrollTrigger:{trigger:'#footer',start:'top 92%'}});
+  ftl.to('.fdot',{y:-8,duration:.25,stagger:.08,yoyo:true,repeat:3,ease:'sine.inOut'}).to('.fdot',{attr:{cx:27,cy:50},duration:.45,ease:'power3.inOut'}).to('.fdot:nth-child(3),.fdot:nth-child(4)',{opacity:0,duration:.1},'>').to('#fMark',{strokeDashoffset:0,duration:.6,ease:'power3.out'},'-=.05').to('.fdot:nth-child(2)',{attr:{r:5.5},duration:.3,ease:'back.out(3)'},'<').to('#fRing',{strokeDashoffset:0,duration:.9,ease:'power2.inOut'},'-=.3');
+  ScrollTrigger.refresh();
+}
+window.addEventListener('load',function(){if(ScrollTrigger.getAll().length)ScrollTrigger.refresh();});
+
+/* ══════════ FORM LOGIC ══════════ */
+/* ══════════ FORM & AI LOGIC ══════════ */
+function runAIAnalysis(description, selectedCatId){
+  var text=(description||'').toLowerCase();
+  var bestRule=ROUTING_RULES[0];
+  var maxScore=-1;
+  var matchedKeywords=[];
+
+  for(var i=0; i<ROUTING_RULES.length; i++){
+    var rule=ROUTING_RULES[i];
+    var score=0;
+    for(var k=0; k<rule.keywords.length; k++){
+      var kw=rule.keywords[k];
+      if(text.indexOf(kw)!==-1){
+        score+=1;
+        if(matchedKeywords.indexOf(kw)===-1) matchedKeywords.push(kw);
+      }
+    }
+    if(selectedCatId && rule.categoryId===selectedCatId){
+      score+=2;
+    }
+    if(score>maxScore){
+      maxScore=score;
+      bestRule=rule;
+    }
+  }
+
+  var priority='Normal';
+  if(text.indexOf('spark')!==-1||text.indexOf('fire')!==-1||text.indexOf('shock')!==-1||text.indexOf('emergency')!==-1||text.indexOf('hazard')!==-1){
+    priority='Immediate Hazard';
+  } else if(text.indexOf('urgent')!==-1||text.indexOf('dark')!==-1||text.indexOf('overflow')!==-1||text.indexOf('broken tap')!==-1||text.indexOf('leak')!==-1){
+    priority='Urgent';
+  } else if(text.indexOf('slow')!==-1||text.indexOf('dust')!==-1||text.indexOf('routine')!==-1){
+    priority='Low';
+  }
+
+  return {
+    detectedCategory: bestRule.categoryId,
+    categoryName: bestRule.categoryName,
+    priority: priority,
+    summary: 'AI detected ' + bestRule.categoryName + ' concern requiring assignment to ' + bestRule.owningPost + '.',
+    owningPost: bestRule.owningPost,
+    officeId: bestRule.officeId,
+    slaHours: bestRule.defaultSlaHours,
+    confidenceScore: maxScore > 0 ? 0.94 : 0.82,
+    keySignals: matchedKeywords.length > 0 ? matchedKeywords.slice(0,4) : ['campus_context', 'location_proximity']
+  };
+}
+
+window.selectCat=function(id){
+  selectedCatId=id;window.selectedCatId=id;
+  document.querySelectorAll('.cat-card').forEach(function(c){c.classList.toggle('selected',c.dataset.cat===id);});
+  var sel=document.getElementById('fCategory');if(sel)sel.value=id;
+  updateAI();
+  document.getElementById('report').scrollIntoView({behavior:'smooth'});
+};
+window.onCatChange=function(){selectedCatId=document.getElementById('fCategory').value;updateAI();};
+function updateAI(){
+  var cat=document.getElementById('fCategory');if(!cat)return;
+  var desc=(document.getElementById('fDesc')?document.getElementById('fDesc').value:'')||'';
+  var analysis=runAIAnalysis(desc, cat.value);
+  var deptEl=document.getElementById('aiDept');
+  var priEl=document.getElementById('aiPriority');
+  var slaEl=document.getElementById('aiSla');
+  if(deptEl) deptEl.textContent=analysis.owningPost;
+  if(priEl) {
+    priEl.textContent=analysis.priority;
+    priEl.style.color=analysis.priority==='Immediate Hazard'?'#d03020':analysis.priority==='Urgent'?'#b07000':'var(--olive)';
+  }
+  if(slaEl) slaEl.textContent=analysis.slaHours+' hours (Target SLA)';
+}
+window.setUrgency=function(u){
+  selectedUrgency=u;
+  document.getElementById('urgNormal').className='urgency-btn'+(u==='Normal'?' active-normal':'');
+  document.getElementById('urgUrgent').className='urgency-btn'+(u==='Urgent'?' active-urgent':'');
+  document.getElementById('urgHazard').className='urgency-btn'+(u==='Immediate Hazard'?' active-hazard':'');
+};
+document.getElementById('fLocation').addEventListener('change',function(){
+  document.getElementById('customLocGroup').style.display=this.value==='OTHER'?'flex':'none';
+});
+window.handlePhoto=function(e){
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();reader.onload=function(ev){photoData=ev.target.result;var prev=document.getElementById('photoPreview');prev.src=photoData;prev.style.display='block';};reader.readAsDataURL(file);
+};
+window.submitReport=function(e){
+  e.preventDefault();
+  var desc=document.getElementById('fDesc').value.trim();
+  if(desc.length<8){document.getElementById('descError').style.display='block';return;}
+  document.getElementById('descError').style.display='none';
+  var cat=document.getElementById('fCategory').value;
+  var loc=document.getElementById('fLocation').value;if(loc==='OTHER')loc=document.getElementById('fCustomLoc').value||'Unspecified Location';
+  var analysis=runAIAnalysis(desc, cat);
+  var id=nextId();
+  var authorName=document.getElementById('fName').value.trim()||'Campus Citizen (Anonymous)';
+  var contact=document.getElementById('fContact').value.trim()||null;
+
+  var complaint={
+    id: id,
+    ts: Date.now(),
+    title: analysis.categoryName + ' at ' + loc,
+    desc: desc,
+    location: loc,
+    cat: analysis.detectedCategory,
+    catName: analysis.categoryName,
+    urgency: selectedUrgency !== 'Normal' ? selectedUrgency : analysis.priority,
+    status: 'open',
+    dept: analysis.owningPost,
+    studentName: authorName,
+    studentContact: contact,
+    photoUrl: photoData,
+    aiAnalysis: analysis,
+    routeHistory: [
+      {
+        id: 'm_' + Date.now() + '_1',
+        ts: Date.now(),
+        stage: 'Report Submitted',
+        actor: authorName,
+        role: 'Citizen',
+        note: 'Report registered for ' + loc + '. Public tracking enabled.'
+      },
+      {
+        id: 'm_' + Date.now() + '_2',
+        ts: Date.now() + 600,
+        stage: 'AI Analysis & Auto-Route',
+        actor: 'CivicSense Neural Dispatch',
+        role: 'AI Engine',
+        note: 'AI classified as ' + analysis.categoryName + ' (' + analysis.priority + '). Routed directly to ' + analysis.owningPost + ' (SLA ' + analysis.slaHours + 'h).'
+      }
+    ],
+    replies: []
+  };
+
+  var all=getComplaints();
+  all.unshift(complaint);
+  saveComplaints(all);
+
+  document.getElementById('ticketId').textContent=id;
+  document.getElementById('reportForm').style.display='none';
+  document.getElementById('successCard').style.display='flex';
+  document.getElementById('successCard').style.flexDirection='column';
+  buildDemoIds();
+};
+window.resetForm=function(){
+  document.getElementById('reportForm').reset();document.getElementById('reportForm').style.display='flex';document.getElementById('reportForm').style.flexDirection='column';
+  document.getElementById('successCard').style.display='none';photoData=null;document.getElementById('photoPreview').style.display='none';
+  selectedUrgency='Normal';setUrgency('Normal');updateAI();
+};
+window.openTrackerWithId=function(id){if(id&&id.trim()){document.getElementById('trackerInput').value=id.trim();openTracker();setTimeout(searchComplaint,100);}else{openTracker();}};
+
+/* ══════════ TRACKER MODAL ══════════ */
+function formatTime(ts){
+  if(!ts) return '';
+  var d=new Date(ts);
+  return d.toLocaleDateString('en-IN', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+}
+window.openTracker=function(){document.getElementById('trackerModal').classList.remove('hidden');buildDemoIds();};
+window.closeTracker=function(){document.getElementById('trackerModal').classList.add('hidden');};
+function buildDemoIds(){
+  var el=document.getElementById('demoIds');el.innerHTML='';
+  getComplaints().slice(0,5).forEach(function(c){
+    var b=document.createElement('button');b.style.cssText='background:var(--pill);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:11.5px;font-weight:600;cursor:pointer;color:var(--olive);font-family:inherit;';
+    b.textContent=c.id;b.onclick=function(){document.getElementById('trackerInput').value=c.id;searchComplaint();};
+    el.appendChild(b);
+  });
+}
+window.searchComplaint=function(){
+  var id=document.getElementById('trackerInput').value.trim();
+  if(!id){document.getElementById('trackerError').style.display='block';document.getElementById('trackerError').textContent='Please enter a Complaint ID.';return;}
+  var c=getById(id);
+  document.getElementById('trackerError').style.display='none';
+  if(!c){document.getElementById('trackerError').style.display='block';document.getElementById('trackerError').textContent='Complaint #'+id.toUpperCase()+' not found. Check your ID.';document.getElementById('trackerResult').style.display='none';return;}
+  renderTracker(c);
+};
+function renderTracker(c){
+  var res=document.getElementById('trackerResult');
+  res.style.display='flex';
+  res.style.flexDirection='column';
+
+  var isSolved = c.status==='resolved'||c.status==='closed';
+  var isEscalated = c.status==='escalated';
+  var isIP = c.status==='in_progress'||c.status==='investigating'||isEscalated;
+
+  var banner=document.getElementById('statusBanner');
+  if(isSolved){
+    banner.className='status-banner solved';
+    banner.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> STATUS: SOLVED — Complaint has been resolved.';
+  } else if(isEscalated){
+    banner.className='status-banner inprogress';
+    banner.style.borderColor='#d03020';
+    banner.style.background='#fef0ee';
+    banner.style.color='#901a10';
+    banner.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> STATUS: ESCALATED — Elevated to Student Union Executive for intervention.';
+  } else if(isIP){
+    banner.className='status-banner inprogress';
+    banner.style.borderColor='var(--blue)';
+    banner.style.background='#e8f0ff';
+    banner.style.color='#0a1060';
+    banner.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> STATUS: IN PROGRESS — Officials are actively resolving this.';
+  } else {
+    banner.className='status-banner pending';
+    banner.style.borderColor='#e6a800';
+    banner.style.background='#fff8e0';
+    banner.style.color='#5a3a00';
+    banner.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> STATUS: PENDING — Report received, awaiting department action.';
+  }
+
+  var steps=document.getElementById('trackerSteps');
+  var sArr=steps.children;
+  sArr[0].className='tracker-step done';
+  sArr[1].className='tracker-step' + (isIP || isSolved ? ' done' : '');
+  sArr[2].className='tracker-step' + (isSolved ? ' done' : (isIP ? ' active' : ''));
+
+  var detailsHtml = '<div class="detail-row"><span class="detail-label">Complaint ID</span><span style="font-weight:700;color:var(--olive)">' + c.id + '</span></div>' +
+    '<div class="detail-row"><span class="detail-label">Category</span><span>' + (c.catName || c.cat) + '</span></div>' +
+    '<div class="detail-row"><span class="detail-label">Location</span><span>' + c.location + '</span></div>' +
+    '<div class="detail-row"><span class="detail-label">Owning Post</span><span>' + (c.dept || 'Department Desk') + '</span></div>' +
+    '<div class="detail-row"><span class="detail-label">Urgency</span><span>' + (c.urgency || 'Normal') + '</span></div>' +
+    (c.aiAnalysis && c.aiAnalysis.slaHours ? '<div class="detail-row"><span class="detail-label">SLA Target</span><span>' + c.aiAnalysis.slaHours + ' hours</span></div>' : '') +
+    (c.mergedInto ? '<div class="detail-row"><span class="detail-label">Merged State</span><span class="badge-merged">Merged into Master #' + c.mergedInto + '</span></div>' : '') +
+    (c.mergedDuplicates && c.mergedDuplicates.length > 0 ? '<div class="detail-row"><span class="detail-label">Duplicates</span><span class="badge-merged">Includes ' + c.mergedDuplicates.join(', ') + '</span></div>' : '') +
+    '<div class="detail-row"><span class="detail-label">Description</span><span style="line-height:1.5">' + c.desc + '</span></div>';
+
+  if(c.resolutionNote){
+    detailsHtml += '<div class="detail-row"><span class="detail-label">Resolution</span><span style="line-height:1.5;color:var(--olive);font-weight:600">' + c.resolutionNote + '</span></div>';
+  }
+
+  document.getElementById('trackerDetails').innerHTML = detailsHtml;
+
+  var replyEl=document.getElementById('trackerReply');
+  if(c.replies && c.replies.length > 0){
+    var lr=c.replies[c.replies.length-1];
+    document.getElementById('trackerReplyText').textContent=(lr.message || lr.text || '') + ' — ' + (lr.author || lr.by || '');
+    replyEl.style.display='block';
+  } else {
+    replyEl.style.display='none';
+  }
+
+  var timelineWrap=document.getElementById('trackerTimelineWrap');
+  var timelineEl=document.getElementById('trackerTimeline');
+  if(timelineWrap && timelineEl){
+    if(c.routeHistory && c.routeHistory.length > 0){
+      var tHtml = '';
+      c.routeHistory.forEach(function(m){
+        var isEsc = (m.stage && m.stage.toLowerCase().indexOf('escalat') !== -1);
+        tHtml += '<div class="timeline-item' + (isEsc ? ' escalated' : '') + '">' +
+          '<div class="timeline-time">' + formatTime(m.ts || m.timestamp) + '</div>' +
+          '<div class="timeline-title">' + (m.stage || 'Update') + ' · <span style="font-weight:500;color:#333">' + (m.actor || 'Official') + ' (' + (m.role || '') + ')</span></div>' +
+          '<div class="timeline-desc">' + (m.note || '') + '</div>' +
+          '</div>';
+      });
+      timelineEl.innerHTML = tHtml;
+      timelineWrap.style.display = 'block';
+    } else {
+      timelineWrap.style.display = 'none';
+    }
+  }
+}
+document.getElementById('trackerInput').addEventListener('keydown',function(e){if(e.key==='Enter')searchComplaint();});
+
+/* ══════════ LOGIN MODAL ══════════ */
+var selectedOfficial=OFFICIALS[0];
+window.openLogin=function(){
+  document.getElementById('loginModal').classList.remove('hidden');
+  buildPresets();
+};
+window.closeLogin=function(){document.getElementById('loginModal').classList.add('hidden');};
+function buildPresets(){
+  var grid=document.getElementById('presetGrid');grid.innerHTML='';
+  OFFICIALS.forEach(function(o){
+    var card=document.createElement('div');card.className='preset-card'+(o.id===selectedOfficial.id?' selected':'');
+    card.innerHTML='<div class="preset-mode">Mode '+o.mode+' · '+(o.mode===1?'Dept Head':o.mode===2?'President/GS':'Central Admin')+'</div><div class="preset-name">'+o.name+'</div><div class="preset-dept">'+(o.departmentName || o.dept)+'</div>';
+    card.onclick=function(){selectedOfficial=o;buildPresets();document.getElementById('loginError').style.display='none';};
+    grid.appendChild(card);
+  });
+}
+window.submitLogin=function(){
+  var pw=document.getElementById('pwInput').value.trim();
+  if(pw!=='civic2026'){document.getElementById('loginError').style.display='block';document.getElementById('loginError').textContent='Invalid password. Use civic2026 for demo.';return;}
+  currentUser=selectedOfficial;closeLogin();openWorkspace();
+};
+window.logoutWorkspace=function(){currentUser=null;closeWorkspace();};
+
+/* ══════════ WORKSPACE MODAL ══════════ */
+window.openWorkspace=function(){
+  if(!currentUser){openLogin();return;}
+  document.getElementById('wsRoleLabel').textContent='Mode '+currentUser.mode+': '+(currentUser.mode===1?'Department Head':currentUser.mode===2?'DUSU President / GS':'Central Admin');
+  document.getElementById('wsUserName').textContent=currentUser.name;
+  document.getElementById('workspaceModal').classList.remove('hidden');
+  renderWorkspace();
+};
+window.closeWorkspace=function(){document.getElementById('workspaceModal').classList.add('hidden');};
+
+function renderWorkspace(){
+  var body=document.getElementById('wsBody');
+  var all=getComplaints();
+  var filtered=currentUser.mode===1?all.filter(function(c){
+    var d=(c.dept||'').toLowerCase();
+    var ud=(currentUser.departmentId || currentUser.dept || '').toLowerCase();
+    return d.indexOf(ud)!==-1 || (c.cat && c.cat===currentUser.departmentId);
+  }):all;
+
+  var html='<div style="display:flex;flex-direction:column;gap:16px">';
+
+  if(currentUser.mode===3){
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px">' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+      '<button onclick="wsFilter(\'all\')" class="btn" id="wsAll" style="height:32px;font-size:11px;padding:0 12px">All ('+all.length+')</button>' +
+      '<button onclick="wsFilter(\'open\')" class="btn-outline" id="wsOpen" style="height:32px;font-size:11px;padding:0 12px">Not Solved</button>' +
+      '<button onclick="wsFilter(\'resolved\')" class="btn-outline" id="wsResolved" style="height:32px;font-size:11px;padding:0 12px">Solved</button>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px">' +
+      '<button onclick="wsMergeDuplicates()" class="btn-outline" style="height:32px;font-size:11px;padding:0 12px;border-color:var(--blue);color:var(--blue)">Merge Duplicates</button>' +
+      '<button onclick="exportAuditCsv()" class="btn" style="height:32px;font-size:11px;padding:0 12px;background:var(--blue)">Export CSV Audit</button>' +
+      '</div>' +
+      '</div>';
+  }
+
+  if(currentUser.mode===2){
+    html+='<div class="info-box" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">' +
+      '<div><strong>Executive Overview · DUSU Executive Council</strong><div style="font-size:11.5px;color:#3a5a20;margin-top:2px">Campus-wide redressal monitor. Escalate delayed tickets or issue binding directives.</div></div>' +
+      '<button onclick="exportAuditCsv()" class="btn-outline" style="font-size:11px;height:30px;padding:0 10px;">Download Audit Log</button>' +
+      '</div>';
+  }
+
+  if(currentUser.mode===1){
+    html+='<div class="info-box" style="background:#f4fbf0;border-color:#b0e0a0">' +
+      '<strong>' + currentUser.roleTitle + '</strong>' +
+      '<div style="font-size:11.5px;color:#3a5a20;margin-top:2px">Department queue for ' + currentUser.departmentName + '. Use status actions to confirm, work on, or resolve tickets.</div>' +
+      '</div>';
+  }
+
+  if(filtered.length === 0){
+    html+='<div style="text-align:center;padding:36px;color:#555;font-size:13px">No complaints found in this jurisdiction queue.</div>';
+  }
+
+  filtered.forEach(function(c){
+    var isSolved=c.status==='resolved'||c.status==='closed';
+    var isEscalated=c.status==='escalated';
+    var isIP=c.status==='in_progress'||c.status==='investigating'||isEscalated;
+    var statusColor=isSolved?'#1EA854':isEscalated?'#d03020':isIP?'#0036FF':'#e6a800';
+    var statusText=isSolved?'Resolved':isEscalated?'Escalated':isIP?'In Progress':'Open';
+
+    html+='<div style="border:1.5px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;background:#fff" data-cid="'+c.id+'">';
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">' +
+      '<div>' +
+      '<div style="font-size:13.5px;font-weight:700;color:var(--olive)">'+c.id+' · '+(c.catName || c.cat)+'</div>' +
+      '<div style="font-size:11.5px;color:#2a3820;margin-top:2px">'+c.location+' · SLA: '+(c.aiAnalysis ? c.aiAnalysis.slaHours + 'h' : '24h')+' · Urgency: '+(c.urgency || 'Normal')+'</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;align-items:center">' +
+      (c.mergedInto ? '<span class="badge-merged">Merged into #'+c.mergedInto+'</span>' : '') +
+      '<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:'+statusColor+'22;color:'+statusColor+';border:1px solid '+statusColor+'55">'+statusText+'</span>' +
+      '</div>' +
+      '</div>';
+
+    html+='<div style="font-size:13px;color:#1a2e10;line-height:1.45">'+c.desc+'</div>';
+
+    if(c.escalation && c.escalation.isEscalated){
+      html+='<div style="font-size:11.5px;color:#901a10;background:#fef0ee;border:1px solid #f0b0a0;border-radius:8px;padding:6px 10px"><strong>Escalation Reason:</strong> '+(c.escalation.reason || 'SLA threshold exceeded')+' ('+(c.escalation.escalatedBy || 'Official')+')</div>';
+    }
+
+    if(c.replies&&c.replies.length>0){
+      var lr=c.replies[c.replies.length-1];
+      html+='<div style="font-size:12px;color:#1a3010;padding:8px 12px;background:#f0ffe8;border-radius:8px;border:1px solid #d0f0c0"><strong>'+(lr.author || lr.by)+':</strong> '+(lr.message || lr.text)+'</div>';
+    }
+
+    // Action buttons
+    html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">';
+    if(!isSolved){
+      html+='<button onclick="wsSetStatus(\''+c.id+'\',\'in_progress\')" class="btn" style="font-size:11px;height:28px;padding:0 10px;background:'+(isIP&&!isEscalated?'var(--olive)':'#666')+'">In Progress</button>' +
+        '<button onclick="wsSetStatus(\''+c.id+'\',\'resolved\')" class="btn" style="font-size:11px;height:28px;padding:0 10px;background:var(--green)">Mark Solved</button>' +
+        '<button onclick="wsReply(\''+c.id+'\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px">Post Official Reply</button>';
+      if(currentUser.mode === 1){
+        html+='<button onclick="wsEscalate(\''+c.id+'\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px;border-color:#d03020;color:#c03020">Escalate to President</button>';
+      }
+      if(currentUser.mode === 2){
+        html+='<button onclick="wsDirective(\''+c.id+'\')" class="btn" style="font-size:11px;height:28px;padding:0 10px;background:var(--blue)">Executive Directive</button>';
+      }
+    } else {
+      html+='<span style="font-size:11px;color:var(--olive);font-weight:600">✓ Case Solved & Verified</span>' +
+        '<button onclick="wsReply(\''+c.id+'\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px;margin-left:auto">Add Note</button>';
+    }
+    html+='<button onclick="openTrackerWithId(\''+c.id+'\')" class="btn-outline" style="font-size:11px;height:28px;padding:0 10px;margin-left:auto">View Tracker</button>';
+    html+='</div>';
+
+    html+='</div>';
+  });
+
+  html+='</div>';
+  body.innerHTML=html;
+}
+
+window.wsSetStatus=function(id,status){
+  var c=getById(id);if(!c)return;
+  var note=prompt('Enter status note for ' + id + ' (' + status + '):', status==='resolved'?'Issue resolved on-site and verified.':'Field crew deployed.');
+  if(note===null) return;
+  c.status=status;
+  if(status==='resolved'){
+    c.resolvedAt=Date.now();
+    c.resolutionNote=note;
+  }
+  if(!c.routeHistory) c.routeHistory=[];
+  c.routeHistory.push({
+    id:'m_'+Date.now(),
+    ts:Date.now(),
+    stage:'Status updated to ' + status.toUpperCase(),
+    actor:currentUser.name,
+    role:currentUser.roleTitle || 'Official',
+    note:note
+  });
+  saveOne(c);
+  renderWorkspace();
+};
+
+window.wsReply=function(id){
+  var text=prompt('Post official public update for '+id+':');
+  if(!text || !text.trim())return;
+  var c=getById(id);if(!c)return;
+  if(!c.replies)c.replies=[];
+  c.replies.push({
+    id:'r_'+Date.now(),
+    complaintId:id,
+    author:currentUser.name,
+    role:currentUser.roleTitle || 'Official',
+    message:text.trim(),
+    ts:Date.now()
+  });
+  if(!c.routeHistory) c.routeHistory=[];
+  c.routeHistory.push({
+    id:'m_'+Date.now(),
+    ts:Date.now(),
+    stage:'Official Reply Posted',
+    actor:currentUser.name,
+    role:currentUser.roleTitle || 'Official',
+    note:text.trim()
+  });
+  saveOne(c);
+  renderWorkspace();
+};
+
+window.wsEscalate=function(id){
+  var reason=prompt('Enter reason for escalating '+id+' to Student Union President / General Secretary:');
+  if(!reason || !reason.trim())return;
+  var c=getById(id);if(!c)return;
+  c.status='escalated';
+  c.escalation={
+    isEscalated:true,
+    escalatedAt:Date.now(),
+    reason:reason.trim(),
+    escalatedBy:currentUser.name + ' (' + currentUser.roleTitle + ')'
+  };
+  if(!c.routeHistory) c.routeHistory=[];
+  c.routeHistory.push({
+    id:'m_'+Date.now(),
+    ts:Date.now(),
+    stage:'Escalated to President / GS',
+    actor:currentUser.name,
+    role:currentUser.roleTitle || 'Dept Head',
+    note:'Formal escalation: ' + reason.trim()
+  });
+  saveOne(c);
+  renderWorkspace();
+};
+
+window.wsDirective=function(id){
+  var text=prompt('Enter binding Executive Directive from DUSU President / GS for case '+id+':');
+  if(!text || !text.trim())return;
+  var c=getById(id);if(!c)return;
+  if(!c.replies)c.replies=[];
+  c.replies.push({
+    id:'r_'+Date.now(),
+    complaintId:id,
+    author:currentUser.name + ' (President / GS)',
+    role:'Student Executive Directive',
+    message:'EXECUTIVE DIRECTIVE: ' + text.trim(),
+    ts:Date.now()
+  });
+  if(!c.routeHistory) c.routeHistory=[];
+  c.routeHistory.push({
+    id:'m_'+Date.now(),
+    ts:Date.now(),
+    stage:'Executive Directive Issued',
+    actor:currentUser.name,
+    role:'DUSU President / GS',
+    note:text.trim()
+  });
+  saveOne(c);
+  renderWorkspace();
+};
+
+window.wsMergeDuplicates=function(){
+  var masterId=prompt('Enter Master Complaint ID (e.g. CS-8921):');
+  if(!masterId)return;
+  masterId=masterId.trim().toUpperCase().replace('#','');
+  var master=getById(masterId);
+  if(!master){alert('Master ticket #'+masterId+' not found.');return;}
+
+  var dupId=prompt('Enter Duplicate Complaint ID to merge into #'+masterId+' (e.g. CS-8925):');
+  if(!dupId)return;
+  dupId=dupId.trim().toUpperCase().replace('#','');
+  if(dupId===masterId){alert('Cannot merge ticket into itself.');return;}
+  var dup=getById(dupId);
+  if(!dup){alert('Duplicate ticket #'+dupId+' not found.');return;}
+
+  dup.status='closed';
+  dup.mergedInto=masterId;
+  if(!dup.routeHistory)dup.routeHistory=[];
+  dup.routeHistory.push({
+    id:'m_'+Date.now(),
+    ts:Date.now(),
+    stage:'Merged into Master Case #'+masterId,
+    actor:currentUser.name,
+    role:'Central Admin',
+    note:'Case linked into master tracker #'+masterId+'. Further updates consolidated there.'
+  });
+  saveOne(dup);
+
+  if(!master.mergedDuplicates)master.mergedDuplicates=[];
+  if(master.mergedDuplicates.indexOf(dupId)===-1)master.mergedDuplicates.push(dupId);
+  if(!master.routeHistory)master.routeHistory=[];
+  master.routeHistory.push({
+    id:'m_'+Date.now(),
+    ts:Date.now(),
+    stage:'Merged Duplicate Report #'+dupId,
+    actor:currentUser.name,
+    role:'Central Admin',
+    note:'Consolidated duplicate ticket #'+dupId+' into this resolution thread.'
+  });
+  saveOne(master);
+
+  alert('Successfully merged ticket #'+dupId+' into master case #'+masterId+'!');
+  renderWorkspace();
+};
+
+window.exportAuditCsv=function(){
+  var all=getComplaints();
+  var headers=['Ticket ID','Category','Campus Location','Urgency','Status','Department','Logged Date','Resolved Date','Description','Resolution Note'];
+  var rows=all.map(function(c){
+    return [
+      c.id,
+      '"'+(c.catName||c.cat||'').replace(/"/g,'""')+'"',
+      '"'+(c.location||'').replace(/"/g,'""')+'"',
+      c.urgency||'Normal',
+      c.status||'open',
+      '"'+(c.dept||'').replace(/"/g,'""')+'"',
+      new Date(c.ts||Date.now()).toISOString(),
+      c.resolvedAt?new Date(c.resolvedAt).toISOString():'N/A',
+      '"'+(c.desc||'').replace(/"/g,'""')+'"',
+      '"'+(c.resolutionNote||'').replace(/"/g,'""')+'"'
+    ].join(',');
+  });
+  var csvContent='data:text/csv;charset=utf-8,'+encodeURIComponent([headers.join(','),...rows].join('\n'));
+  var link=document.createElement('a');
+  link.setAttribute('href',csvContent);
+  link.setAttribute('download','civicsense_redressal_audit_'+new Date().toISOString().slice(0,10)+'.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+window.wsFilter=function(f){
+  var all=getComplaints();
+  var body=document.getElementById('wsBody');
+  var cards=body.querySelectorAll('[data-cid]');
+  cards.forEach(function(card){
+    var cid=card.dataset.cid;
+    var c=all.find(function(x){return x.id===cid;});
+    if(!c)return;
+    var isSolved=c.status==='resolved'||c.status==='closed';
+    var show=f==='all'||(f==='open'&&!isSolved)||(f==='resolved'&&isSolved);
+    card.style.display=show?'flex':'none';
+  });
+};
+/* location select watcher */
+document.getElementById('fLocation').addEventListener('change',function(){document.getElementById('customLocGroup').style.display=this.value==='OTHER'?'block':'none';});
+updateAI();
+buildDemoIds();
+})();
+</script>
+</body>
 </html>
