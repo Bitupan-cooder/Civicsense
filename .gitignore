@@ -30,3 +30,8 @@ yarn-error.log*
 
 # Nested duplicate folder
 Civicsense/
+
+# AI Studio and Agent Cache
+.aistudio/
+.tempmediaStorage/
+scratch/
