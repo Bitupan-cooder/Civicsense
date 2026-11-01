@@ -149,3 +149,156 @@ export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
 }
 
+export type IdCardStatus = "pending" | "verified" | "not_valid";
+
+export interface IdCardRecord {
+  id?: string;
+  user_id: string;
+  cloudinary_public_id: string;
+  status: IdCardStatus;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export async function uploadIdCardFile(file: File): Promise<{ public_id: string; format: string }> {
+  const MAX_SIZE = 5 * 1024 * 1024;
+  if (file.size > MAX_SIZE) {
+    throw new Error("Student ID card file exceeds 5 MB limit.");
+  }
+
+  const signRes = await fetch("/api/cloudinary/sign-upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!signRes.ok) {
+    const err = await signRes.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to obtain upload signature.");
+  }
+
+  const signData = await signRes.json();
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("api_key", signData.apiKey);
+  formData.append("timestamp", signData.timestamp);
+  formData.append("signature", signData.signature);
+  formData.append("folder", signData.folder);
+  formData.append("type", signData.type);
+
+  const cldRes = await fetch(`https://api.cloudinary.com/v1_1/${signData.cloudName}/auto/upload`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!cldRes.ok) {
+    const err = await cldRes.json().catch(() => ({}));
+    throw new Error(err.error?.message || "Failed to upload ID card to storage.");
+  }
+
+  const cldData = await cldRes.json();
+  return {
+    public_id: cldData.public_id,
+    format: cldData.format,
+  };
+}
+
+export async function registerStudent(options: {
+  name: string;
+  email: string;
+  password: string;
+  file: File;
+}): Promise<{ user: any; public_id: string }> {
+  const { name, email, password, file } = options;
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const uploadResult = await uploadIdCardFile(file);
+
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email: normalizedEmail,
+    password,
+    options: { data: { name, role: "student" } },
+  });
+
+  if (authError || !authData.user) {
+    throw new Error(authError?.message || "Failed to register student.");
+  }
+
+  const user = authData.user;
+
+  await supabase.from("profiles").insert({
+    id: user.id,
+    role: "student",
+    name,
+    email: normalizedEmail,
+    unit_name: null,
+    must_change_password: false,
+    is_active: true,
+  });
+
+  await supabase.from("id_cards").insert({
+    user_id: user.id,
+    cloudinary_public_id: uploadResult.public_id,
+    status: "pending",
+  });
+
+  try {
+    await supabase.from("activity_log").insert({
+      actor_id: user.id,
+      action: "student_signup",
+      target: "Student registered with ID card verification pending",
+    });
+  } catch {}
+
+  return { user, public_id: uploadResult.public_id };
+}
+
+export async function reuploadStudentIdCard(file: File): Promise<{ public_id: string }> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session?.user) {
+    throw new Error("Must be logged in as student to re-upload ID card.");
+  }
+
+  const uploadResult = await uploadIdCardFile(file);
+  const userId = sessionData.session.user.id;
+
+  const { error } = await supabase
+    .from("id_cards")
+    .update({
+      cloudinary_public_id: uploadResult.public_id,
+      status: "pending",
+      reviewed_by: null,
+      reviewed_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", userId);
+
+  if (error) {
+    throw new Error(error.message || "Failed to update ID card record.");
+  }
+
+  return { public_id: uploadResult.public_id };
+}
+
+export async function fetchSignedIdCardUrl(userId: string): Promise<{ signedUrl: string; status: IdCardStatus }> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session) {
+    throw new Error("Authentication required to view student ID cards.");
+  }
+
+  const res = await fetch(`/api/id-card/view?userId=${encodeURIComponent(userId)}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${sessionData.session.access_token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Access denied or ID card not found.");
+  }
+
+  return await res.json();
+}
+

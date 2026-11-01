@@ -1102,40 +1102,115 @@ nav.f-links a:hover{text-decoration:underline}
 </div>
 
 <!-- ═══════════════════════════════════════
-     STUDENT AUTHENTICATION MODAL
+     STUDENT AUTHENTICATION MODAL (SIGN IN & SIGN UP WITH ID CARD)
 ═══════════════════════════════════════ -->
 <div class="modal-overlay hidden" id="studentAuthModal" role="dialog" aria-modal="true" aria-labelledby="studentAuthTitle">
-  <div class="modal" style="max-width:440px">
+  <div class="modal" style="max-width:480px">
     <div class="modal-header">
       <div class="modal-title" id="studentAuthTitle">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Student Sign In
+        Student Portal Access
       </div>
       <button class="modal-close" onclick="closeStudentAuth()" aria-label="Close">&times;</button>
     </div>
-    <div class="modal-body" style="padding:22px 20px;">
+    <div class="modal-body" style="padding:20px 22px;">
+      
+      <!-- Tabs: Sign In / Register -->
+      <div style="display:flex;gap:6px;background:#f2f8ec;padding:4px;border-radius:10px;margin-bottom:16px;">
+        <button type="button" id="tabStudentSignIn" onclick="switchStudentAuthTab('signin')" style="flex:1;height:34px;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;background:#ffffff;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,0.05);">Sign In</button>
+        <button type="button" id="tabStudentSignUp" onclick="switchStudentAuthTab('signup')" style="flex:1;height:34px;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#4a6142;">Register with ID</button>
+      </div>
+
+      <!-- Sign In View -->
+      <div id="studentSignInView">
+        <p style="font-size:12.5px;color:#4a6142;line-height:1.5;margin-bottom:14px;">
+          Sign in to view your submitted complaints, live verification milestones, and progress updates.
+        </p>
+
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label" for="studentEmailInput">Student Email</label>
+          <input class="track-input" id="studentEmailInput" type="email" placeholder="e.g. student@dibru.ac.in" style="width:100%;height:40px;border-radius:8px;padding:0 12px;font-size:13px;box-sizing:border-box;" />
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label class="form-label" for="studentPwInput">Password</label>
+          <input class="track-input" id="studentPwInput" type="password" placeholder="Enter password" style="width:100%;height:40px;border-radius:8px;padding:0 12px;font-size:13px;box-sizing:border-box;" />
+        </div>
+
+        <div id="studentAuthErr" style="display:none;color:#b91c1c;font-size:12px;font-weight:600;margin-bottom:12px;line-height:1.4;"></div>
+
+        <button class="btn" id="studentLoginBtn" onclick="submitStudentLogin()" style="width:100%;height:42px;font-size:13px;font-weight:700;border-radius:8px;">
+          Sign In as Student
+        </button>
+      </div>
+
+      <!-- Register / Signup View -->
+      <div id="studentSignUpView" style="display:none;">
+        <p style="font-size:12px;color:#4a6142;line-height:1.45;margin-bottom:14px;">
+          Create a student account. Your student ID card is securely stored as authenticated (non-public) and verified by authorized officials.
+        </p>
+
+        <div class="form-group" style="margin-bottom:10px;">
+          <label class="form-label" for="signupName">Full Name</label>
+          <input class="track-input" id="signupName" type="text" placeholder="As printed on your student ID" style="width:100%;height:38px;border-radius:8px;padding:0 12px;font-size:13px;box-sizing:border-box;" />
+        </div>
+
+        <div class="form-group" style="margin-bottom:10px;">
+          <label class="form-label" for="signupEmail">Student Email</label>
+          <input class="track-input" id="signupEmail" type="email" placeholder="e.g. rollnumber@dibru.ac.in" style="width:100%;height:38px;border-radius:8px;padding:0 12px;font-size:13px;box-sizing:border-box;" />
+        </div>
+
+        <div class="form-group" style="margin-bottom:10px;">
+          <label class="form-label" for="signupPassword">Password</label>
+          <input class="track-input" id="signupPassword" type="password" placeholder="Minimum 8 characters" style="width:100%;height:38px;border-radius:8px;padding:0 12px;font-size:13px;box-sizing:border-box;" />
+        </div>
+
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label" for="signupIdCard">Student ID Card (Image or PDF, max 5 MB)</label>
+          <input class="track-input" id="signupIdCard" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" style="width:100%;height:38px;border-radius:8px;padding:6px 10px;font-size:12px;box-sizing:border-box;background:#ffffff;" />
+          <div style="font-size:11px;color:#64748b;margin-top:4px;">Upload front of university student ID card or admission receipt (max 5 MB).</div>
+        </div>
+
+        <div id="signupErr" style="display:none;color:#b91c1c;font-size:12px;font-weight:600;margin-bottom:12px;line-height:1.4;"></div>
+
+        <button class="btn" id="studentRegisterBtn" onclick="submitStudentSignup()" style="width:100%;height:42px;font-size:13px;font-weight:700;border-radius:8px;">
+          Upload ID &amp; Create Student Account
+        </button>
+      </div>
+
+      <div style="margin-top:16px;text-align:center;font-size:11.5px;color:#4a6142;padding-top:12px;border-top:1px solid var(--line);">
+        University Official? <a href="admin.html" style="color:var(--olive);font-weight:700;">Open Official Portal ↗</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     STUDENT ID RE-UPLOAD MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="reuploadIdModal" role="dialog" aria-modal="true" aria-labelledby="reuploadTitle">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <div class="modal-title" id="reuploadTitle">
+        Re-upload Student ID Card
+      </div>
+      <button class="modal-close" onclick="closeReuploadModal()" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px 22px;">
       <p style="font-size:12.5px;color:#4a6142;line-height:1.5;margin-bottom:14px;">
-        Sign in to view your submitted grievances and real-time redressal progress.
+        Your previous ID card submission was marked not valid. Please attach a clear scan or photograph of your valid Dibrugarh University student ID card.
       </p>
 
-      <div class="form-group" style="margin-bottom:12px;">
-        <label class="form-label" for="studentEmailInput">Student University Email</label>
-        <input class="track-input" id="studentEmailInput" type="email" placeholder="e.g. student@dibru.ac.in" style="width:100%;height:40px;border-radius:8px;padding:0 12px;font-size:13px;box-sizing:border-box;" />
-      </div>
-
       <div class="form-group" style="margin-bottom:14px;">
-        <label class="form-label" for="studentPwInput">Password</label>
-        <input class="track-input" id="studentPwInput" type="password" placeholder="Enter password" style="width:100%;height:40px;border-radius:8px;padding:0 12px;font-size:13px;box-sizing:border-box;" />
+        <label class="form-label" for="reuploadFile">New ID Card File (Image or PDF, max 5 MB)</label>
+        <input class="track-input" id="reuploadFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" style="width:100%;height:38px;border-radius:8px;padding:6px 10px;font-size:12px;box-sizing:border-box;background:#ffffff;" />
       </div>
 
-      <div id="studentAuthErr" style="display:none;color:#b91c1c;font-size:12px;font-weight:600;margin-bottom:12px;line-height:1.4;"></div>
+      <div id="reuploadErr" style="display:none;color:#b91c1c;font-size:12px;font-weight:600;margin-bottom:12px;line-height:1.4;"></div>
 
-      <button class="btn" id="studentLoginBtn" onclick="submitStudentLogin()" style="width:100%;height:42px;font-size:13px;font-weight:700;border-radius:8px;">
-        Sign In as Student
-      </button>
-
-      <div style="margin-top:14px;text-align:center;font-size:11.5px;color:#4a6142;">
-        Are you an official? <a href="admin.html" style="color:var(--olive);font-weight:700;">Open Official Portal ↗</a>
+      <div style="display:flex;gap:10px;">
+        <button type="button" class="btn-outline" style="flex:1" onclick="closeReuploadModal()">Cancel</button>
+        <button type="button" class="btn" id="reuploadSubmitBtn" style="flex:2" onclick="submitReuploadId()">Submit for Review</button>
       </div>
     </div>
   </div>
@@ -2342,6 +2417,8 @@ window.closeTracker = closeTracker;
 function openStudentAuth(){
   document.getElementById('studentAuthModal').classList.remove('hidden');
   document.getElementById('studentAuthErr').style.display = 'none';
+  var signupErr = document.getElementById('signupErr');
+  if (signupErr) signupErr.style.display = 'none';
 }
 window.openStudentAuth = openStudentAuth;
 
@@ -2349,6 +2426,26 @@ function closeStudentAuth(){
   document.getElementById('studentAuthModal').classList.add('hidden');
 }
 window.closeStudentAuth = closeStudentAuth;
+
+function switchStudentAuthTab(tab){
+  var signInView = document.getElementById('studentSignInView');
+  var signUpView = document.getElementById('studentSignUpView');
+  var tabIn = document.getElementById('tabStudentSignIn');
+  var tabUp = document.getElementById('tabStudentSignUp');
+
+  if(tab === 'signin'){
+    if(signInView) signInView.style.display = 'block';
+    if(signUpView) signUpView.style.display = 'none';
+    if(tabIn){ tabIn.style.background = '#ffffff'; tabIn.style.color = 'var(--ink)'; }
+    if(tabUp){ tabUp.style.background = 'transparent'; tabUp.style.color = '#4a6142'; }
+  } else {
+    if(signInView) signInView.style.display = 'none';
+    if(signUpView) signUpView.style.display = 'block';
+    if(tabUp){ tabUp.style.background = '#ffffff'; tabUp.style.color = 'var(--ink)'; }
+    if(tabIn){ tabIn.style.background = 'transparent'; tabIn.style.color = '#4a6142'; }
+  }
+}
+window.switchStudentAuthTab = switchStudentAuthTab;
 
 async function submitStudentLogin(){
   var email = (document.getElementById('studentEmailInput').value || '').trim();
@@ -2382,13 +2479,124 @@ async function submitStudentLogin(){
 }
 window.submitStudentLogin = submitStudentLogin;
 
-function syncStudentAuthUI(profile){
+async function submitStudentSignup(){
+  var name = (document.getElementById('signupName').value || '').trim();
+  var email = (document.getElementById('signupEmail').value || '').trim();
+  var password = document.getElementById('signupPassword').value;
+  var fileInput = document.getElementById('signupIdCard');
+  var file = fileInput && fileInput.files ? fileInput.files[0] : null;
+  var errBox = document.getElementById('signupErr');
+  var btn = document.getElementById('studentRegisterBtn');
+
+  if(!name || !email || !password){
+    errBox.style.display = 'block';
+    errBox.textContent = 'Please complete all registration fields.';
+    return;
+  }
+
+  if(password.length < 8){
+    errBox.style.display = 'block';
+    errBox.textContent = 'Password must be at least 8 characters long.';
+    return;
+  }
+
+  if(!file){
+    errBox.style.display = 'block';
+    errBox.textContent = 'Please select a student ID card file (image or PDF, max 5 MB).';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Uploading ID card & creating account...';
+  errBox.style.display = 'none';
+
+  try {
+    var res = await CivicAuth.signUpStudent({
+      name: name,
+      email: email,
+      password: password,
+      file: file
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'Upload ID & Create Student Account';
+    closeStudentAuth();
+    showToast('Registration complete. ID card uploaded for official verification.', 'success');
+
+    // Auto sign in with the new credentials
+    try {
+      var loginRes = await CivicAuth.loginStudent(email, password);
+      syncStudentAuthUI(loginRes.profile);
+    } catch(e){}
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = 'Upload ID & Create Student Account';
+    errBox.style.display = 'block';
+    errBox.textContent = err.message || 'Registration failed.';
+  }
+}
+window.submitStudentSignup = submitStudentSignup;
+
+function openReuploadModal(){
+  document.getElementById('reuploadIdModal').classList.remove('hidden');
+  var err = document.getElementById('reuploadErr');
+  if(err) err.style.display = 'none';
+}
+window.openReuploadModal = openReuploadModal;
+
+function closeReuploadModal(){
+  document.getElementById('reuploadIdModal').classList.add('hidden');
+}
+window.closeReuploadModal = closeReuploadModal;
+
+async function submitReuploadId(){
+  var fileInput = document.getElementById('reuploadFile');
+  var file = fileInput && fileInput.files ? fileInput.files[0] : null;
+  var errBox = document.getElementById('reuploadErr');
+  var btn = document.getElementById('reuploadSubmitBtn');
+
+  if(!file){
+    errBox.style.display = 'block';
+    errBox.textContent = 'Please select a new valid ID card file.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Uploading ID...';
+  errBox.style.display = 'none';
+
+  try {
+    await CivicAuth.reuploadIdCard(file);
+    btn.disabled = false;
+    btn.textContent = 'Submit for Review';
+    closeReuploadModal();
+    showToast('Student ID card re-uploaded. Status reset to pending verification.', 'success');
+    checkCurrentStudentSession();
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = 'Submit for Review';
+    errBox.style.display = 'block';
+    errBox.textContent = err.message || 'Re-upload failed.';
+  }
+}
+window.submitReuploadId = submitReuploadId;
+
+function syncStudentAuthUI(profile, idCardStatus){
   var text = document.getElementById('studentAuthStatusText');
   var btn = document.getElementById('studentAuthToggleBtn');
   var footerLink = document.getElementById('studentLoginFooterLink');
 
   if(profile){
-    if(text) text.textContent = 'Signed in as ' + profile.name + ' (' + profile.email + ')';
+    var idStatusLabel = '';
+    if (idCardStatus === 'verified') {
+      idStatusLabel = ' · ID Verified';
+    } else if (idCardStatus === 'not_valid') {
+      idStatusLabel = ' · ID Not Valid (<button onclick="openReuploadModal()" style="background:none;border:none;color:#b91c1c;font-weight:700;text-decoration:underline;cursor:pointer;">Re-upload</button>)';
+    } else {
+      idStatusLabel = ' · ID Pending Verification';
+    }
+
+    if(text) text.innerHTML = 'Signed in as <strong>' + profile.name + '</strong> (' + profile.email + ')' + idStatusLabel;
     if(btn){
       btn.textContent = 'Sign Out';
       btn.onclick = async function(){
@@ -2432,7 +2640,9 @@ async function checkCurrentStudentSession(){
     if(session && session.user){
       var res = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
       if(res.data && res.data.role === 'student'){
-        syncStudentAuthUI(res.data);
+        var cardRes = await sb.from('id_cards').select('status').eq('user_id', session.user.id).maybeSingle();
+        var idStatus = cardRes.data ? cardRes.data.status : 'pending';
+        syncStudentAuthUI(res.data, idStatus);
       }
     }
   } catch(e){}

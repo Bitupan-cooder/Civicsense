@@ -337,6 +337,212 @@
     return modal;
   }
 
+  // ── CLOUDINARY AUTHENTICATED UPLOAD ─────────────────────────
+  async function uploadIdCardToCloudinary(file) {
+    if (!file) throw new Error('Student ID card file is required.');
+
+    var MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+    if (file.size > MAX_SIZE) {
+      throw new Error('ID card file size exceeds the 5 MB limit. Please select a file under 5 MB.');
+    }
+
+    var allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    if (allowedTypes.indexOf(file.type) === -1 && !file.name.match(/\.(jpg|jpeg|png|webp|pdf)$/i)) {
+      throw new Error('Invalid file format. Only JPG, PNG, WEBP, or PDF student ID cards are accepted.');
+    }
+
+    var signRes = await fetch('/api/cloudinary/sign-upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!signRes.ok) {
+      var errData = await signRes.json().catch(function() { return {}; });
+      throw new Error(errData.error || 'Server rejected upload signature request.');
+    }
+
+    var signData = await signRes.json();
+
+    var formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', signData.apiKey);
+    formData.append('timestamp', signData.timestamp);
+    formData.append('signature', signData.signature);
+    formData.append('folder', signData.folder);
+    formData.append('type', signData.type);
+
+    var uploadUrl = 'https://api.cloudinary.com/v1_1/' + signData.cloudName + '/auto/upload';
+    var cldRes = await fetch(uploadUrl, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!cldRes.ok) {
+      var cldErr = await cldRes.json().catch(function() { return {}; });
+      throw new Error((cldErr.error && cldErr.error.message) || 'Failed to upload ID card to storage.');
+    }
+
+    var cldData = await cldRes.json();
+    return {
+      public_id: cldData.public_id,
+      format: cldData.format
+    };
+  }
+
+  // ── STUDENT SIGNUP WITH ID CARD ─────────────────────────────
+  async function signUpStudent(options) {
+    var name = (options.name || '').trim();
+    var email = (options.email || '').trim().toLowerCase();
+    var password = options.password || '';
+    var file = options.file;
+
+    if (!name || name.length < 2) {
+      throw new Error('Please enter your full name as printed on your university ID.');
+    }
+    if (!email || !email.includes('@')) {
+      throw new Error('Please enter a valid student email address.');
+    }
+    if (!password || password.length < 8) {
+      throw new Error('Password must be at least 8 characters long.');
+    }
+    if (!file) {
+      throw new Error('Please attach your student ID card image or PDF (max 5 MB).');
+    }
+
+    var rate = checkRateLimit('signup_' + email);
+    if (!rate.allowed) {
+      throw new Error(rate.error);
+    }
+
+    // 1. Upload ID card to Cloudinary (authenticated type)
+    var uploadResult = await uploadIdCardToCloudinary(file);
+    var cloudinaryPublicId = uploadResult.public_id;
+
+    var sb = getClient();
+    if (!sb) throw new Error('Database connection unavailable.');
+
+    // 2. Sign up user with Supabase Auth
+    var authRes = await sb.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        data: { name: name, role: 'student' }
+      }
+    });
+
+    if (authRes.error) {
+      recordFailedAttempt('signup_' + email);
+      throw new Error(authRes.error.message);
+    }
+
+    var user = authRes.data.user;
+    if (!user) {
+      throw new Error('Registration failed. Please try again.');
+    }
+
+    // 3. Insert row into profiles table
+    var profileRes = await sb.from('profiles').insert({
+      id: user.id,
+      role: 'student',
+      name: name,
+      email: email,
+      unit_name: null,
+      must_change_password: false,
+      is_active: true
+    });
+
+    if (profileRes.error) {
+      console.error('Failed to create student profile:', profileRes.error);
+    }
+
+    // 4. Insert row into id_cards table (storing only public_id)
+    var idCardRes = await sb.from('id_cards').insert({
+      user_id: user.id,
+      cloudinary_public_id: cloudinaryPublicId,
+      status: 'pending'
+    });
+
+    if (idCardRes.error) {
+      console.error('Failed to register student ID card:', idCardRes.error);
+    }
+
+    try {
+      await sb.from('activity_log').insert({
+        actor_id: user.id,
+        action: 'student_signup',
+        target: 'Student registration with ID card verification pending'
+      });
+    } catch (e) {}
+
+    clearRateLimit('signup_' + email);
+    return { user: user, public_id: cloudinaryPublicId };
+  }
+
+  // ── STUDENT ID CARD RE-UPLOAD ────────────────────────────────
+  async function reuploadIdCard(file) {
+    var sb = getClient();
+    if (!sb) throw new Error('Database connection unavailable.');
+
+    var sessionRes = await sb.auth.getSession();
+    var session = sessionRes.data ? sessionRes.data.session : null;
+    if (!session || !session.user) {
+      throw new Error('You must be signed in to re-upload your student ID card.');
+    }
+
+    var uploadResult = await uploadIdCardToCloudinary(file);
+
+    var updateRes = await sb
+      .from('id_cards')
+      .update({
+        cloudinary_public_id: uploadResult.public_id,
+        status: 'pending',
+        reviewed_by: null,
+        reviewed_at: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', session.user.id);
+
+    if (updateRes.error) {
+      throw new Error(updateRes.error.message || 'Failed to update ID card record.');
+    }
+
+    try {
+      await sb.from('activity_log').insert({
+        actor_id: session.user.id,
+        action: 'id_card_reupload',
+        target: 'Student re-uploaded ID card after previous invalid mark'
+      });
+    } catch (e) {}
+
+    return uploadResult;
+  }
+
+  // ── VIEW ID CARD (SHORT-LIVED SIGNED URL) ────────────────────
+  async function getViewableIdCardUrl(userId) {
+    var sb = getClient();
+    if (!sb) throw new Error('Database connection unavailable.');
+
+    var sessionRes = await sb.auth.getSession();
+    var session = sessionRes.data ? sessionRes.data.session : null;
+    if (!session) {
+      throw new Error('Authentication required to view student ID cards.');
+    }
+
+    var res = await fetch('/api/id-card/view?userId=' + encodeURIComponent(userId), {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + session.access_token
+      }
+    });
+
+    if (!res.ok) {
+      var errData = await res.json().catch(function() { return {}; });
+      throw new Error(errData.error || 'Access denied or ID card not found.');
+    }
+
+    return await res.json();
+  }
+
   // ── PUBLIC API EXPORT ─────────────────────────────────────────
   global.CivicAuth = {
     getClient: getClient,
@@ -361,7 +567,11 @@
     enforceRoleGuard: enforceRoleGuard,
     ensurePasswordChangeModal: ensurePasswordChangeModal,
     checkRateLimit: checkRateLimit,
-    clearRateLimit: clearRateLimit
+    clearRateLimit: clearRateLimit,
+    uploadIdCardToCloudinary: uploadIdCardToCloudinary,
+    signUpStudent: signUpStudent,
+    reuploadIdCard: reuploadIdCard,
+    getViewableIdCardUrl: getViewableIdCardUrl
   };
 })(window);
 
