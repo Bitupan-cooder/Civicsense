@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "node --experimental-strip-types server/server.ts",
+    "server": "node --experimental-strip-types backend/server.ts",
     "build": "tsc && vite build",
     "bundle": "tsc && vite build && node scripts/make-bundle.js",
     "audit:slop": "node .agents/skills/hallmark/scripts/sloplint.js",

@@ -1,11 +1,11 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
 const supabaseUrl =
-  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_SUPABASE_URL) ||
+  (typeof process !== "undefined" && (process.env?.BACKEND_DATABASE_URL || process.env?.BACKEND_URL || process.env?.NEXT_PUBLIC_SUPABASE_URL)) ||
   "https://mdywamyrxuuookaxksyv.supabase.co";
 
 const supabaseKey =
-  (typeof process !== "undefined" && (process.env?.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env?.NEXT_PUBLIC_SUPABASE_ANON_KEY)) ||
+  (typeof process !== "undefined" && (process.env?.BACKEND_ANON_KEY || process.env?.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env?.NEXT_PUBLIC_SUPABASE_ANON_KEY)) ||
   "sb_publishable_97gBSZ3CLy6r0E3thRZ85Q_b7xyQxj_";
 
 export interface CookieStoreInterface {

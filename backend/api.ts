@@ -40,8 +40,18 @@ const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || "Root";
 const API_KEY = process.env.CLOUDINARY_API_KEY || "193263864471639";
 const API_SECRET = process.env.CLOUDINARY_API_SECRET || "n37r-euGAxDQZZwRKTDU707MFis";
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://mdywamyrxuuookaxksyv.supabase.co";
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_97gBSZ3CLy6r0E3thRZ85Q_b7xyQxj_";
+const SUPABASE_URL =
+  process.env.BACKEND_DATABASE_URL ||
+  process.env.BACKEND_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://mdywamyrxuuookaxksyv.supabase.co";
+
+const SUPABASE_SERVICE_ROLE_KEY =
+  process.env.BACKEND_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.BACKEND_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "sb_publishable_97gBSZ3CLy6r0E3thRZ85Q_b7xyQxj_";
 
 cloudinary.config({
   cloud_name: CLOUD_NAME,
