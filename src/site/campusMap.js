@@ -1,7 +1,8 @@
 // Canvas campus map: drawing, pan/zoom/pinch, landmark pins, sample complaint markers, GPS.
 // Moved verbatim from the original index.html page script (React migration); only imports/exports were added.
 import { escapeHtml } from './analyzer.js';
-import { CAMPUS_LOCATION_COORDS, getComplaints } from './demoData.js';
+import { CAMPUS_LOCATION_COORDS } from './demoData.js';
+import { getMapComplaints as getComplaints } from './tracker';
 import { setReportPlace } from './reportForm';
 import { openTrackerWithId } from './tracker';
 
@@ -196,7 +197,7 @@ function setupMapWithData(data) {
   mapRafId = requestAnimationFrame(campusMapLoop);
 }
 
-function resizeCampusMap() {
+export function resizeCampusMap() {
   if (!mapCanvas) return;
   var container = mapCanvas.parentElement;
   mapW = container ? container.clientWidth : 800;
@@ -433,12 +434,12 @@ function showComplaintPopover(c, sx, sy) {
   var pop = document.getElementById('mapComplaintPopover');
   if (!pop) return;
   var isUrgent = c.urgency === 'Urgent';
-  pop.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #d0ecc0;padding-bottom:5px;margin-bottom:6px;">' +
+  pop.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e0f0d0;padding-bottom:5px;margin-bottom:6px;">' +
     '<strong style="color:var(--olive);font-size:12px;">' + escapeHtml(c.id) + '</strong>' +
-    '<span style="font-size:10px;padding:2px 7px;border-radius:999px;background:' + (isUrgent ? '#fee2e2' : '#e0f5d0') + ';color:' + (isUrgent ? '#b91c1c' : 'var(--olive)') + ';font-weight:700;">' + (c.status || 'open').toUpperCase() + '</span>' +
+    '<span style="font-size:10px;padding:2px 7px;border-radius:999px;background:' + (isUrgent ? '#fee2e2' : '#d4f5c0') + ';color:' + (isUrgent ? '#b91c1c' : 'var(--olive)') + ';font-weight:700;">' + (c.status || 'open').toUpperCase() + '</span>' +
     '</div>' +
     '<div style="font-size:12px;font-weight:600;color:#1a3010;margin-bottom:3px;">' + escapeHtml((c.title || c.desc || '').slice(0, 52)) + '...</div>' +
-    '<div style="font-size:11px;color:#557048;margin-bottom:8px;">Location: ' + escapeHtml(c.location || 'Dibrugarh University') + '</div>' +
+    '<div style="font-size:11px;color:#4a6142;margin-bottom:8px;">Location: ' + escapeHtml(c.location || 'Dibrugarh University') + '</div>' +
     '<button type="button" class="btn" style="height:26px;font-size:11px;padding:0 10px;width:100%;">View Live Status</button>';
   pop.querySelector('button').addEventListener('click', function () { openTrackerWithId(c.id); });
   pop.style.left = sx + 'px';
@@ -477,7 +478,7 @@ function drawBaseMap() {
   ctx.setTransform(mapDpr, 0, 0, mapDpr, 0, 0);
 
   // Meadow background
-  ctx.fillStyle = '#dde2bc';
+  ctx.fillStyle = '#e0f0d0';
   ctx.fillRect(0, 0, mapW, mapH);
 
   ctx.save();
@@ -487,20 +488,20 @@ function drawBaseMap() {
 
   // Buffer & boundary fills
   if (mapBufferPath) {
-    ctx.fillStyle = '#d1ddb0';
+    ctx.fillStyle = '#e0f0d0';
     ctx.fill(mapBufferPath);
   }
   if (mapBoundaryPath) {
-    ctx.fillStyle = '#dce6b8';
+    ctx.fillStyle = '#e0f0d0';
     ctx.fill(mapBoundaryPath);
   }
 
   // Areas
-  var palette = { forest: '#79a16a', field: '#d8ca86', water: '#72bdca', pitch: '#b5cd81', land: '#d2dcb9' };
+  var palette = { forest: '#65845e', field: '#d8ca86', water: '#72bdca', pitch: '#b8d9aa', land: '#e0f0d0' };
   for (var i = 0; i < D.areas.length; i++) {
     var a = D.areas[i];
     if (!isBBoxVisible(a.b)) continue;
-    ctx.fillStyle = palette[a.kind] || '#d2dcb9';
+    ctx.fillStyle = palette[a.kind] || '#e0f0d0';
     ctx.fill(a.p, 'evenodd');
     if (a.kind === 'water') {
       ctx.strokeStyle = '#4d9bab';
@@ -529,7 +530,7 @@ function drawBaseMap() {
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     ctx.lineWidth = Math.max(width + 2, 2 / mapZ);
-    ctx.strokeStyle = '#9c9e79';
+    ctx.strokeStyle = '#65845e';
     ctx.setLineDash([]);
     ctx.stroke(r.p);
     ctx.lineWidth = Math.max(width, 1.1 / mapZ);
@@ -666,7 +667,7 @@ function drawCampusMap() {
       var members = g.members;
       var isMulti = members.length > 1;
 
-      ctx.fillStyle = p.campus ? '#255c43' : '#577d78';
+      ctx.fillStyle = p.campus ? '#1a7a3a' : '#577d78';
       ctx.beginPath();
       ctx.arc(anchor.x, anchor.y, isMulti ? 8 : 3.5, 0, Math.PI * 2);
       ctx.fill();
@@ -703,13 +704,13 @@ function drawCampusMap() {
           if (!overlaps) {
             occupiedBoxes.push({ x: bx, y: by, w: bw, h: bh });
             ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
-            ctx.strokeStyle = '#c4dac0';
+            ctx.strokeStyle = '#cbe3b8';
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.roundRect(bx, by, bw, bh, 4);
             ctx.fill();
             ctx.stroke();
-            ctx.fillStyle = '#174220';
+            ctx.fillStyle = '#1a7a3a';
             ctx.fillText(nameText, bx + 5, by + bh / 2);
           }
         }
@@ -725,7 +726,7 @@ function drawCampusMap() {
       var clat = c.lat;
       var clng = c.lng;
       if (!clat || !clng) {
-        var locId = (c.aiAnalysis && c.aiAnalysis.location_id) || c.cat;
+        var locId = c.location_id || (c.aiAnalysis && c.aiAnalysis.location_id) || c.cat;
         if (locId && CAMPUS_LOCATION_COORDS[locId]) {
           clat = CAMPUS_LOCATION_COORDS[locId].lat;
           clng = CAMPUS_LOCATION_COORDS[locId].lng;
@@ -757,7 +758,7 @@ function drawCampusMap() {
 function drawComplaintMarker(ctx, sx, sy, c) {
   var isUrgent = c.urgency === 'Urgent';
   var isHigh = c.urgency === 'High';
-  var color = isUrgent ? '#dc2626' : isHigh ? '#d97706' : '#16a34a';
+  var color = isUrgent ? '#dc2626' : isHigh ? '#d97706' : '#1EA854';
 
   ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
   ctx.beginPath();
@@ -782,7 +783,7 @@ function drawDraftIssuePin(ctx, sx, sy) {
   var radarRadius = 10 + mapRadarPhase * 28;
   var radarAlpha = (1 - mapRadarPhase) * 0.45;
   ctx.save();
-  ctx.strokeStyle = 'rgba(0, 54, 255, ' + radarAlpha + ')';
+  ctx.strokeStyle = 'rgba(26,122,58, ' + radarAlpha + ')';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(sx, sy, radarRadius, 0, Math.PI * 2);
@@ -830,7 +831,7 @@ function drawDraftIssuePin(ctx, sx, sy) {
   var bx = sx - bw / 2;
   var by = sy - 54;
 
-  ctx.fillStyle = '#134E2C';
+  ctx.fillStyle = '#0e3018';
   ctx.strokeStyle = '#B5F800';
   ctx.lineWidth = 1.5;
   ctx.beginPath();

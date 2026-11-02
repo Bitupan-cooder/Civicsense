@@ -7,6 +7,7 @@ import { showToast } from '../toast';
 import { AdminApp } from './AdminApp';
 import { getSignedInOfficialId, initAuth } from './console';
 import './admin.css';
+import '../workflow.css';
 
 // civic-auth.js shows its own toasts (password change) through window.showToast.
 Object.assign(window, { showToast });

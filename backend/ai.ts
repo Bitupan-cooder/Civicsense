@@ -6,8 +6,23 @@ import { CATEGORIES, normaliseDigits, type Category, type Understanding } from "
 import { analyzeComplaint } from "../src/site/analyzer.js";
 import { CAMPUS_LOCATIONS } from "../src/site/demoData.js";
 
-export const PROMPT_VERSION = "understand-v1";
+export const PROMPT_VERSION = "understand-v2";
 const MODEL = () => process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
+/** Explicit network language wins over a sports guess from the word "net". */
+function correctExplicitNetworkIssue(u: Understanding, text: string): Understanding {
+  const hasNetworkIssue = /\b(network(?:ing)?|wi[\s-]?fi|internet|router|ethernet|lan)\b/i.test(text);
+  const hasSpecificSportsIssue = /\b(cricket|wicket|pitch|batting|bowling|badminton|football|tournament)\b/i.test(text);
+  if (!hasNetworkIssue || hasSpecificSportsIssue) return u;
+
+  const place = u.location_text ? ` at ${u.location_text}` : "";
+  return {
+    ...u,
+    category: "internet",
+    summary_en: `Network connectivity issue reported${place}.`,
+    summary_as: "নেটৱৰ্ক সংযোগৰ সমস্যা জনোৱা হৈছে।",
+  };
+}
 
 export interface AiAttempt {
   step: "understanding" | "translation" | "embedding";
@@ -63,9 +78,9 @@ Fields:
 - is_complaint: false for questions, greetings, spam or text with no actionable problem.
 - category: one of ${CATEGORIES.join(", ")}.
   electricity, water, sanitation, hostel, library, classroom, road_transport, internet = facilities;
-  safety = security or personal safety; sports (grounds, gym, equipment, tournaments), cricket, music, debating (debates, symposiums),
+  safety = security or personal safety; sports (grounds, gym, equipment, tournaments), cricket (a game, pitch, wicket, or cricket practice net), music, debating (debates, symposiums),
   fine_arts_literary (cultural, art, literary events), magazine, girls_common_room, boys_common_room,
-  social_service (cleanliness drives, social welfare); general or other when nothing fits.
+  social_service (cleanliness drives, social welfare); general or other when nothing fits. Network, networking, Wi-Fi, internet, router, Ethernet, and LAN connectivity problems are internet. Never classify networking or a computer network as cricket because it contains "net". Choose the category from the concrete reported fault, not an incidental word.
 - priority: 1 urgent (safety risk), 2 high (facility unusable, many people affected), 3 normal, 4 minor.
 - is_sensitive: true for harassment, threats, or a complaint that names a person.
 - location_text: the place mentioned, written exactly as in this campus list when it matches one; otherwise the place as written; null if no place is mentioned.
@@ -87,7 +102,7 @@ ${input.text}
 export function understandWithRules(input: ComplaintInput): Understanding {
   const a = analyzeComplaint(input.text, null, input.location || null, "en");
   const tooShort = !input.text || input.text.trim().length < 4;
-  return {
+  return correctExplicitNetworkIssue({
     language: a.language === "as" || a.language === "mixed" ? a.language : "en",
     is_complaint: !tooShort,
     category: (CATEGORIES as readonly string[]).includes(a.category) ? (a.category as Category) : "other",
@@ -98,7 +113,7 @@ export function understandWithRules(input: ComplaintInput): Understanding {
     summary_as: a.summary_as,
     image_findings: null, // the keyword analyzer cannot see photos
     confidence: a.confidence,
-  };
+  }, input.text);
 }
 
 export async function understandWithGemini(input: ComplaintInput, apiKey: string, fetchImpl: typeof fetch = fetch): Promise<{ understanding: Understanding; raw: string }> {
@@ -119,7 +134,7 @@ export async function understandWithGemini(input: ComplaintInput, apiKey: string
   if (!text) throw new Error("Gemini returned no content: " + body.slice(0, 300));
   const u = JSON.parse(text) as Understanding;
   for (const key of RESPONSE_SCHEMA.required) if (!(key in u)) throw new Error("Gemini output is missing " + key);
-  return { understanding: u, raw: text };
+  return { understanding: correctExplicitNetworkIssue(u, input.text), raw: text };
 }
 
 export async function understandComplaint(input: ComplaintInput, fetchImpl: typeof fetch = fetch): Promise<UnderstandResult> {

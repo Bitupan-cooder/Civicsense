@@ -18,7 +18,7 @@ export function CredentialsModal() {
               Official Account Credentials
             </div>
             {" "}
-            <div style={{ fontSize: "12px", color: "#51684c" }}>
+            <div style={{ fontSize: "12px", color: "#4a6142" }}>
               One-time display verification
             </div>
             {" "}

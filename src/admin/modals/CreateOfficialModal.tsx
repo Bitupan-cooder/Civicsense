@@ -42,7 +42,7 @@ function CreateForm({ open }: { open: boolean }) {
               Provision Official Account
             </div>
             {" "}
-            <div style={{ fontSize: "12px", color: "#51684c" }}>
+            <div style={{ fontSize: "12px", color: "#4a6142" }}>
               Create authorized Department or Social Service profile
             </div>
             {" "}

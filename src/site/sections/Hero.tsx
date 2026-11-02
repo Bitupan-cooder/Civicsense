@@ -1,58 +1,16 @@
 // Markup converted 1:1 from the original index.html (React migration, step 1).
-import { StudentNavButton, StudentNotifications } from '../components/StudentAuthWidgets';
 import char1RecyclingImg from '../../../Flat Assets/civic/char-1-recycling.png';
 import char2PlantingImg from '../../../Flat Assets/civic/char-2-planting.png';
 import char3MegaphoneImg from '../../../Flat Assets/civic/char-3-megaphone.png';
 import char4AuditorImg from '../../../Flat Assets/civic/char-4-auditor.png';
 import char5DispatchImg from '../../../Flat Assets/civic/char-5-dispatch.png';
-import { openTracker } from '../tracker';
+import { SiteNav } from '../components/SiteNav';
 
 export function Hero() {
   return (
     <section className="hero" id="hero">
       {" "}
-      <nav className="nav" aria-label="Main navigation">
-        {" "}
-        <a className="brand" href="#hero" aria-label="CivicSense home">
-          {" "}
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-            <path d="M11 2C11 2 4 6 4 13a7 7 0 0014 0C18 6 11 2 11 2z" fill="currentColor" opacity=".9" />
-            <line x1="11" y1="14" x2="11" y2="20" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
-          </svg>
-          {" "}CivicSense{" "}
-        </a>
-        {" "}
-        <div className="nav-links">
-          {" "}
-          <a href="#stats">
-            Stats
-          </a>
-          {" "}
-          <a href="#how">
-            Workflow
-          </a>
-          {" "}
-          <a href="#categories">
-            Categories
-          </a>
-          {" "}
-          <a href="#report">
-            Report
-          </a>
-          {" "}
-        </div>
-        {" "}
-        <div className="nav-actions">
-          {" "}
-          <StudentNotifications /><StudentNavButton />
-          {" "}
-          <button className="btn-outline" id="openTrackerBtn" onClick={() => openTracker()} style={{ height: "32px", fontSize: "12px", padding: "0 14px" }}>
-            Track Status
-          </button>
-          {" "}
-        </div>
-        {" "}
-      </nav>
+      <SiteNav />
       {" "}
       {/* Massive backdrop typography layered behind characters and clouds */}
       {" "}

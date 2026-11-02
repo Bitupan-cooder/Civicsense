@@ -46,7 +46,7 @@ export function RoutingEditorPage() {
   const postOptions = posts.map((a) => <option key={a.id} value={a.id}>{a.post_title}</option>);
 
   return (
-    <section aria-label={t('routing.title')}>
+    <section className="workflow-page" aria-label={t('routing.title')}>
       <h1>{t('routing.title')}</h1>
       <PageState notInstalled={notInstalled} loading={!config && !error && !notInstalled} error={error} />
       {config && (

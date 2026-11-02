@@ -5,7 +5,7 @@ import type { ComplaintRoute, Reply, Routing } from './civicAuth';
 import { CATEGORY_LABELS, waitingOn, type Category } from './logic';
 
 const PRIORITY_LABELS: Record<number, string> = { 1: 'P1 · Urgent (safety risk)', 2: 'P2 · High', 3: 'P3 · Normal', 4: 'P4 · Minor' };
-const PRIORITY_COLORS: Record<number, string> = { 1: '#b91c1c', 2: '#b45309', 3: '#35532d', 4: '#64748b' };
+const PRIORITY_COLORS: Record<number, string> = { 1: '#b91c1c', 2: '#b45309', 3: '#4a6142', 4: '#64748b' };
 
 export const categoryLabel = (c: string | null | undefined) => (c ? CATEGORY_LABELS[c as Category] ?? c : 'Not analysed');
 export const priorityLabel = (p: number | null | undefined) => (p ? PRIORITY_LABELS[p] ?? 'P' + p : '—');
@@ -20,7 +20,7 @@ const BOX: CSSProperties = { background: '#ffffff', border: '1px solid var(--lin
 
 export function PriorityChip({ priority }: { priority: number | null | undefined }) {
   if (!priority) return null;
-  const color = PRIORITY_COLORS[priority] ?? '#35532d';
+  const color = PRIORITY_COLORS[priority] ?? '#4a6142';
   return <span style={{ fontSize: '11px', fontWeight: 700, color, border: `1px solid ${color}`, borderRadius: '999px', padding: '1px 8px', whiteSpace: 'nowrap' }}>{priorityLabel(priority)}</span>;
 }
 
@@ -78,7 +78,7 @@ export function RouteTracker({ routes, status }: { routes: ComplaintRoute[]; sta
               {CHECKPOINTS.map(([key, label]) => {
                 const ts = r[key] as string | null;
                 return (
-                  <div key={key} style={{ fontSize: '11px', textAlign: 'center', padding: '4px 2px', borderRadius: '6px', background: ts ? '#eef8e5' : '#f8fafc', color: ts ? '#204018' : '#94a3b8', border: '1px solid ' + (ts ? '#c0e8a8' : '#e2e8f0') }}>
+                  <div key={key} style={{ fontSize: '11px', textAlign: 'center', padding: '4px 2px', borderRadius: '6px', background: ts ? '#d4f5c0' : '#f8fafc', color: ts ? '#1a3010' : '#94a3b8', border: '1px solid ' + (ts ? '#cbe3b8' : '#e2e8f0') }}>
                     <div style={{ fontWeight: 700 }}>{ts ? '✓ ' : ''}{label}</div>
                     <div style={{ fontSize: '10px', minHeight: '12px' }}>{when(ts)}</div>
                   </div>
@@ -106,7 +106,7 @@ export function Replies({ replies, lang, showInternal }: { replies: Reply[]; lan
           const showOriginal = originals.includes(r.id) || !translated;
           const internal = r.visibility === 'internal';
           return (
-            <div key={r.id} style={{ background: internal ? '#fffbeb' : '#f8faf6', border: '1px solid ' + (internal ? '#fde68a' : '#e2ebd8'), borderRadius: '8px', padding: '8px 10px' }}>
+            <div key={r.id} style={{ background: internal ? '#fffbeb' : '#FAF2EB', border: '1px solid ' + (internal ? '#fde68a' : '#e0f0d0'), borderRadius: '8px', padding: '8px 10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '11.5px', color: '#4a6142', marginBottom: '3px', flexWrap: 'wrap' }}>
                 <strong style={{ color: 'var(--ink)' }}>{r.from}{internal && <span style={{ color: '#92400e', fontWeight: 700 }}> · Internal note</span>}</strong>
                 <span>{when(r.created_at)}</span>

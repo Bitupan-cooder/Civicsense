@@ -119,7 +119,7 @@ export function analyzeComplaint(text, photoName, locationOverride, langPref) {
     safety: ['safety', 'security', 'theft', 'threat', 'guard', 'stray dog', 'cctv', 'assault', 'harassment', 'ragging', 'নিৰাপত্তা', 'চুৰি', 'ভয়', 'ৰেগিং', 'হৈৰাণ'],
     internet: ['wifi', 'wi-fi', 'internet', 'lan', 'network', 'router', 'ethernet', 'connection', 'ৱাইফাই', 'ইণ্টাৰনেট', 'নেটৱৰ্ক'],
     sports: ['sports', 'ground', 'gym', 'football', 'badminton', 'tournament', 'equipment', 'খেলপথাৰ', 'ব্যায়ামাগাৰ', 'খেল'],
-    cricket: ['cricket', 'pitch', 'net', 'wicket', 'bat', 'ball', 'ক্ৰিকেট'],
+    cricket: ['cricket', 'pitch', 'cricket net', 'cricket nets', 'practice net', 'practice nets', 'wicket', 'bat', 'ball', 'ক্ৰিকেট'],
     music: ['music', 'instrument', 'song', 'acoustic', 'amplifier', 'guitar', 'সংগীত', 'বাদ্যযন্ত্ৰ', 'গান'],
     debating: ['debate', 'debating', 'symposium', 'speaker', 'motion', 'তৰ্ক', 'বক্তৃতা'],
     fine_arts_literary: ['art', 'painting', 'drawing', 'drama', 'cultural', 'সাহিত্য', 'কলা', 'চিত্রকলা'],

@@ -1,7 +1,10 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { cpSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
+
+const env = loadEnv('development', process.cwd(), '');
+Object.assign(process.env, env);
 import { handleApiRequest } from './backend/api.ts';
 
 const apiMiddleware = async (req: any, res: any, next: any) => {
@@ -64,6 +67,11 @@ export default defineConfig({
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
         admin: fileURLToPath(new URL('./admin.html', import.meta.url)),
       },
+    },
+  },
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   server: {

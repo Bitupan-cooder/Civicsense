@@ -47,7 +47,7 @@ export function DuplicatesPage() {
   };
 
   return (
-    <section aria-label={t('dup.title')}>
+    <section className="workflow-page" aria-label={t('dup.title')}>
       <h1>{t('dup.title')}</h1>
       <PageState notInstalled={notInstalled} loading={pairs === null && !error} error={error} />
       {pairs && !pairs.length && <p>{t('dup.empty')}</p>}

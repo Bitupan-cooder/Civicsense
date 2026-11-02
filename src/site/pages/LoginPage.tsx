@@ -27,7 +27,7 @@ export function LoginPage() {
     if (s.profile && signedUpWith.current) { setLanguage(signedUpWith.current); signedUpWith.current = null; }
   }, [s.profile]);
 
-  if (s.profile) return <Navigate to={next && next.startsWith('/') ? next : signup ? '/report' : '/my'} replace />;
+  if (s.profile) return <Navigate to={next && next.startsWith('/') && !next.startsWith('//') && !next.includes('\\') ? next : signup ? '/report' : '/my'} replace />;
 
   const tab = (mode: 'login' | 'signup') => () => {
     const p = new URLSearchParams(params);

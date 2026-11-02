@@ -1,12 +1,12 @@
 // Everything that shows who is signed in, rendered from the student session store.
-import { handleNavStudentClick, openReuploadModal, openStudentAuth, signOutStudent, useStudentSession } from '../studentSession';
+import { handleNavStudentClick, openReuploadModal, openStudentAuth, scrollToSignIn, signOutStudent, useStudentSession } from '../studentSession';
 import { loadStudentComplaints, openTracker, openTrackerWithId, switchTrackerMode } from '../tracker';
 import { NotificationBell } from '../../NotificationBell';
 import { useLanguage } from '../../i18n';
 
 function IdStatusLabel({ status }: { status?: string }) {
   if (status === 'verified') {
-    return <>{' · '}<span style={{ color: '#166534', fontWeight: 700 }}>ID Verified</span></>;
+    return <>{' · '}<span style={{ color: '#1a7a3a', fontWeight: 700 }}>ID Verified</span></>;
   }
   if (status === 'not_valid') {
     return (
@@ -27,10 +27,10 @@ function IdStatusLabel({ status }: { status?: string }) {
 }
 
 /** Hero nav button. */
-export function StudentNavButton() {
+export function StudentNavButton({ standalone = false }: { standalone?: boolean }) {
   const { profile } = useStudentSession();
   return (
-    <button className="btn-outline" id="navStudentBtn" onClick={() => handleNavStudentClick()} style={{ height: '32px', fontSize: '12px', padding: '0 14px' }}>
+    <button className="btn-outline nav-student-button" id={standalone ? undefined : 'navStudentBtn'} onClick={() => handleNavStudentClick()} style={{ height: '32px', fontSize: '12px', padding: '0 14px' }}>
       {profile ? 'Student: ' + profile.name.split(' ')[0] : 'Student Sign In'}
     </button>
   );
@@ -46,7 +46,7 @@ export function FooterStudentLink() {
       onClick={(e) => {
         e.preventDefault();
         if (profile) signOutStudent();
-        else openStudentAuth();
+        else scrollToSignIn('signin');
       }}
     >
       {profile ? `${profile.name} (Sign Out)` : 'Student Sign In'}

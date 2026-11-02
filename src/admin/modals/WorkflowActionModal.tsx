@@ -46,7 +46,7 @@ function WorkflowForm({ status }: { status: string | null }) {
               {a ? a[0] : 'Action Title'}
             </div>
             {" "}
-            <div style={{ fontSize: "12px", color: "#51684c" }} id="actionModalSubtitle">
+            <div style={{ fontSize: "12px", color: "#4a6142" }} id="actionModalSubtitle">
               {a ? a[1] : 'Subheading'}
             </div>
             {" "}
@@ -60,7 +60,7 @@ function WorkflowForm({ status }: { status: string | null }) {
         {" "}
         <div className="modal-body">
           {" "}
-          <div id="actionModalNotice" style={{ background: "#f8faf4", borderLeft: "3px solid var(--olive)", padding: "8px 12px", borderRadius: "0 6px 6px 0", fontSize: "12px", color: "#35532d", marginBottom: "14px", lineHeight: "1.45" }}>
+          <div id="actionModalNotice" style={{ background: "#FAF2EB", borderLeft: "3px solid var(--olive)", padding: "8px 12px", borderRadius: "0 6px 6px 0", fontSize: "12px", color: "#4a6142", marginBottom: "14px", lineHeight: "1.45" }}>
             {a ? <><strong>{a[2]}</strong>{a[3]}</> : <>{" "}Notice text{" "}</>}
           </div>
           {" "}

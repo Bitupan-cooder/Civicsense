@@ -3,7 +3,7 @@ import { useSyncExternalStore } from 'react';
 import { civicAuth, routingApi, type Complaint, type Routing } from '../civicAuth';
 import { checkCurrentStudentSession } from './studentSession';
 import { showToast } from '../toast';
-import { getComplaints } from './demoData.js';
+import { resolveLocationId } from '../locations';
 
 export type TrackerMode = 'my_complaints' | 'track_single';
 
@@ -33,6 +33,7 @@ let state: TrackerState = {
   mine: [], mineLoaded: false, mineLoading: false, mineError: null, filterText: '', filterStatus: 'ALL', expanded: [], routing: {},
 };
 const listeners = new Set<() => void>();
+let sessionGeneration = 0;
 
 function update(patch: Partial<TrackerState>): void {
   state = { ...state, ...patch };
@@ -47,8 +48,19 @@ export function useTracker(): TrackerState {
 }
 
 function demoIds(): string[] {
-  const all: { id: string }[] = getComplaints();
-  return all.slice(0, 4).map((c) => c.id);
+  return state.mine.slice(0, 4).map((c) => 'CS-' + c.id.slice(0, 8).toUpperCase());
+}
+
+export function clearTrackerSession(): void {
+  sessionGeneration++;
+  update({ mine: [], routing: {}, result: null, demoIds: [], mineLoaded: false, mineLoading: false, mineError: null });
+}
+
+/** The public landing map shows only reports already visible to the signed-in student. */
+export function getMapComplaints() {
+  return state.mine.map((c) => ({ ...c, location_id: resolveLocationId(state.routing[c.id]?.location_id),
+    urgency: state.routing[c.id]?.priority === 1 ? 'Urgent' : state.routing[c.id]?.priority === 2 ? 'High' : 'Normal',
+  }));
 }
 
 export function openTracker(): void {
@@ -80,19 +92,24 @@ export function openTrackerWithId(id: string | null | undefined): void {
 }
 
 export async function loadStudentComplaints(): Promise<void> {
+  const generation = sessionGeneration;
   update({ mineLoading: true, mineError: null, expanded: [] });
   try {
     const mine = (await civicAuth().fetchStudentComplaints()) || [];
-    update({ mine, mineLoaded: true, mineLoading: false });
-    loadRouting(mine.map((c) => c.id));
+    if (generation !== sessionGeneration) return;
+    update({ mine, mineLoaded: true, mineLoading: false, demoIds: mine.slice(0, 4).map((c) => 'CS-' + c.id.slice(0, 8).toUpperCase()) });
+    await loadRouting(mine.map((c) => c.id));
   } catch (err) {
+    if (generation !== sessionGeneration) return;
     update({ mineLoaded: true, mineLoading: false, mineError: (err as Error).message || 'Failed to load complaints.' });
   }
 }
 
 async function loadRouting(ids: string[]): Promise<void> {
   if (!ids.length) return;
+  const generation = sessionGeneration;
   const routing = await routingApi().fetchRouting(ids);
+  if (generation !== sessionGeneration) return;
   update({ routing: { ...state.routing, ...routing } });
 }
 
@@ -128,6 +145,7 @@ export function searchFor(id: string): void {
 }
 
 export async function searchComplaint(): Promise<void> {
+  const generation = sessionGeneration;
   const id = state.query.trim();
   if (!id) {
     update({ searchError: 'Please enter a valid Complaint ID.', result: null });
@@ -136,6 +154,7 @@ export async function searchComplaint(): Promise<void> {
   update({ searchError: null });
   try {
     const found = await civicAuth().fetchComplaintById(id);
+    if (generation !== sessionGeneration) return;
     if (found) {
       update({ result: found });
       loadRouting([found.id]);

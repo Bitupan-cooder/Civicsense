@@ -19,7 +19,7 @@ function Counts({ title, counts, label = (k) => k }: { title: TextKey; counts: R
       <h2>{t(title)}</h2>
       <table>
         <tbody>
-          {rows.map(([k, n]) => <tr key={k}><th scope="row">{label(k)}</th><td>{n}</td></tr>)}
+          {rows.map(([k, n]) => <tr key={k}><th scope="row">{label(k)}</th><td className="stats-bar"><progress aria-label={label(k)} value={n} max={Math.max(1, ...rows.map(([, value]) => value))} /></td><td>{n}</td></tr>)}
         </tbody>
       </table>
     </section>
@@ -30,11 +30,20 @@ export function StatsPage() {
   const { t, lang } = useLanguage();
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [running, setRunning] = useState(false);
+  const [maintenanceResult, setMaintenanceResult] = useState('');
   useEffect(() => { routingApi().fetchStats().then(setStats, (err) => setError((err as Error).message)); }, []);
 
   return (
-    <section aria-label={t('stats.title')}>
+    <section className="workflow-page" aria-label={t('stats.title')}>
       <h1>{t('stats.title')}</h1>
+      <button type="button" disabled={running} onClick={async () => {
+        setRunning(true); setError(null);
+        try { const result = await routingApi().runMaintenance(); setMaintenanceResult(`Deadline checks complete. ${result.escalated} overdue cases notified.`); setStats(await routingApi().fetchStats()); }
+        catch (err) { setError((err as Error).message); }
+        finally { setRunning(false); }
+      }}>{running ? 'Checking deadlines…' : 'Check overdue cases and close expired resolutions'}</button>
+      {maintenanceResult && <p role="status">{maintenanceResult}</p>}
       <PageState loading={!stats && !error} error={error} />
       {stats && (
         <>

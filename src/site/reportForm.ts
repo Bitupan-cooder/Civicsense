@@ -1,15 +1,14 @@
 // State and actions of the complaint form. Shared by the form, the success card, the category cards
 // (pre-filled examples) and the campus map (campusMap.js calls setReportPlace).
 import { useSyncExternalStore } from 'react';
-import { civicAuth, routingApi, type Analysis, type DepartmentUnit } from '../civicAuth';
+import { civicAuth, type Analysis, type DepartmentUnit } from '../civicAuth';
 import { loadStudentComplaints } from './tracker';
 import { analyzeComplaint } from './analyzer.js';
-import { focusMapOnLandmark } from './campusMap.js';
 import { showToast } from '../toast';
 import { openStudentAuth } from './studentSession';
 
 export type Visibility = 'department' | 'administration' | 'social_service';
-export type FocusField = 'fTitle' | 'fCategory' | 'fTargetUnit' | 'fDesc';
+export type FocusField = 'fTitle' | 'fTargetUnit' | 'fDesc';
 
 export const LOCATION_OPTIONS: ReadonlyArray<{ value: string; label: string }> = [
   { value: '', label: 'Auto-Detect from complaint text' },
@@ -28,7 +27,6 @@ export const LOCATION_OPTIONS: ReadonlyArray<{ value: string; label: string }> =
 
 export interface ReportFormState {
   title: string;
-  category: string;
   visibility: Visibility;
   targetUnit: string;
   desc: string;
@@ -51,7 +49,7 @@ export interface ReportFormState {
   resetCount: number;
 }
 
-const EMPTY_FIELDS = { hideName: false, title: '', category: '', visibility: 'department' as Visibility, targetUnit: '', desc: '', location: '', customLoc: '', files: [] as File[] };
+const EMPTY_FIELDS = { hideName: false, title: '', visibility: 'department' as Visibility, targetUnit: '', desc: '', location: '', customLoc: '', files: [] as File[] };
 
 let state: ReportFormState = {
   ...EMPTY_FIELDS, language: null, units: null, titleError: false, descError: false, submitError: '', submitting: false, success: null, resetCount: 0,
@@ -77,8 +75,8 @@ function analyse(): void {
   const loc = state.location === 'OTHER' ? state.customLoc : state.location;
   const analysis = analyzeComplaint(state.desc, null, loc, 'en');
   const patch: Partial<ReportFormState> = { language: LANGUAGE_LABELS[analysis.language] ?? 'English (en)' };
-  // a landmark named in the text moves the map pin and selects that landmark
-  if (analysis.location_id && focusMapOnLandmark(analysis.location_id) && state.location !== analysis.location_id) {
+  // Select a landmark when the report text identifies one.
+  if (analysis.location_id && state.location !== analysis.location_id) {
     patch.location = analysis.location_id;
   }
   update(patch);
@@ -105,24 +103,6 @@ export function setLocation(location: string): void {
 export function setCustomLocation(customLoc: string): void {
   update({ customLoc });
   analyse();
-}
-
-/** Picks a matching department for the chosen category if none is selected yet (was handleCategorySelect). */
-export function setCategory(category: string): void {
-  let targetUnit = state.targetUnit;
-  if (category && state.units?.length && !targetUnit) {
-    for (const u of state.units) {
-      const name = (u.unit_name || u.name || '').toLowerCase();
-      if ((category.includes('Water') && (name.includes('water') || name.includes('phe')))
-        || (category.includes('Electrical') && name.includes('elect'))
-        || (category.includes('Hostel') && name.includes('hostel'))
-        || (category.includes('Network') && (name.includes('net') || name.includes('ccsa') || name.includes('it')))) {
-        targetUnit = u.id;
-        break;
-      }
-    }
-  }
-  update({ category, targetUnit });
 }
 
 export function setVisibility(visibility: Visibility): void {
@@ -173,23 +153,18 @@ export function addEvidenceFiles(files: FileList | null): void {
     }
     return true;
   });
-  update({ files: [...state.files, ...accepted] });
+  if (state.files.length + accepted.length > 5) showToast('Attach up to five files per complaint.', 'info');
+  update({ files: [...state.files, ...accepted].slice(0, 5) });
 }
 
 /** Camera photos skip the checks, as before. */
 export function addCameraPhoto(files: FileList | null): void {
-  if (files?.length) update({ files: [...state.files, files[0]] });
+  addEvidenceFiles(files);
 }
 
 export function removeEvidenceFile(index: number): void {
   update({ files: state.files.filter((_, i) => i !== index) });
 }
-
-const VISIBILITY_TEXT: Record<Visibility, string> = {
-  administration: 'Administration Only (confidential to Registrar / Proctorial Board)',
-  department: 'Assigned Department and Central Administration',
-  social_service: 'All Departments and DUSU Social Service Council',
-};
 
 /** Validates and submits (was submitReport). Returns the field to focus when validation fails. */
 export async function submitReport(): Promise<FocusField | null> {
@@ -207,39 +182,27 @@ export async function submitReport(): Promise<FocusField | null> {
   if (title.length < 5) { update({ titleError: true }); return 'fTitle'; }
   update({ titleError: false });
 
-  if (!state.category) { update({ submitError: 'Please select an issue category.' }); return 'fCategory'; }
-
   const targetUnitId = state.visibility === 'department' ? state.targetUnit : null;
-  if (state.visibility === 'department' && !targetUnitId) {
-    update({ submitError: 'Please select the target university department.' });
-    return 'fTargetUnit';
-  }
-
   const desc = state.desc.trim();
   if (desc.length < 8) { update({ descError: true }); return 'fDesc'; }
   update({ descError: false, submitting: true });
 
   try {
+    const place = state.location === 'OTHER' ? state.customLoc.trim() : state.location;
     const complaint = await civicAuth().submitStudentComplaint({
-      title, description: desc, category: state.category, visibility: state.visibility, targetUnitId, evidenceFiles: state.files,
+      title, description: desc, visibility: state.visibility, targetUnitId, evidenceFiles: state.files,
+      location: place || null, hideName: state.hideName,
     });
-    // the landmark the reporter picked goes to the AI as a hint and is stored with the complaint
-    const place = state.location === 'OTHER' ? state.customLoc.trim() : (LOCATION_OPTIONS.find((o) => o.value === state.location && o.value)?.label ?? '');
     update({
       success: {
-        analysis: 'pending',
+        analysis: complaint.analysis,
         ticket: 'CS-' + complaint.id.slice(0, 8).toUpperCase(),
-        summary: 'Your grievance "' + title + '" has been registered in the database with visibility set to: ' + VISIBILITY_TEXT[state.visibility] + '. Permanent status tracking is active.',
+        summary: complaint.warning || 'Your grievance "' + title + '" has been saved. Only administration and the responsible routed posts can access it.',
       },
       files: [],
     });
-    showToast('Complaint submitted with status: Submitted', 'success');
+    showToast(complaint.warning ? 'Complaint saved for administration review.' : 'Complaint saved and analysed.', 'success');
     loadStudentComplaints(); // refresh the tracker in the background
-    const hideName = state.hideName;
-    routingApi().analyseComplaint(complaint.id, place || null, hideName).then((analysis) => {
-      if (state.success) update({ success: { ...state.success, analysis } });
-      if (analysis) loadStudentComplaints();
-    });
   } catch (err) {
     update({ submitError: (err as Error).message || 'Failed to submit complaint.' });
   } finally {

@@ -5,7 +5,7 @@
 //
 // Data: console.ts store (complaints the official can see + routing[id].location_id / priority / ai_category);
 // coordinates: CAMPUS_LOCATION_COORDS in src/site/demoData.js.
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '../../i18n';
 import { CATEGORIES, CATEGORY_LABELS, STATUS_NAMES, ticketRef } from '../../logic';
 import { useFeatures } from '../../NotificationBell';
@@ -13,6 +13,8 @@ import { priorityLabel } from '../../RouteTracker';
 import { CAMPUS_LOCATION_COORDS } from '../../site/demoData.js';
 import { openDocket, useConsole } from '../console';
 import { PageState } from './ConsoleNav';
+import { ComplaintMap } from '../components/ComplaintMap';
+import { resolveLocationId } from '../../locations';
 
 export interface MapPin {
   locationId: string | null;
@@ -33,6 +35,8 @@ export function CampusMapPage() {
   const [status, setStatus] = useState('all');
   const [priority, setPriority] = useState('all');
   const [category, setCategory] = useState('all');
+  const [selectedPlace, setSelectedPlace] = useState<string | null>(null);
+  useEffect(() => { setSelectedPlace(null); }, [status, priority, category]);
 
   const pins = useMemo<MapPin[]>(() => {
     const groups = new Map<string, MapPin>();
@@ -42,7 +46,7 @@ export function CampusMapPage() {
       if (status !== 'all' && c.status !== status) continue;
       if (priority !== 'all' && String(r?.priority ?? '') !== priority) continue;
       if (category !== 'all' && cat !== category) continue;
-      const loc = r?.location_id && COORDS[r.location_id] ? r.location_id : null;
+      const loc = resolveLocationId(r?.location_id) || resolveLocationId(r?.location_text);
       const key = loc ?? '__none';
       const pin = groups.get(key) ?? {
         locationId: loc, name: loc ? COORDS[loc].name : t('map.noPlace'),
@@ -56,7 +60,7 @@ export function CampusMapPage() {
   }, [s.complaints, s.routing, status, priority, category, t]);
 
   return (
-    <section aria-label={t('map.title')}>
+    <section className="workflow-page" aria-label={t('map.title')}>
       <h1>{t('map.title')}</h1>
       <PageState notInstalled={!installed} loading={s.loading} error={s.loadError} />
       <form onSubmit={(e) => e.preventDefault()}>
@@ -79,9 +83,11 @@ export function CampusMapPage() {
           </select>
         </label>
       </form>
-      {/* the map goes here: one marker per pin at (pin.lat, pin.lng) */}
+      <ComplaintMap pins={pins} onSelect={(pin) => setSelectedPlace(pin.locationId)} />
+      {selectedPlace && <p><button type="button" onClick={() => setSelectedPlace(null)}>Show all locations</button></p>}
+      {s.loaded && !pins.length && <p role="status">No complaints match these filters.</p>}
       <ul>
-        {pins.map((pin) => (
+        {pins.filter((pin) => !selectedPlace || pin.locationId === selectedPlace).map((pin) => (
           <li key={pin.locationId ?? 'none'} data-priority={pin.priority ?? ''} data-lat={pin.lat ?? ''} data-lng={pin.lng ?? ''}>
             <strong>{pin.name}</strong> ({pin.complaints.length}){pin.priority ? ` · ${priorityLabel(pin.priority)}` : ''}
             <ul>

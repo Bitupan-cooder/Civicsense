@@ -45,7 +45,7 @@ export function ReviewQueuePage() {
   const s = useConsole();
   const queue = s.complaints.filter((c) => c.status === 'needs_review');
   return (
-    <section aria-label={t('review.title')}>
+    <section className="workflow-page" aria-label={t('review.title')}>
       <h1>{t('review.title')}</h1>
       <PageState notInstalled={!routing} loading={s.loading} error={s.loadError} />
       {routing && s.loaded && !queue.length && <p>{t('review.empty')}</p>}

@@ -1,0 +1,237 @@
+/* ── LIGHT MODE HUMAN-CRAFTED BENTO GRID FOR CIVICSENSE ────────── */
+.bento-container {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 10px 16px 20px;
+}
+
+.bento-header {
+  text-align: center;
+  max-width: 780px;
+  margin: 0 auto 36px;
+}
+
+.bento-header h2 {
+  font-size: clamp(28px, 3.2vw, 42px);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.16;
+  color: var(--ink, #121410);
+  margin-bottom: 12px;
+}
+
+.bento-header h2 em {
+  color: var(--olive, #1a7a3a);
+  font-style: italic;
+}
+
+.bento-header p {
+  font-size: clamp(14px, 1.1vw, 15.5px);
+  color: #2a3820;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 6-Column Bento Grid */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+/* Bento Card Base - Crisp White Surface */
+.bento-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1.5px solid var(--line, #e0f0d0);
+  box-shadow: 0 4px 20px -2px rgba(20, 50, 25, 0.05), 0 2px 6px -1px rgba(20, 50, 25, 0.03);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 0.28s ease,
+              box-shadow 0.28s ease;
+  min-height: 320px;
+}
+
+.bento-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--olive, #1a7a3a);
+  box-shadow: 0 16px 36px -4px rgba(26,122,58, 0.12),
+              0 4px 12px rgba(26,122,58, 0.05);
+}
+
+.bento-card:focus-visible {
+  outline: 3px solid #1EA854;
+  outline-offset: 3px;
+}
+
+/* Spans and Corner Radii */
+.bento-col-3 {
+  grid-column: span 3;
+}
+
+.bento-col-2 {
+  grid-column: span 2;
+}
+
+.bento-rounded-tl {
+  border-top-left-radius: 32px;
+}
+
+.bento-rounded-tr {
+  border-top-right-radius: 32px;
+}
+
+.bento-rounded-bl {
+  border-bottom-left-radius: 32px;
+}
+
+.bento-rounded-br {
+  border-bottom-right-radius: 32px;
+}
+
+/* Real Photographic Graphics Viewport */
+.bento-graphic-wrap {
+  position: relative;
+  height: 195px;
+  width: 100%;
+  overflow: hidden;
+  background: #f2f8ec;
+}
+
+.bento-col-3 .bento-graphic-wrap {
+  height: 220px;
+}
+
+.bento-graphic-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.bento-card:hover .bento-graphic-img {
+  transform: scale(1.05);
+}
+
+/* Smooth Light Bottom Fade into White Card Surface */
+.bento-fade-bottom {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 50%, rgba(255, 255, 255, 0.85) 86%, #ffffff 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Clean Content Area (No Bureaucratic Clutter or Prefill Spam) */
+.bento-content {
+  position: relative;
+  z-index: 3;
+  padding: 16px 20px 20px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.bento-title {
+  font-size: clamp(16px, 1.3vw, 19px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #121410;
+  margin: 0 0 8px;
+  line-height: 1.25;
+}
+
+.bento-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #4a6142;
+  margin: 0;
+  flex-grow: 1;
+}
+
+/* 20 Campus Areas Action Card - Mint Light Accent */
+.bento-action-card {
+  background: linear-gradient(145deg, #f2f8ec 0%, #d4f5c0 100%);
+  border: 1.5px solid #b8d9aa;
+  box-shadow: 0 4px 20px -2px rgba(26,122,58, 0.08);
+}
+
+.bento-action-card:hover {
+  border-color: #1a7a3a;
+  box-shadow: 0 16px 36px -4px rgba(26,122,58, 0.18);
+}
+
+.bento-action-card .bento-fade-bottom {
+  background: linear-gradient(180deg, rgba(242, 250, 239, 0) 45%, rgba(242, 250, 239, 0.88) 85%, #f2f8ec 100%);
+}
+
+.bento-action-card .bento-content {
+  background: transparent;
+}
+
+.bento-direct-btn {
+  width: 100%;
+  height: 38px;
+  border-radius: 999px;
+  background: var(--olive, #1a7a3a);
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(26,122,58, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  margin-top: 14px;
+}
+
+.bento-direct-btn:hover {
+  background: #0e5c28;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(26,122,58, 0.32);
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .bento-col-3,
+  .bento-col-2 {
+    grid-column: span 1;
+  }
+  .bento-col-3:first-child {
+    grid-column: span 2;
+  }
+  .bento-rounded-tl,
+  .bento-rounded-tr,
+  .bento-rounded-bl,
+  .bento-rounded-br {
+    border-radius: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+  .bento-col-3,
+  .bento-col-2 {
+    grid-column: span 1;
+  }
+  .bento-col-3:first-child {
+    grid-column: span 1;
+  }
+}

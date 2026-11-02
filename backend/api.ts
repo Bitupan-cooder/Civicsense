@@ -2,12 +2,15 @@ import { v2 as cloudinary } from "cloudinary";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { IncomingMessage, ServerResponse } from "http";
 import fs from "fs";
+import { locationLabel, resolveLocationId } from "../src/locations.ts";
+import { validateSubmission } from "./submission.ts";
+import { deadlinePlan } from "./maintenance.ts";
 import { canAccessComplaint } from "./access.ts";
 import { campusPlaceNames, embedText, translateReply, understandComplaint } from "./ai.ts";
 import { applyRules, AUTO_CLOSE_DAYS, CATEGORIES, DUPLICATE_THRESHOLD, messages, routeComplaint, textSimilarity, ticketRef, type Message } from "../src/logic.ts";
 
 // Secrets come only from the environment or git-ignored .env files. Never hardcode fallbacks here.
-for (const file of [".env.local", ".env"]) {
+for (const file of process.env.NODE_ENV === 'test' ? [] : [".env.local", ".env"]) {
   if (fs.existsSync(file)) process.loadEnvFile(file);
 }
 
@@ -165,10 +168,51 @@ async function autoCloseResolved(): Promise<void> {
   const { data: due } = await supabaseAdmin.from("complaints").select("id, student_id").eq("status", "resolved").lt("resolved_at", cutoff);
   for (const c of due || []) {
     const now = new Date().toISOString();
-    await supabaseAdmin.from("complaints").update({ status: "closed", closed_at: now, updated_at: now }).eq("id", c.id);
+    const closed = await supabaseAdmin.from("complaints").update({ status: "closed", closed_at: now, updated_at: now }).eq("id", c.id).eq("status", "resolved").select("id");
+    if (closed.error) throw new Error(closed.error.message);
+    if (!closed.data?.length) continue;
     await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: c.id, status: "closed", remark: `Closed automatically ${AUTO_CLOSE_DAYS} days after resolution.`, changed_by: null });
-    await notify([c.student_id], c.id, messages.autoClosed(ticketRef(c.id)));
+    await notify([c.student_id, ...(await mergedReporterIds(c.id))], c.id, messages.autoClosed(ticketRef(c.id)));
   }
+}
+
+let maintenanceRun: Promise<{ escalated: number }> | null = null;
+export function runMaintenance(): Promise<{ escalated: number }> {
+  if (maintenanceRun) return maintenanceRun;
+  maintenanceRun = (async () => {
+    if (missingEnv.length || !(await isRoutingInstalled())) throw new Error('Routing is not configured.');
+    await autoCloseResolved();
+    const [cases, config, posts] = await Promise.all([
+      supabaseAdmin.from('complaints').select('id, status, priority, is_sensitive, created_at, ai_category, student_id').in('status', ['submitted', 'under_verification', 'accepted', 'in_progress']),
+      supabaseAdmin.from('routing_rules').select('*').eq('active', true),
+      supabaseAdmin.from('authorities').select('id, post_key').eq('active', true),
+    ]);
+    if (cases.error || config.error || posts.error) throw new Error('Unable to read maintenance queue.');
+    const head = posts.data.find((p: any) => p.post_key === 'head')?.id;
+    const vp = posts.data.find((p: any) => p.post_key === 'vice_president')?.id;
+    let escalated = 0;
+    for (const c of cases.data) {
+      const rule = config.data.find((r: any) => r.category === c.ai_category);
+      if (!rule || !head) continue;
+      const plan = deadlinePlan(c, rule.response_hours);
+      if (!plan.overdue) continue;
+      const targets = plan.headOnly || plan.finalStage || rule.primary_authority_id === head
+        ? [head] : [...new Set([rule.escalate_to_id, vp].filter(Boolean))];
+      // Once per day and stage, persisted independently of process restarts.
+      const marker = `Deadline ${c.id} ${new Date().toISOString().slice(0, 10)} ${targets.join(',')}`;
+      const prior = await supabaseAdmin.from('activity_log').select('id').eq('action', 'complaint_escalated').eq('target', marker).limit(1);
+      if (prior.error) throw new Error(prior.error.message);
+      if (prior.data?.length) continue;
+      const routed = await supabaseAdmin.from('complaint_routes').upsert(targets.map((authority_id) => ({ complaint_id: c.id, authority_id, kind: 'escalation' })), { onConflict: 'complaint_id,authority_id', ignoreDuplicates: true });
+      if (routed.error) throw new Error(routed.error.message);
+      const logged = await supabaseAdmin.from('activity_log').insert({ actor_id: c.student_id, action: 'complaint_escalated', target: marker });
+      if (logged.error) throw new Error(logged.error.message);
+      await notify(await postHolderIds(targets), c.id, { en: `${ticketRef(c.id)} is overdue. Please review and respond.`, as: `${ticketRef(c.id)}ৰ সময়সীমা পাৰ হৈছে। অনুগ্ৰহ কৰি পৰীক্ষা কৰি উত্তৰ দিয়ক।` });
+      escalated++;
+    }
+    return { escalated };
+  })().finally(() => { maintenanceRun = null; });
+  return maintenanceRun;
 }
 
 /** Posts held by the requester: linked by user_id, or by the post's email matching their login email. */
@@ -203,10 +247,16 @@ async function insertRoutes(complaintId: string, category: string, headOnly: boo
     supabaseAdmin.from("authorities").select("id").eq("post_key", "head").maybeSingle(),
   ]);
   if (!head) throw new Error("Routing is not seeded: no 'head' authority.");
+  if (headOnly) {
+    const removed = await supabaseAdmin.from("complaint_routes").delete().eq("complaint_id", complaintId).neq("authority_id", head.id);
+    if (removed.error) throw new Error("Could not restrict sensitive complaint routes.");
+  }
   const routes = routeComplaint(category, headOnly, rules || [], head.id);
+  const stale = await supabaseAdmin.from('complaint_routes').delete().eq('complaint_id', complaintId).not('authority_id', 'in', `(${routes.map((r) => r.authority_id).join(',')})`);
+  if (stale.error) throw new Error('Could not replace previous complaint routes.');
   const { error } = await supabaseAdmin
     .from("complaint_routes")
-    .upsert(routes.map((r) => ({ complaint_id: complaintId, authority_id: r.authority_id, kind: r.kind })), { onConflict: "complaint_id,authority_id", ignoreDuplicates: true });
+    .upsert(routes.map((r) => ({ complaint_id: complaintId, authority_id: r.authority_id, kind: r.kind })), { onConflict: "complaint_id,authority_id", ignoreDuplicates: false });
   if (error) throw new Error("Failed to route complaint: " + error.message);
 }
 
@@ -270,24 +320,25 @@ async function mergedReporterIds(complaintId: string): Promise<string[]> {
 /** PRD steps 2-3: understand the complaint, apply the code rules, save the AI fields, then route it or send it to review. */
 async function analyseAndRoute(complaint: any, location: string | null, hideName: boolean | null, actorId: string) {
   const text = `${complaint.title}\n${complaint.description}`;
-  const ai = await understandComplaint({ text, location, image: await firstEvidenceImage(complaint.id) });
+  const ai = await understandComplaint({ text, location: locationLabel(location), image: await firstEvidenceImage(complaint.id) });
   await supabaseAdmin.from("ai_logs").insert(ai.attempts.map((a) => ({ ...a, complaint_id: complaint.id })));
 
   const r = applyRules(ai.understanding, text, campusPlaceNames());
   if (ai.failed) { r.needs_review = true; r.review_reason = "AI call failed; analysed by keyword rules"; }
 
   const { error } = await supabaseAdmin.from("complaints").update({
-    location_id: location || complaint.location_id || null,
+    location_id: resolveLocationId(location) || location || complaint.location_id || null,
     ...(hideName === null ? {} : { hide_name_from_union: hideName }),
     input_language: r.language, is_complaint: r.is_complaint, ai_category: r.category, priority: r.priority,
     is_sensitive: r.is_sensitive, location_text: r.location_text, summary_en: r.summary_en, summary_as: r.summary_as,
     image_findings: r.image_findings, confidence: r.confidence, ai_source: ai.source, analysed_at: new Date().toISOString(),
-    ...(r.needs_review ? { status: "needs_review" } : {}),
+    ...(r.head_only || r.needs_review ? { visibility: "administration", target_unit_id: null } : {}),
+    ...(r.needs_review ? { status: "needs_review" } : complaint.status === "needs_review" ? { status: "submitted" } : {}),
     updated_at: new Date().toISOString(),
   }).eq("id", complaint.id);
   if (error) throw new Error("Failed to save AI analysis: " + error.message);
   const duplicate = await flagPossibleDuplicate(
-    { ...complaint, ai_category: r.category, location_id: location || complaint.location_id || null, summary_en: r.summary_en }, actorId);
+    { ...complaint, ai_category: r.category, location_id: resolveLocationId(location) || location || complaint.location_id || null, summary_en: r.summary_en }, actorId);
 
   if (r.needs_review) {
     await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: complaint.id, status: "needs_review", remark: "Sent to administration review: " + r.review_reason, changed_by: actorId });
@@ -368,7 +419,6 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
   if (missingEnv.length) {
     return sendJson(res, 500, { error: `Server not configured. Missing in .env.local: ${missingEnv.join(", ")}` });
   }
-  autoCloseResolved().catch((err) => console.error("[api] auto-close failed:", err?.message || err));
 
   // 1. HEALTH & DIAGNOSTICS ENDPOINT
   if (pathname === "/api/health" && req.method === "GET") {
@@ -376,7 +426,52 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     return sendJson(res, error ? 503 : 200, { status: error ? "degraded" : "ok", database: !error });
   }
 
-  // AI ANALYSIS + ROUTING. The reporter calls it right after filing (once); an admin can re-run it (PRD "reanalyse").
+  if ((pathname === '/api/admin/maintenance' && req.method === 'POST') || (pathname === '/api/cron/escalations' && req.method === 'GET')) {
+    const cron = pathname === '/api/cron/escalations';
+    if (cron) {
+      if (!process.env.CRON_SECRET || req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) return sendJson(res, 401, { error: 'Invalid scheduler credentials.' });
+    } else {
+      const requester = await getRequester(req);
+      if (!requester?.profile?.is_active || requester.profile.role !== 'administration') return sendJson(res, 403, { error: 'Administration role required.' });
+    }
+    try { return sendJson(res, 200, await runMaintenance()); }
+    catch (err: any) { return sendJson(res, 500, { error: err.message }); }
+  }
+
+  // Create privately first. If analysis fails, the saved complaint stays in administration review.
+  if (pathname === "/api/complaints/create" && req.method === "POST") {
+    const requester = await getRequester(req);
+    if (!requester?.profile?.is_active || requester.profile.role !== "student") return sendJson(res, 403, { error: "An active student account is required." });
+    if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Complaint routing is not configured. Run migration 001 before accepting reports." });
+    let input;
+    try { input = validateSubmission(await parseBody(req), requester.user.id); }
+    catch (err: any) { return sendJson(res, 400, { error: err.message }); }
+    const { data: complaint, error } = await supabaseAdmin.from("complaints").insert({
+      student_id: requester.user.id, title: input.title, description: input.description, category: input.category,
+      visibility: "administration", target_unit_id: null, status: "needs_review",
+      hide_name_from_union: input.hideName, location_id: input.location,
+    }).select().single();
+    if (error) return sendJson(res, 500, { error: "Unable to save complaint: " + error.message });
+    if (input.evidence.length) {
+      const saved = await supabaseAdmin.from("complaint_evidence").insert(input.evidence.map((id) => ({ complaint_id: complaint.id, cloudinary_public_id: id })));
+      if (saved.error) {
+        // Return the saved ticket, never prompt a second submission of the same complaint.
+        return sendJson(res, 201, { id: complaint.id, analysis: null, warning: "Complaint saved for review, but attachments could not be linked. Contact administration with your ticket number." });
+      }
+    }
+    await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: complaint.id, status: "submitted", changed_by: requester.user.id, remark: "Complaint received privately for analysis and routing." });
+    try {
+      const analysis = await analyseAndRoute(complaint, input.location, input.hideName, requester.user.id);
+      return sendJson(res, 201, { id: complaint.id, analysis });
+    } catch (err: any) {
+      console.error("[api] saved complaint needs review:", err.message);
+      await supabaseAdmin.from("complaints").update({ status: "needs_review", visibility: "administration", target_unit_id: null }).eq("id", complaint.id);
+      await supabaseAdmin.from("complaint_routes").delete().eq("complaint_id", complaint.id);
+      return sendJson(res, 201, { id: complaint.id, analysis: null, warning: "Your complaint is saved. Administration will review it because automatic routing is unavailable." });
+    }
+  }
+
+  // AI ANALYSIS + ROUTING. Existing reports can be analysed; an admin can re-run it.
   if (pathname === "/api/complaints/analyse" && req.method === "POST") {
     try {
       const requester = await getRequester(req);
@@ -564,6 +659,25 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
   }
 
   // ROUTING EDITOR (PRD P1, /admin/routing): posts and rules
+  if (pathname === '/api/admin/edit-analysis' && req.method === 'POST') {
+    const requester = await getRequester(req);
+    if (!requester?.profile?.is_active || requester.profile.role !== 'administration') return sendJson(res, 403, { error: 'Administration role required.' });
+    const { complaintId, category, priority } = await parseBody(req);
+    if (!CATEGORIES.includes(category) || !Number.isInteger(priority) || priority < 1 || priority > 4) return sendJson(res, 400, { error: 'Choose a category and a priority from 1 to 4.' });
+    const { data: c, error } = await supabaseAdmin.from('complaints').select('*').eq('id', complaintId).maybeSingle();
+    if (error || !c) return sendJson(res, 404, { error: 'Complaint not found.' });
+    if (['closed', 'merged', 'rejected'].includes(c.status)) return sendJson(res, 409, { error: 'This complaint is no longer active.' });
+    const corrected = applyRules({ language: c.input_language || 'en', is_complaint: true, category, priority, is_sensitive: c.is_sensitive,
+      location_text: c.location_text, summary_en: c.summary_en || '', summary_as: c.summary_as || '', image_findings: c.image_findings, confidence: 1 }, `${c.title}\n${c.description}`);
+    const saved = await supabaseAdmin.from('complaints').update({ ai_category: category, priority: corrected.priority, is_sensitive: corrected.is_sensitive, human_edited: true,
+      ...(corrected.head_only ? { visibility: 'administration', target_unit_id: null } : {}), updated_at: new Date().toISOString() }).eq('id', c.id);
+    if (saved.error) return sendJson(res, 500, { error: saved.error.message });
+    if (c.status !== 'needs_review') await insertRoutes(c.id, category, corrected.head_only);
+    await supabaseAdmin.from('activity_log').insert({ actor_id: requester.user.id, action: 'ai_corrected', target: `${ticketRef(c.id)} corrected to ${category}, P${corrected.priority}` });
+    await notify([c.student_id], c.id, { en: `${ticketRef(c.id)} was reviewed by administration. Category: ${category}; priority: ${corrected.priority}.`, as: `${ticketRef(c.id)} প্ৰশাসনে পৰীক্ষা কৰিছে। ${category}; ${corrected.priority}।` });
+    return sendJson(res, 200, { success: true });
+  }
+
   if (pathname === "/api/admin/routing" && (req.method === "GET" || req.method === "PUT")) {
     try {
       const requester = await getRequester(req);
@@ -628,6 +742,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       const edited = complaint.ai_category !== category;
       await supabaseAdmin.from("complaints").update({
         ai_category: category, human_edited: complaint.human_edited || edited,
+        ...(headOnly ? { visibility: "administration", target_unit_id: null } : {}),
         ...(complaint.status === "needs_review" ? { status: "submitted" } : {}),
         updated_at: new Date().toISOString(),
       }).eq("id", complaint.id);
@@ -663,7 +778,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       if (wantsEvidence && (requester.profile?.role !== "student" || !requester.profile.is_active)) {
         return sendJson(res, 403, { error: "Only active student accounts can upload complaint evidence" });
       }
-      const folder = wantsEvidence ? "civicsense/complaint_evidence" : "civicsense/id_cards";
+      const folder = wantsEvidence ? `civicsense/complaint_evidence/${requester.user.id}` : "civicsense/id_cards";
       const deliveryType = "authenticated";
 
       const paramsToSign = {
@@ -874,6 +989,8 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         return sendJson(res, 403, { error: "Unauthorized: You do not have permission to update this grievance." });
       }
 
+      if (['closed', 'merged', 'rejected'].includes(complaint.status)) return sendJson(res, 409, { error: 'This complaint is no longer active.' });
+
       // Validate everything before writing anything
       const validStatuses = ["submitted", "under_verification", "accepted", "in_progress", "resolved", "rejected"];
       if (status) {
@@ -888,6 +1005,22 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         }
         if (status === "in_progress" && (!remark || remark.trim().length < 3)) {
           return sendJson(res, 400, { error: "Progress update requires a remark (minimum 3 characters)." });
+        }
+      }
+
+      // PRD: only the primary authority (or an admin) may resolve. An official who sees the complaint only
+      // because they were copied on it cannot.
+      const routesHere = await myRoutes(requester, complaintId);
+      if (status === "resolved" && profile.role !== "administration") {
+        let ownTargetUnit: string | null = null;
+        if (complaint.target_unit_id && complaint.target_unit_id !== user.id) {
+          const { data: t } = await supabaseAdmin.from("profiles").select("unit_name").eq("id", complaint.target_unit_id).maybeSingle();
+          ownTargetUnit = t?.unit_name ?? null;
+        }
+        const viaVisibility = canAccessComplaint({ id: user.id, role: profile.role, unit_name: profile.unit_name }, complaint, ownTargetUnit);
+        const hasRoutes = (await routesWithPosts(complaintId)).length > 0;
+        if ((hasRoutes || !viaVisibility) && !routesHere.some((r) => r.kind === "primary")) {
+          return sendJson(res, 403, { error: "Only the primary authority or an administrator can mark this complaint resolved." });
         }
       }
 
@@ -911,21 +1044,6 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
           action: "id_card_review",
           target: `Marked student ID card as ${idCardStatus} for user ${complaint.student_id.slice(0, 8)}`,
         });
-      }
-
-      // PRD: only the primary authority (or an admin) may resolve. An official who sees the complaint only
-      // because they were copied on it cannot.
-      const routesHere = await myRoutes(requester, complaintId);
-      if (status === "resolved" && profile.role !== "administration") {
-        let ownTargetUnit: string | null = null;
-        if (complaint.target_unit_id && complaint.target_unit_id !== user.id) {
-          const { data: t } = await supabaseAdmin.from("profiles").select("unit_name").eq("id", complaint.target_unit_id).maybeSingle();
-          ownTargetUnit = t?.unit_name ?? null;
-        }
-        const viaVisibility = canAccessComplaint({ id: user.id, role: profile.role, unit_name: profile.unit_name }, complaint, ownTargetUnit);
-        if (!viaVisibility && !routesHere.some((r) => r.kind === "primary")) {
-          return sendJson(res, 403, { error: "Only the primary authority or an administrator can mark this complaint resolved." });
-        }
       }
 
       // Update complaint status if provided
@@ -1192,29 +1310,8 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         return sendJson(res, 400, { error: "Can only delete department or social_service accounts" });
       }
 
-      // Delete the login itself; otherwise the person could still sign in
-      const { error: delAuthErr } = await supabaseAdmin.auth.admin.deleteUser(userId);
-      if (delAuthErr) {
-        return sendJson(res, 500, { error: "Failed to delete login: " + delAuthErr.message });
-      }
+      return sendJson(res, 409, { error: "Use Deactivate instead. Deleting an official would erase their complaint and audit history." });
 
-      // Delete profile
-      const { error: delProfileErr } = await supabaseAdmin
-        .from("profiles")
-        .delete()
-        .eq("id", userId);
-
-      if (delProfileErr) {
-        return sendJson(res, 500, { error: delProfileErr.message });
-      }
-
-      await supabaseAdmin.from("activity_log").insert({
-        actor_id: requester.user.id,
-        action: "official_account_deleted",
-        target: `Deleted ${targetProfile.role} account for ${targetProfile.name} (${targetProfile.email})`,
-      });
-
-      return sendJson(res, 200, { success: true, userId });
     } catch (err: any) {
       return sendJson(res, 500, { error: err.message || "Failed to delete official account" });
     }

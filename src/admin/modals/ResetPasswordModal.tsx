@@ -36,7 +36,7 @@ function ResetForm({ target }: { target: { name: string } | null }) {
               Reset Account Password
             </div>
             {" "}
-            <div style={{ fontSize: "12px", color: "#51684c" }} id="resetPwSubtitle">
+            <div style={{ fontSize: "12px", color: "#4a6142" }} id="resetPwSubtitle">
               {target ? 'Official: ' + target.name : 'Official: --'}
             </div>
             {" "}
@@ -52,7 +52,7 @@ function ResetForm({ target }: { target: { name: string } | null }) {
           {" "}
           <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
             {" "}
-            <div style={{ background: "#f8faf4", borderLeft: "3px solid var(--olive)", padding: "8px 12px", borderRadius: "0 6px 6px 0", fontSize: "12px", color: "#35532d", lineHeight: "1.45" }}>
+            <div style={{ background: "#FAF2EB", borderLeft: "3px solid var(--olive)", padding: "8px 12px", borderRadius: "0 6px 6px 0", fontSize: "12px", color: "#4a6142", lineHeight: "1.45" }}>
               {" "}Assigns a new temporary password and flags account for mandatory password change on subsequent sign-in.{" "}
             </div>
             {" "}

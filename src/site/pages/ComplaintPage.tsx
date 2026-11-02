@@ -12,7 +12,7 @@ import { useLanguage } from '../../i18n';
 import { STATUS_NAMES, ticketRef, waitingOn } from '../../logic';
 import { AiPanel, Replies, RouteTracker } from '../../RouteTracker';
 import { useStudentSession } from '../studentSession';
-import { confirmResolution } from '../tracker';
+import { confirmResolution, viewEvidenceFile } from '../tracker';
 import { PageShell, SignInRequired } from './PageShell';
 
 /** PRD step 7: the reporter confirms the fix (closed) or reopens it with a note. */
@@ -51,11 +51,15 @@ export function ComplaintPage() {
   const { profile } = useStudentSession();
   const [complaint, setComplaint] = useState<Complaint | null | undefined>(undefined); // undefined: loading, null: not found
   const [routing, setRouting] = useState<Routing | null>(null);
+  const [error, setError] = useState('');
 
   const load = useCallback(async () => {
-    const c = await civicAuth().fetchComplaintById(id);
-    setComplaint(c);
-    setRouting(c ? (await routingApi().fetchRouting([c.id]))[c.id] ?? null : null);
+    setError('');
+    try {
+      const c = await civicAuth().fetchComplaintById(id);
+      setComplaint(c);
+      setRouting(c ? (await routingApi().fetchRouting([c.id]))[c.id] ?? null : null);
+    } catch (err) { setError((err as Error).message || 'Unable to load this complaint.'); }
   }, [id]);
 
   useEffect(() => { if (profile) load(); }, [profile?.id, load]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -69,6 +73,7 @@ export function ComplaintPage() {
 
   if (profile === undefined) return <PageShell title={t('complaint.title')}><p>{t('common.loading')}</p></PageShell>;
   if (!profile) return <PageShell title={t('complaint.title')}><SignInRequired next={`/complaints/${id}`} /></PageShell>;
+  if (error) return <PageShell title={t('complaint.title')}><p role="alert">{error}</p><button type="button" onClick={load}>{t('common.retry')}</button></PageShell>;
   if (complaint === undefined) return <PageShell title={t('complaint.title')}><p>{t('common.loading')}</p></PageShell>;
   if (!complaint) return <PageShell title={t('complaint.title')}><p role="alert">{t('complaint.notFound')}</p></PageShell>;
 
@@ -86,6 +91,7 @@ export function ComplaintPage() {
       <section aria-label={t('complaint.original')}>
         <h2>{t('complaint.original')}</h2>
         <p>{complaint.description}</p>
+        {!!complaint.complaint_evidence?.length && <ul>{complaint.complaint_evidence.map((file, i) => <li key={file.cloudinary_public_id}><button type="button" onClick={() => viewEvidenceFile(complaint.id, file.cloudinary_public_id)}>View attachment {i + 1}</button></li>)}</ul>}
       </section>
 
       {summary && (

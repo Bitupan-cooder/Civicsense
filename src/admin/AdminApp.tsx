@@ -53,7 +53,7 @@ export function AdminApp() {
       {/* ══════════ OFFICIAL AUTHENTICATION GATE (SHOWN WHEN NOT LOGGED IN) ══════════ */}
       <AuthGate />
       {/* ══════════ AUTHENTICATED WORKSPACE (HIDDEN UNTIL AUTHENTICATED) ══════════ */}
-      <div id="authenticatedWorkspace" style={{ display: auth === 'workspace' ? "block" : "none" }}>
+      {auth === 'workspace' && <div id="authenticatedWorkspace">
         {/* ══════════ FLOATING TOP NAVIGATION BAR (MATCHING HOME) ══════════ */}
         <AdminHeader />
         <ConsoleNav />
@@ -69,7 +69,7 @@ export function AdminApp() {
           <Route path="/map" element={<CampusMapPage />} />
           <Route path="*" element={<RoleHome />} />
         </Routes>
-      </div>
+      </div>}
       {/* /#authenticatedWorkspace */}
       {/* ══════════ REASSIGN UNIT MODAL (ADMIN ONLY) ══════════ */}
       <ReassignModal />

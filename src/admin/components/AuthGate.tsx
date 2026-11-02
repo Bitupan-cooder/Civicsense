@@ -1,4 +1,5 @@
 // Markup converted 1:1 from the original admin.html (React migration, step 1).
+import { useState } from 'react';
 import { gateLogin, setGateField, switchGateRole, useConsole, type GateRole } from '../console';
 
 const ROLE_NOTICE: Record<GateRole, [string, string, string]> = {
@@ -9,6 +10,7 @@ const ROLE_NOTICE: Record<GateRole, [string, string, string]> = {
 
 export function AuthGate() {
   const g = useConsole();
+  const [showPassword, setShowPassword] = useState(false);
   const tab = (role: GateRole) => (g.gateRole === role
     ? { className: 'auth-subtab active', colors: { background: '#ffffff', color: 'var(--ink)' } }
     : { className: 'auth-subtab', colors: { background: 'transparent', color: '#4a6142' } });
@@ -47,7 +49,7 @@ export function AuthGate() {
             Official Redressal Console
           </h1>
           {" "}
-          <p style={{ fontSize: "12.5px", color: "#51684c", lineHeight: "1.45" }}>
+          <p style={{ fontSize: "12.5px", color: "#4a6142", lineHeight: "1.45" }}>
             {" "}Restricted access for University Administration, Department Chairmen, and DUSU Council.{" "}
           </p>
           {" "}
@@ -59,7 +61,7 @@ export function AuthGate() {
           {" "}
           {/* 3 Role Tabs */}
           {" "}
-          <div className="auth-subtabs" style={{ display: "flex", gap: "6px", background: "#f4faee", padding: "4px", borderRadius: "10px", marginBottom: "18px" }}>
+          <div className="auth-subtabs" style={{ display: "flex", gap: "6px", background: "#f2f8ec", padding: "4px", borderRadius: "10px", marginBottom: "18px" }}>
             {" "}
             <button type="button" className={tab('department').className} id="gateTabDept" onClick={() => switchGateRole('department')} style={{ flex: "1", height: "34px", border: "none", borderRadius: "7px", fontSize: "12px", fontWeight: "700", cursor: "pointer", ...tab('department').colors, boxShadow: "0 2px 6px rgba(0,0,0,0.04)" }}>
               Department
@@ -75,7 +77,7 @@ export function AuthGate() {
             {" "}
           </div>
           {" "}
-          <div id="gateRoleNotice" style={{ background: "#f8faf4", borderLeft: "3px solid var(--olive)", padding: "8px 12px", borderRadius: "0 6px 6px 0", fontSize: "12px", color: "#35532d", marginBottom: "18px", lineHeight: "1.45" }}>
+          <div id="gateRoleNotice" style={{ background: "#FAF2EB", borderLeft: "3px solid var(--olive)", padding: "8px 12px", borderRadius: "0 6px 6px 0", fontSize: "12px", color: "#4a6142", marginBottom: "18px", lineHeight: "1.45" }}>
             {" "}
             <strong>
               {noticeTitle}
@@ -101,7 +103,12 @@ export function AuthGate() {
                 Authorized Password
               </label>
               {" "}
-              <input type="password" id="gatePassword" required placeholder="Enter password" value={g.gatePassword} onChange={(e) => setGateField('gatePassword', e.target.value)} style={{ width: "100%", height: "40px", padding: "0 12px", border: "1.5px solid var(--line)", borderRadius: "8px", fontSize: "13px", boxSizing: "border-box", outline: "none" }} />
+              <div style={{ position: "relative" }}>
+                <input type={showPassword ? "text" : "password"} id="gatePassword" required autoComplete="current-password" placeholder="Enter password" value={g.gatePassword} onChange={(e) => setGateField('gatePassword', e.target.value)} style={{ width: "100%", height: "40px", padding: "0 72px 0 12px", border: "1.5px solid var(--line)", borderRadius: "8px", fontSize: "13px", boxSizing: "border-box", outline: "none" }} />
+                <button type="button" onClick={() => setShowPassword((shown) => !shown)} aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword} style={{ position: "absolute", top: 0, right: "8px", height: "40px", border: 0, background: "transparent", color: "var(--olive)", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
               {" "}
             </div>
             {" "}

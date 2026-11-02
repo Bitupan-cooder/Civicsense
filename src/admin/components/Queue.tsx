@@ -50,7 +50,7 @@ export function Banner({ part }: { part: 'pill' | 'heading' | 'name' | 'role' | 
   return <>{byRole[part]}</>;
 }
 
-const isActiveCase = (c: OfficialComplaint) => c.status !== 'resolved' && c.status !== 'rejected';
+const isActiveCase = (c: OfficialComplaint) => !['resolved', 'rejected', 'closed', 'merged'].includes(c.status);
 
 export function UnitBreakdown({ part }: { part: 'total' | 'grid' }) {
   const { complaints, loaded, profile } = useConsole();
@@ -82,7 +82,7 @@ export function KpiCards() {
 }
 
 const STATUS_CHIP: Record<string, string> = {
-  under_verification: 'Under Verification', accepted: 'Accepted', in_progress: 'In Progress', resolved: 'Resolved', rejected: 'Rejected',
+  under_verification: 'Under Verification', accepted: 'Accepted', in_progress: 'In Progress', resolved: 'Resolved', rejected: 'Rejected', closed: 'Closed', merged: 'Merged',
 };
 const SMALL_BTN = { height: '32px', fontSize: '12px', padding: '0 12px' };
 
@@ -128,7 +128,7 @@ function TicketCard({ c, isAdmin }: { c: OfficialComplaint; isAdmin: boolean }) 
           {c.status === 'needs_review'
             ? <span className="chip" style={{ background: '#fff7ed', color: '#9a3412', border: '1px solid #fdba74' }}>Needs Review</span>
             : statusChip}
-          {ai?.analysed_at && <span className="chip" style={{ background: '#f8faf4', color: '#204018', border: '1px solid var(--line)' }}>AI: {categoryLabel(ai.ai_category)}</span>}
+          {ai?.analysed_at && <span className="chip" style={{ background: '#FAF2EB', color: '#1a3010', border: '1px solid var(--line)' }}>AI: {categoryLabel(ai.ai_category)}</span>}
           {ai?.analysed_at && <PriorityChip priority={ai.priority} />}
           {id === 'verified' ? <span className="pill-id-verified">ID Verified</span>
             : id === 'not_valid' ? <span className="pill-id-not_valid">ID Not Valid</span>
@@ -143,7 +143,7 @@ function TicketCard({ c, isAdmin }: { c: OfficialComplaint; isAdmin: boolean }) 
         <span>Submitted: {formatDate(c.created_at)} ({formatRelative(c.created_at)})</span>
         {evidenceCount > 0 && <><span>·</span><span style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--olive)', background: 'var(--pill)', padding: '2px 8px', borderRadius: '999px' }}>{evidenceCount} Evidence Attachment(s)</span></>}
       </div>
-      <div style={{ background: '#fafcf8', border: '1px solid var(--line)', borderRadius: '12px', padding: '12px 16px', marginBottom: '14px', fontSize: '13px', color: 'var(--ink)', lineHeight: 1.5 }}>
+      <div style={{ background: '#FAF2EB', border: '1px solid var(--line)', borderRadius: '12px', padding: '12px 16px', marginBottom: '14px', fontSize: '13px', color: 'var(--ink)', lineHeight: 1.5 }}>
         {c.description}
       </div>
       <div className="ticket-actions-row">
@@ -178,7 +178,7 @@ export function TicketsStack() {
     return (
       <div style={{ background: '#ffffff', border: '1.5px dashed var(--line)', borderRadius: '20px', padding: '48px 24px', textAlign: 'center', color: '#64748b' }}>
         <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--ink)', marginBottom: '4px' }}>No complaints match the selected criteria</h3>
-        <p style={{ fontSize: '13px', color: '#51684c' }}>Adjust your search or filter settings to view other grievances.</p>
+        <p style={{ fontSize: '13px', color: '#4a6142' }}>Adjust your search or filter settings to view other grievances.</p>
       </div>
     );
   }
@@ -209,7 +209,6 @@ export function OfficialRows() {
             <button type="button" className="btn-sm btn-outline" onClick={() => openEditOfficial(off.id, off.name, off.unit_name || '')}>Edit</button>
             <button type="button" className={'btn-sm ' + (active ? 'btn-outline btn-red' : 'btn-outline')} onClick={() => toggleOfficialStatus(off.id, active)}>{active ? 'Deactivate' : 'Activate'}</button>
             <button type="button" className="btn-sm btn-outline" style={{ borderColor: 'var(--blue)', color: 'var(--blue)' }} onClick={() => openResetPassword(off.id, off.name, off.email || '', off.unit_name || '')}>Reset Password</button>
-            <button type="button" className="btn-sm btn-outline btn-red" onClick={() => deleteOfficial(off.id, off.name)}>Delete</button>
           </div>
         </td>
       </tr>

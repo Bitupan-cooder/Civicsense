@@ -1,7 +1,13 @@
 import http from "http";
-import { handleApiRequest } from "./api.ts";
+import { handleApiRequest, runMaintenance } from "./api.ts";
 
 const PORT = parseInt(process.env.PORT || process.env.SERVER_PORT || "3001", 10);
+
+// Opt in when this long-running process is responsible for scheduled jobs.
+if (process.env.LOCAL_MAINTENANCE === 'true') {
+  const timer = setInterval(() => runMaintenance().catch((err) => console.error('Maintenance failed:', err.message)), 60 * 1000);
+  timer.unref();
+}
 
 const server = http.createServer(async (req, res) => {
   // Global CORS headers

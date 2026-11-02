@@ -3,7 +3,7 @@ import { useSyncExternalStore } from 'react';
 import { civicAuth, routingApi, type StudentProfile } from '../civicAuth';
 import { showToast } from '../toast';
 import { setLanguage } from '../i18n';
-import { loadStudentComplaints, openTracker, switchTrackerMode } from './tracker';
+import { clearTrackerSession, loadStudentComplaints, openTracker, switchTrackerMode } from './tracker';
 
 export type { StudentProfile };
 
@@ -45,6 +45,7 @@ let sessionVersion = 0;
 
 export function setStudentSession(profile: StudentProfile | null, idCardStatus?: string): void {
   sessionVersion++;
+  if (state.profile?.id !== profile?.id) clearTrackerSession();
   update({ profile, idCardStatus });
   if (profile?.preferred_language) setLanguage(profile.preferred_language, { save: false });
 }
@@ -60,12 +61,13 @@ export async function checkCurrentStudentSession(): Promise<void> {
       if (res.data && res.data.role === 'student') {
         const card = await sb.from('id_cards').select('status').eq('user_id', session.user.id).maybeSingle();
         if (sessionVersion === startedAt) setStudentSession(res.data, card.data ? card.data.status : 'pending');
-      }
+      } else if (sessionVersion === startedAt) setStudentSession(null);
     } else if (sessionVersion === startedAt) {
       setStudentSession(null);
     }
   } catch (e) {
     console.error('Session check error:', e);
+    if (sessionVersion === startedAt) setStudentSession(null);
   }
 }
 
@@ -84,12 +86,38 @@ export async function signOutStudent(): Promise<void> {
 }
 
 /** Nav button: the tracker when signed in as a student, otherwise the sign-in dialog. */
+/** Smoothly scroll to the existing in-page student sign-in / registration card without opening an extra page/modal. */
+export function scrollToSignIn(tab: 'signin' | 'signup' = 'signin'): void {
+  update({ authOpen: false, authTab: tab });
+
+  if (typeof window !== 'undefined') {
+    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html' && window.location.pathname !== '/report') {
+      window.location.href = '/#report';
+      return;
+    }
+
+    const gate = document.getElementById('reportAuthGate') || document.getElementById('report');
+    if (gate) {
+      gate.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => {
+        const input = gate.querySelector(tab === 'signin' ? 'input[type="email"]' : 'input') as HTMLInputElement | null;
+        if (input) {
+          input.focus({ preventScroll: true });
+        }
+      }, 500);
+    } else {
+      openStudentAuth();
+    }
+  }
+}
+
+/** Nav button: the tracker when signed in as a student, otherwise smoothly scrolls to the existing sign-in card. */
 export function handleNavStudentClick(): void {
   if (civicAuth().getProfile()?.role === 'student') {
     openTracker();
     switchTrackerMode('my_complaints');
   } else {
-    openStudentAuth();
+    scrollToSignIn('signin');
   }
 }
 
@@ -99,11 +127,11 @@ export const openStudentAuth = () => update({ authOpen: true, loginError: '', si
 export const closeStudentAuth = () => update({ authOpen: false });
 export const switchStudentAuthTab = (authTab: 'signin' | 'signup') => update({ authTab });
 
-export async function submitStudentLogin(email: string, password: string): Promise<void> {
+export async function submitStudentLogin(email: string, password: string): Promise<boolean> {
   email = email.trim();
   if (!email || !password) {
     update({ loginError: 'Please enter both student email and password.' });
-    return;
+    return false;
   }
   update({ loginBusy: true, loginError: '' });
   try {
@@ -113,32 +141,35 @@ export async function submitStudentLogin(email: string, password: string): Promi
     const card = await civicAuth().getClient().from('id_cards').select('status').eq('user_id', res.profile.id).maybeSingle();
     setStudentSession(res.profile, card.data ? card.data.status : 'pending');
     loadStudentComplaints();
+    return true;
   } catch (err) {
     update({ loginBusy: false, loginError: (err as Error).message || 'Login failed.' });
+    return false;
   }
 }
 
-export async function submitStudentSignup(f: { name: string; email: string; password: string; file: File | null }): Promise<void> {
+export async function submitStudentSignup(f: { name: string; email: string; password: string; file: File | null }): Promise<boolean> {
   const name = f.name.trim();
   const email = f.email.trim();
   let error = '';
   if (!name || !email || !f.password) error = 'Please complete all registration fields.';
   else if (f.password.length < 8) error = 'Password must be at least 8 characters long.';
   else if (!f.file) error = 'Please select a student ID card file (image or PDF, max 5 MB).';
-  if (error) { update({ signupError: error }); return; }
+  if (error) { update({ signupError: error }); return false; }
 
   update({ signupBusy: true, signupError: '' });
   try {
-    await civicAuth().signUpStudent({ name, email, password: f.password, file: f.file! });
+    const registration = await civicAuth().signUpStudent({ name, email, password: f.password, file: f.file! }) as { profile?: StudentProfile & { id: string } };
     update({ signupBusy: false, authOpen: false });
     showToast('Registration complete. ID card uploaded for official verification.', 'success');
-    try { // sign the new student in
-      const res = await civicAuth().loginStudent(email, f.password);
-      setStudentSession(res.profile, 'pending');
+    if (registration.profile) {
+      setStudentSession(registration.profile, 'pending');
       loadStudentComplaints();
-    } catch { /* they can sign in manually */ }
+    }
+    return true;
   } catch (err) {
     update({ signupBusy: false, signupError: (err as Error).message || 'Registration failed.' });
+    return false;
   }
 }
 

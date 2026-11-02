@@ -14,11 +14,12 @@ export interface CivicAuthApi {
   submitStudentComplaint(options: {
     title: string;
     description: string;
-    category: string;
     visibility: string;
     targetUnitId: string | null;
     evidenceFiles: File[];
-  }): Promise<{ id: string }>;
+    location: string | null;
+    hideName: boolean;
+  }): Promise<{ id: string; analysis: Analysis | null; warning?: string }>;
 }
 
 export interface StudentProfile {
@@ -179,6 +180,8 @@ export interface RoutingConfig {
 }
 
 export interface RoutingApi {
+  runMaintenance(): Promise<{ escalated: number }>;
+  editAnalysis(complaintId: string, category: string, priority: number): Promise<void>;
   fetchFeatures(): Promise<{ routing: boolean; gemini: boolean }>;
   fetchStats(): Promise<Stats>;
   fetchDuplicates(): Promise<{ pairs: DuplicatePair[] }>;

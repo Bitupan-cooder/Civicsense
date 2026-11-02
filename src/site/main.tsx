@@ -6,11 +6,11 @@ import { setLanguagePersister } from '../i18n';
 import { showToast } from '../toast';
 import { SiteApp } from './SiteApp';
 import { initAnimations } from './animations.js';
-import { initCampusMap } from './campusMap.js';
 import { initReportForm } from './reportForm';
 import { checkCurrentStudentSession, setReadingLanguage } from './studentSession';
 import { initTracker } from './tracker';
 import './site.css';
+import '../workflow.css';
 
 // civic-auth.js shows its own toasts (password change) through window.showToast.
 Object.assign(window, { showToast });
@@ -23,7 +23,6 @@ const root = createRoot(document.getElementById('root')!);
 setLanguagePersister((lang) => setReadingLanguage(lang));
 flushSync(() => root.render(<StrictMode><BrowserRouter><SiteApp /></BrowserRouter></StrictMode>));
 initAnimations();
-initCampusMap();
 checkCurrentStudentSession();
 initReportForm();
 initTracker();

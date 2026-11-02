@@ -43,7 +43,7 @@ function ReassignForm({ complaintId }: { complaintId: string | null }) {
               Reassign Redressal Solver Unit
             </div>
             {" "}
-            <div style={{ fontSize: "12px", color: "#51684c" }} id="reassignModalSubtitle">
+            <div style={{ fontSize: "12px", color: "#4a6142" }} id="reassignModalSubtitle">
               {complaintId ? 'Complaint #' + shortRef(complaintId) + (complaint ? ': ' + complaint.title : '') : 'Complaint #--'}
             </div>
             {" "}
@@ -57,7 +57,7 @@ function ReassignForm({ complaintId }: { complaintId: string | null }) {
         {" "}
         <div className="modal-body">
           {" "}
-          <div style={{ background: "#f8faf4", borderLeft: "3px solid var(--blue)", padding: "8px 12px", borderRadius: "0 6px 6px 0", fontSize: "12px", color: "#1e3a8a", marginBottom: "14px", lineHeight: "1.45" }}>
+          <div style={{ background: "#FAF2EB", borderLeft: "3px solid var(--blue)", padding: "8px 12px", borderRadius: "0 6px 6px 0", fontSize: "12px", color: "#1e3a8a", marginBottom: "14px", lineHeight: "1.45" }}>
             {" "}
             <strong>
               Administration Jurisdiction:

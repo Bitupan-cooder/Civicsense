@@ -37,7 +37,7 @@ function EditForm({ target }: { target: { name: string; unit: string } | null })
               Edit Official Profile
             </div>
             {" "}
-            <div style={{ fontSize: "12px", color: "#51684c" }} id="editOffSubtitle">
+            <div style={{ fontSize: "12px", color: "#4a6142" }} id="editOffSubtitle">
               {target ? 'Profile: ' + target.name : 'Profile ID: --'}
             </div>
             {" "}

@@ -1,5 +1,70 @@
-/* Routing only (no visual styling): the landing page stays mounted but is hidden on other routes. */
+/* Keep the landing page mounted while route pages use the same global theme. */
 body.route-page #app,
-body.route-page > #root > .backdrop {
+body.route-page .backdrop {
   display: none !important;
+}
+
+body.route-page { margin: 0; background: #f8fbf3 !important; }
+.standalone-report-page { position: relative; z-index: 1; min-height: 100vh; color: var(--ink); background: linear-gradient(180deg, #f8fbf3 0, #f8fbf3 130px, #fff 130px); }
+.report-page-header { position: relative; z-index: 25; height: 48px; background: transparent; }
+.report-entry-section .report-inner { gap: 24px; }
+.report-entry-description { max-width: 620px; margin: 0; color: #40513d; font-size: 15px; line-height: 1.6; text-align: center; }
+.report-entry-card { width: min(720px, 100%); padding: clamp(20px, 4vw, 36px); border: 1px solid #dcebd1; border-radius: 22px; background: rgba(255,255,255,.94); box-shadow: 0 18px 55px rgba(53,91,31,.08); }
+.report-entry-card h2 { margin: 0 0 8px; color: #172316; font-size: 21px; letter-spacing: -.025em; }
+.report-entry-card > p { margin: 0 0 18px; color: #53624f; font-size: 14px; line-height: 1.55; }
+.report-entry-card .report-auth-gate-card { width: 100% !important; margin: 0 !important; }
+.report-entry-ready { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.report-entry-ready > p { margin: 0; color: #314432; font-size: 14px; line-height: 1.5; }
+.report-start-button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 0 24px; border-radius: 999px; background: #dc2626; color: #fff; font-size: 14px; font-weight: 750; box-shadow: 0 8px 22px rgba(220,38,38,.22); white-space: nowrap; transition: transform .2s ease, background .2s ease, box-shadow .2s ease; }
+.report-start-button:hover { background: #b91c1c; box-shadow: 0 12px 28px rgba(185,28,28,.28); transform: translateY(-2px); }
+.report-start-button:focus-visible { outline: 3px solid rgba(220,38,38,.28); outline-offset: 3px; }
+.student-signin-section { position: relative; padding: 76px 18px 84px; background: radial-gradient(ellipse at 50% 0%, rgba(218,250,134,.38), transparent 68%), #f8fbf4; border-top: 1px solid #e7f0df; }
+.student-signin-inner { width: min(900px, 100%); margin: 0 auto; text-align: center; }
+.student-signin-kicker { margin: 0 0 10px; color: var(--olive); font-size: 12px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+.student-signin-inner > h2 { margin: 0; color: var(--ink); font-size: clamp(28px, 4vw, 42px); letter-spacing: -.045em; line-height: 1.12; }
+.student-signin-description { margin: 12px auto 26px; color: #53624f; font-size: 14px; line-height: 1.6; }
+.student-signin-card { width: min(760px, 100%); margin: 0 auto; padding: clamp(18px, 3.2vw, 30px); border: 1px solid #e0edd4; border-radius: 22px; background: rgba(255,255,255,.95); box-shadow: 0 16px 44px rgba(39,82,27,.08); }
+.student-signin-card .report-auth-gate-card { width: 100% !important; margin: 0 !important; }
+.student-signin-ready { display: flex; align-items: center; justify-content: space-between; gap: 20px; text-align: left; }
+.student-signin-ready p { margin: 0; color: #314432; font-size: 14px; line-height: 1.5; }
+.student-signin-report-button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 0 24px; border-radius: 999px; background: #dc2626; color: #fff; font-size: 14px; font-weight: 750; box-shadow: 0 8px 22px rgba(220,38,38,.22); white-space: nowrap; transition: transform .2s ease, background .2s ease, box-shadow .2s ease; }
+.student-signin-report-button:hover { background: #b91c1c; box-shadow: 0 12px 28px rgba(185,28,28,.28); transform: translateY(-2px); }
+.index-confirmed-replies { width: min(980px, 100%); margin: 34px auto 0; }
+.index-replies-heading { margin: 0 auto 18px; text-align: center; }
+.index-replies-heading > p { margin: 0 0 7px; color: var(--olive); font-size: 11px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+.index-replies-heading h3 { margin: 0; color: var(--ink); font-size: clamp(20px, 2.8vw, 28px); letter-spacing: -.04em; }
+.index-replies-heading > span { display: block; margin-top: 7px; color: #53624f; font-size: 13px; line-height: 1.5; }
+.reply-marquee { position: relative; height: 390px; overflow: hidden; border: 1px solid rgba(216,235,202,.86); border-radius: 22px; background: rgba(255,255,255,.32); perspective: 900px; }
+.reply-marquee-tilt { position: absolute; inset: -100px -7% -100px; display: flex; gap: 14px; transform: rotateX(9deg) rotateY(-8deg) rotateZ(-4deg) scale(1.03); transform-style: preserve-3d; }
+.reply-marquee-column { flex: 1 1 0; min-width: 0; overflow: hidden; }
+.reply-marquee-column:nth-child(2),.reply-marquee-column:nth-child(4) { padding-top: 72px; }
+.reply-marquee-track { display: flex; flex-direction: column; gap: 14px; animation: index-reply-scroll 34s linear infinite; }
+.reply-marquee-column.is-reversed .reply-marquee-track { animation-direction: reverse; animation-duration: 40s; }
+.reply-marquee:hover .reply-marquee-track { animation-play-state: paused; }
+.index-reply-card { flex: none; min-height: 156px; padding: 17px; border: 1px solid #e0edd4; border-radius: 17px; background: rgba(255,255,255,.96); box-shadow: 0 13px 28px rgba(39,82,27,.09); text-align: left; }
+.index-reply-card-author { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
+.index-reply-avatar { width: 34px; height: 34px; display: grid; flex: none; place-items: center; border-radius: 50%; background: #eaf8d9; color: #256b36; font-size: 13px; font-weight: 750; }
+.index-reply-card-author strong,.index-reply-card-author small { display: block; }
+.index-reply-card-author strong { color: #243524; font-size: 12px; line-height: 1.3; }
+.index-reply-card-author small { margin-top: 2px; color: #71806e; font-size: 10px; }
+.index-reply-card > a { color: #256b36; font-size: 11px; font-weight: 700; line-height: 1.4; }
+.index-reply-card blockquote { margin: 10px 0; padding-left: 10px; border-left: 2px solid #b5e879; color: #344233; font-size: 12px; line-height: 1.55; white-space: pre-wrap; }
+.index-reply-card time { color: #71806e; font-size: 10px; }
+.reply-marquee-fade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to bottom, #f8fbf4 0%, transparent 22%, transparent 78%, #f8fbf4 100%); }
+.index-replies-empty { min-height: 146px; display: grid; place-items: center; padding: 20px; border: 1px dashed #cfe3bf; border-radius: 18px; background: rgba(255,255,255,.62); color: #53624f; font-size: 13px; }
+@keyframes index-reply-scroll { to { transform: translateY(calc(-50% - 7px)); } }
+.standalone-report-page .report-section { min-height: calc(100vh - 220px); padding-top: 54px; }
+.report-page-loading { min-height: 70vh; display: grid; place-items: center; color: #53624f; }
+@media (max-width: 760px) {
+  .report-entry-ready,.student-signin-ready { align-items: stretch; flex-direction: column; text-align: center; }
+  .report-start-button,.student-signin-report-button { width: 100%; }
+  .standalone-report-page .report-section { padding-top: 40px; }
+  .student-signin-section { padding: 54px 14px 62px; }
+  .reply-marquee { height: 330px; }
+  .reply-marquee-tilt { inset-inline: -36%; transform: rotateX(8deg) rotateY(-4deg) rotateZ(-4deg) scale(.94); }
+  .reply-marquee-column:nth-child(2),.reply-marquee-column:nth-child(4) { padding-top: 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reply-marquee-track { animation: none; }
 }

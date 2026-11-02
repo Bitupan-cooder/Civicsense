@@ -17,7 +17,7 @@ export function IdCardModal() {
               Student Identity Card Verification
             </div>
             {" "}
-            <div style={{ fontSize: "12px", color: "#51684c" }} id="idCardModalStudentInfo">
+            <div style={{ fontSize: "12px", color: "#4a6142" }} id="idCardModalStudentInfo">
               {v ? 'Student: ' + (v.name || 'Registered Student') + (v.email ? ' · ' + v.email : '') : 'Student: --'}
             </div>
             {" "}
@@ -31,7 +31,7 @@ export function IdCardModal() {
         {" "}
         <div className="modal-body">
           {" "}
-          <div id="idCardLoading" style={{ display: !v || v.loading ? "block" : "none", textAlign: "center", padding: "36px", fontSize: "13px", color: "#51684c" }}>
+          <div id="idCardLoading" style={{ display: !v || v.loading ? "block" : "none", textAlign: "center", padding: "36px", fontSize: "13px", color: "#4a6142" }}>
             {" "}
             <div style={{ width: "24px", height: "24px", border: "2.5px solid var(--line)", borderTopColor: "var(--olive)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 10px" }} />
             {" "}Fetching authenticated signed ID card from Cloudinary...{" "}

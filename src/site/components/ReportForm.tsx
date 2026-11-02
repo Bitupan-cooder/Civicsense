@@ -2,7 +2,7 @@
 // These elements always stay mounted (only `display` changes): animations.js attaches GSAP reveal animations to them.
 import { useEffect, useRef, type CSSProperties } from 'react';
 import {
-  addCameraPhoto, addEvidenceFiles, clearReportSuccess, LOCATION_OPTIONS, removeEvidenceFile, resetReportForm, setCategory,
+  addCameraPhoto, addEvidenceFiles, clearReportSuccess, LOCATION_OPTIONS, removeEvidenceFile, resetReportForm,
   setCustomLocation, setDescription, setField, setHideName, setLocation, setVisibility, submitReport, useReportForm, type FocusField, type Visibility,
 } from '../reportForm';
 import { openStudentAuth, useStudentSession } from '../studentSession';
@@ -11,6 +11,7 @@ import { openTracker, openTrackerWithId } from '../tracker';
 import type { Analysis } from '../../civicAuth';
 import { categoryLabel, PriorityChip } from '../../RouteTracker';
 import { useFeatures } from '../../NotificationBell';
+import { SignInCard2 } from '@/components/ui/sign-in-card-2';
 
 /** PRD confirmation: the AI's category, place and summary, and the posts it went to (or that it went to review). */
 function FiledAs({ analysis }: { analysis: Analysis | 'pending' }) {
@@ -81,61 +82,8 @@ export function ReportAuthGate() {
   // before the session check: no display override (visible), as in the original markup
   const display = profile === undefined ? {} : { display: profile ? 'none' : 'block' };
   return (
-    <div className="report-auth-gate-card reveal" id="reportAuthGate" style={{ width: "100%", background: "#ffffff", border: "1.5px solid var(--line)", borderRadius: "22px", padding: "38px 28px", textAlign: "center", boxShadow: "0 8px 24px rgba(20,50,20,0.04)", marginTop: "20px", ...display }}>
-      {" "}
-      <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "#eef8e5", color: "var(--olive)", display: "inline-flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
-        {" "}
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
-        {" "}
-      </div>
-      {" "}
-      <h3 style={{ fontSize: "18px", fontWeight: "700", color: "var(--ink)", letterSpacing: "-0.02em", marginBottom: "8px" }}>
-        Student Sign In Required to Lodge Complaints
-      </h3>
-      {" "}
-      <p style={{ fontSize: "13.5px", color: "#3d5236", lineHeight: "1.55", maxWidth: "540px", margin: "0 auto 20px" }}>
-        {" "}To maintain accountability, protect student privacy, and enable real-time status tracking, you must sign in with your verified Dibrugarh University student account to submit a grievance.{" "}
-      </p>
-      {" "}
-      <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-        {" "}
-        <button type="button" className="btn" onClick={() => openStudentAuth()} style={{ height: "42px", fontSize: "13px", padding: "0 24px", fontWeight: "700" }}>
-          {" "}Sign In / Register with Student ID{" "}
-        </button>
-        {" "}
-        <button type="button" className="btn-outline" onClick={() => openTracker()} style={{ height: "42px", fontSize: "13px", padding: "0 18px", fontWeight: "600" }}>
-          {" "}Track Registered Grievance{" "}
-        </button>
-        {" "}
-      </div>
-      {" "}
-      <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px solid #e2ebd8", fontSize: "11.5px", color: "#617a58", display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", flexWrap: "wrap" }}>
-        {" "}
-        <span>
-          Official Dibrugarh University Redressal
-        </span>
-        {" "}
-        <span>
-          ·
-        </span>
-        {" "}
-        <span>
-          Verified Student Accounts Only
-        </span>
-        {" "}
-        <span>
-          ·
-        </span>
-        {" "}
-        <span>
-          Zero Spam Policy
-        </span>
-        {" "}
-      </div>
-      {" "}
+    <div className="report-auth-gate-card reveal" id="reportAuthGate" style={{ width: "100%", marginTop: "20px", ...display }}>
+      <SignInCard2 embedded={true} />
     </div>
   );
 }
@@ -162,7 +110,7 @@ export function ReportForm() {
       {" "}
       {/* Student Auth Banner */}
       {" "}
-      <div id="formStudentAuthNotice" style={{ background: "#f4f9ef", border: "1px solid #cbe3b8", borderRadius: "10px", padding: "12px 14px", fontSize: "12.5px", color: "#204018", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+      <div id="formStudentAuthNotice" style={{ background: "#FAF2EB", border: "1px solid #cbe3b8", borderRadius: "10px", padding: "12px 14px", fontSize: "12.5px", color: "#1a3010", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
         {" "}
         <ReportAuthNotice />
         {" "}
@@ -185,103 +133,15 @@ export function ReportForm() {
         {" "}
       </div>
       {" "}
-      {/* Category and Visibility Row */}
+      {/* Automatic analysis and routing */}
       {" "}
       <div className="form-row">
         {" "}
-        {/* Category */}
-        {" "}
-        <div className="form-group" style={{ flex: "1" }}>
-          {" "}
-          <label className="form-label" htmlFor="fCategory">
-            Issue Category *
-          </label>
-          {" "}
-          <select className="form-select" id="fCategory" required ref={(el) => { fields.current.fCategory = el; }} value={form.category} onChange={(e) => setCategory(e.target.value)}>
-            <option value="">
-              Select Category
-            </option>
-            <option value="Hostel Facilities">
-              Hostel Facilities &amp; Living
-            </option>
-            <option value={"Water & Plumbing"}>
-              Water Supply &amp; Plumbing (PHE)
-            </option>
-            <option value={"Electrical & Lighting"}>
-              Electrical Maintenance &amp; Lighting
-            </option>
-            <option value={"Sanitation & Waste"}>
-              Sanitation &amp; Waste Disposal
-            </option>
-            <option value="Academic Labs">
-              Academic Labs &amp; Quad
-            </option>
-            <option value={"Network & IT"}>
-              Network, Wi-Fi &amp; IT Helpdesk
-            </option>
-            <option value="Campus Security">
-              Campus Safety &amp; Security
-            </option>
-            <option value="Other">
-              Other Campus Facilities
-            </option>
-          </select>
-          {" "}
+        <div className="form-group" style={{ flex: 1 }}>
+          <span className="form-label">Automatic category and routing</span>
+          <p style={{ fontSize: 13, lineHeight: 1.6 }}>Describe the issue in your own words. CivicSense analyzes the report, assigns a category, and routes it to the responsible campus authority. Unclear or sensitive reports go to Administration for review.</p>
         </div>
-        {" "}
-        {/* Visibility Level */}
-        {" "}
-        <div className="form-group" style={{ flex: "1" }}>
-          {" "}
-          <label className="form-label" htmlFor="fVisibility">
-            Privacy &amp; Visibility Level *
-          </label>
-          {" "}
-          <select className="form-select" id="fVisibility" required value={form.visibility} onChange={(e) => setVisibility(e.target.value as Visibility)}>
-            <option value="department">
-              Department (Administration + Assigned Department + You)
-            </option>
-            <option value="administration">
-              Administration Only (Registrar &amp; Proctor + You)
-            </option>
-            <option value="social_service">
-              Social Service (Administration + All Departments + DUSU + You)
-            </option>
-          </select>
-          {" "}
-        </div>
-        {" "}
       </div>
-      {" "}
-      {/* Target Unit (Conditional on Visibility == department) */}
-      {" "}
-      <div className="form-group full" id="fTargetUnitContainer" style={form.visibility === 'department' ? SHOWN_AS_COLUMN : { display: 'none' }}>
-        {" "}
-        <label className="form-label" htmlFor="fTargetUnit">
-          Target Department Unit *
-        </label>
-        {" "}
-        <select className="form-select" id="fTargetUnit" ref={(el) => { fields.current.fTargetUnit = el; }} value={form.targetUnit} onChange={(e) => setField('targetUnit', e.target.value)}>
-          {form.units ? (
-            <>
-              <option value="">Select University Department Unit</option>
-              {form.units.map((u) => (
-                <option key={u.id} value={u.id}>{u.name + (u.unit_name ? ' — ' + u.unit_name : ' (' + u.role + ')')}</option>
-              ))}
-            </>
-          ) : (
-            <option value="">
-              Loading department units...
-            </option>
-          )}
-        </select>
-        {" "}
-        <span style={{ fontSize: "11px", color: "#5a6e50", marginTop: "2px" }}>
-          Select the university department responsible for resolving this grievance.
-        </span>
-        {" "}
-      </div>
-      {" "}
       {/* Description */}
       {" "}
       <div className="form-group full">
@@ -367,7 +227,7 @@ export function ReportForm() {
         {" "}
         <div id="evidenceFilesPreviewList" style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "6px" }}>
           {form.files.map((f, idx) => (
-            <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f8faf6", padding: "6px 10px", borderRadius: "6px", border: "1px solid #e2ebd8", fontSize: "12px" }}>
+            <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#FAF2EB", padding: "6px 10px", borderRadius: "6px", border: "1px solid #e0f0d0", fontSize: "12px" }}>
               <span><strong>{f.name}</strong> ({sizeLabel(f.size)})</span>
               <button type="button" onClick={() => removeEvidenceFile(idx)} style={{ background: "none", border: "none", color: "#b91c1c", fontWeight: 700, cursor: "pointer", fontSize: "11px", padding: "2px 6px" }}>Remove</button>
             </div>
@@ -377,7 +237,7 @@ export function ReportForm() {
       </div>
       {" "}
       {features.routing && (
-        <label style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '12.5px', color: '#204018', cursor: 'pointer', lineHeight: 1.45 }}>
+        <label style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '12.5px', color: '#1a3010', cursor: 'pointer', lineHeight: 1.45 }}>
           <input type="checkbox" checked={form.hideName} onChange={(e) => setHideName(e.target.checked)} style={{ marginTop: '3px' }} />
           <span><strong>Hide my name from the student union.</strong> Union posts will see your complaint but not your name or email; the Head / Chairperson and the administration still will.</span>
         </label>

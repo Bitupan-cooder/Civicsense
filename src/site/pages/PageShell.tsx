@@ -13,7 +13,7 @@ export function PageShell({ title, children }: { title: string; children: ReactN
     <div data-page>
       <header>
         <nav aria-label="Main">
-          <Link to="/">{t('nav.home')}</Link>
+          <Link to="/" aria-label={t('nav.home')}>CivicSense<span aria-hidden="true">.</span></Link>
           <Link to="/report">{t('nav.report')}</Link>
           {profile ? (
             <>

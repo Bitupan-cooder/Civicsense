@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { AiPanel, Replies, RouteTracker } from '../../RouteTracker';
 import { CATEGORIES, CATEGORY_LABELS } from '../../logic';
 import { postReply, routeByHand, type OfficialComplaint } from '../console';
+import { routingApi } from '../../civicAuth';
+import { loadOfficialComplaints } from '../console';
 
 /** Reply to the reporter (translated into both languages) or add an internal note for officials. */
 function ReplyBox({ complaintId }: { complaintId: string }) {
@@ -33,12 +35,25 @@ function ReplyBox({ complaintId }: { complaintId: string }) {
 function DocketRouting({ d, isAdmin }: { d: OfficialComplaint; isAdmin: boolean }) {
   const routing = useConsole().routing[d.id];
   const [category, setCategory] = useState(routing?.ai_category || 'other');
+  const [priority, setPriority] = useState(routing?.priority || 3);
+  const [editError, setEditError] = useState('');
   const [busy, setBusy] = useState(false);
   if (!routing) return null; // migration 001 not run yet
   const canRoute = isAdmin && (d.status === 'needs_review' || !routing.routes.length);
   return (
     <>
       <AiPanel routing={routing} />
+      {isAdmin && !['closed', 'merged', 'rejected'].includes(d.status) && <form onSubmit={async (e) => {
+        e.preventDefault(); setBusy(true); setEditError('');
+        try { await routingApi().editAnalysis(d.id, category, priority); await loadOfficialComplaints(); }
+        catch (err) { setEditError((err as Error).message); }
+        finally { setBusy(false); }
+      }} style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+        <label>Category <select value={category} onChange={(e) => setCategory(e.target.value)}>{CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}</select></label>
+        <label>Priority <select value={priority} onChange={(e) => setPriority(Number(e.target.value))}>{[1, 2, 3, 4].map((p) => <option key={p} value={p}>P{p}</option>)}</select></label>
+        <button className="btn-outline" type="submit" disabled={busy}>Save correction</button>
+        {editError && <p role="alert">{editError}</p>}
+      </form>}
       <RouteTracker routes={routing.routes} status={d.status} />
       <Replies replies={routing.replies} lang="en" showInternal />
       <ReplyBox complaintId={d.id} />
@@ -59,10 +74,47 @@ function DocketRouting({ d, isAdmin }: { d: OfficialComplaint; isAdmin: boolean 
   );
 }
 
+const LIFECYCLE_STEPS = [
+  { key: 'submitted', label: 'Complaint received', matches: ['submitted'] },
+  { key: 'review', label: 'Initial review', matches: ['under_verification', 'needs_review'] },
+  { key: 'accepted', label: 'Accepted by an official', matches: ['accepted'] },
+  { key: 'in_progress', label: 'Remediation in progress', matches: ['in_progress'] },
+  { key: 'resolved', label: 'Marked resolved', matches: ['resolved', 'closed'] },
+] as const;
+
+function AdminLifecycleChecklist({ complaint }: { complaint: OfficialComplaint }) {
+  const status = complaint.status;
+  const activeIndex = status === 'rejected' ? 1 : LIFECYCLE_STEPS.findIndex((step) => step.matches.includes(status as never));
+  const events = [...(complaint.history || [])].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
+  return (
+    <section className="admin-lifecycle" aria-label="Complaint lifecycle checklist">
+      <h3>Resolution checklist</h3>
+      <ol>
+        {LIFECYCLE_STEPS.map((step, index) => {
+          const completed = activeIndex > index || (status === 'closed' && index === LIFECYCLE_STEPS.length - 1);
+          const active = activeIndex === index;
+          const event = [...events].reverse().find((item) => step.matches.includes(item.status as never));
+          return (
+            <li key={step.key} className={completed ? 'is-complete' : active ? 'is-current' : ''}>
+              <span className="admin-check-icon" aria-hidden="true">{completed ? '✓' : active ? '◷' : ''}</span>
+              <div className="admin-check-copy">
+                <strong>{step.label}</strong>
+                <span>{event ? `${formatDate(event.created_at)}${event.actor?.name ? ` · ${event.actor.name}` : ''}` : completed ? 'Completed' : active ? 'Current step' : 'Pending'}</span>
+                {event?.remark && <p>{event.remark}</p>}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+      {status === 'rejected' && <p className="admin-check-alert">Complaint rejected. Review the official remarks below.</p>}
+    </section>
+  );
+}
+
 export function ComplaintDetailModal() {
   const s = useConsole();
   const d = s.complaints.find((c) => c.id === s.docketId) ?? null;
-  const active = !!d && d.status !== 'resolved' && d.status !== 'rejected';
+  const active = !!d && !['resolved', 'rejected', 'closed', 'merged'].includes(d.status);
   const shown = (on: boolean) => ({ display: on ? 'inline-flex' : 'none' });
   const idStatus = d ? d.idCard?.status ?? 'pending' : null;
   const nameHidden = !!d && !d.student && !!s.routing[d.id]?.hide_name_from_union;
@@ -183,7 +235,7 @@ export function ComplaintDetailModal() {
               {" "}
             </div>
             {" "}
-            <p style={{ fontSize: "12px", color: "#51684c", lineHeight: "1.45", marginBottom: "10px" }}>
+            <p style={{ fontSize: "12px", color: "#4a6142", lineHeight: "1.45", marginBottom: "10px" }}>
               {" "}Institutional enrollment verification required prior to formal acceptance.{" "}
             </p>
             {" "}
@@ -236,6 +288,7 @@ export function ComplaintDetailModal() {
             {" "}
           </div>
           {" "}
+          {d && <AdminLifecycleChecklist complaint={d} />}
           {/* Resolution History Timeline */}
           {" "}
           <div style={{ background: "#ffffff", padding: "16px 20px", borderRadius: "14px", border: "1px solid var(--line)" }}>
@@ -256,7 +309,7 @@ export function ComplaintDetailModal() {
                     <span style={{ fontSize: '11.5px', color: '#64748b' }}>{formatDate(h.created_at)} ({formatRelative(h.created_at)})</span>
                   </div>
                   <div style={{ fontSize: '12.5px', color: 'var(--ink)', fontWeight: 600 }}>{h.actor ? h.actor.name + ' (' + (h.actor.unit_name || h.actor.role) + ')' : 'Authorized Official'}</div>
-                  {h.remark && <div style={{ fontSize: '12.5px', color: '#334155', background: '#f8faf6', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line)', marginTop: '2px' }}>{h.remark}</div>}
+                  {h.remark && <div style={{ fontSize: '12.5px', color: '#334155', background: '#FAF2EB', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line)', marginTop: '2px' }}>{h.remark}</div>}
                 </div>
               )) : <div style={{ fontSize: '12.5px', color: '#64748b' }}>No previous remarks logged. Initial submission status recorded.</div>}
               {" "}

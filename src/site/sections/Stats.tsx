@@ -25,50 +25,50 @@ export function Stats() {
         {" "}
         <div className="cards" id="statsCards">
           {" "}
-          <div className="card" data-to="14" data-dec="0" data-suf=" hrs">
+          <div className="card" data-to="20" data-dec="0" data-suf="">
             {" "}
             <span className="card-label">
-              Avg. Turnaround
+              Issue Categories
             </span>
             {" "}
             <b className="card-value">
-              14 hrs
+              20
             </b>
             {" "}
           </div>
           {" "}
-          <div className="card" data-to="6" data-dec="0" data-suf="">
+          <div className="card" data-to="2" data-dec="0" data-suf="">
             {" "}
             <span className="card-label">
-              Departments
+              Languages
             </span>
             {" "}
             <b className="card-value">
-              6
+              2
             </b>
             {" "}
           </div>
           {" "}
-          <div className="card" data-to="98" data-dec="0" data-suf="%">
+          <div className="card" data-to="4" data-dec="0" data-suf="">
             {" "}
             <span className="card-label">
-              Resolution Rate
+              Priority Levels
             </span>
             {" "}
             <b className="card-value">
-              98%
+              4
             </b>
             {" "}
           </div>
           {" "}
-          <div className="card" data-to="60" data-dec="0" data-suf=" s">
+          <div className="card" data-to="1" data-dec="0" data-suf="">
             {" "}
             <span className="card-label">
-              Time to Report
+              Trackable Complaint
             </span>
             {" "}
             <b className="card-value">
-              60 s
+              1
             </b>
             {" "}
           </div>

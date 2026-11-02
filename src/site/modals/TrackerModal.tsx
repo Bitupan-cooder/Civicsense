@@ -1,7 +1,7 @@
 // Complaint tracker modal, rendered from ../tracker.ts. The list cards, result view, stages bar and history
 // reproduce the markup the original page script built with innerHTML.
 import type { Complaint, Routing } from '../../civicAuth';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AiPanel, Replies, RouteTracker } from '../../RouteTracker';
 import { ReadingLanguageSwitch } from '../components/StudentAuthWidgets';
 import { useLanguage } from '../../i18n';
@@ -57,10 +57,48 @@ function TimelineStages({ status }: { status: string | null }) {
   );
 }
 
+const STATUS_CHECKS = [
+  { key: 'submitted', label: 'Complaint received', statuses: ['submitted'] },
+  { key: 'review', label: 'Initial review', statuses: ['under_verification', 'needs_review'] },
+  { key: 'accepted', label: 'Accepted by an official', statuses: ['accepted'] },
+  { key: 'in_progress', label: 'Remediation in progress', statuses: ['in_progress'] },
+  { key: 'resolved', label: 'Marked resolved', statuses: ['resolved', 'closed'] },
+] as const;
+
+function StatusChecklist({ complaint }: { complaint: Complaint }) {
+  const status = complaint.status || 'submitted';
+  const activeIndex = status === 'rejected' ? 1 : STATUS_CHECKS.findIndex((step) => step.statuses.includes(status as never));
+  const history = [...(complaint.complaint_status_history || [])].sort((a, b) => Date.parse(a.created_at || '') - Date.parse(b.created_at || ''));
+  return (
+    <section className="student-status-checklist" aria-label="Complaint status checklist">
+      <h3>Complaint progress</h3>
+      <ol>
+        {STATUS_CHECKS.map((step, index) => {
+          const completed = activeIndex > index || (status === 'closed' && index === STATUS_CHECKS.length - 1);
+          const current = activeIndex === index;
+          const event = [...history].reverse().find((item) => step.statuses.includes(item.status as never));
+          return (
+            <li key={step.key} className={completed ? 'is-complete' : current ? 'is-current' : ''}>
+              <span className="student-status-check-icon" aria-hidden="true">{completed ? '✓' : current ? '◷' : ''}</span>
+              <div className="student-status-check-copy">
+                <strong>{step.label}</strong>
+                <span>{event?.created_at ? formatTime(event.created_at) : completed ? 'Completed' : current ? 'Current step' : 'Pending'}</span>
+                {event?.remark && <p>{event.remark}</p>}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+      {status === 'rejected' && <p className="student-status-alert">This complaint was rejected. See the latest status update for the official’s remarks.</p>}
+      {status === 'merged' && <p className="student-status-alert">This report was combined with a related complaint. Follow the linked complaint for future updates.</p>}
+    </section>
+  );
+}
+
 function TimelineItem({ h }: { h: NonNullable<Complaint['complaint_status_history']>[number] }) {
   return (
-    <div className="timeline-item">
-      <div className="timeline-title">{statusLabel(h.status).toUpperCase()}</div>
+    <div className={'timeline-item timeline-status-' + (h.status || 'submitted')}>
+      <div className="timeline-title">{statusLabel(h.status)}</div>
       <div className="timeline-time">{formatTime(h.created_at)}</div>
       {h.remark && <div className="timeline-desc">{h.remark}</div>}
     </div>
@@ -85,7 +123,7 @@ function ConfirmFixed({ id }: { id: string }) {
   const [busy, setBusy] = useState(false);
   const act = async (action: 'confirm' | 'reopen') => { setBusy(true); await confirmResolution(id, action, note); setBusy(false); };
   return (
-    <div style={{ background: '#eef8e5', border: '1px solid #c0e8a8', borderRadius: '12px', padding: '12px 14px', fontSize: '12.5px' }}>
+    <div style={{ background: '#d4f5c0', border: '1px solid #cbe3b8', borderRadius: '12px', padding: '12px 14px', fontSize: '12.5px' }}>
       <strong>Is it fixed?</strong> The responsible post marked this complaint resolved.
       {reopening ? (
         <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -134,18 +172,19 @@ function ComplaintCard({ c, expanded, routing }: { c: Complaint; expanded: boole
       </div>
       <div className="complaint-detail-drawer" style={{ display: expanded ? 'block' : 'none', marginTop: '12px', borderTop: '1px solid var(--line)', paddingTop: '12px' }}>
         <div style={{ ...SECTION_LABEL, marginBottom: '4px' }}>Grievance Description</div>
-        <div style={{ fontSize: '13px', color: '#1e293b', lineHeight: 1.5, background: '#f8faf6', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2ebd8', marginBottom: '12px' }}>{c.description}</div>
+        <div style={{ fontSize: '13px', color: '#1e293b', lineHeight: 1.5, background: '#FAF2EB', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e0f0d0', marginBottom: '12px' }}>{c.description}</div>
         {evidence.length > 0 && (
           <div style={{ marginBottom: '12px' }}>
             <div style={{ ...SECTION_LABEL, marginBottom: '6px' }}>Attached Evidence (Cloudinary Authenticated)</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {evidence.map((ev, i) => <EvidenceRow key={i} complaintId={c.id} publicId={ev.cloudinary_public_id} n={i + 1} background="#f8faf6" border="1px solid #e2ebd8" />)}
+              {evidence.map((ev, i) => <EvidenceRow key={i} complaintId={c.id} publicId={ev.cloudinary_public_id} n={i + 1} background="#FAF2EB" border="1px solid #e0f0d0" />)}
             </div>
           </div>
         )}
         {routing && <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}><AiPanel routing={routing} /><RouteTracker routes={routing.routes} status={c.status} /><Replies replies={routing.replies} lang={lang} showInternal={false} />{c.status === 'resolved' && <ConfirmFixed id={c.id} />}</div>}
         <div style={{ ...SECTION_LABEL, marginBottom: '6px' }}>Resolution Lifecycle Milestone Tracker</div>
         <TimelineStages status={c.status} />
+        <StatusChecklist complaint={c} />
         <div style={{ ...SECTION_LABEL, marginTop: '12px', marginBottom: '6px' }}>Status History &amp; Official Remarks</div>
         {history.length === 0 ? (
           <div style={{ fontSize: '12px', color: '#64748b', padding: '6px 0' }}>No status changes recorded yet.</div>
@@ -172,6 +211,7 @@ function TrackerResult({ c, routing }: { c: Complaint; routing?: Routing }) {
         <strong>{statusLabel(c.status).toUpperCase()}</strong> · {c.status === 'resolved' ? 'Resolution verified by authorized department' : 'Active campus grievance tracking'}
       </div>
       <TimelineStages status={c.status} />
+      <StatusChecklist complaint={c} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }} id="trackerDetails">
         <div className="detail-row"><span className="detail-label">Complaint ID:</span><strong>#{shortRef(c.id)} ({c.id})</strong></div>
         <div className="detail-row"><span className="detail-label">Title:</span><strong>{c.title}</strong></div>
@@ -180,14 +220,14 @@ function TrackerResult({ c, routing }: { c: Complaint; routing?: Routing }) {
         <div className="detail-row"><span className="detail-label">Submission Date:</span><span>{formatTime(c.created_at)}</span></div>
         <div className="detail-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px', marginTop: '6px' }}>
           <span className="detail-label">Description:</span>
-          <div style={{ fontSize: '13px', color: '#1e293b', lineHeight: 1.5, background: '#f8faf6', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2ebd8', width: '100%', boxSizing: 'border-box' }}>{c.description}</div>
+          <div style={{ fontSize: '13px', color: '#1e293b', lineHeight: 1.5, background: '#FAF2EB', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e0f0d0', width: '100%', boxSizing: 'border-box' }}>{c.description}</div>
         </div>
       </div>
       {routing && <AiPanel routing={routing} />}
       {routing && <RouteTracker routes={routing.routes} status={c.status} />}
       {routing && <Replies replies={routing.replies} lang={lang} showInternal={false} />}
       <TrackerEvidence c={c} evidence={evidence} />
-      <div id="trackerTimelineWrap" style={{ display: history.length > 0 ? 'block' : 'none', background: '#f8faf4', borderRadius: '12px', padding: '14px 16px', border: '1px solid var(--line)' }}>
+      <div id="trackerTimelineWrap" style={{ display: history.length > 0 ? 'block' : 'none', background: '#FAF2EB', borderRadius: '12px', padding: '14px 16px', border: '1px solid var(--line)' }}>
         <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--olive)', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: '8px' }}>
           Institutional Status Timeline &amp; Remarks
         </div>
@@ -201,7 +241,7 @@ function TrackerResult({ c, routing }: { c: Complaint; routing?: Routing }) {
 
 function TrackerEvidence({ c, evidence }: { c: Complaint; evidence: NonNullable<Complaint['complaint_evidence']> }) {
   return (
-    <div id="trackerEvidenceWrap" style={{ display: evidence.length > 0 ? 'block' : 'none', background: '#f8faf4', borderRadius: '10px', padding: '12px 14px', border: '1px solid var(--line)' }}>
+    <div id="trackerEvidenceWrap" style={{ display: evidence.length > 0 ? 'block' : 'none', background: '#FAF2EB', borderRadius: '10px', padding: '12px 14px', border: '1px solid var(--line)' }}>
       <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--olive)', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: '8px' }}>
         Attached Evidence (Authenticated Delivery)
       </div>
@@ -222,7 +262,7 @@ function EmptyResult() {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }} id="trackerDetails" />
       <TrackerEvidence c={{} as Complaint} evidence={[]} />
-      <div id="trackerTimelineWrap" style={{ display: 'none', background: '#f8faf4', borderRadius: '12px', padding: '14px 16px', border: '1px solid var(--line)' }}>
+      <div id="trackerTimelineWrap" style={{ display: 'none', background: '#FAF2EB', borderRadius: '12px', padding: '14px 16px', border: '1px solid var(--line)' }}>
         <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--olive)', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: '8px' }}>
           Institutional Status Timeline &amp; Remarks
         </div>
@@ -234,6 +274,32 @@ function EmptyResult() {
 
 export function TrackerModal() {
   const t = useTracker();
+  useEffect(() => {
+    if (!t.open) return;
+    const scrollY = window.scrollY;
+    const root = document.documentElement;
+    const body = document.body;
+    const previous = {
+      rootOverflow: root.style.overflow,
+      bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyWidth: body.style.width,
+    };
+    root.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+    return () => {
+      root.style.overflow = previous.rootOverflow;
+      body.style.overflow = previous.bodyOverflow;
+      body.style.position = previous.bodyPosition;
+      body.style.top = previous.bodyTop;
+      body.style.width = previous.bodyWidth;
+      window.scrollTo(0, scrollY);
+    };
+  }, [t.open]);
   const mine = t.mode === 'my_complaints';
   const list = filteredComplaints(t);
   const showEmpty = t.mineLoaded && !t.mineLoading && (!!t.mineError || list.length === 0);
@@ -265,7 +331,7 @@ export function TrackerModal() {
           {" "}
           {/* Student Auth Indicator */}
           {" "}
-          <div id="studentAuthIndicator" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f8faf4", border: "1px solid var(--line)", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px", fontSize: "12.5px", flexWrap: "wrap", gap: "8px" }}>
+          <div id="studentAuthIndicator" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#FAF2EB", border: "1px solid var(--line)", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px", fontSize: "12.5px", flexWrap: "wrap", gap: "8px" }}>
             {" "}
             <TrackerAuthStatus />
             {" "}
@@ -327,7 +393,7 @@ export function TrackerModal() {
               {" "}Loading your submitted complaints from database...{" "}
             </div>
             {" "}
-            <div id="studentComplaintsEmpty" style={{ display: showEmpty ? "block" : "none", background: "#fcfdfa", border: "1.5px dashed var(--line)", borderRadius: "12px", padding: "32px 20px", textAlign: "center" }}>
+            <div id="studentComplaintsEmpty" style={{ display: showEmpty ? "block" : "none", background: "#FAF2EB", border: "1.5px dashed var(--line)", borderRadius: "12px", padding: "32px 20px", textAlign: "center" }}>
               {" "}
               <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--olive)", marginBottom: "6px" }}>
                 No complaints found
@@ -382,10 +448,10 @@ export function TrackerModal() {
             {" "}
             {/* Sample IDs */}
             {" "}
-            <div style={{ background: "#f8faf4", borderRadius: "10px", padding: "12px 14px", marginTop: "14px" }}>
+            <div style={{ background: "#FAF2EB", borderRadius: "10px", padding: "12px 14px", marginTop: "14px" }}>
               {" "}
               <div style={{ fontSize: "11px", fontWeight: "600", color: "var(--olive)", textTransform: "uppercase", letterSpacing: ".04em", marginBottom: "8px" }}>
-                Demo Complaints
+                Your Recent Complaints
               </div>
               {" "}
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }} id="demoIds">

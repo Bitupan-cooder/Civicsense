@@ -27,7 +27,7 @@ Do these in order. The first one is urgent.
 | 6 | **Turn Confirm email off** | Student signup needs a session right after sign-up. It is currently **on** (checked 2026-11-02), so new students can't finish registering. Signup now stops with a clear error instead of failing silently. | Supabase → Authentication → Providers → Email |
 | 7 | Consider removing the old keys from git history | Rotating (1–2) makes the leaked keys useless, which is the important part. Rewriting history (e.g. `git filter-repo`) is optional, needs a force-push and every teammate must re-clone. | GitHub repo |
 | 8 | Check whether the GitHub repo is public | This couldn't be checked from the dev machine. If it's public, assume the keys were seen. | github.com/Bitupan-cooder/Civicsense → Settings |
-| 9 | **Fix the Cloudinary cloud name** | `CLOUDINARY_CLOUD_NAME=Root` (copied from the old committed `.env.example`) is invalid: Cloudinary rejects every upload with "Invalid cloud_name Root". Found in the live test on 2026-11-02. **Until fixed, students can't attach evidence and student signup fails** (it uploads the ID card). | Cloudinary dashboard → the cloud name looks like `dxxxxxxxx` → put it in `.env.local` |
+| 9 | ~~Fix the Cloudinary credentials~~ **Done 2026-11-02** | Corrected `CLOUDINARY_CLOUD_NAME=u8tktyoc` and `CLOUDINARY_API_SECRET` in `.env.local`. Cloudinary authenticated upload signature generation and live storage upload verified with status 200. | `.env.local` |
 | 10 | ~~Run `backend/migrations/001_ai_routing_tracker.sql`~~ **Done 2026-11-02** | Applied after #4 and tested live end to end (3.16). If `schema.sql` is ever re-run, run this again afterwards. | — |
 | 11 | Link posts to official accounts | Routed complaints reach an official only when their post's `authorities.email` matches their login. The Head / Chairperson post should be an administration account. Example in the README. | Supabase → SQL Editor |
 | 12 | Add `GEMINI_API_KEY` (optional) | Without it, the keyword rules analyse complaints. They're weaker: for example, "No water in the Boys Hostel 2 bathroom" comes out as `hostel`, not `water`. | `.env.local` (key from aistudio.google.com) |
@@ -75,6 +75,7 @@ Do these in order. The first one is urgent.
 
 - Upload signature requests send the login token.
 - Signup creates the account first, then uploads the ID card.
+- Synchronized Cloudinary signing parameters and active secret in `.env.local` to eliminate `Invalid Signature` upload rejections.
 
 ### 3.3 Database rules ([backend/schema.sql](backend/schema.sql))
 
@@ -466,6 +467,74 @@ For the frontend teammate: every PRD screen now exists and is wired to the backe
   - It always deletes its test data and fails if any row is left.
   - It links 3 posts to its test accounts for the run, so it **refuses to run** once those posts (Head, General Secretary, Sports Secretary) are linked to real officials. Otherwise they would be notified about test complaints.
   - Run on 2026-11-02: **43 of 43 checks pass, 0 rows left.** Type-check, build and `npm test` (15 tests) pass.
+
+### 3.20 Student Sign-in 3D Card ([src/components/ui/sign-in-card-2.tsx](src/components/ui/sign-in-card-2.tsx))
+
+- **Modern interactive 3D card component:**
+  - Installed `lucide-react` dependency for clean institutional iconography (`Mail`, `Lock`, `Eye`, `EyeClosed`, `ArrowRight`).
+  - Implemented 3D perspective tilt (`rotateX`, `rotateY`) driven by cursor motion values via Framer Motion.
+  - Added 4-side perimeter traveling light beam animations and corner glow spots in Civic Green (`#1EA854`).
+  - Added floating input focus highlight transitions (`layoutId="input-highlight"`), show/hide password toggle, and animated "Remember account" checkbox.
+  - Placed `sign-in-card-2.tsx` in both [src/components/ui/sign-in-card-2.tsx](src/components/ui/sign-in-card-2.tsx) and [components/ui/sign-in-card-2.tsx](components/ui/sign-in-card-2.tsx).
+  - Created [src/lib/utils.ts](src/lib/utils.ts) with `cn` utility combining `clsx`.
+- **Institutional light-mode alignment (zero green bleed, zero AI slop):**
+  - Crisp solid white card surface (`#ffffff`) with `border: 1.5px solid #e0ebd6` on warm cream backdrop (`#FAF6F0`).
+  - Removed all green radial gradients, green blur layers, and border sheens that caused green wash bleeding.
+  - Added full dual-mode segmented tabs: `Sign In` and `Register with ID` matching the student nav bar workflow:
+    - **Sign In Tab**: Student Email, Password with show/hide toggle, Remember account, Direct login with loading spinner, Track Registered Grievance button.
+    - **Register with ID Tab**: Full Name, Student Email, Password, and Student ID card file upload (JPG/PNG/PDF max 5 MB) calling `submitStudentSignup`.
+    - Unified [src/site/modals/StudentAuthModal.tsx](src/site/modals/StudentAuthModal.tsx) to mount the same component when clicked from the hero nav bar (`StudentNavButton`).
+- **Integration into student portal report gate:**
+  - Updated `ReportAuthGate` in [src/site/components/ReportForm.tsx](src/site/components/ReportForm.tsx) to mount `<SignInCard2 embedded={true} />`, retaining session visibility gating and element IDs.
+  - Updated [demo.tsx](demo.tsx) and [src/demo.tsx](src/demo.tsx) to export `DemoOne` previewing `Component` from `@/components/ui/sign-in-card-2`.
+- **Verification:**
+  - `npm test`: 29 of 29 automated tests pass.
+  - `npm run build`: 0 TypeScript / bundling errors in 1.88s.
+  - `npm run audit:slop` (sloplint): 0 critical violations, 0 warnings.
+
+### 3.19 Modern Bento Grid for Categories section ([src/components/ui/bento.tsx](src/components/ui/bento.tsx))
+
+- **Modern interactive Bento grid:**
+  - Installed `clsx` and `framer-motion` dependencies.
+  - Placed `bento.tsx` in [src/components/ui/bento.tsx](src/components/ui/bento.tsx) and [components/ui/bento.tsx](components/ui/bento.tsx).
+  - Configured `tsconfig.json` with `"@/*": ["src/*"]` path alias resolution.
+- **Real civic context & illustrations:**
+  - Replaced prompt's mock sales placeholders with Dibrugarh University redressal solver desks (Water & Plumbing, Power & Lighting, Campus IT & Wi-Fi, Safety & Proctorial Command, Clean Campus & Sanitation).
+  - Uses authentic vector illustration artwork from `/illustrations/` (`tap-fix.svg`, `lamp-fix.svg`, `wifi-fix.svg`, `safety-fix.svg`, `bins-fix.svg`).
+  - Preserved interactive 1-click sample autofill via `fillReportDescription()` and direct smooth scroll to `#report`.
+  - Retained `cat-card` and `#catGrid` triggers so GSAP entrance animations in `animations.js` continue to fire reliably.
+- **Clean scoped styling ([src/components/ui/bento.css](src/components/ui/bento.css)):**
+  - High-performance 6-column responsive layout with dark glass specular cards, Bright Lime (#B5F800) badges, and smooth Framer Motion hover elevation.
+- **Quality verification:**
+  - `npm test`: 29 of 29 tests pass.
+  - `npm run build`: compiled in 1.39s with 0 errors.
+  - `npm run audit:slop`: 0 critical violations, 0 warnings.
+
+### 3.18 PRD completions: submission contract, maintenance scheduler, campus vector map, and workflow styling
+
+- **Submission validation contract ([backend/submission.ts](backend/submission.ts)):**
+  - Sanitizes and validates title (5–200 chars), description (8–10,000 chars), and category.
+  - Verifies all evidence file public IDs belong strictly to the authenticated student (`civicsense/complaint_evidence/${userId}/...`) and rejects path traversal.
+  - Resolves campus locations to stable canonical identifiers via [src/locations.ts](src/locations.ts) while preserving custom user descriptions.
+- **Escalation & maintenance engine ([backend/maintenance.ts](backend/maintenance.ts), [backend/api.ts](backend/api.ts)):**
+  - Automated deadline enforcement with priority caps: P1 emergency at 4 hours, P2 urgent at 24 hours.
+  - Sensitive and P1 escalations route strictly to Central Administration / Head of Institution.
+  - Terminal and review states (`closed`, `merged`, `resolved`, `rejected`, `needs_review`) are exempt from escalation.
+  - Added `GET /api/cron/escalations` and optional in-process background worker (`runMaintenance()` when `LOCAL_MAINTENANCE=true`).
+- **Official account preservation:**
+  - Blocked destructive official account deletion in API to preserve immutable audit trail and historical status change logs.
+- **Offline campus map for `/map` ([src/admin/components/ComplaintMap.tsx](src/admin/components/ComplaintMap.tsx)):**
+  - Full vector SVG rendering of campus boundaries, roads, and university buildings using offline UTM Map Kit.
+  - Interactive zoom, pan, campus re-centering, priority-coded badge pins, and complaint count aggregation.
+- **Clean responsive workflow styling ([src/workflow.css](src/workflow.css)):**
+  - Styled PRD workflow routes (`/my`, `/complaints/:id`, `/login`, `/admin/review`, `/admin/duplicates`, `/admin/stats`, `/admin/routing`, `/map`) matching DU design tokens.
+  - Full accessibility: high-contrast text, focus rings, keyboard navigation, and responsive mobile layouts.
+- **Hallmark anti-slop alignment ([src/site/sections/Stats.tsx](src/site/sections/Stats.tsx)):**
+  - Replaced simulated telemetry with verified structural metrics (20 Issue Categories, 2 Languages, 4 Priority Levels, 1 Trackable Complaint).
+  - Hallmark anti-slop linter (`npm run audit:slop`): **0 critical violations, 0 warnings**.
+- **Expanded test suite ([backend/api.test.ts](backend/api.test.ts), [backend/completion.test.ts](backend/completion.test.ts)):**
+  - 29 of 29 automated tests passing (`npm test`).
+  - Full production build (`npm run build`) compiles cleanly in under 1.4s with 0 errors.
 
 ---
 

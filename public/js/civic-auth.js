@@ -133,7 +133,7 @@
     if (!profile) {
       recordFailedAttempt(normalizedEmail);
       await sb.auth.signOut();
-      throw new Error('Authorized profile not found for this account.');
+      throw new Error('Your sign-in is valid, but student setup is incomplete. Choose “Register with ID”, enter the same email and password, and upload your student ID to finish setup.');
     }
 
     if (!profile.is_active) {
@@ -426,18 +426,48 @@
       }
     });
 
-    if (authRes.error) {
+    var user = authRes.data && authRes.data.user;
+    var session = authRes.data && authRes.data.session;
+    var alreadyRegistered = !!(authRes.error && /already registered|already exists|user_already_exists/i.test(authRes.error.message || ''))
+      || !!(user && Array.isArray(user.identities) && user.identities.length === 0);
+    if (authRes.error && !alreadyRegistered) {
       recordFailedAttempt('signup_' + email);
       throw new Error(authRes.error.message);
     }
 
-    var user = authRes.data.user;
+    // Supabase Auth can retain an account even when an earlier ID upload/profile insert failed.
+    // Recover only after the person proves account ownership with that account's password.
+    if (alreadyRegistered) {
+      var recovery = await sb.auth.signInWithPassword({ email: email, password: password });
+      if (recovery.error || !recovery.data?.user || !recovery.data?.session) {
+        recordFailedAttempt('signup_' + email);
+        throw new Error('This email already has an account. Switch to Sign In and use its existing password; if you have forgotten it, contact university administration.');
+      }
+      user = recovery.data.user;
+      session = recovery.data.session;
+    }
+
     if (!user) {
       throw new Error('Registration failed. Please try again.');
     }
-    if (!authRes.data.session) {
+    if (!session) {
       // Email confirmation is on: profile and ID card rows need a session (RLS), so they can't be created yet.
       throw new Error('Account created, but no session was returned because email confirmation is enabled in Supabase. Registration needs "Confirm email" turned off (Supabase -> Authentication -> Providers -> Email).');
+    }
+
+    var profileCheck = await sb.from('profiles').select('id, role, name, email, is_active').eq('id', user.id).maybeSingle();
+    if (profileCheck.error) throw new Error('Could not check your student setup: ' + profileCheck.error.message);
+    if (profileCheck.data && (profileCheck.data.role !== 'student' || !profileCheck.data.is_active)) {
+      await sb.auth.signOut();
+      throw new Error('This email belongs to a non-student or inactive account. Contact university administration.');
+    }
+    if (profileCheck.data) {
+      var cardCheck = await sb.from('id_cards').select('id').eq('user_id', user.id).maybeSingle();
+      if (cardCheck.error) throw new Error('Could not check your ID-card status: ' + cardCheck.error.message);
+      if (cardCheck.data) {
+        await sb.auth.signOut();
+        throw new Error('Student setup is already complete. Switch to Sign In to use your account.');
+      }
     }
 
     // 2. Upload ID card to Cloudinary (authenticated type)
@@ -445,18 +475,17 @@
     var cloudinaryPublicId = uploadResult.public_id;
 
     // 3. Insert row into profiles table
-    var profileRes = await sb.from('profiles').insert({
-      id: user.id,
-      role: 'student',
-      name: name,
-      email: email,
-      unit_name: null,
-      must_change_password: false,
-      is_active: true
-    });
-
-    if (profileRes.error) {
-      console.error('Failed to create student profile:', profileRes.error);
+    if (!profileCheck.data) {
+      var profileRes = await sb.from('profiles').insert({
+        id: user.id,
+        role: 'student',
+        name: name,
+        email: email,
+        unit_name: null,
+        must_change_password: false,
+        is_active: true
+      });
+      if (profileRes.error) throw new Error('Your ID was uploaded, but student setup could not be completed: ' + profileRes.error.message + '. Use Register with ID again to resume.');
     }
 
     // 4. Insert row into id_cards table (storing only public_id)
@@ -466,9 +495,7 @@
       status: 'pending'
     });
 
-    if (idCardRes.error) {
-      console.error('Failed to register student ID card:', idCardRes.error);
-    }
+    if (idCardRes.error) throw new Error('Your student profile is saved, but the ID card could not be linked: ' + idCardRes.error.message + '. Use Register with ID again to resume.');
 
     try {
       await sb.from('activity_log').insert({
@@ -479,7 +506,7 @@
     } catch (e) {}
 
     clearRateLimit('signup_' + email);
-    return { user: user, public_id: cloudinaryPublicId };
+    return { user: user, public_id: cloudinaryPublicId, profile: profileCheck.data || { id: user.id, role: 'student', name: name, email: email, is_active: true } };
   }
 
   // ── STUDENT ID CARD RE-UPLOAD ────────────────────────────────
@@ -607,7 +634,6 @@
 
     var title = (options.title || '').trim();
     var description = (options.description || '').trim();
-    var category = (options.category || '').trim();
     var visibility = options.visibility || 'department';
     var targetUnitId = options.targetUnitId || null;
     var evidenceFiles = options.evidenceFiles || [];
@@ -618,13 +644,6 @@
     if (!description || description.length < 8) {
       throw new Error('Please describe the issue in detail (minimum 8 characters).');
     }
-    if (!category) {
-      throw new Error('Please select an issue category.');
-    }
-    if (visibility === 'department' && !targetUnitId) {
-      throw new Error('Please select the targeted university department unit.');
-    }
-
     // 1. Upload evidence files (Cloudinary authenticated delivery)
     var uploadedPublicIds = [];
     if (evidenceFiles.length > 0) {
@@ -634,64 +653,12 @@
       }
     }
 
-    // 2. Insert complaint record
-    var compRes = await sb
-      .from('complaints')
-      .insert({
-        student_id: session.user.id,
-        title: title,
-        description: description,
-        category: category,
-        visibility: visibility,
-        target_unit_id: visibility === 'department' ? targetUnitId : null,
-        status: 'submitted'
-      })
-      .select()
-      .single();
-
-    if (compRes.error || !compRes.data) {
-      throw new Error((compRes.error && compRes.error.message) || 'Failed to register complaint in database.');
-    }
-
-    var complaint = compRes.data;
-
-    // 3. Insert complaint evidence records
-    if (uploadedPublicIds.length > 0) {
-      var evRows = uploadedPublicIds.map(function(pid) {
-        return {
-          complaint_id: complaint.id,
-          cloudinary_public_id: pid
-        };
-      });
-
-      var evRes = await sb.from('complaint_evidence').insert(evRows);
-      if (evRes.error) {
-        console.error('Failed to link evidence records:', evRes.error);
-      }
-    }
-
-    // 4. Insert initial status history record (Submitted)
-    var histRes = await sb.from('complaint_status_history').insert({
-      complaint_id: complaint.id,
-      status: 'submitted',
-      remark: 'Complaint registered by student',
-      changed_by: session.user.id
+    // Save privacy and routing through the authenticated server before exposing the report.
+    return postJson('/api/complaints/create', {
+      title: title, description: description,
+      location: options.location || null, hideName: !!options.hideName,
+      evidencePublicIds: uploadedPublicIds
     });
-
-    if (histRes.error) {
-      console.error('Failed to create status history entry:', histRes.error);
-    }
-
-    // 5. Activity log
-    try {
-      await sb.from('activity_log').insert({
-        actor_id: session.user.id,
-        action: 'complaint_submitted',
-        target: 'Complaint #' + complaint.id.slice(0, 8) + ' (' + title.slice(0, 30) + ') submitted'
-      });
-    } catch (e) {}
-
-    return complaint;
   }
 
   // ── FETCH STUDENT COMPLAINTS ──────────────────────────────────
@@ -994,6 +961,8 @@
 
   /** Administration: dashboard statistics (PRD: by status, category, place; average resolution time). */
   function fetchStats() { return getJson('/api/admin/stats'); }
+  function runMaintenance() { return postJson('/api/admin/maintenance', {}); }
+  function editAnalysis(complaintId, category, priority) { return postJson('/api/admin/edit-analysis', { complaintId: complaintId, category: category, priority: priority }); }
   /** Administration: possible duplicate pairs { pairs: [{ complaint, original, score }] }. */
   function fetchDuplicates() { return getJson('/api/admin/duplicates'); }
   function mergeComplaint(complaintId, intoId) { return postJson('/api/admin/merge', { complaintId: complaintId, intoId: intoId || null }); }
@@ -1227,6 +1196,8 @@
   // ── PUBLIC API EXPORT ─────────────────────────────────────────
   global.CivicAuth = {
     getClient: getClient,
+    runMaintenance: runMaintenance,
+    editAnalysis: editAnalysis,
     getProfile: function () {
       return currentProfile;
     },

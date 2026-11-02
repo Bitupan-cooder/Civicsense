@@ -39,3 +39,4 @@ scratch/
 # TypeScript incremental build cache
 *.tsbuildinfo
 .agents/
+powershell.cmd
