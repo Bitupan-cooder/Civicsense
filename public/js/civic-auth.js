@@ -353,7 +353,7 @@
 
     var signRes = await fetch('/api/cloudinary/sign-upload', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+      headers: await getAdminAuthHeader()
     });
 
     if (!signRes.ok) {
@@ -414,14 +414,10 @@
       throw new Error(rate.error);
     }
 
-    // 1. Upload ID card to Cloudinary (authenticated type)
-    var uploadResult = await uploadIdCardToCloudinary(file);
-    var cloudinaryPublicId = uploadResult.public_id;
-
     var sb = getClient();
     if (!sb) throw new Error('Database connection unavailable.');
 
-    // 2. Sign up user with Supabase Auth
+    // 1. Sign up user with Supabase Auth (the upload signature below requires a signed-in session)
     var authRes = await sb.auth.signUp({
       email: email,
       password: password,
@@ -439,6 +435,14 @@
     if (!user) {
       throw new Error('Registration failed. Please try again.');
     }
+    if (!authRes.data.session) {
+      // Email confirmation is on: profile and ID card rows need a session (RLS), so they can't be created yet.
+      throw new Error('Account created, but no session was returned because email confirmation is enabled in Supabase. Registration needs "Confirm email" turned off (Supabase -> Authentication -> Providers -> Email).');
+    }
+
+    // 2. Upload ID card to Cloudinary (authenticated type)
+    var uploadResult = await uploadIdCardToCloudinary(file);
+    var cloudinaryPublicId = uploadResult.public_id;
 
     // 3. Insert row into profiles table
     var profileRes = await sb.from('profiles').insert({
@@ -554,7 +558,7 @@
 
     var signRes = await fetch('/api/cloudinary/sign-upload', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await getAdminAuthHeader(),
       body: JSON.stringify({ folder: 'civicsense/complaint_evidence' })
     });
 
@@ -730,9 +734,14 @@
     if (cleanId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
       query = query.eq('id', cleanId);
     } else {
-      // Allow prefix search e.g. first 8 characters
-      var prefix = cleanId.replace(/^CS-?/i, '');
-      query = query.ilike('id', prefix + '%');
+      // Short reference "CS-E703D748" = first 8 hex digits of the UUID. `id` is a uuid column, so
+      // ilike (text matching) fails in Postgres; match the prefix as a UUID range instead.
+      var prefix = cleanId.replace(/^CS-?/i, '').toLowerCase();
+      if (!/^[0-9a-f]{1,8}$/.test(prefix)) return null;
+      var pad = function (ch) { return (prefix + ch.repeat(8)).slice(0, 8); };
+      query = query
+        .gte('id', pad('0') + '-0000-0000-0000-000000000000')
+        .lte('id', pad('f') + '-ffff-ffff-ffff-ffffffffffff');
     }
 
     var res = await query.maybeSingle();
@@ -947,11 +956,147 @@
     if (!sb) throw new Error('Database service unavailable.');
     var sessionRes = await sb.auth.getSession();
     var session = sessionRes.data ? sessionRes.data.session : null;
-    if (!session) throw new Error('Administration session required.');
+    if (!session) throw new Error('You must be signed in to do this.');
     return {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + session.access_token
     };
+  }
+
+  // ── PRD AI ANALYSIS, ROUTING AND ROUTE TRACKER ──────────────
+  // These never throw for "not set up yet" (migration 001 not run): callers then simply show nothing extra.
+
+  var featuresPromise = null;
+  /** Which PRD features the server has switched on: { routing, gemini }. */
+  function fetchFeatures() {
+    if (!featuresPromise) {
+      featuresPromise = fetch('/api/features').then(function (r) { return r.ok ? r.json() : { routing: false, gemini: false }; })
+        .catch(function () { return { routing: false, gemini: false }; });
+    }
+    return featuresPromise;
+  }
+
+  async function postJson(path, body) {
+    var headers = await getAdminAuthHeader();
+    var res = await fetch(path, { method: 'POST', headers: headers, body: JSON.stringify(body) });
+    var json = await res.json().catch(function () { return {}; });
+    if (!res.ok) throw new Error(json.error || 'Request failed.');
+    return json;
+  }
+
+  /** Official: a reply to the reporter ('public') or an internal note ('internal'). */
+  function postReply(complaintId, body, visibility) {
+    return postJson('/api/complaints/replies', { complaintId: complaintId, body: body, visibility: visibility });
+  }
+
+  /** Reporter: 'confirm' that a resolved complaint is fixed, or 'reopen' it with a note. */
+  function confirmComplaint(complaintId, action, note) {
+    return postJson('/api/complaints/confirm', { complaintId: complaintId, action: action, note: note || '' });
+  }
+
+  async function fetchNotifications() {
+    var sb = getClient();
+    if (!sb) return [];
+    var res = await sb.from('notifications').select('id, complaint_id, message_en, message_as, read, created_at').order('created_at', { ascending: false }).limit(30);
+    return res.error ? [] : (res.data || []);
+  }
+
+  async function markNotificationsRead(ids) {
+    var sb = getClient();
+    if (!sb || !ids.length) return;
+    await sb.from('notifications').update({ read: true }).in('id', ids);
+  }
+
+  /** Live notifications (Supabase Realtime). Returns an unsubscribe function. */
+  function subscribeNotifications(userId, onInsert) {
+    var sb = getClient();
+    if (!sb || !userId) return function () {};
+    var channel = sb.channel('notifications-' + userId)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + userId }, function (payload) { onInsert(payload.new); })
+      .subscribe();
+    return function () { sb.removeChannel(channel); };
+  }
+
+  /** The language complaint summaries and replies are shown in ('en' or 'as'). */
+  async function setPreferredLanguage(userId, lang) {
+    var sb = getClient();
+    if (!sb) return;
+    await sb.from('profiles').update({ preferred_language: lang }).eq('id', userId);
+  }
+
+  /** Runs the AI analysis and routing for a complaint just filed. Returns null when unavailable. */
+  async function analyseComplaint(complaintId, location, hideName) {
+    try {
+      var headers = await getAdminAuthHeader();
+      var res = await fetch('/api/complaints/analyse', {
+        method: 'POST', headers: headers, body: JSON.stringify({ complaintId: complaintId, location: location || null, hideName: !!hideName })
+      });
+      var json = await res.json().catch(function () { return {}; });
+      if (!res.ok) {
+        if (!json.notInstalled) console.error('Complaint analysis failed:', json.error || res.status);
+        return null;
+      }
+      return json;
+    } catch (e) {
+      console.error('Complaint analysis failed:', e);
+      return null;
+    }
+  }
+
+  /** Marks the complaint seen for the posts the signed-in official holds (route tracker). */
+  async function markComplaintSeen(complaintId) {
+    try {
+      var headers = await getAdminAuthHeader();
+      await fetch('/api/complaints/seen', { method: 'POST', headers: headers, body: JSON.stringify({ complaintId: complaintId }) });
+    } catch (e) { /* best effort */ }
+  }
+
+  /** Administration: routes a complaint from the review queue by hand. */
+  async function routeComplaintByHand(complaintId, category) {
+    var headers = await getAdminAuthHeader();
+    var res = await fetch('/api/admin/route-complaint', {
+      method: 'POST', headers: headers, body: JSON.stringify({ complaintId: complaintId, category: category })
+    });
+    var json = await res.json().catch(function () { return {}; });
+    if (!res.ok) throw new Error(json.error || 'Failed to route complaint.');
+    return json;
+  }
+
+  /** AI fields and route tracker rows for the given complaints, keyed by complaint id ({} when unavailable). */
+  async function fetchRouting(complaintIds) {
+    var sb = getClient();
+    if (!sb || !complaintIds || !complaintIds.length) return {};
+    var ai = await sb.from('complaints')
+      .select('id, hide_name_from_union, ai_category, priority, is_sensitive, location_text, summary_en, summary_as, image_findings, confidence, ai_source, input_language, human_edited, analysed_at, resolved_at')
+      .in('id', complaintIds);
+    if (ai.error) return {};
+    var routes = await sb.from('complaint_routes')
+      .select('complaint_id, kind, delivered_at, seen_at, replied_at, resolved_at, authority:authorities(post_title, person_name)')
+      .in('complaint_id', complaintIds);
+    var replies = await sb.from('complaint_replies')
+      .select('id, complaint_id, visibility, body_original, body_language, body_en, body_as, created_at, author:profiles(name), authority:authorities(post_title)')
+      .in('complaint_id', complaintIds)
+      .order('created_at', { ascending: true });
+    var out = {};
+    (ai.data || []).forEach(function (row) { out[row.id] = Object.assign({}, row, { routes: [], replies: [] }); });
+    (replies.data || []).forEach(function (r) {
+      if (!out[r.complaint_id]) return;
+      out[r.complaint_id].replies.push({
+        id: r.id, visibility: r.visibility, body_original: r.body_original, body_language: r.body_language, body_en: r.body_en, body_as: r.body_as,
+        created_at: r.created_at, from: (r.authority && r.authority.post_title) || (r.author && r.author.name) || 'University official'
+      });
+    });
+    (routes.data || []).forEach(function (r) {
+      if (!out[r.complaint_id]) return;
+      out[r.complaint_id].routes.push({
+        kind: r.kind, delivered_at: r.delivered_at, seen_at: r.seen_at, replied_at: r.replied_at, resolved_at: r.resolved_at,
+        post_title: r.authority ? r.authority.post_title : 'Unknown post', person_name: r.authority ? r.authority.person_name : null
+      });
+    });
+    Object.keys(out).forEach(function (id) {
+      out[id].routes.sort(function (a, b) { return (a.kind === 'primary' ? 0 : 1) - (b.kind === 'primary' ? 0 : 1); });
+    });
+    return out;
   }
 
   async function fetchAdminOfficials() {
@@ -967,7 +1112,8 @@
     var res = await fetch('/api/admin/create-official', {
       method: 'POST',
       headers: headers,
-      body: JSON.stringify(data)
+      // the API names the password field temporaryPassword
+      body: JSON.stringify({ name: data.name, email: data.email, role: data.role, unitName: data.unitName, temporaryPassword: data.password })
     });
     var json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Failed to create official account.');
@@ -1096,6 +1242,17 @@
     deleteOfficialAccount: deleteOfficialAccount,
     resetOfficialPassword: resetOfficialPassword,
     reassignComplaint: reassignComplaint,
+    fetchFeatures: fetchFeatures,
+    postReply: postReply,
+    confirmComplaint: confirmComplaint,
+    fetchNotifications: fetchNotifications,
+    markNotificationsRead: markNotificationsRead,
+    subscribeNotifications: subscribeNotifications,
+    setPreferredLanguage: setPreferredLanguage,
+    analyseComplaint: analyseComplaint,
+    markComplaintSeen: markComplaintSeen,
+    routeComplaintByHand: routeComplaintByHand,
+    fetchRouting: fetchRouting,
     fetchActivityLogs: fetchActivityLogs,
     fetchAdminStats: fetchAdminStats
   };

@@ -1,89 +1,82 @@
-# CivicSense — AI Smart Campus Issue Management
+# CivicSense — Campus Issue Reporting
 
-**Dibrugarh University** · **Game of Codes | ANAZORI v16.0 (PS-04)**  
-**Author:** @bi2 · **Demo Date:** 4 November 2026
+**Dibrugarh University** · Game of Codes | ANAZORI v16.0 (PS-04)
 
----
+Students report campus problems (water, power, Wi-Fi, hostel, safety, labs) and track them to resolution. Department heads, the DUSU council and central administration work the complaints from an official console.
 
-## 🏛️ Overview
+## What's where
 
-**CivicSense** is an AI-assisted web platform where Dibrugarh University students and staff report campus issues and follow them to resolution. Built for **Game of Codes | ANAZORI v16.0** (CCSA, Dibrugarh University, Problem Statement **PS-04**), it is designed as a working production platform with real-time department routing and SLA tracking.
+| Path | What it is |
+|---|---|
+| `src/site/` | Student site (React): landing page, sign-up with ID card, complaint form, campus map, status tracker. Sections in `sections/`, dialogs in `modals/`, state in `studentSession.ts`, `reportForm.ts` and `tracker.ts`. |
+| `src/site/campusMap.js`, `animations.js`, `analyzer.js`, `demoData.js` | Plain-JS modules the components import: the canvas campus map, the GSAP/Lenis scroll animations, the language/landmark detector, and local sample data. |
+| `src/admin/` | Official console (React): department, DUSU (social service) and administration logins. State and actions in `console.ts`. |
+| `src/toast.ts`, `src/civicAuth.ts` | Toast notifications and the types of `window.CivicAuth`, shared by both pages. |
+| `index.html`, `admin.html` | Thin HTML shells: `<head>`, the Supabase/civic-auth and campus-map-data `<script>` tags, and the React entry point. |
+| `public/js/civic-auth.js` | Shared browser client: Supabase auth, complaints, uploads, calls to `/api/*`. |
+| `backend/api.ts` | Server API (`/api/*`): Cloudinary upload signing, signed file URLs, complaint workflow, admin account management. Uses the Supabase service-role key. |
+| `backend/access.ts` | Who-can-see-which-complaint rule used by the API. Mirrors `can_read_complaint()` in `schema.sql`; keep them in sync. |
+| `backend/schema.sql` | Database tables, Row Level Security policies and triggers. |
+| `Dibrugarh-University-Map-Kit/` | Campus map data and projection scripts loaded by `index.html`. |
 
-The public interface implements a scroll-driven site whose layout, motion, and 3D visual language are adapted from the **Open Grid** brutalist Swiss design system. The entire functional application operates behind this cohesive shell.
+## React migration (complete)
 
----
+The site moved from hand-written HTML pages with a 5,600-line inline script to React, **without changing how it looks or behaves** (apart from listed bug fixes). The CSS is unchanged in `src/site/site.css` and `src/admin/admin.css`. Each step was checked side by side against the original pages; see `Changelog.md` sections 3.7–3.12.
 
-## 📐 Brutalist Swiss Design System (Adapted from Open Grid)
+How it fits together:
 
-CivicSense implements the brutalist Swiss grid identity with strict custom property design tokens:
+- Data-driven UI (sign-in state, dialogs, complaint form, tracker, official console) is React state: small stores (`useSyncExternalStore`) with actions, and components that render from them.
+- Code that draws or animates the page directly stays imperative, as ES modules: `campusMap.js` (canvas) and `animations.js` (GSAP, ScrollTrigger and Lenis from npm, pinned to the versions the page always used). `main.tsx` renders React synchronously, then starts these in the order and at the moment the old page script did.
+- `animations.js` changes some rendered elements directly (splits headings into words, adds decorations, sets inline transforms). Those components have no state, so React never re-renders them. Keep it that way, or move the animation for that element into the component.
+- `window` is only used where outside code needs it: `window.CivicAuth` (from `civic-auth.js`), `window.showToast` (used by `civic-auth.js`), and the campus map data globals from `Dibrugarh-University-Map-Kit/`.
 
-- **Tokens (`:root`)**:
-  - `--black`: `#0A0A0A` (Ink sections, text on paper)
-  - `--paper`: `#F4F2EC` (Light sections, text on ink)
-  - `--signal`: `#FFC400` (Open & in-progress issues, primary CTA)
-  - `--resolve`: `#19C37D` (Resolved states, verified closure)
-  - `--alert`: `#FF4B2B` (Urgent P1 priority, hazard alerts)
-  - `--rule` / `--rule-paper`: Hairline column rules
-  - `--cols`, `--mar`, `--gut`: 12 columns, 20px margin, 10px gutter (4 cols, 12px margin on mobile)
-  - `--nav`: 44px fixed top bar (48px on mobile)
-- **Typography**:
-  - **Display**: Archivo 800, tight tracking, uppercase
-  - **Body**: Archivo variable / Inter Tight
-  - **Captions & Labels**: JetBrains Mono 500, 11px, uppercase, 0.06em tracking
-- **Signature Live Grid Inspector (`G` key)**:
-  - Press `G` anywhere or tap **Grid [G]** in the nav bar to activate the interactive 12-column grid overlay with live column widths, gutters, viewport dimensions, baseline, scroll %, and current section name.
+## Setup
 
----
-
-## 🌟 Landing Page Structure (7 Sections)
-
-1. **Index (`#index`)**:
-   - Hero header: *"Say it. Direct to Campus Redressal."*
-   - **3D Campus Block Cube**: 27 modules in a 3×3×3 block that glow with `--signal` (yellow) for active issues, `--resolve` (green) for resolved issues, and `--alert` (red) for P1 hazards. Fully interactive with mouse dragging and smooth idle rotation.
-   - **Live Issue Index Table**: Real-time numbered rows (`No.` / `Issue` / `Dept` / `Status`) directly connected to the active database.
-   - **Pinned "How a Report Travels" Lesson**: 4 interactive stages (Set the Columns ➔ AI Triage ➔ Department Routing ➔ Live Status Trail).
-   - **Type Tumble**: Typography showcase with campus grid manifesto.
-2. **Voices (`#voices`)**:
-   - Word swap: `Report` ➔ `Route` ➔ `Resolve` with dynamic department cards and SLA commitments.
-3. **Numbers (`#numbers`)**:
-   - Swiss stat tiles with live count-up numbers: Active Open Issues, Verified Resolutions, Average Turnaround (14 hrs), and Connected Departments (6).
-4. **Categories (`#categories`)**:
-   - 6 university categories (Water Supply, Power & Electrical, Wi-Fi & IT, Hostel Infrastructure, Campus Safety, Labs & Classrooms) with live sample reports.
-5. **Resolved (`#resolved`)**:
-   - The Resolved Wall: Showcase cards of verified resolved campus problems with time-to-fix badges and audit details.
-6. **How (`#how`)**:
-   - Report in four simple steps (Describe Campus Issue ➔ Pin Landmark on Map ➔ Snap Photo Evidence ➔ Track to Resolution).
-7. **Start (`#start`)**:
-   - Direct CTAs and navigation to authenticated roles.
-
----
-
-## ⚡ Application Routes
-
-- `/report`: 60-second issue reporting wizard with landmark picker, camera capture, live AI triage preview, and duplicate warning.
-- `/track/[id]`: End-to-end accountability route tracker (`Submitted ➔ Acknowledged ➔ In Progress ➔ Resolved`), official responses log, officer status controls, and student **"Me Too" (+1)** upvote escalation.
-- `/my` & `/my-reports`: Student reporter dashboard with live status chips and filtering.
-- `/officer`: Department officer queue (Estates, Electrical, IT, Hostels, Proctorial) with SLA timers, filter by assigned department, and one-click status transitions.
-- `/authority`: DUSU General Secretary portfolio oversight queue.
-- `/admin`: Central administration master ledger, live Leaflet hotspot map, and department routing override.
-- `/map`: Full-screen interactive Leaflet campus map with status and priority pins.
-- `/login`: Role-based persona gateway (Reporter, Department Officer, DUSU GS, Central Admin).
-- `/api/triage`: Server-side issue triage and duplicate detection endpoint.
-
----
-
-## 🚀 Running Locally
+Requires **Node 22.6+**.
 
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. Build for production
-npm run build
-
-# 3. Start production server
-npm run start
+cp .env.example .env.local   # then fill in your Supabase and Cloudinary keys
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) in your browser.
-Press `G` on any screen to inspect the Swiss grid layout!
+`.env.local` is git-ignored. Never put real keys in `.env.example` or in code.
+
+### Database (once, in the Supabase SQL editor)
+
+1. Run `backend/schema.sql`.
+2. Create the admin login in **Supabase → Authentication → Users → Add user** with a strong password.
+3. Set `v_admin_email` in the last block of `schema.sql` to that email and run that block again to grant the administration role.
+4. Student registration expects **Confirm email** to be off (Authentication → Providers → Email).
+5. Run `backend/migrations/001_ai_routing_tracker.sql` (AI analysis, routing to posts, route tracker; see below). It is additive and safe to re-run. **If you run `schema.sql` again later, run the migration again afterwards**, because `schema.sql` recreates policies the migration widens.
+
+### AI analysis and routing (PRD)
+
+After a student files a complaint, the server analyses it (`backend/ai.ts`), applies the PRD's code rules (`src/logic.ts`: priority floors, never-invent, review queue, sensitive routing), and routes it:
+
+- **Gemini** does the analysis when `GEMINI_API_KEY` is set in `.env.local`. Without a key, or when the call fails, the built-in keyword rules do it. A failed Gemini call also sends the complaint to the review queue. Every attempt is logged in `ai_logs`.
+- **Routing** follows `routing_rules`: the post that owns the category, with the General Secretary copied. Sensitive complaints go to the Head / Chairperson only. Low-confidence results and non-complaints go to the administration's review queue (status `needs_review`, filter "Needs Review" in the console), to be routed by hand from the docket.
+- **Posts are linked to official accounts by email.** An official sees the complaints routed to their post once that post's email matches their login, in addition to what they see today. For example:
+
+  ```sql
+  update public.authorities set email = 'gs@dibru.ac.in' where post_key = 'general_secretary';
+  update public.authorities set email = 'admin@dibru.ac.in' where post_key = 'head';
+  ```
+- The **route tracker** (student tracker and admin docket) shows each recipient's checkpoints: delivered, seen (an official opened the docket), replied (an official recorded a remark) and resolved. Only the primary post or an administrator can mark a complaint resolved.
+
+- **Privacy:** "Hide my name from the student union" on the report form. Union posts (and the DUSU role) then see the complaint but not the reporter (`can_see_reporter()` in the migration).
+- **Replies and internal notes** from the docket; replies are translated (Gemini) and the reporter reads them in their chosen language. **Notifications** (bell in the student nav and the console header) arrive live through Supabase Realtime.
+- **Confirm or reopen:** the reporter confirms a resolved complaint (closed) or reopens it; with no answer for 7 days it closes automatically.
+
+Until the migration is run, none of this appears and the site works exactly as before.
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Dev server with the API at http://localhost:3000 |
+| `npm run build` | Type-checks, then builds `index.html` + `admin.html` into `dist/` |
+| `npm run preview` | Serves the production build **with** the API (needs `.env.local`) |
+| `npm run server` | API only, on port 3001 (no static files) |
+| `npm test` | Tests for the access rule, the PRD routing/safety rules (against its demo scenarios) and the AI module |
+
+Without a complete `.env.local` the pages still load, but every `/api/*` call returns a "Server not configured" error.

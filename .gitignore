@@ -35,3 +35,7 @@ Civicsense/
 .aistudio/
 .tempmediaStorage/
 scratch/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+.agents/

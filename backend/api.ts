@@ -1,57 +1,31 @@
 import { v2 as cloudinary } from "cloudinary";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { IncomingMessage, ServerResponse } from "http";
 import fs from "fs";
-import path from "path";
+import { canAccessComplaint } from "./access.ts";
+import { campusPlaceNames, translateReply, understandComplaint } from "./ai.ts";
+import { applyRules, AUTO_CLOSE_DAYS, CATEGORIES, messages, routeComplaint, ticketRef, type Message } from "../src/logic.ts";
 
-// Automatically load environment files into process.env if not already set
-function initEnvironment() {
-  const envFiles = [".env.local", ".env", ".env.example"];
-  for (const file of envFiles) {
-    const fullPath = path.resolve(process.cwd(), file);
-    if (fs.existsSync(fullPath)) {
-      if (typeof (process as any).loadEnvFile === "function") {
-        try {
-          (process as any).loadEnvFile(fullPath);
-        } catch {}
-      } else {
-        try {
-          const content = fs.readFileSync(fullPath, "utf8");
-          for (const line of content.split("\n")) {
-            const trimmed = line.trim();
-            if (!trimmed || trimmed.startsWith("#")) continue;
-            const eqIdx = trimmed.indexOf("=");
-            if (eqIdx > 0) {
-              const key = trimmed.slice(0, eqIdx).trim();
-              const val = trimmed.slice(eqIdx + 1).trim().replace(/^['"]|['"]$/g, "");
-              if (!process.env[key] && val) {
-                process.env[key] = val;
-              }
-            }
-          }
-        } catch {}
-      }
-    }
-  }
+// Secrets come only from the environment or git-ignored .env files. Never hardcode fallbacks here.
+for (const file of [".env.local", ".env"]) {
+  if (fs.existsSync(file)) process.loadEnvFile(file);
 }
-initEnvironment();
 
-const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || "Root";
-const API_KEY = process.env.CLOUDINARY_API_KEY || "193263864471639";
-const API_SECRET = process.env.CLOUDINARY_API_SECRET || "n37r-euGAxDQZZwRKTDU707MFis";
+const REQUIRED_ENV = [
+  "SUPABASE_URL",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "CLOUDINARY_CLOUD_NAME",
+  "CLOUDINARY_API_KEY",
+  "CLOUDINARY_API_SECRET",
+];
+const missingEnv = REQUIRED_ENV.filter((key) => !process.env[key]);
+if (missingEnv.length) {
+  console.warn(`[api] Not configured, /api/* will return 500. Missing in .env.local: ${missingEnv.join(", ")}`);
+}
 
-const SUPABASE_URL =
-  process.env.BACKEND_DATABASE_URL ||
-  process.env.BACKEND_URL ||
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  "https://mdywamyrxuuookaxksyv.supabase.co";
-
-const SUPABASE_SERVICE_ROLE_KEY =
-  process.env.BACKEND_SERVICE_ROLE_KEY ||
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.BACKEND_ANON_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "sb_publishable_97gBSZ3CLy6r0E3thRZ85Q_b7xyQxj_";
+const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME!;
+const API_KEY = process.env.CLOUDINARY_API_KEY!;
+const API_SECRET = process.env.CLOUDINARY_API_SECRET!;
 
 cloudinary.config({
   cloud_name: CLOUD_NAME,
@@ -60,9 +34,14 @@ cloudinary.config({
   secure: true,
 });
 
-export const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+let supabaseAdmin!: SupabaseClient;
+if (!missingEnv.length) {
+  supabaseAdmin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
+
+const MAX_BODY_BYTES = 64 * 1024;
 
 function sendJson(res: ServerResponse, status: number, data: any): boolean {
   res.writeHead(status, {
@@ -78,7 +57,13 @@ function sendJson(res: ServerResponse, status: number, data: any): boolean {
 function parseBody(req: IncomingMessage): Promise<any> {
   return new Promise((resolve, reject) => {
     let body = "";
-    req.on("data", (chunk) => (body += chunk));
+    req.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > MAX_BODY_BYTES) {
+        reject(new Error("Request body too large"));
+        req.destroy();
+      }
+    });
     req.on("end", () => {
       try {
         resolve(body ? JSON.parse(body) : {});
@@ -107,6 +92,222 @@ async function getRequester(req: IncomingMessage) {
   return { user: userData.user, profile };
 }
 
+type Requester = NonNullable<Awaited<ReturnType<typeof getRequester>>>;
+
+async function requesterCanAccess(requester: Requester, complaint: any): Promise<boolean> {
+  const { user, profile } = requester;
+  let targetUnitName: string | null = null;
+  if (profile.role === "department" && complaint.target_unit_id && complaint.target_unit_id !== user.id) {
+    const { data } = await supabaseAdmin
+      .from("profiles")
+      .select("unit_name")
+      .eq("id", complaint.target_unit_id)
+      .maybeSingle();
+    targetUnitName = data?.unit_name ?? null;
+  }
+  const viewer = { id: user.id, role: profile.role, unit_name: profile.unit_name };
+  if (canAccessComplaint(viewer, complaint, targetUnitName)) return true;
+  return !!complaint.id && (await myRoutes(requester, complaint.id)).length > 0;
+}
+
+// ── PRD routing: posts (authorities), complaint_routes, AI pipeline (backend/migrations/001_ai_routing_tracker.sql) ──
+
+let routingInstalled: boolean | null = null;
+/** false until migration 001 has been run; the routing/AI features then stay off and nothing else changes. */
+async function isRoutingInstalled(): Promise<boolean> {
+  if (routingInstalled) return true;
+  // not head:true: for a missing table that returns status 204 with no error
+  const checks = await Promise.all([
+    supabaseAdmin.from("complaint_routes").select("id").limit(1),
+    supabaseAdmin.from("complaints").select("ai_category, hide_name_from_union").limit(1),
+    supabaseAdmin.from("notifications").select("id").limit(1),
+    supabaseAdmin.from("complaint_replies").select("id").limit(1),
+  ]);
+  routingInstalled = checks.every((c) => !c.error);
+  return routingInstalled;
+}
+
+/** Account ids holding these posts (by user_id, or a profile whose email is the post's email). */
+async function postHolderIds(authorityIds: string[]): Promise<string[]> {
+  if (!authorityIds.length) return [];
+  const { data: posts } = await supabaseAdmin.from("authorities").select("user_id, email").in("id", authorityIds).eq("active", true);
+  const ids = new Set((posts || []).map((p: any) => p.user_id).filter(Boolean));
+  const emails = (posts || []).map((p: any) => (p.email || "").toLowerCase()).filter(Boolean);
+  if (emails.length) {
+    const { data: holders } = await supabaseAdmin.from("profiles").select("id, email").neq("role", "student").eq("is_active", true);
+    for (const h of holders || []) if (emails.includes((h.email || "").toLowerCase())) ids.add(h.id);
+  }
+  return [...ids];
+}
+
+/** In-app notification (PRD), pushed live through Supabase Realtime. Failures never block the action itself. */
+async function notify(userIds: string[], complaintId: string, msg: Message): Promise<void> {
+  const unique = [...new Set(userIds.filter(Boolean))];
+  if (!unique.length) return;
+  const { error } = await supabaseAdmin.from("notifications").insert(unique.map((user_id) => ({ user_id, complaint_id: complaintId, message_en: msg.en, message_as: msg.as })));
+  if (error) console.error("[api] notification failed:", error.message);
+}
+
+async function notifyRoutedPosts(complaintId: string, authorityIds: string[], exceptUserId: string | null = null): Promise<void> {
+  const { data: posts } = await supabaseAdmin.from("authorities").select("id, post_title").in("id", authorityIds);
+  for (const p of posts || []) {
+    const holders = (await postHolderIds([p.id])).filter((id) => id !== exceptUserId);
+    await notify(holders, complaintId, messages.routedToPost(ticketRef(complaintId), p.post_title));
+  }
+}
+
+let lastAutoClose = 0;
+/** PRD: a complaint resolved 7 days ago with no answer from the reporter closes automatically. Runs at most hourly. */
+async function autoCloseResolved(): Promise<void> {
+  if (Date.now() - lastAutoClose < 3600e3 || !(await isRoutingInstalled())) return;
+  lastAutoClose = Date.now();
+  const cutoff = new Date(Date.now() - AUTO_CLOSE_DAYS * 86400e3).toISOString();
+  const { data: due } = await supabaseAdmin.from("complaints").select("id, student_id").eq("status", "resolved").lt("resolved_at", cutoff);
+  for (const c of due || []) {
+    const now = new Date().toISOString();
+    await supabaseAdmin.from("complaints").update({ status: "closed", closed_at: now, updated_at: now }).eq("id", c.id);
+    await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: c.id, status: "closed", remark: `Closed automatically ${AUTO_CLOSE_DAYS} days after resolution.`, changed_by: null });
+    await notify([c.student_id], c.id, messages.autoClosed(ticketRef(c.id)));
+  }
+}
+
+/** Posts held by the requester: linked by user_id, or by the post's email matching their login email. */
+async function myAuthorityIds(requester: Requester): Promise<string[]> {
+  if (requester.profile.role === "student" || !(await isRoutingInstalled())) return [];
+  const { data } = await supabaseAdmin.from("authorities").select("id, user_id, email").eq("active", true);
+  // the verified login email, not profiles.email (users can edit their own profile row)
+  const email = (requester.user.email || "").toLowerCase();
+  return (data || []).filter((a: any) => a.user_id === requester.user.id || (a.email && a.email.toLowerCase() === email)).map((a: any) => a.id);
+}
+
+async function myRoutes(requester: Requester, complaintId: string): Promise<{ id: string; kind: string }[]> {
+  const ids = await myAuthorityIds(requester);
+  if (!ids.length) return [];
+  const { data } = await supabaseAdmin.from("complaint_routes").select("id, kind").eq("complaint_id", complaintId).in("authority_id", ids);
+  return data || [];
+}
+
+async function routesWithPosts(complaintId: string) {
+  const { data } = await supabaseAdmin
+    .from("complaint_routes")
+    .select("kind, delivered_at, seen_at, replied_at, resolved_at, authority:authorities(post_title, person_name)")
+    .eq("complaint_id", complaintId)
+    .order("kind", { ascending: false });
+  return (data || []).map((r: any) => ({ ...r, post_title: r.authority?.post_title, person_name: r.authority?.person_name, authority: undefined }));
+}
+
+/** Creates the recipients' complaint_routes rows (existing ones are kept). */
+async function insertRoutes(complaintId: string, category: string, headOnly: boolean): Promise<void> {
+  const [{ data: rules }, { data: head }] = await Promise.all([
+    supabaseAdmin.from("routing_rules").select("category, primary_authority_id, copy_authority_ids").eq("active", true),
+    supabaseAdmin.from("authorities").select("id").eq("post_key", "head").maybeSingle(),
+  ]);
+  if (!head) throw new Error("Routing is not seeded: no 'head' authority.");
+  const routes = routeComplaint(category, headOnly, rules || [], head.id);
+  const { error } = await supabaseAdmin
+    .from("complaint_routes")
+    .upsert(routes.map((r) => ({ complaint_id: complaintId, authority_id: r.authority_id, kind: r.kind })), { onConflict: "complaint_id,authority_id", ignoreDuplicates: true });
+  if (error) throw new Error("Failed to route complaint: " + error.message);
+}
+
+/** First image attached to the complaint, for the multimodal call. Skipped quietly when unavailable. */
+async function firstEvidenceImage(complaintId: string): Promise<{ mimeType: string; base64: string } | null> {
+  if (!process.env.GEMINI_API_KEY) return null;
+  try {
+    const { data } = await supabaseAdmin.from("complaint_evidence").select("cloudinary_public_id").eq("complaint_id", complaintId).limit(1);
+    if (!data?.length) return null;
+    const url = cloudinary.utils.private_download_url(data[0].cloudinary_public_id, "jpg", { expires_at: Math.round(Date.now() / 1000) + 300, attachment: false, type: "authenticated" });
+    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    const mimeType = res.headers.get("content-type") || "";
+    if (!res.ok || !mimeType.startsWith("image/")) return null;
+    const bytes = Buffer.from(await res.arrayBuffer());
+    if (bytes.length > 4 * 1024 * 1024) return null;
+    return { mimeType, base64: bytes.toString("base64") };
+  } catch {
+    return null;
+  }
+}
+
+/** PRD steps 2-3: understand the complaint, apply the code rules, save the AI fields, then route it or send it to review. */
+async function analyseAndRoute(complaint: any, location: string | null, hideName: boolean | null, actorId: string) {
+  const text = `${complaint.title}\n${complaint.description}`;
+  const ai = await understandComplaint({ text, location, image: await firstEvidenceImage(complaint.id) });
+  await supabaseAdmin.from("ai_logs").insert(ai.attempts.map((a) => ({ ...a, complaint_id: complaint.id })));
+
+  const r = applyRules(ai.understanding, text, campusPlaceNames());
+  if (ai.failed) { r.needs_review = true; r.review_reason = "AI call failed; analysed by keyword rules"; }
+
+  const { error } = await supabaseAdmin.from("complaints").update({
+    location_id: location || complaint.location_id || null,
+    ...(hideName === null ? {} : { hide_name_from_union: hideName }),
+    input_language: r.language, is_complaint: r.is_complaint, ai_category: r.category, priority: r.priority,
+    is_sensitive: r.is_sensitive, location_text: r.location_text, summary_en: r.summary_en, summary_as: r.summary_as,
+    image_findings: r.image_findings, confidence: r.confidence, ai_source: ai.source, analysed_at: new Date().toISOString(),
+    ...(r.needs_review ? { status: "needs_review" } : {}),
+    updated_at: new Date().toISOString(),
+  }).eq("id", complaint.id);
+  if (error) throw new Error("Failed to save AI analysis: " + error.message);
+
+  if (r.needs_review) {
+    await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: complaint.id, status: "needs_review", remark: "Sent to administration review: " + r.review_reason, changed_by: actorId });
+  } else {
+    await insertRoutes(complaint.id, r.category, r.head_only);
+  }
+  const routes = await routesWithPosts(complaint.id);
+  await supabaseAdmin.from("activity_log").insert({
+    actor_id: actorId,
+    action: r.needs_review ? "complaint_needs_review" : "complaint_routed",
+    target: r.needs_review
+      ? `Complaint #${complaint.id.slice(0, 8)} sent to review (${r.review_reason})`
+      : `Complaint #${complaint.id.slice(0, 8)} analysed as ${r.category} P${r.priority} and routed to ${routes.map((x) => x.post_title).join(", ")}`,
+  });
+  const ref = ticketRef(complaint.id);
+  if (r.needs_review) {
+    await notify([complaint.student_id], complaint.id, messages.inReview(ref));
+  } else {
+    await notify([complaint.student_id], complaint.id, messages.routedToReporter(ref, routes.map((x) => x.post_title)));
+    const { data: rows } = await supabaseAdmin.from("complaint_routes").select("authority_id").eq("complaint_id", complaint.id);
+    await notifyRoutedPosts(complaint.id, (rows || []).map((x: any) => x.authority_id));
+  }
+  return {
+    category: r.category, priority: r.priority, is_sensitive: r.is_sensitive, location_text: r.location_text,
+    summary_en: r.summary_en, summary_as: r.summary_as, image_findings: r.image_findings, confidence: r.confidence,
+    language: r.language, source: ai.source, needs_review: r.needs_review, review_reason: r.review_reason, routes,
+  };
+}
+
+/** Admin account-management routes may only act on department / social_service accounts, never on admins or students. */
+async function isManagedOfficial(userId: string): Promise<boolean> {
+  const { data } = await supabaseAdmin.from("profiles").select("role").eq("id", userId).maybeSingle();
+  return data?.role === "department" || data?.role === "social_service";
+}
+
+/**
+ * Officials may see a student's identity (ID card) only through a complaint whose reporter they may see:
+ * mirrors public.can_see_reporter(). With "hide my name from the student union", union posts and the DUSU
+ * role are excluded; departments and non-union posts (Head) are not.
+ */
+async function requesterCanSeeStudent(requester: Requester, studentId: string): Promise<boolean> {
+  if (requester.user.id === studentId || requester.profile.role === "administration") return true;
+  const installed = await isRoutingInstalled();
+  const { data: complaints } = await supabaseAdmin
+    .from("complaints")
+    .select(installed ? "id, student_id, visibility, target_unit_id, hide_name_from_union" : "id, student_id, visibility, target_unit_id")
+    .eq("student_id", studentId);
+  for (const c of (complaints || []) as any[]) {
+    if (!(await requesterCanAccess(requester, c))) continue;
+    if (!c.hide_name_from_union) return true;
+    if (requester.profile.role === "department" && canAccessComplaint({ id: requester.user.id, role: "department", unit_name: requester.profile.unit_name }, c)) return true;
+    const mine = await myAuthorityIds(requester);
+    if (mine.length) {
+      const { data: viaNonUnion } = await supabaseAdmin
+        .from("complaint_routes").select("authority:authorities!inner(is_union)").eq("complaint_id", c.id).in("authority_id", mine).eq("authority.is_union", false);
+      if (viaNonUnion?.length) return true;
+    }
+  }
+  return false;
+}
+
 export async function handleApiRequest(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
   const url = new URL(req.url || "", `http://${req.headers.host || "localhost"}`);
   const pathname = url.pathname;
@@ -121,52 +322,207 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     return true;
   }
 
+  if (!pathname.startsWith("/api/")) return false;
+  if (missingEnv.length) {
+    return sendJson(res, 500, { error: `Server not configured. Missing in .env.local: ${missingEnv.join(", ")}` });
+  }
+  autoCloseResolved().catch((err) => console.error("[api] auto-close failed:", err?.message || err));
+
   // 1. HEALTH & DIAGNOSTICS ENDPOINT
   if (pathname === "/api/health" && req.method === "GET") {
+    const { error } = await supabaseAdmin.from("profiles").select("id").limit(1);
+    return sendJson(res, error ? 503 : 200, { status: error ? "degraded" : "ok", database: !error });
+  }
+
+  // AI ANALYSIS + ROUTING. The reporter calls it right after filing (once); an admin can re-run it (PRD "reanalyse").
+  if (pathname === "/api/complaints/analyse" && req.method === "POST") {
     try {
-      let supabaseOk = false;
-      const { count, error } = await supabaseAdmin
-        .from("profiles")
-        .select("*", { count: "exact", head: true });
-      if (!error) supabaseOk = true;
+      const requester = await getRequester(req);
+      if (!requester?.profile?.is_active) return sendJson(res, 401, { error: "Authentication required" });
+      if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "AI routing is not set up yet (run backend/migrations/001_ai_routing_tracker.sql).", notInstalled: true });
 
-      const cloudinaryConfigured = Boolean(CLOUD_NAME && API_KEY && API_SECRET);
-      const serviceRoleConfigured = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+      const { complaintId, location, hideName } = await parseBody(req);
+      const { data: complaint } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
+      if (!complaint) return sendJson(res, 404, { error: "Complaint not found" });
+      const isOwner = complaint.student_id === requester.user.id;
+      const isAdmin = requester.profile.role === "administration";
+      if (!isOwner && !isAdmin) return sendJson(res, 403, { error: "Only the reporter or an administrator can analyse this complaint." });
 
-      return sendJson(res, 200, {
-        status: "ok",
-        timestamp: new Date().toISOString(),
-        supabase: {
-          url: SUPABASE_URL,
-          connected: supabaseOk,
-          serviceRoleSet: serviceRoleConfigured,
-          totalProfilesCount: count ?? null,
-        },
-        cloudinary: {
-          configured: cloudinaryConfigured,
-          cloudName: CLOUD_NAME ? CLOUD_NAME : null,
-        },
-      });
+      if (complaint.analysed_at && !isAdmin) {
+        // already analysed: return the stored result instead of calling the AI again
+        return sendJson(res, 200, {
+          category: complaint.ai_category, priority: complaint.priority, is_sensitive: complaint.is_sensitive, location_text: complaint.location_text,
+          summary_en: complaint.summary_en, summary_as: complaint.summary_as, image_findings: complaint.image_findings, confidence: complaint.confidence,
+          language: complaint.input_language, source: complaint.ai_source, needs_review: complaint.status === "needs_review", review_reason: null,
+          routes: await routesWithPosts(complaint.id),
+        });
+      }
+      const loc = typeof location === "string" && location.length <= 200 ? location : null;
+      // the privacy choice is the reporter's own; an admin re-run keeps it
+      const hide = isOwner && typeof hideName === "boolean" ? hideName : null;
+      return sendJson(res, 200, await analyseAndRoute(complaint, loc, hide, requester.user.id));
     } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Health probe failed" });
+      return sendJson(res, 500, { error: err.message || "Analysis failed" });
     }
   }
 
-  // 2. CLOUDINARY AUTHENTICATED UPLOAD SIGNATURE
+  // ROUTE TRACKER: an official opened the complaint, so mark it seen for the posts they hold
+  if (pathname === "/api/complaints/seen" && req.method === "POST") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester?.profile?.is_active) return sendJson(res, 401, { error: "Authentication required" });
+      const { complaintId } = await parseBody(req);
+      const mine = typeof complaintId === "string" ? await myRoutes(requester, complaintId) : [];
+      if (!mine.length) return sendJson(res, 200, { marked: 0 });
+      const { data } = await supabaseAdmin.from("complaint_routes").update({ seen_at: new Date().toISOString() })
+        .in("id", mine.map((r) => r.id)).is("seen_at", null).select("id");
+      return sendJson(res, 200, { marked: data?.length || 0 });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed to record view" });
+    }
+  }
+
+  // WHAT IS SWITCHED ON: the pages show the PRD features only once the migration has been run
+  if (pathname === "/api/features" && req.method === "GET") {
+    return sendJson(res, 200, { routing: await isRoutingInstalled(), gemini: !!process.env.GEMINI_API_KEY });
+  }
+
+  // REPLIES AND INTERNAL NOTES (PRD): officials who can see the complaint; stored in both languages
+  if (pathname === "/api/complaints/replies" && req.method === "POST") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester?.profile?.is_active || requester.profile.role === "student") return sendJson(res, 403, { error: "Official role required" });
+      if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Replies are not set up yet.", notInstalled: true });
+      const { complaintId, body, visibility } = await parseBody(req);
+      const text = typeof body === "string" ? body.trim().normalize("NFC") : "";
+      if (text.length < 2 || text.length > 4000) return sendJson(res, 400, { error: "Write a reply of 2 to 4000 characters." });
+      if (visibility !== "public" && visibility !== "internal") return sendJson(res, 400, { error: "visibility must be public or internal" });
+      const { data: complaint } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
+      if (!complaint) return sendJson(res, 404, { error: "Complaint not found" });
+      if (!(await requesterCanAccess(requester, complaint))) return sendJson(res, 403, { error: "You cannot reply to this complaint." });
+
+      const { translation, attempt } = await translateReply(text);
+      if (attempt) await supabaseAdmin.from("ai_logs").insert({ ...attempt, complaint_id: complaint.id });
+      const routesHere = await myRoutes(requester, complaint.id);
+      const { data: post } = routesHere.length
+        ? await supabaseAdmin.from("complaint_routes").select("authority_id, authority:authorities(post_title)").eq("id", routesHere[0].id).maybeSingle()
+        : { data: null };
+      const { data: reply, error } = await supabaseAdmin.from("complaint_replies").insert({
+        complaint_id: complaint.id, author_id: requester.user.id, authority_id: (post as any)?.authority_id ?? null, visibility,
+        body_original: text, body_language: translation.language, body_en: translation.en, body_as: translation.as,
+      }).select().single();
+      if (error) return sendJson(res, 500, { error: "Failed to save reply: " + error.message });
+
+      const now = new Date().toISOString();
+      if (routesHere.length) {
+        const ids = routesHere.map((r) => r.id);
+        await supabaseAdmin.from("complaint_routes").update({ seen_at: now }).in("id", ids).is("seen_at", null);
+        if (visibility === "public") await supabaseAdmin.from("complaint_routes").update({ replied_at: now }).in("id", ids).is("replied_at", null);
+      }
+      if (visibility === "public") {
+        const from = (post as any)?.authority?.post_title || requester.profile.unit_name || requester.profile.name;
+        await notify([complaint.student_id], complaint.id, messages.newReply(ticketRef(complaint.id), from));
+      }
+      await supabaseAdmin.from("activity_log").insert({
+        actor_id: requester.user.id, action: visibility === "public" ? "complaint_reply" : "complaint_internal_note",
+        target: `${visibility === "public" ? "Replied on" : "Internal note on"} complaint #${complaint.id.slice(0, 8)}`,
+      });
+      return sendJson(res, 200, { reply, translated: !!(translation.en && translation.as) });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Reply failed" });
+    }
+  }
+
+  // REPORTER CONFIRMS OR REOPENS a resolved complaint (PRD step 7)
+  if (pathname === "/api/complaints/confirm" && req.method === "POST") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester?.profile?.is_active) return sendJson(res, 401, { error: "Authentication required" });
+      if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Not set up yet.", notInstalled: true });
+      const { complaintId, action, note } = await parseBody(req);
+      const { data: complaint } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
+      if (!complaint || complaint.student_id !== requester.user.id) return sendJson(res, 404, { error: "Complaint not found" });
+      if (complaint.status !== "resolved") return sendJson(res, 400, { error: "Only a resolved complaint can be confirmed or reopened." });
+      const remark = typeof note === "string" ? note.trim().slice(0, 1000) : "";
+      const now = new Date().toISOString();
+      const ref = ticketRef(complaint.id);
+      const { data: routeRows } = await supabaseAdmin.from("complaint_routes").select("authority_id, kind").eq("complaint_id", complaint.id);
+      const primaryHolders = await postHolderIds((routeRows || []).filter((r: any) => r.kind === "primary").map((r: any) => r.authority_id));
+
+      if (action === "confirm") {
+        await supabaseAdmin.from("complaints").update({ status: "closed", closed_at: now, updated_at: now }).eq("id", complaint.id);
+        await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: complaint.id, status: "closed", remark: remark || "Reporter confirmed it is fixed.", changed_by: requester.user.id });
+        await notify(primaryHolders, complaint.id, messages.confirmed(ref));
+      } else if (action === "reopen") {
+        if (remark.length < 3) return sendJson(res, 400, { error: "Please say what is still wrong (at least 3 characters)." });
+        // PRD: back to the primary authority (routed); its resolved checkpoint is cleared
+        await supabaseAdmin.from("complaints").update({ status: "submitted", resolved_at: null, updated_at: now }).eq("id", complaint.id);
+        await supabaseAdmin.from("complaint_routes").update({ resolved_at: null }).eq("complaint_id", complaint.id);
+        await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: complaint.id, status: "submitted", remark: "Reopened by the reporter: " + remark, changed_by: requester.user.id });
+        await notify(primaryHolders, complaint.id, messages.reopened(ref));
+      } else {
+        return sendJson(res, 400, { error: "action must be confirm or reopen" });
+      }
+      await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: action === "confirm" ? "complaint_confirmed" : "complaint_reopened", target: `Reporter ${action === "confirm" ? "confirmed" : "reopened"} complaint #${complaint.id.slice(0, 8)}` });
+      return sendJson(res, 200, { success: true, status: action === "confirm" ? "closed" : "submitted" });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed" });
+    }
+  }
+
+  // REVIEW QUEUE: an administrator routes a needs_review complaint by hand, optionally correcting the category
+  if (pathname === "/api/admin/route-complaint" && req.method === "POST") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester?.profile?.is_active || requester.profile.role !== "administration") return sendJson(res, 403, { error: "Administration role required" });
+      if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "AI routing is not set up yet.", notInstalled: true });
+      const { complaintId, category } = await parseBody(req);
+      if (!CATEGORIES.includes(category)) return sendJson(res, 400, { error: "Unknown category: " + category });
+      const { data: complaint } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
+      if (!complaint) return sendJson(res, 404, { error: "Complaint not found" });
+
+      const headOnly = !!complaint.is_sensitive || (category === "safety" && complaint.priority === 1);
+      await insertRoutes(complaint.id, category, headOnly);
+      const edited = complaint.ai_category !== category;
+      await supabaseAdmin.from("complaints").update({
+        ai_category: category, human_edited: complaint.human_edited || edited,
+        ...(complaint.status === "needs_review" ? { status: "submitted" } : {}),
+        updated_at: new Date().toISOString(),
+      }).eq("id", complaint.id);
+      const routes = await routesWithPosts(complaint.id);
+      await supabaseAdmin.from("complaint_status_history").insert({
+        complaint_id: complaint.id, status: "submitted", changed_by: requester.user.id,
+        remark: `Routed by administration as ${category} to ${routes.map((r) => r.post_title).join(", ")}`,
+      });
+      await supabaseAdmin.from("activity_log").insert({
+        actor_id: requester.user.id, action: "complaint_routed",
+        target: `Complaint #${complaint.id.slice(0, 8)} routed by hand as ${category}${edited ? " (AI category corrected)" : ""}`,
+      });
+      await notify([complaint.student_id], complaint.id, messages.routedToReporter(ticketRef(complaint.id), routes.map((r) => r.post_title)));
+      const { data: rows } = await supabaseAdmin.from("complaint_routes").select("authority_id").eq("complaint_id", complaint.id);
+      await notifyRoutedPosts(complaint.id, (rows || []).map((x: any) => x.authority_id), requester.user.id);
+      return sendJson(res, 200, { success: true, routes });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Routing failed" });
+    }
+  }
+
+  // 2. CLOUDINARY AUTHENTICATED UPLOAD SIGNATURE (signed-in users only)
   if (pathname === "/api/cloudinary/sign-upload" && req.method === "POST") {
     try {
+      const requester = await getRequester(req);
+      if (!requester) {
+        return sendJson(res, 401, { error: "Authentication required" });
+      }
       const body = await parseBody(req).catch(() => ({}));
       const timestamp = Math.round(Date.now() / 1000);
-      const folder = body && body.folder === "civicsense/complaint_evidence"
-        ? "civicsense/complaint_evidence"
-        : "civicsense/id_cards";
-      const deliveryType = "authenticated";
-
-      if (!API_SECRET || !API_KEY || !CLOUD_NAME) {
-        return sendJson(res, 500, {
-          error: "Cloudinary credentials not configured. Please verify CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in .env.local",
-        });
+      const wantsEvidence = body && body.folder === "civicsense/complaint_evidence";
+      // A brand-new student has no profile row yet while uploading their ID card; evidence needs an active student.
+      if (wantsEvidence && (requester.profile?.role !== "student" || !requester.profile.is_active)) {
+        return sendJson(res, 403, { error: "Only active student accounts can upload complaint evidence" });
       }
+      const folder = wantsEvidence ? "civicsense/complaint_evidence" : "civicsense/id_cards";
+      const deliveryType = "authenticated";
 
       const paramsToSign = {
         folder,
@@ -222,34 +578,11 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         return sendJson(res, 401, { error: "Authentication required" });
       }
 
-      const { user, profile } = requester;
-      if (!profile || !profile.is_active) {
+      if (!requester.profile || !requester.profile.is_active) {
         return sendJson(res, 403, { error: "Account inactive or unauthorized" });
       }
 
-      let isAllowed = false;
-      if (user.id === targetUserId) {
-        isAllowed = true;
-      } else if (profile.role === "administration") {
-        isAllowed = true;
-      } else if (profile.role === "department" || profile.role === "social_service") {
-        const { data: visibleComplaints } = await supabaseAdmin
-          .from("complaints")
-          .select("id, visibility, target_unit_id")
-          .eq("student_id", targetUserId);
-
-        if (visibleComplaints && visibleComplaints.length > 0) {
-          isAllowed = visibleComplaints.some((c) => {
-            if (c.visibility === "social_service") return true;
-            if (profile.role === "department" && c.visibility === "department") {
-              return c.target_unit_id === user.id;
-            }
-            return false;
-          });
-        }
-      }
-
-      if (!isAllowed) {
+      if (!(await requesterCanSeeStudent(requester, targetUserId))) {
         return sendJson(res, 403, {
           error: "Forbidden: You are not authorized to view this student ID card.",
         });
@@ -308,27 +641,22 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         return sendJson(res, 401, { error: "Authentication required" });
       }
 
-      const { user, profile } = requester;
-      if (!profile || !profile.is_active) {
+      if (!requester.profile || !requester.profile.is_active) {
         return sendJson(res, 403, { error: "Account inactive or unauthorized" });
       }
 
-      let targetComplaintId = complaintId;
-      let targetPublicId = publicId;
+      // Always resolve through complaint_evidence so a caller can't pair an accessible complaint with someone else's file.
+      let evQuery = supabaseAdmin.from("complaint_evidence").select("complaint_id, cloudinary_public_id");
+      evQuery = evidenceId
+        ? evQuery.eq("id", evidenceId)
+        : evQuery.eq("complaint_id", complaintId!).eq("cloudinary_public_id", publicId!);
+      const { data: evRow, error: evErr } = await evQuery.maybeSingle();
 
-      if (evidenceId) {
-        const { data: evRow, error: evErr } = await supabaseAdmin
-          .from("complaint_evidence")
-          .select("complaint_id, cloudinary_public_id")
-          .eq("id", evidenceId)
-          .maybeSingle();
-
-        if (evErr || !evRow) {
-          return sendJson(res, 404, { error: "Evidence record not found" });
-        }
-        targetComplaintId = evRow.complaint_id;
-        targetPublicId = evRow.cloudinary_public_id;
+      if (evErr || !evRow) {
+        return sendJson(res, 404, { error: "Evidence record not found" });
       }
+      const targetComplaintId = evRow.complaint_id;
+      const targetPublicId = evRow.cloudinary_public_id;
 
       const { data: compRow, error: compErr } = await supabaseAdmin
         .from("complaints")
@@ -340,33 +668,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         return sendJson(res, 404, { error: "Complaint not found" });
       }
 
-      let isAllowed = false;
-      if (profile.role === "student" && compRow.student_id === user.id) {
-        isAllowed = true;
-      } else if (profile.role === "administration") {
-        isAllowed = true;
-      } else if (profile.role === "social_service" && compRow.visibility === "social_service") {
-        isAllowed = true;
-      } else if (profile.role === "department") {
-        if (compRow.visibility === "social_service") {
-          isAllowed = true;
-        } else if (compRow.visibility === "department") {
-          if (compRow.target_unit_id === user.id) {
-            isAllowed = true;
-          } else if (compRow.target_unit_id && profile.unit_name) {
-            const { data: targetUnitProfile } = await supabaseAdmin
-              .from("profiles")
-              .select("unit_name")
-              .eq("id", compRow.target_unit_id)
-              .maybeSingle();
-            if (targetUnitProfile && targetUnitProfile.unit_name === profile.unit_name) {
-              isAllowed = true;
-            }
-          }
-        }
-      }
-
-      if (!isAllowed) {
+      if (!(await requesterCanAccess(requester, compRow))) {
         return sendJson(res, 403, { error: "Forbidden: Not authorized to view this complaint evidence" });
       }
 
@@ -376,7 +678,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
 
       const expiresAt = Math.round(Date.now() / 1000) + 10 * 60;
       const signedUrl = cloudinary.utils.private_download_url(
-        targetPublicId!,
+        targetPublicId,
         "jpg",
         {
           expires_at: expiresAt,
@@ -426,38 +728,30 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         return sendJson(res, 404, { error: "Complaint not found" });
       }
 
-      // Check jurisdiction
-      let canUpdate = false;
-      if (profile.role === "administration") {
-        canUpdate = true;
-      } else if (profile.role === "social_service" && complaint.visibility === "social_service") {
-        canUpdate = true;
-      } else if (profile.role === "department") {
-        if (complaint.visibility === "social_service") {
-          canUpdate = true;
-        } else if (complaint.visibility === "department") {
-          if (complaint.target_unit_id === user.id || !complaint.target_unit_id) {
-            canUpdate = true;
-          } else if (profile.unit_name) {
-            const { data: targetProfile } = await supabaseAdmin
-              .from("profiles")
-              .select("unit_name")
-              .eq("id", complaint.target_unit_id)
-              .maybeSingle();
-            if (targetProfile && targetProfile.unit_name === profile.unit_name) {
-              canUpdate = true;
-            }
-          }
-        }
+      if (!(await requesterCanAccess(requester, complaint))) {
+        return sendJson(res, 403, { error: "Unauthorized: You do not have permission to update this grievance." });
       }
 
-      if (!canUpdate) {
-        return sendJson(res, 403, { error: "Unauthorized: You do not have permission to update this grievance." });
+      // Validate everything before writing anything
+      const validStatuses = ["submitted", "under_verification", "accepted", "in_progress", "resolved", "rejected"];
+      if (status) {
+        if (!validStatuses.includes(status)) {
+          return sendJson(res, 400, { error: "Invalid status value: " + status });
+        }
+        if (status === "rejected" && (!remark || remark.trim().length < 5)) {
+          return sendJson(res, 400, { error: "Rejection requires an explanatory remark (minimum 5 characters)." });
+        }
+        if (status === "resolved" && (!remark || remark.trim().length < 5)) {
+          return sendJson(res, 400, { error: "Resolution requires a closing note (minimum 5 characters)." });
+        }
+        if (status === "in_progress" && (!remark || remark.trim().length < 3)) {
+          return sendJson(res, 400, { error: "Progress update requires a remark (minimum 3 characters)." });
+        }
       }
 
       // Optional: Verify ID card if requested
       if (idCardStatus && (idCardStatus === "verified" || idCardStatus === "not_valid")) {
-        await supabaseAdmin
+        const { error: idErr } = await supabaseAdmin
           .from("id_cards")
           .update({
             status: idCardStatus,
@@ -466,6 +760,9 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
             updated_at: new Date().toISOString(),
           })
           .eq("user_id", complaint.student_id);
+        if (idErr) {
+          return sendJson(res, 500, { error: "Failed to update ID card: " + idErr.message });
+        }
 
         await supabaseAdmin.from("activity_log").insert({
           actor_id: user.id,
@@ -474,45 +771,64 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         });
       }
 
+      // PRD: only the primary authority (or an admin) may resolve. An official who sees the complaint only
+      // because they were copied on it cannot.
+      const routesHere = await myRoutes(requester, complaintId);
+      if (status === "resolved" && profile.role !== "administration") {
+        let ownTargetUnit: string | null = null;
+        if (complaint.target_unit_id && complaint.target_unit_id !== user.id) {
+          const { data: t } = await supabaseAdmin.from("profiles").select("unit_name").eq("id", complaint.target_unit_id).maybeSingle();
+          ownTargetUnit = t?.unit_name ?? null;
+        }
+        const viaVisibility = canAccessComplaint({ id: user.id, role: profile.role, unit_name: profile.unit_name }, complaint, ownTargetUnit);
+        if (!viaVisibility && !routesHere.some((r) => r.kind === "primary")) {
+          return sendJson(res, 403, { error: "Only the primary authority or an administrator can mark this complaint resolved." });
+        }
+      }
+
       // Update complaint status if provided
       if (status) {
-        const validStatuses = ["submitted", "under_verification", "accepted", "in_progress", "resolved", "rejected"];
-        if (!validStatuses.includes(status)) {
-          return sendJson(res, 400, { error: "Invalid status value: " + status });
-        }
-
-        if (status === "rejected" && (!remark || remark.trim().length < 5)) {
-          return sendJson(res, 400, { error: "Rejection requires an explanatory remark (minimum 5 characters)." });
-        }
-
-        if (status === "resolved" && (!remark || remark.trim().length < 5)) {
-          return sendJson(res, 400, { error: "Resolution requires a closing note (minimum 5 characters)." });
-        }
-
-        if (status === "in_progress" && (!remark || remark.trim().length < 3)) {
-          return sendJson(res, 400, { error: "Progress update requires a remark (minimum 3 characters)." });
-        }
-
-        await supabaseAdmin
+        const { error: updErr } = await supabaseAdmin
           .from("complaints")
           .update({
             status,
             updated_at: new Date().toISOString(),
           })
           .eq("id", complaintId);
+        if (updErr) {
+          return sendJson(res, 500, { error: "Failed to update complaint: " + updErr.message });
+        }
 
-        await supabaseAdmin.from("complaint_status_history").insert({
+        const { error: histErr } = await supabaseAdmin.from("complaint_status_history").insert({
           complaint_id: complaintId,
           status,
           remark: remark ? remark.trim() : null,
           changed_by: user.id,
         });
+        if (histErr) {
+          return sendJson(res, 500, { error: "Status changed but history entry failed: " + histErr.message });
+        }
 
         await supabaseAdmin.from("activity_log").insert({
           actor_id: user.id,
           action: "complaint_status_update",
           target: `Updated complaint #${complaintId.slice(0, 8)} to ${status}: ${remark || "No note"}`,
         });
+
+        // Route tracker: a remark counts as this post's reply; resolving completes its checkpoint
+        const now = new Date().toISOString();
+        if (routesHere.length) {
+          const ids = routesHere.map((r) => r.id);
+          await supabaseAdmin.from("complaint_routes").update({ seen_at: now }).in("id", ids).is("seen_at", null);
+          if (remark && remark.trim()) await supabaseAdmin.from("complaint_routes").update({ replied_at: now }).in("id", ids).is("replied_at", null);
+          if (status === "resolved") await supabaseAdmin.from("complaint_routes").update({ resolved_at: now }).in("id", ids).is("resolved_at", null);
+        }
+        if (status === "resolved" && (await isRoutingInstalled())) {
+          // an admin or the visibility-routed unit resolving also completes the primary checkpoint
+          await supabaseAdmin.from("complaint_routes").update({ resolved_at: now }).eq("complaint_id", complaintId).eq("kind", "primary").is("resolved_at", null);
+          await supabaseAdmin.from("complaints").update({ resolved_at: now }).eq("id", complaintId);
+        }
+        if (await isRoutingInstalled()) await notify([complaint.student_id], complaintId, messages.statusChanged(ticketRef(complaintId), status));
       }
 
       return sendJson(res, 200, {
@@ -540,26 +856,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         return sendJson(res, 400, { error: "Missing or invalid parameters: userId, status (verified | not_valid)" });
       }
 
-      let allowed = false;
-      if (requester.profile.role === "administration") {
-        allowed = true;
-      } else {
-        const { data: userComplaints } = await supabaseAdmin
-          .from("complaints")
-          .select("visibility, target_unit_id")
-          .eq("student_id", userId);
-        if (userComplaints && userComplaints.length > 0) {
-          allowed = userComplaints.some((c) => {
-            if (c.visibility === "social_service") return true;
-            if (requester.profile.role === "department" && c.visibility === "department") {
-              return c.target_unit_id === requester.user.id;
-            }
-            return false;
-          });
-        }
-      }
-
-      if (!allowed) {
+      if (!(await requesterCanSeeStudent(requester, userId))) {
         return sendJson(res, 403, { error: "Unauthorized to review ID card for this user" });
       }
 
@@ -595,13 +892,6 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       const requester = await getRequester(req);
       if (!requester || requester.profile?.role !== "administration") {
         return sendJson(res, 403, { error: "Administration privileges required" });
-      }
-
-      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.BACKEND_SERVICE_ROLE_KEY;
-      if (!serviceRoleKey) {
-        return sendJson(res, 500, {
-          error: "Supabase Service Role Key is required to provision accounts. Please add SUPABASE_SERVICE_ROLE_KEY to .env.local",
-        });
       }
 
       const body = await parseBody(req);
@@ -703,6 +993,9 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       if (!userId || !name) {
         return sendJson(res, 400, { error: "Missing required fields: userId, name" });
       }
+      if (!(await isManagedOfficial(userId))) {
+        return sendJson(res, 400, { error: "Can only edit department or social_service accounts" });
+      }
 
       const { error } = await supabaseAdmin
         .from("profiles")
@@ -755,12 +1048,10 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         return sendJson(res, 400, { error: "Can only delete department or social_service accounts" });
       }
 
-      // Delete auth user if service role key configured
-      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.BACKEND_SERVICE_ROLE_KEY;
-      if (serviceRoleKey) {
-        try {
-          await supabaseAdmin.auth.admin.deleteUser(userId);
-        } catch {}
+      // Delete the login itself; otherwise the person could still sign in
+      const { error: delAuthErr } = await supabaseAdmin.auth.admin.deleteUser(userId);
+      if (delAuthErr) {
+        return sendJson(res, 500, { error: "Failed to delete login: " + delAuthErr.message });
       }
 
       // Delete profile
@@ -793,18 +1084,14 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         return sendJson(res, 403, { error: "Administration privileges required" });
       }
 
-      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.BACKEND_SERVICE_ROLE_KEY;
-      if (!serviceRoleKey) {
-        return sendJson(res, 500, {
-          error: "SUPABASE_SERVICE_ROLE_KEY is required in .env.local to reset official passwords via Supabase Admin API.",
-        });
-      }
-
       const body = await parseBody(req);
       const { userId, newTemporaryPassword } = body;
 
       if (!userId || !newTemporaryPassword || newTemporaryPassword.length < 6) {
         return sendJson(res, 400, { error: "Missing or invalid parameters: userId, newTemporaryPassword (minimum 6 characters)" });
+      }
+      if (!(await isManagedOfficial(userId))) {
+        return sendJson(res, 400, { error: "Can only reset passwords of department or social_service accounts" });
       }
 
       const { error: resetErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
@@ -894,6 +1181,9 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       if (!userId || typeof isActive !== "boolean") {
         return sendJson(res, 400, { error: "Missing required fields: userId, isActive" });
       }
+      if (!(await isManagedOfficial(userId))) {
+        return sendJson(res, 400, { error: "Can only activate or deactivate department or social_service accounts" });
+      }
 
       const { error } = await supabaseAdmin
         .from("profiles")
@@ -929,6 +1219,9 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
 
       if (!complaintId || !targetUnitId) {
         return sendJson(res, 400, { error: "Missing required fields: complaintId, targetUnitId" });
+      }
+      if (!(await isManagedOfficial(targetUnitId))) {
+        return sendJson(res, 400, { error: "targetUnitId must be a department or social_service account" });
       }
 
       const { error } = await supabaseAdmin

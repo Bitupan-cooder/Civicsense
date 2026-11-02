@@ -243,7 +243,8 @@ create policy profiles_select_policy on public.profiles
   using (
     id = auth.uid()
     or public.current_user_role() = 'administration'
-    or (role in ('department', 'social_service') and is_active = true)
+    -- signed-in users only: anonymous visitors must not list officials' names and emails
+    or (auth.uid() is not null and role in ('department', 'social_service') and is_active = true)
     or exists (
       select 1 from public.complaints c
       where c.student_id = profiles.id
@@ -302,11 +303,28 @@ create policy id_cards_update_policy on public.id_cards
   for update
   using (
     (user_id = auth.uid() and status = 'not_valid')
-    or public.current_user_role() in ('administration', 'department', 'social_service')
+    or public.current_user_role() = 'administration'
+    or (
+      -- officials may only review ID cards of students whose complaints they can read
+      public.current_user_role() in ('department', 'social_service')
+      and exists (
+        select 1 from public.complaints c
+        where c.student_id = id_cards.user_id
+          and public.can_read_complaint(c.student_id, c.visibility, c.target_unit_id)
+      )
+    )
   )
   with check (
-    (user_id = auth.uid() and status = 'pending')
-    or public.current_user_role() in ('administration', 'department', 'social_service')
+    (user_id = auth.uid() and status = 'pending' and reviewed_by is null)
+    or public.current_user_role() = 'administration'
+    or (
+      public.current_user_role() in ('department', 'social_service')
+      and exists (
+        select 1 from public.complaints c
+        where c.student_id = id_cards.user_id
+          and public.can_read_complaint(c.student_id, c.visibility, c.target_unit_id)
+      )
+    )
   );
 
 create policy id_cards_delete_policy on public.id_cards
@@ -327,6 +345,7 @@ create policy complaints_insert_policy on public.complaints
   with check (
     auth.uid() = student_id
     and public.current_user_role() = 'student'
+    and status = 'submitted'
   );
 
 create policy complaints_update_policy on public.complaints
@@ -398,7 +417,8 @@ create policy complaint_status_history_insert_policy on public.complaint_status_
       select 1 from public.complaints c
       where c.id = complaint_status_history.complaint_id
         and (
-          c.student_id = auth.uid()
+          -- students may only log the initial submission, never fake progress or resolution
+          (c.student_id = auth.uid() and complaint_status_history.status = 'submitted')
           or public.current_user_role() = 'administration'
           or (
             public.current_user_role() in ('department', 'social_service')
@@ -467,54 +487,24 @@ create trigger trg_profile_update_integrity
   for each row
   execute function public.enforce_profile_update_integrity();
 
--- ─── 7. INITIAL DEMO CENTRAL ADMINISTRATION PROFILE ─────────
+-- ─── 7. CENTRAL ADMINISTRATION PROFILE ──────────────────────
+-- No password lives in this file. First create the admin login yourself in
+-- Supabase Dashboard -> Authentication -> Users -> Add user (with a strong password),
+-- then re-run this script: it only grants that existing user the administration role.
 do $$
 declare
-  v_user_id uuid := gen_random_uuid();
+  v_admin_email text := 'admin@dibru.ac.in';  -- change to the email you created
+  v_user_id uuid;
 begin
-  if not exists (select 1 from auth.users where email = 'admin@dibru.ac.in') then
-    insert into auth.users (
-      instance_id,
-      id,
-      aud,
-      role,
-      email,
-      encrypted_password,
-      email_confirmed_at,
-      raw_app_meta_data,
-      raw_user_meta_data,
-      created_at,
-      updated_at
-    ) values (
-      '00000000-0000-0000-0000-000000000000',
-      v_user_id,
-      'authenticated',
-      'authenticated',
-      'admin@dibru.ac.in',
-      crypt('Admin@123456', gen_salt('bf')),
-      now(),
-      '{"provider":"email","providers":["email"]}',
-      '{"name":"Registrar Office"}',
-      now(),
-      now()
-    );
-  else
-    select id into v_user_id from auth.users where email = 'admin@dibru.ac.in';
-    update auth.users set encrypted_password = crypt('Admin@123456', gen_salt('bf')) where id = v_user_id;
+  select id into v_user_id from auth.users where email = v_admin_email;
+  if v_user_id is null then
+    raise notice 'No auth user % yet: create it in the dashboard, then re-run this block.', v_admin_email;
+    return;
   end if;
 
   insert into public.profiles (id, role, name, email, unit_name, is_active, must_change_password)
-  values (
-    v_user_id,
-    'administration',
-    'Dr. P. K. Kakoty (Registrar)',
-    'admin@dibru.ac.in',
-    'Office of the Registrar & Proctor',
-    true,
-    false
-  )
+  values (v_user_id, 'administration', 'Central Administration', v_admin_email, 'Office of the Registrar', true, false)
   on conflict (id) do update set
     role = 'administration',
-    is_active = true,
-    must_change_password = false;
+    is_active = true;
 end $$;

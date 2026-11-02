@@ -1,5 +1,5 @@
 import http from "http";
-import { handleApiRequest } from "./api";
+import { handleApiRequest } from "./api.ts";
 
 const PORT = parseInt(process.env.PORT || process.env.SERVER_PORT || "3001", 10);
 
