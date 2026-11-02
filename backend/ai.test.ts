@@ -64,3 +64,17 @@ test("reply translation: both languages from Gemini, original kept without a key
   assert.deepEqual(as.translation, { language: "as", en: null, as: "প্লাম্বাৰ আজিয়েই আহিব।" });
   assert.equal(as.attempt, null);
 });
+
+test("embeddings: 768 numbers from Gemini, none without a key", async () => {
+  const { embedText } = await import("./ai.ts");
+  process.env.GEMINI_API_KEY = "test-key";
+  let sent: any;
+  const ok = (async (_url: string, init: any) => { sent = JSON.parse(init.body); return new Response(JSON.stringify({ embedding: { values: Array(768).fill(0.1) } }), { status: 200 }); }) as typeof fetch;
+  const r = await embedText("No water in Hostel 2", ok);
+  assert.equal(r.values?.length, 768);
+  assert.equal(sent.outputDimensionality, 768);
+  const bad = (async () => new Response(JSON.stringify({ embedding: { values: [1, 2] } }), { status: 200 })) as typeof fetch;
+  assert.equal((await embedText("x", bad)).values, null, "wrong size is rejected");
+  delete process.env.GEMINI_API_KEY;
+  assert.deepEqual(await embedText("x"), { values: null, attempt: null });
+});

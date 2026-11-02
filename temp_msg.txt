@@ -1,0 +1,34 @@
+Current state
+
+Every screen in the PRD exists and is connected to the backend. Data loads, buttons work, and loading, error and empty states are handled.
+The new screens are unstyled on purpose (plain HTML, no classes). Styling them is your part.
+The database migration has run, and the whole flow was tested end to end on the live database. Complaints get categorised, routed to the right union post, tracked, replied to, confirmed or reopened, and merged as duplicates. Notifications arrive live.
+Setup
+Put the api keys in .env.local I send you separately in the project root.
+Read first: docs/FRONTEND.md. It lists every route, the file behind it, where its data comes from, and the rules for styling without breaking anything.
+
+What needs doing
+
+Style the new pages.
+Student site: /login, /my, /complaints/:id (in src/site/pages/).
+Console: /admin/review, /admin/duplicates, /admin/stats, /admin/routing (in src/admin/pages/).
+Draw the map on /map with Leaflet + OpenStreetMap. The page already builds the pins (location, worst priority, list of complaints); it only needs the map itself.
+Charts on /admin/stats (the PRD suggests Recharts). Every count object turns into chart data with Object.entries(...).
+Restyle the shared pieces: src/RouteTracker.tsx (AI panel, route tracker, replies) and src/NotificationBell.tsx. They use inline styles today, so change them freely.
+Text: move the English strings into src/i18n.ts as you go, with both en and as. The Assamese wording needs a native speaker to review it.
+Please don't break these
+
+The landing page (/) stays mounted while other pages show (it's hidden, not removed), because the animations and the campus map depend on it.
+Don't rename the IDs and classes listed in the guide.
+Keep form controls controlled, with their value and onChange unchanged.
+Keep the data-* and aria-* attributes; the tests rely on them.
+Inside one app, links stay <Link>/<NavLink>. Between the student site and the console, use a plain <a>.
+The campus map canvas must stay in the page's normal flow; the map data only loads when the canvas comes into view.
+Testing
+
+Official logins: I'll send you one. An admin can also create officer accounts from the console.
+Student sign-up doesn't work yet: two Supabase/Cloudinary settings still need fixing on my side. Until then, ask me for a student test account.
+Before you push, run npm run build. Then check each page signed out, as a student, as a department head and as an admin.
+Later: production hosting needs the same URL rewrites as the dev server (officials' paths go to admin.html, everything else to index.html, and /api/* to the backend). The guide has the details.
+
+Ping me if anything is unclear!

@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "server": "node --experimental-strip-types backend/server.ts",
     "test": "node --experimental-strip-types --test backend/access.test.ts backend/logic.test.ts backend/ai.test.ts",
+    "test:live": "node backend/live-test.mjs",
     "bundle": "tsc && vite build && node scripts/make-bundle.js",
     "audit:slop": "node .agents/skills/hallmark/scripts/sloplint.js"
   },
@@ -18,7 +19,8 @@
     "gsap": "3.12.5",
     "lenis": "1.1.13",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router-dom": "6.28.0"
   },
   "devDependencies": {
     "@types/node": "^20.16.0",

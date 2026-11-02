@@ -2,7 +2,7 @@
 import { handleNavStudentClick, openReuploadModal, openStudentAuth, signOutStudent, useStudentSession } from '../studentSession';
 import { loadStudentComplaints, openTracker, openTrackerWithId, switchTrackerMode } from '../tracker';
 import { NotificationBell } from '../../NotificationBell';
-import { setReadingLanguage } from '../studentSession';
+import { useLanguage } from '../../i18n';
 
 function IdStatusLabel({ status }: { status?: string }) {
   if (status === 'verified') {
@@ -112,12 +112,17 @@ export function ReportAuthNotice() {
 /** Notification bell in the nav (signed-in students, once the PRD features are switched on). */
 export function StudentNotifications() {
   const { profile } = useStudentSession();
+  const { lang } = useLanguage();
   return (
     <NotificationBell
       userId={profile?.id}
-      lang={profile?.preferred_language === 'as' ? 'as' : 'en'}
+      lang={lang}
       onOpen={(id) => openTrackerWithId(id)}
-      onLive={() => loadStudentComplaints()}
+      onLive={(n) => {
+        loadStudentComplaints();
+        // route pages (e.g. /complaints/:id) refresh themselves on this event
+        window.dispatchEvent(new CustomEvent('civicsense:notification', { detail: n }));
+      }}
     />
   );
 }
@@ -125,11 +130,12 @@ export function StudentNotifications() {
 /** Which language complaint summaries and replies are shown in (saved to the profile). */
 export function ReadingLanguageSwitch() {
   const { profile } = useStudentSession();
+  const { lang, setLanguage } = useLanguage();
   if (!profile?.id || profile.preferred_language === undefined) return null; // not signed in, or migration not run
-  const btn = (lang: 'en' | 'as', label: string) => (
-    <button type="button" lang={lang} onClick={() => setReadingLanguage(lang)} aria-pressed={profile.preferred_language === lang}
+  const btn = (l: 'en' | 'as', label: string) => (
+    <button type="button" lang={l} onClick={() => setLanguage(l)} aria-pressed={lang === l}
       style={{ border: 'none', borderRadius: '6px', padding: '2px 8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer',
-        background: profile.preferred_language === lang ? '#ffffff' : 'transparent', color: profile.preferred_language === lang ? 'var(--ink)' : '#4a6142' }}>
+        background: lang === l ? '#ffffff' : 'transparent', color: lang === l ? 'var(--ink)' : '#4a6142' }}>
       {label}
     </button>
   );

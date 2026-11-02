@@ -984,6 +984,30 @@
     return json;
   }
 
+  async function getJson(path) {
+    var headers = await getAdminAuthHeader();
+    var res = await fetch(path, { method: 'GET', headers: headers });
+    var json = await res.json().catch(function () { return {}; });
+    if (!res.ok) { var e = new Error(json.error || 'Request failed.'); e.notInstalled = !!json.notInstalled; throw e; }
+    return json;
+  }
+
+  /** Administration: dashboard statistics (PRD: by status, category, place; average resolution time). */
+  function fetchStats() { return getJson('/api/admin/stats'); }
+  /** Administration: possible duplicate pairs { pairs: [{ complaint, original, score }] }. */
+  function fetchDuplicates() { return getJson('/api/admin/duplicates'); }
+  function mergeComplaint(complaintId, intoId) { return postJson('/api/admin/merge', { complaintId: complaintId, intoId: intoId || null }); }
+  function dismissDuplicate(complaintId) { return postJson('/api/admin/dismiss-duplicate', { complaintId: complaintId }); }
+  /** Administration: posts and routing rules { authorities, rules, categories }. */
+  function fetchRoutingConfig() { return getJson('/api/admin/routing'); }
+  async function saveRoutingConfig(config) {
+    var headers = await getAdminAuthHeader();
+    var res = await fetch('/api/admin/routing', { method: 'PUT', headers: headers, body: JSON.stringify(config) });
+    var json = await res.json().catch(function () { return {}; });
+    if (!res.ok) throw new Error(json.error || 'Failed to save routing.');
+    return json;
+  }
+
   /** Official: a reply to the reporter ('public') or an internal note ('internal'). */
   function postReply(complaintId, body, visibility) {
     return postJson('/api/complaints/replies', { complaintId: complaintId, body: body, visibility: visibility });
@@ -1007,11 +1031,15 @@
     await sb.from('notifications').update({ read: true }).in('id', ids);
   }
 
+  var notificationChannelSeq = 0;
+
   /** Live notifications (Supabase Realtime). Returns an unsubscribe function. */
   function subscribeNotifications(userId, onInsert) {
     var sb = getClient();
     if (!sb || !userId) return function () {};
-    var channel = sb.channel('notifications-' + userId)
+    // unique topic: sb.channel() hands back a still-registered channel of the same name (removeChannel is async),
+    // and adding callbacks to an already-subscribed channel throws, e.g. when the bell remounts
+    var channel = sb.channel('notifications-' + userId + '-' + (++notificationChannelSeq))
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + userId }, function (payload) { onInsert(payload.new); })
       .subscribe();
     return function () { sb.removeChannel(channel); };
@@ -1067,7 +1095,7 @@
     var sb = getClient();
     if (!sb || !complaintIds || !complaintIds.length) return {};
     var ai = await sb.from('complaints')
-      .select('id, hide_name_from_union, ai_category, priority, is_sensitive, location_text, summary_en, summary_as, image_findings, confidence, ai_source, input_language, human_edited, analysed_at, resolved_at')
+      .select('id, location_id, duplicate_of, possible_duplicate_of, hide_name_from_union, ai_category, priority, is_sensitive, location_text, summary_en, summary_as, image_findings, confidence, ai_source, input_language, human_edited, analysed_at, resolved_at')
       .in('id', complaintIds);
     if (ai.error) return {};
     var routes = await sb.from('complaint_routes')
@@ -1243,6 +1271,12 @@
     resetOfficialPassword: resetOfficialPassword,
     reassignComplaint: reassignComplaint,
     fetchFeatures: fetchFeatures,
+    fetchStats: fetchStats,
+    fetchDuplicates: fetchDuplicates,
+    mergeComplaint: mergeComplaint,
+    dismissDuplicate: dismissDuplicate,
+    fetchRoutingConfig: fetchRoutingConfig,
+    saveRoutingConfig: saveRoutingConfig,
     postReply: postReply,
     confirmComplaint: confirmComplaint,
     fetchNotifications: fetchNotifications,

@@ -162,9 +162,6 @@ export function AdminMain() {
               <option value={"Network & IT"}>
                 Internet &amp; IT
               </option>
-              <option value="Library">
-                Library
-              </option>
               <option value={"Campus Security"}>
                 Safety &amp; Security
               </option>

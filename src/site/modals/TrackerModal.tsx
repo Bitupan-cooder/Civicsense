@@ -4,7 +4,7 @@ import type { Complaint, Routing } from '../../civicAuth';
 import { useState } from 'react';
 import { AiPanel, Replies, RouteTracker } from '../../RouteTracker';
 import { ReadingLanguageSwitch } from '../components/StudentAuthWidgets';
-import { useStudentSession } from '../studentSession';
+import { useLanguage } from '../../i18n';
 import { TrackerAuthStatus } from '../components/StudentAuthWidgets';
 import {
   closeTracker, confirmResolution, filteredComplaints, searchComplaint, searchFor, setFilterStatus, setFilterText, setTrackerQuery,
@@ -106,7 +106,7 @@ function ConfirmFixed({ id }: { id: string }) {
 }
 
 function ComplaintCard({ c, expanded, routing }: { c: Complaint; expanded: boolean; routing?: Routing }) {
-  const lang = useStudentSession().profile?.preferred_language === 'as' ? 'as' : 'en';
+  const { lang } = useLanguage();
   const evidence = c.complaint_evidence || [];
   const history = c.complaint_status_history || [];
   const visLabel = c.visibility === 'administration' ? 'Administration Only' : c.visibility === 'department' ? 'Department' : 'Social Service (DUSU)';
@@ -160,7 +160,7 @@ function ComplaintCard({ c, expanded, routing }: { c: Complaint; expanded: boole
 }
 
 function TrackerResult({ c, routing }: { c: Complaint; routing?: Routing }) {
-  const lang = useStudentSession().profile?.preferred_language === 'as' ? 'as' : 'en';
+  const { lang } = useLanguage();
   const evidence = c.complaint_evidence || [];
   const history = c.complaint_status_history || [];
   const bannerClass = c.status === 'resolved' ? 'status-solved' : c.status === 'rejected' ? 'status-escalated' : 'status-in-progress';

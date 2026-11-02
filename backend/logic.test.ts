@@ -53,3 +53,11 @@ test("routing: owning post plus the General Secretary; sensitive goes to the Hea
   assert.deepEqual(routeComplaint("safety", true, rules, "head"), [{ authority_id: "head", kind: "primary" }], "X2: no copy");
   assert.deepEqual(routeComplaint("unknown", false, rules, "head")[0], { authority_id: "gs", kind: "primary" }, "falls back to 'other'");
 });
+
+test("word-overlap duplicates (fallback without embeddings)", async () => {
+  const { textSimilarity, DUPLICATE_THRESHOLD } = await import("../src/logic.ts");
+  const e3 = "No water in the Boys Hostel 2 bathroom since Monday.";
+  assert.ok(textSimilarity(e3, "Boys hostel 2 bathroom has no water since monday") >= DUPLICATE_THRESHOLD.words, "same issue, reworded");
+  assert.ok(textSimilarity(e3, "Exposed wires hanging near the canteen entrance.") < DUPLICATE_THRESHOLD.words, "different issue");
+  assert.equal(textSimilarity("", e3), 0);
+});

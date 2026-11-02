@@ -1,0 +1,5 @@
+/* Routing only (no visual styling): the landing page stays mounted but is hidden on other routes. */
+body.route-page #app,
+body.route-page > #root > .backdrop {
+  display: none !important;
+}

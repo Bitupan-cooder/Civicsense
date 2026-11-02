@@ -10,7 +10,7 @@ export const PROMPT_VERSION = "understand-v1";
 const MODEL = () => process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 export interface AiAttempt {
-  step: "understanding" | "translation";
+  step: "understanding" | "translation" | "embedding";
   model: string;
   prompt_version: string;
   latency_ms: number;
@@ -197,5 +197,33 @@ ${text.normalize("NFC")}
       translation: translateWithoutAi(text),
       attempt: { step: "translation", model: MODEL(), prompt_version: TRANSLATE_PROMPT_VERSION, latency_ms: Date.now() - started, ok: false, raw_output: null, error: String((err as Error).message || err) },
     };
+  }
+}
+
+// ── Embeddings for duplicate detection (PRD "AI design" 4): English summary + original text, multilingual model ──
+
+export const EMBEDDING_DIMENSIONS = 768; // matches complaints.embedding vector(768)
+const EMBED_MODEL = () => process.env.GEMINI_EMBED_MODEL || "gemini-embedding-001";
+
+/** null without GEMINI_API_KEY or when the call fails (the caller then uses word overlap). */
+export async function embedText(text: string, fetchImpl: typeof fetch = fetch): Promise<{ values: number[] | null; attempt: AiAttempt | null }> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return { values: null, attempt: null };
+  const started = Date.now();
+  const base = { step: "embedding" as const, model: EMBED_MODEL(), prompt_version: "embed-v1" };
+  try {
+    const res = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${EMBED_MODEL()}:embedContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+      body: JSON.stringify({ content: { parts: [{ text: text.normalize("NFC") }] }, taskType: "SEMANTIC_SIMILARITY", outputDimensionality: EMBEDDING_DIMENSIONS }),
+      signal: AbortSignal.timeout(20000),
+    });
+    const body = await res.text();
+    if (!res.ok) throw new Error(`Gemini HTTP ${res.status}: ${body.slice(0, 300)}`);
+    const values = JSON.parse(body)?.embedding?.values;
+    if (!Array.isArray(values) || values.length !== EMBEDDING_DIMENSIONS) throw new Error("Unexpected embedding size: " + (values?.length ?? "none"));
+    return { values, attempt: { ...base, latency_ms: Date.now() - started, ok: true, raw_output: `${values.length} dimensions`, error: null } };
+  } catch (err) {
+    return { values: null, attempt: { ...base, latency_ms: Date.now() - started, ok: false, raw_output: null, error: String((err as Error).message || err) } };
   }
 }

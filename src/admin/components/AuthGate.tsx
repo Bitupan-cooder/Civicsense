@@ -24,7 +24,7 @@ export function AuthGate() {
           {" "}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
             {" "}
-            <a href="index.html" className="brand" style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "18px", fontWeight: "700", color: "var(--olive)", textDecoration: "none" }}>
+            <a href="/" className="brand" style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "18px", fontWeight: "700", color: "var(--olive)", textDecoration: "none" }}>
               {" "}
               <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
                 <path d="M11 2C11 2 4 6 4 13a7 7 0 0014 0C18 6 11 2 11 2z" fill="currentColor" opacity=".9" />
@@ -37,7 +37,7 @@ export function AuthGate() {
               {" "}
             </a>
             {" "}
-            <a href="index.html" className="btn-outline" style={{ height: "28px", fontSize: "11px", padding: "0 10px", textDecoration: "none" }}>
+            <a href="/" className="btn-outline" style={{ height: "28px", fontSize: "11px", padding: "0 10px", textDecoration: "none" }}>
               ← Student Portal
             </a>
             {" "}
@@ -117,7 +117,7 @@ export function AuthGate() {
           {" "}
           <div style={{ marginTop: "18px", paddingTop: "16px", borderTop: "1px solid var(--line)", fontSize: "11.5px", color: "#64748b", lineHeight: "1.5" }}>
             {" "}Note: Official accounts are provisioned exclusively by Central Administration. Students must submit and track complaints via the{" "}
-            <a href="index.html" style={{ color: "var(--olive)", fontWeight: "600" }}>
+            <a href="/" style={{ color: "var(--olive)", fontWeight: "600" }}>
               Student Portal
             </a>
             .{" "}

@@ -98,6 +98,7 @@ create table if not exists public.ai_logs (
 create or replace function public.protect_complaint_ai_fields()
 returns trigger
 language plpgsql
+set search_path = public
 as $$
 declare
   v_role text := coalesce(nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role', '');
@@ -432,3 +433,62 @@ $$;
 
 -- System actions (the 7-day auto-close) have no person behind them
 alter table public.complaint_status_history alter column changed_by drop not null;
+
+-- ====================================================================
+-- 11. Duplicate detection (PRD "AI design" 4) and the routing editor
+-- ====================================================================
+
+alter table public.complaints
+  add column if not exists possible_duplicate_of uuid references public.complaints(id) on delete set null,
+  add column if not exists duplicate_score real,
+  add column if not exists duplicate_dismissed boolean not null default false;
+
+-- Nearest open complaints in the same category and campus area, by embedding similarity (pgvector cosine)
+create or replace function public.match_duplicates(p_complaint_id uuid, p_limit integer default 3)
+returns table (id uuid, score real)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select c.id, (1 - (c.embedding <=> t.embedding))::real as score
+  from public.complaints t
+  join public.complaints c on c.id <> t.id
+  where t.id = p_complaint_id
+    and t.embedding is not null and c.embedding is not null
+    and c.ai_category = t.ai_category
+    and (c.location_id is null or t.location_id is null or c.location_id = t.location_id)
+    -- compared as text: statuses added at the top of this file can't be used as enum values in the same transaction
+    and c.status::text not in ('closed', 'merged', 'rejected', 'resolved')
+  order by c.embedding <=> t.embedding
+  limit p_limit;
+$$;
+-- only the server calls it
+revoke execute on function public.match_duplicates(uuid, integer) from public, anon, authenticated;
+
+-- Protect the new duplicate fields like the other server-written fields
+create or replace function public.protect_complaint_duplicate_fields()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+declare
+  v_role text := coalesce(nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role', '');
+begin
+  if v_role in ('', 'service_role') then
+    return new;
+  end if;
+  if tg_op = 'INSERT' then
+    new.possible_duplicate_of := null; new.duplicate_score := null; new.duplicate_dismissed := false;
+  else
+    new.possible_duplicate_of := old.possible_duplicate_of; new.duplicate_score := old.duplicate_score;
+    new.duplicate_dismissed := old.duplicate_dismissed;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_protect_complaint_duplicate_fields on public.complaints;
+create trigger trg_protect_complaint_duplicate_fields
+  before insert or update on public.complaints
+  for each row execute function public.protect_complaint_duplicate_fields();

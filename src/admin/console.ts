@@ -2,6 +2,7 @@
 import { useSyncExternalStore } from 'react';
 import { routingApi, type DepartmentUnit, type Routing } from '../civicAuth';
 import { showToast } from '../toast';
+import { setLanguage } from '../i18n';
 
 export interface Profile {
   id: string;
@@ -11,6 +12,7 @@ export interface Profile {
   unit_name: string | null;
   is_active?: boolean;
   must_change_password?: boolean;
+  preferred_language?: 'en' | 'as';
 }
 
 export interface OfficialComplaint {
@@ -135,6 +137,7 @@ export const shortRef = (id: string) => 'CS-' + id.slice(0, 8).toUpperCase();
 
 async function enterWorkspace(profile: Profile, welcome = false): Promise<void> {
   update({ auth: 'workspace', profile, section: 'complaints' });
+  if (profile.preferred_language) setLanguage(profile.preferred_language, { save: false });
   await loadOfficialComplaints();
   if (welcome) showToast('Welcome, ' + profile.name, 'success');
   if (profile.must_change_password) api().ensurePasswordChangeModal();
@@ -157,7 +160,7 @@ export async function initAuth(): Promise<void> {
     if (profile.role === 'student') {
       update({ auth: 'none' });
       showToast('Access restricted: Student accounts cannot access the official administrative console.', 'error');
-      setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+      setTimeout(() => { window.location.href = '/'; }, 1200);
       return;
     }
     await enterWorkspace(profile);
@@ -388,7 +391,7 @@ export async function copyCredentials(): Promise<void> {
   if (!c) return;
   const text = 'CivicSense Official Portal Access\n' +
     'Official Name: ' + c.name + '\nRole: ' + c.role + '\nUnit / Desk: ' + c.unit + '\nOfficial Email: ' + c.email + '\n' +
-    'Temporary Password: ' + c.password + '\nPortal URL: ' + window.location.origin + '/admin.html\n\n' +
+    'Temporary Password: ' + c.password + '\nPortal URL: ' + window.location.origin + '/authority\n\n' +
     'Note: You will be prompted to set a permanent password upon first sign-in.';
   try {
     await navigator.clipboard.writeText(text);
@@ -463,3 +466,5 @@ export async function postReply(complaintId: string, body: string, visibility: '
     : 'Internal note added.', 'success');
   await refreshRouting(complaintId);
 }
+
+export const getSignedInOfficialId = () => state.profile?.id ?? null;

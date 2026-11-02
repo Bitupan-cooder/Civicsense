@@ -22,13 +22,13 @@ Do these in order. The first one is urgent.
 | 1 | **Rotate the Supabase `service_role` key** | It was committed in `.env.example` and is in the GitHub history (first in commit `92b525e`, 2026-11-01). It bypasses all database security. It was confirmed working. | Supabase → Project Settings → API → reset the service_role key |
 | 2 | **Rotate the Cloudinary API secret** | It was committed in `.env.example` and hardcoded in `backend/api.ts`. | Cloudinary → Settings → API Keys → generate a new key pair |
 | 3 | Put the new keys in `.env.local` | `.env.local` is git-ignored and already holds the old values with the new variable names. Only replace the values. | `.env.local` (project root, local only; each teammate needs their own copy) |
-| 4 | **Run `backend/schema.sql` again** | The database security fixes (section 3.3) only exist in the file until it's run. The live database still has the old rules. | Supabase → SQL Editor |
+| 4 | ~~Run `backend/schema.sql` again~~ **Done 2026-11-02** | The live database had an older version (the 3.3 fixes were missing, and department accounts could read every DUSU complaint). Re-run from the SQL Editor; all 3.3 rules verified live. | — |
 | 5 | Create a new admin login | The schema no longer creates an admin with a hardcoded password. Create one with a strong password, set its email in `v_admin_email` in the last block of `schema.sql`, then run that block. | Supabase → Authentication → Users → Add user |
 | 6 | **Turn Confirm email off** | Student signup needs a session right after sign-up. It is currently **on** (checked 2026-11-02), so new students can't finish registering. Signup now stops with a clear error instead of failing silently. | Supabase → Authentication → Providers → Email |
 | 7 | Consider removing the old keys from git history | Rotating (1–2) makes the leaked keys useless, which is the important part. Rewriting history (e.g. `git filter-repo`) is optional, needs a force-push and every teammate must re-clone. | GitHub repo |
 | 8 | Check whether the GitHub repo is public | This couldn't be checked from the dev machine. If it's public, assume the keys were seen. | github.com/Bitupan-cooder/Civicsense → Settings |
 | 9 | **Fix the Cloudinary cloud name** | `CLOUDINARY_CLOUD_NAME=Root` (copied from the old committed `.env.example`) is invalid: Cloudinary rejects every upload with "Invalid cloud_name Root". Found in the live test on 2026-11-02. **Until fixed, students can't attach evidence and student signup fails** (it uploads the ID card). | Cloudinary dashboard → the cloud name looks like `dxxxxxxxx` → put it in `.env.local` |
-| 10 | **Run `backend/migrations/001_ai_routing_tracker.sql`** (after #4) | Turns on AI analysis, routing to posts and the route tracker (3.13). Additive: nothing is dropped or renamed. Until it runs, the site works exactly as before. If `schema.sql` is ever re-run, run this again afterwards. | Supabase → SQL Editor |
+| 10 | ~~Run `backend/migrations/001_ai_routing_tracker.sql`~~ **Done 2026-11-02** | Applied after #4 and tested live end to end (3.16). If `schema.sql` is ever re-run, run this again afterwards. | — |
 | 11 | Link posts to official accounts | Routed complaints reach an official only when their post's `authorities.email` matches their login. The Head / Chairperson post should be an administration account. Example in the README. | Supabase → SQL Editor |
 | 12 | Add `GEMINI_API_KEY` (optional) | Without it, the keyword rules analyse complaints. They're weaker: for example, "No water in the Boys Hostel 2 bathroom" comes out as `hostel`, not `water`. | `.env.local` (key from aistudio.google.com) |
 
@@ -38,7 +38,7 @@ Do these in order. The first one is urgent.
 
 | Question | Current state | Notes |
 |---|---|---|
-| **Can department accounts see DUSU (`social_service`) complaints?** | **No.** The API now follows the database rule, which says no. | `backend/test_rls.sql` (tests 3 and 4) expects **yes**, and the old API allowed it. If the answer is yes, change both `can_read_complaint()` in `backend/schema.sql` and `backend/access.ts` (and its test) together. |
+| **Can department accounts see DUSU (`social_service`) complaints?** | **No.** The API and the database both say no. (Until schema.sql was re-run on 2026-11-02, the *live* database still said yes; see 3.3.) The old API allowed it. If the answer becomes yes, change `can_read_complaint()` in `backend/schema.sql`, `backend/access.ts` (and its test) and the "department sees only…" check in `backend/live-test.mjs` together. |
 | ~~Delete the old React app in `src/`?~~ | **Decided 2026-11-02:** switch to React. | The old `src/` (an older design) was replaced by a React version of the current site. See [3.7](#37-react-migration-step-1). |
 | **Demo complaint chips in the tracker** (CS-8921 …) | Kept; clicking one shows "No complaint record found" (3.10). | They are local sample data from before the database existed. Remove them, or add matching demo complaints to the database. |
 | **Real people's names in demo data** | Unchanged. | Names such as "Prof. A. K. Buragohain" and "Bikash Jyoti Saikia" appear in the student site's sample data (`src/site/legacy.js`) and in the live `profiles` table, with `@dibru.ac.in` emails. The admin page's unused copy was deleted in 3.11. Replace them with placeholders unless those people agreed. |
@@ -78,7 +78,7 @@ Do these in order. The first one is urgent.
 
 ### 3.3 Database rules ([backend/schema.sql](backend/schema.sql))
 
-Not applied yet (section 1, item 4).
+Applied to the live database on 2026-11-02 (section 1, item 4) and verified: the 4 policies below, `can_read_complaint()`, forced RLS on all 6 tables, and the profile trigger. Re-running it also removed a live-only rule that let every department account read every DUSU (`social_service`) complaint; the live database now matches the file and the API (decision 2).
 
 | Rule | Before | After |
 |---|---|---|
@@ -324,7 +324,7 @@ New API routes: `POST /api/complaints/analyse` (the reporter after filing, or an
   - live tracker: 12/13
   - live admin console: 26/40, only the earlier fixes
 - The new endpoints reject anonymous calls. Type-checks and the production build pass.
-- **Not yet verified live:** the analysis, routing and tracker against the real database. That needs the migration run (action item 10). The SQL couldn't be run on this machine either: the local PostgreSQL needs a password and has no pgvector.
+- ~~Not yet verified live~~ **Verified live after the migration: see [3.16](#316-migration-001-applied-and-tested-live).**
 
 ### 3.14 Towards the PRD (part 2): privacy, replies, confirm/reopen, notifications
 
@@ -355,13 +355,117 @@ New API routes: `GET /api/features` (what's switched on), `POST /api/complaints/
   - live tracker: 12/13
   - live admin console: 26/40
 - The new endpoints reject anonymous calls. Type-checks and the production build pass.
-- Live behaviour of everything in 3.13 and 3.14 is still to be verified after action item 10.
+- Live behaviour of everything in 3.13 and 3.14: **verified in [3.16](#316-migration-001-applied-and-tested-live).**
+
+### 3.15 Towards the PRD (part 3): routes, missing screens, duplicates, routing editor, statistics
+
+For the frontend teammate: every PRD screen now exists and is wired to the backend, but the **new screens are unstyled on purpose**. See [docs/FRONTEND.md](docs/FRONTEND.md).
+
+- **React Router 6.28 with the PRD's URLs.**
+  - Student app: `/`, `/report`, `/login` (`?mode=signup`, `?next=`), `/my`, `/complaints/:id`.
+  - Officials' app: `/authority`, `/admin`, `/admin/review`, `/admin/duplicates`, `/admin/stats`, `/admin/routing`, `/map`.
+  - The two apps keep separate stylesheets (their class names clash). The dev and preview servers route each URL to the right app; **production hosting needs the same rewrites**.
+  - The landing page stays mounted (hidden) on other routes, because the animation and map code set it up once at startup.
+  - Officials land on their role's home after sign-in; admin-only pages redirect officers; `/admin.html` and `?complaint=<id>` still work.
+- **Asset paths are now absolute** (map-kit scripts, map data, links to the student site), so deep URLs like `/complaints/…` load correctly.
+- **English/Assamese UI toggle** (`src/i18n.ts`): a typed dictionary for the new screens, remembered in the browser and saved to the user's profile. One setting with the reading language.
+- **Duplicate detection (PRD P0):**
+  - With Gemini, an embedding of the summary and the text is compared with pgvector, flagging matches at similarity ≥ 0.80 within the same category and campus area.
+  - Without Gemini, word overlap ≥ 0.5 is used instead, which can't match Assamese with English.
+  - Merging is never automatic: the admin merges or dismisses on `/admin/duplicates`. Reporters of a merged complaint receive the surviving complaint's status changes and replies.
+  - Added to the migration: `possible_duplicate_of`, `duplicate_score`, `duplicate_dismissed`, `match_duplicates()`, and a trigger protecting those fields.
+- **Routing editor (PRD P1):** `GET`/`PUT /api/admin/routing`, with validation.
+- **Statistics:** `/api/admin/stats` adds counts by category, place and priority, the average resolution time, and the review and duplicate counts. The existing fields are unchanged.
+- **SQL fix:** `match_duplicates()` compares statuses as text. A newly added enum value can't be used in the same transaction that adds it.
+
+**Verified on 2026-11-02 (the migration still hasn't been run):**
+- All routes open in development and production with the right app and no console errors.
+- Signed in with temporary accounts (deleted afterwards):
+  - `/login?next=/my` lands the student on `/my` with their complaint, and the complaint page shows its history
+  - the language toggle switches to Assamese and back, and `/` shows the landing page again
+  - the admin lands on `/admin` and the department head on `/authority`; admin-only pages redirect the department head
+  - the statistics page shows totals
+- The styled pages behave as before:
+  - layout identical
+  - behaviour: the only new difference is that, before sign-in, the console isn't built behind the gate (it's invisible either way)
+  - live form 12/16, tracker 12/13, sign-in widgets 8/8 (React now without the old `href="#"` error)
+  - admin console 22/40: the 4 new differences are the sign-in gate's hidden structure, with visible text identical
+- 15 tests pass. Type-checks and the build pass.
 
 **Next PRD steps:**
-- duplicate detection (embeddings and pgvector)
-- the English/Assamese UI toggle across the pages
-- admin statistics (by category and status, average resolution time)
-- P1: escalation job, routing editor, Leaflet map
+- tune the duplicate thresholds on scenarios A1, A3 and E3 once Gemini and the migration are live
+- P1: the escalation job (Vercel Cron in the PRD) and drawing the map with Leaflet (frontend)
+- production deployment config: page rewrites for the two apps
+
+### 3.16 Migration 001 applied and tested live
+
+**Applied 2026-11-02** to the live project (Civic sense, `mdywamyrxuuookaxksyv`), from the SQL Editor, in order:
+1. `backend/schema.sql` (action item 4). The live database had an older version (see 3.3).
+2. `backend/migrations/001_ai_routing_tracker.sql` (action item 10).
+
+**Checked in the database afterwards:**
+- 9 statuses: the 6 existing ones plus `needs_review`, `closed`, `merged`.
+- `vector` 0.8.2 is installed.
+- The 6 new tables exist, each with row-level security.
+- All 22 new `complaints` columns exist, plus `profiles.preferred_language`; `changed_by` is now nullable.
+- Both protection triggers are on `complaints`.
+- 26 policies in total: 9 existing ones widened with `is_routed_to_me` / `can_see_reporter`, and 7 new ones.
+- Seed data: 12 posts and 20 rules, none of them missing a copy or escalation post.
+- `notifications` is in the `supabase_realtime` publication.
+- `match_duplicates()` can't be called by `anon` or `authenticated`.
+- `GET /api/features` returns `{ routing: true, gemini: false }`.
+
+**Live end-to-end test.** It used 7 temporary `zz-migration-test-*@example.com` accounts: 2 students, an admin, and holders of the Head, General Secretary and Sports Secretary posts (linked by email for the test only), plus an unrelated department. There were 6 complaints titled "ZZ TEST …". No real user or complaint was touched.
+- **API and database: 54 of 54 checks pass.**
+- **Browser (headless Edge): 22 checks.** The first run found the bell bug below. After the fix, 21 passed. The other one read `/my` before its second request (route details) had returned; re-checked with a proper wait, 3 of 3 pass.
+
+| Area | Result |
+|---|---|
+| Filing + analysis (keyword rules, no Gemini key) | "football ground…" → `sports` P3, conf 0.95. "cricket nets…" → `cricket`. "harassing and threatening…" → `safety` P1, sensitive. "hello there" → conf 0.45 → `needs_review` with "Low AI confidence (0.45)". Fields the client tried to forge on insert were ignored. A second analyse call returns the stored result. Every call is logged in `ai_logs`. |
+| Routing | Owning post primary + General Secretary copied. Sensitive → Head / Chairperson **only**. Low confidence → review queue with no routes. On `/admin/review`, the admin routed it as `general` → General Secretary primary + Vice-President copy, status `submitted`, `human_edited`. |
+| Route tracker | `delivered_at` is set on routing. Opening the complaint → seen. A public reply → replied. An internal note → seen but not replied. A post that was only copied can't resolve it (403). The primary post resolves → `resolved_at` is set on the route and the complaint. `/complaints/:id` shows "Waiting on: Reporter confirmation". |
+| Replies and notes | The reporter reads public replies only (database rules and page). Officials read both. |
+| Notifications | Sent to the reporter and every post holder on routing, review, reply, status change, reopen and merge. **Realtime:** a post holder received one live, and the student's open page got a new one without reloading (bell count +1). |
+| Hide-name | Union posts (Sports, General Secretary) can read the complaint but **not** the reporter's profile, and the ID-card API returns 403. The Head (non-union) can read the reporter. Control: a reporter who didn't hide their name stays visible to the General Secretary. |
+| Database rules | Posts read only what is routed to them. An unrelated department sees none of it. An official's direct update of AI, duplicate or privacy fields is reverted by the trigger. Students can't read `ai_logs` or other users' notifications. |
+| Confirm/reopen | Confirming an unresolved complaint → 400; someone else's complaint → 404. Reopen with a note → `submitted`, both `resolved_at` cleared, the primary post notified. Confirm in the browser → `closed` with `closed_at`. |
+| Duplicates | Word overlap flagged both pairs (0.86 and 0.88). On `/admin/duplicates`, **Merge** → `merged` + `duplicate_of`, and the merged reporter then received replies on the surviving complaint. **Not a duplicate** → dismissed. The list is empty afterwards. |
+| Routing editor | 12 posts / 20 rules / 20 categories. Invalid hours → 400. Music 120 → 96 h was saved, then restored. Non-admins get 403. |
+| Statistics | API and page: 6 complaints, review 1, duplicates 2, by category, by priority, average resolution time. Non-admins get 403. |
+| New routes | `/login?next=/my`, `/my` (AI category, "Waiting on", merged state, "Is it fixed?"), `/complaints/:id` and `/complaints/CS-XXXXXXXX`, `/admin/review`, `/admin/duplicates`, `/admin/stats`, `/admin/routing`, `/map`. The DUSU post holder lands on `/authority` with only their routed complaint, and admin pages redirect them. No console errors on any page. |
+
+**Bug found and fixed:** with routing switched on, the notification bell crashed the student pages: `/my` and `/complaints/:id` were blank. `subscribeNotifications` in [public/js/civic-auth.js](public/js/civic-auth.js) reused the channel name `notifications-<userId>`. `sb.channel()` returns a channel that is still registered under that name (`removeChannel` is async), and adding callbacks to an already-subscribed channel throws. That happens on every remount, including React StrictMode in dev. Each subscription now gets its own topic. Verified afterwards: no console errors.
+
+**Cleanup:**
+- The test accounts were deleted, with their complaints, routes, replies, notifications, logs and history removed with them.
+- The 3 posts are unlinked again, and the music rule is back at 120 h.
+- Verified: **0 rows left** in every table. The database is back to its 3 real officials and 0 complaints, plus the seed data.
+
+**Supabase security advisor after the migration** (warnings only, nothing critical; see section 5):
+- `vector` is in `public`. Expected: `match_duplicates()` pins `search_path = public`.
+- The two protection trigger functions have no fixed `search_path`.
+- The helper functions (`can_read_complaint`, `is_routed_to_me`, `can_see_reporter`, …) are callable through `/rest/v1/rpc`. They only answer yes/no about the caller.
+- Leaked-password protection is off.
+
+### 3.17 Clean-up from "Still open"
+
+- **Admin category filter:** removed the **Library** option. No student category matches it ([src/admin/components/AdminMain.tsx](src/admin/components/AdminMain.tsx)).
+- **Trigger functions** `protect_complaint_ai_fields` / `protect_complaint_duplicate_fields` now have `set search_path = public` in [the migration file](backend/migrations/001_ai_routing_tracker.sql). The live database still needs these two lines, run in the SQL Editor (safe, they change nothing else):
+  ```sql
+  alter function public.protect_complaint_ai_fields() set search_path = public;
+  alter function public.protect_complaint_duplicate_fields() set search_path = public;
+  ```
+- **Campus map data loads on demand:**
+  - Before: every student page loaded the 2.2 MB `map-data.js` through a `<script>` tag.
+  - Now: [src/site/campusMap.js](src/site/campusMap.js) fetches `map-data.json` once the map comes within 600 px of the viewport.
+  - The tag is gone from `index.html`, and the build no longer copies `map-data.js` (the file stays in the map kit).
+  - Verified in headless Edge: there's no map-data request on page load; scrolling to the map fetches it and draws the map, with no console errors.
+- **`backend/test_rls.sql` replaced by [backend/live-test.mjs](backend/live-test.mjs)** (`npm run test:live -- <dev server url>`).
+  - It covers the 6 old visibility tests, updated to the current rule: departments don't see DUSU complaints.
+  - It adds checks of the fixes from 3.3 (fake statuses, officials listed to logged-out visitors) and the PRD flow from 3.16: routing, tracker, replies, hide-name, confirm/reopen, review, merge, routing editor, statistics, realtime.
+  - It always deletes its test data and fails if any row is left.
+  - It links 3 posts to its test accounts for the run, so it **refuses to run** once those posts (Head, General Secretary, Sports Secretary) are linked to real officials. Otherwise they would be notified about test complaints.
+  - Run on 2026-11-02: **43 of 43 checks pass, 0 rows left.** Type-check, build and `npm test` (15 tests) pass.
 
 ---
 
@@ -378,7 +482,7 @@ Status key: ✅ fixed · ⏳ open · ➖ no longer applies · ✏️ corrected (
 | 3 | Unauthenticated Cloudinary upload signing. | High | ✅ |
 | 4 | API allowed more than the database rules (departments acting on DUSU and unassigned complaints). | High | ✅ |
 | 5 | Evidence viewer could return any file (found while fixing #4). | High | ✅ |
-| 6 | Database rule gaps: officials' emails public; any official could edit any ID card; students could fake statuses. | High | ✅ in file · ⏳ **run schema.sql** |
+| 6 | Database rule gaps: officials' emails public; any official could edit any ID card; students could fake statuses. | High | ✅ (live since 2026-11-02) |
 | 7 | Admin actions could target other admins. | Medium | ✅ |
 | 8 | Unescaped complaint text in `index.html`. | Medium | ✅ |
 | 9 | Production build broken: no `admin.html`, missing map files, wrong script path; API only ran in dev; `npm run server` crashed. | High | ✅ |
@@ -390,7 +494,7 @@ Status key: ✅ fixed · ⏳ open · ➖ no longer applies · ✏️ corrected (
 | 15 | Real people's names in demo data. | Low | ⏳ team decision (section 2) |
 | 16 | `src/` React app (~10k lines) is never loaded by `index.html`. | Low | ✅ replaced by a React version of the current site (3.7) |
 | 17 | Tests in `src/lib/portalStore.test.ts` couldn't run (no test script, bad imports) and only cover `src/`. They pass when compiled separately (6/6). | Low | ➖ superseded by `npm test` for the backend rule |
-| 18 | `backend/test_rls.sql` can't run: it inserts profiles without `auth.users` rows, runs as superuser so the rules are skipped, and expects the opposite department/DUSU rule. | Medium | ⏳ open (section 5) |
+| 18 | `backend/test_rls.sql` can't run: it inserts profiles without `auth.users` rows, runs as superuser so the rules are skipped, and expects the opposite department/DUSU rule. | Medium | ✅ replaced by `npm run test:live` (3.17) |
 | 19 | README out of date. | Low | ✅ |
 | 20 | Next.js leftovers and junk files. | Low | ✅ |
 | 21 | `map-data.js` (7.6 MB) downloaded on every page load; repo history is 72 MB. | Low | ⏳ open (section 5) |
@@ -418,15 +522,18 @@ Most of these became outdated when the app moved to `index.html` + Supabase.
 | Item | Suggested fix |
 |---|---|
 | Deleting an official cascades to `complaint_status_history` and `activity_log`, erasing their history entries (`on delete cascade` in `schema.sql`). | Prefer deactivating over deleting, or change those foreign keys to `on delete set null`. |
-| `backend/test_rls.sql` can't run. | Create matching `auth.users` rows, switch to the `authenticated` role before querying, and align tests 3–4 with the decision in section 2. |
-| `map-data.js` is 7.6 MB on every page load. | Load it only when the map section is opened. |
+| ~~`backend/test_rls.sql` can't run.~~ | Done in 3.17: replaced by `npm run test:live`. |
+| ~~`map-data.js` (2.2 MB) loads on every student page.~~ | Done in 3.17: the map data loads when the map scrolls into view. |
 | Large repo: the map kit (40 MB, includes an Android project and raw map data) and `Flat Assets/`. | Keep only the files the site uses, or move the rest to Git LFS / a separate repo. |
 | ~~**React migration.**~~ | **Done (3.12).** Both pages are React; there is no page script left. |
 | ~~Hero character cards call `selectCat()`, which never existed.~~ | Done in 3.12: the dead handler was removed. |
 | ~~Searching a complaint ID in the tracker calls `renderTracker()`, which doesn't exist.~~ | Fixed in 3.10: unknown IDs now show "No complaint record found". Still to decide: remove the demo complaint chips (CS-8921 …) or add matching demo complaints to the database. |
 | ~~Sign-out sometimes briefly showed the old session again.~~ | Fixed in 3.12: a session check that started before the latest sign-in/sign-out is ignored. |
 | ~~`admin.html`'s `#authModal` calls functions that don't exist.~~ | Done in 3.11: deleted. |
-| The admin category filter's **Library** option matches no student category (3.11). | Remove the option, or add a Library category to the student form. |
+| ~~The admin category filter's **Library** option matches no student category (3.11).~~ | Done in 3.17: removed. |
+| Supabase advisor: the helper functions (`can_read_complaint`, `is_routed_to_me`, `can_see_reporter`, `current_user_role`, …) are callable through `/rest/v1/rpc` (3.16). Low risk: they answer only about the caller. | Probably leave as is. Don't simply `revoke execute … from anon`: the policies call these functions as `anon` too, so logged-out reads would then error instead of returning nothing. Test first if you change it. |
+| Supabase advisor: `protect_complaint_ai_fields` / `protect_complaint_duplicate_fields` have no fixed `search_path`. | Fixed in the migration file (3.17). ⏳ **Still to run on the live database:** the two `alter function` lines in 3.17. |
+| Supabase advisor: leaked-password protection is off. | Supabase → Authentication → Passwords → turn it on. |
 
 ---
 

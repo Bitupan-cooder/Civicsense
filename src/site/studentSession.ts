@@ -2,6 +2,7 @@
 import { useSyncExternalStore } from 'react';
 import { civicAuth, routingApi, type StudentProfile } from '../civicAuth';
 import { showToast } from '../toast';
+import { setLanguage } from '../i18n';
 import { loadStudentComplaints, openTracker, switchTrackerMode } from './tracker';
 
 export type { StudentProfile };
@@ -45,6 +46,7 @@ let sessionVersion = 0;
 export function setStudentSession(profile: StudentProfile | null, idCardStatus?: string): void {
   sessionVersion++;
   update({ profile, idCardStatus });
+  if (profile?.preferred_language) setLanguage(profile.preferred_language, { save: false });
 }
 
 export async function checkCurrentStudentSession(): Promise<void> {

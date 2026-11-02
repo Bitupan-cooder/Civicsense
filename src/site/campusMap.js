@@ -1,25 +1,14 @@
 // Canvas campus map: drawing, pan/zoom/pinch, landmark pins, sample complaint markers, GPS.
 // Moved verbatim from the original index.html page script (React migration); only imports/exports were added.
 import { escapeHtml } from './analyzer.js';
-import { getComplaints } from './demoData.js';
+import { CAMPUS_LOCATION_COORDS, getComplaints } from './demoData.js';
 import { setReportPlace } from './reportForm';
 import { openTrackerWithId } from './tracker';
 
 /* ══════════ DIBRUGARH UNIVERSITY CAMPUS MAP LOGIC ══════════ */
 var DIBRUGARH_UNIVERSITY_CENTER = { lat: 27.4508, lng: 94.8926 };
 
-var CAMPUS_LOCATION_COORDS = {
-  du_hostel_1: { lat: 27.4526, lng: 94.8904, name: 'Padmanath Gohain Baruah Chatra Nivas (Hostel 1)' },
-  du_hostel_2: { lat: 27.4520, lng: 94.8910, name: 'Maniram Dewan Chatra Nivas (Hostel 2)' },
-  du_hostel_girls_1: { lat: 27.4519, lng: 94.8938, name: 'Joymoti Chatri Nivas (Girls Hostel 1)' },
-  du_hostel_girls_2: { lat: 27.4525, lng: 94.8942, name: 'Nalini Bala Devi Chatri Nivas (Girls Hostel 2)' },
-  du_library: { lat: 27.4505, lng: 94.8931, name: 'Lakshminath Bezbaroa Central Library' },
-  du_ccsa: { lat: 27.4510, lng: 94.8935, name: 'Centre for Computer Science & Applications (CCSA)' },
-  du_admin: { lat: 27.4512, lng: 94.8918, name: 'Administrative Building & Registrar Office' },
-  du_canteen: { lat: 27.4515, lng: 94.8925, name: 'Central Canteen & Student Activity Centre' },
-  du_sports_ground: { lat: 27.4484, lng: 94.8912, name: 'University Sports Ground & Pavilion' },
-  du_science_quad: { lat: 27.4514, lng: 94.8912, name: 'Science Block & Academic Quad' }
-};
+// CAMPUS_LOCATION_COORDS lives in demoData.js (also used by the officials' map page)
 
 
 // ════════════ DIBRUGARH UNIVERSITY VECTOR MAP ENGINE (MAP KIT - HIGH PERFORMANCE) ════════════
@@ -119,15 +108,20 @@ export function initCampusMap() {
   baseCanvas = document.createElement('canvas');
   baseCtx = baseCanvas.getContext('2d', { alpha: false });
 
-  // Load data from inlined window.__DU_MAP_DATA__ or fetch fallback
-  if (window.__DU_MAP_DATA__) {
-    setupMapWithData(window.__DU_MAP_DATA__);
-  } else {
-    fetch('Dibrugarh-University-Map-Kit/map-data.json')
+  // The map data (2.2 MB) is fetched only once the map nears the viewport, not on every page load
+  var load = function() {
+    fetch('/Dibrugarh-University-Map-Kit/map-data.json')
       .then(function(r) { return r.json(); })
       .then(function(data) { setupMapWithData(data); })
       .catch(function(err) { console.warn('Could not load campus map data:', err); });
-  }
+  };
+  if (typeof IntersectionObserver === 'undefined') { load(); return; }
+  var near = new IntersectionObserver(function(entries) {
+    if (!entries.some(function(e) { return e.isIntersecting; })) return;
+    near.disconnect();
+    load();
+  }, { rootMargin: '600px 0px' });
+  near.observe(mapCanvas);
 }
 
 function setupMapWithData(data) {

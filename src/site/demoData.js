@@ -142,3 +142,17 @@ export function getComplaints(){
   }
   try { return JSON.parse(raw); } catch(e){ return SEED; }
 }
+
+/* Campus landmarks with GPS coordinates (map pins) */
+export var CAMPUS_LOCATION_COORDS = {
+  du_hostel_1: { lat: 27.4526, lng: 94.8904, name: 'Padmanath Gohain Baruah Chatra Nivas (Hostel 1)' },
+  du_hostel_2: { lat: 27.4520, lng: 94.8910, name: 'Maniram Dewan Chatra Nivas (Hostel 2)' },
+  du_hostel_girls_1: { lat: 27.4519, lng: 94.8938, name: 'Joymoti Chatri Nivas (Girls Hostel 1)' },
+  du_hostel_girls_2: { lat: 27.4525, lng: 94.8942, name: 'Nalini Bala Devi Chatri Nivas (Girls Hostel 2)' },
+  du_library: { lat: 27.4505, lng: 94.8931, name: 'Lakshminath Bezbaroa Central Library' },
+  du_ccsa: { lat: 27.4510, lng: 94.8935, name: 'Centre for Computer Science & Applications (CCSA)' },
+  du_admin: { lat: 27.4512, lng: 94.8918, name: 'Administrative Building & Registrar Office' },
+  du_canteen: { lat: 27.4515, lng: 94.8925, name: 'Central Canteen & Student Activity Centre' },
+  du_sports_ground: { lat: 27.4484, lng: 94.8912, name: 'University Sports Ground & Pavilion' },
+  du_science_quad: { lat: 27.4514, lng: 94.8912, name: 'Science Block & Academic Quad' }
+};

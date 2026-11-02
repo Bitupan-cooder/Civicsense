@@ -61,6 +61,9 @@ export interface ComplaintRoute {
 
 /** AI analysis and routing of a complaint (null fields until it has been analysed). */
 export interface Routing {
+  location_id: string | null;
+  duplicate_of: string | null;
+  possible_duplicate_of: string | null;
   hide_name_from_union: boolean;
   ai_category: string | null;
   priority: number | null;
@@ -113,8 +116,76 @@ export interface Analysis {
   routes: ComplaintRoute[];
 }
 
+/** GET /api/admin/stats */
+export interface Stats {
+  total: number;
+  byStatus: Record<string, number>;
+  byStatusAll: Record<string, number>;
+  byUnit: Record<string, number>;
+  byCategory: Record<string, number>;
+  byLocation: Record<string, number>;
+  byPriority: Record<string, number>;
+  averageResolutionHours: number | null;
+  resolvedCount: number;
+  needsReview: number;
+  possibleDuplicates: number;
+  prdInstalled: boolean;
+}
+
+export interface DuplicateSide {
+  id: string;
+  title: string;
+  description: string;
+  summary_en: string | null;
+  summary_as: string | null;
+  ai_category: string | null;
+  location_text: string | null;
+  status: string;
+  created_at: string;
+}
+
+/** GET /api/admin/duplicates */
+export interface DuplicatePair {
+  complaint: DuplicateSide & { possible_duplicate_of: string; duplicate_score: number | null };
+  original: DuplicateSide | null;
+  score: number | null;
+}
+
+export interface Authority {
+  id: string;
+  post_key: string;
+  post_title: string;
+  person_name: string | null;
+  level: number;
+  is_union: boolean;
+  email: string | null;
+  active: boolean;
+}
+
+export interface RoutingRule {
+  category: string;
+  primary_authority_id: string;
+  copy_authority_ids: string[];
+  escalate_to_id: string | null;
+  response_hours: number;
+  active: boolean;
+}
+
+/** GET / PUT /api/admin/routing */
+export interface RoutingConfig {
+  authorities: Authority[];
+  rules: RoutingRule[];
+  categories?: string[];
+}
+
 export interface RoutingApi {
   fetchFeatures(): Promise<{ routing: boolean; gemini: boolean }>;
+  fetchStats(): Promise<Stats>;
+  fetchDuplicates(): Promise<{ pairs: DuplicatePair[] }>;
+  mergeComplaint(complaintId: string, intoId?: string | null): Promise<{ mergedInto: string }>;
+  dismissDuplicate(complaintId: string): Promise<void>;
+  fetchRoutingConfig(): Promise<RoutingConfig>;
+  saveRoutingConfig(config: RoutingConfig): Promise<RoutingConfig>;
   analyseComplaint(complaintId: string, location: string | null, hideName?: boolean): Promise<Analysis | null>;
   postReply(complaintId: string, body: string, visibility: 'public' | 'internal'): Promise<{ translated: boolean }>;
   confirmComplaint(complaintId: string, action: 'confirm' | 'reopen', note?: string): Promise<{ status: string }>;

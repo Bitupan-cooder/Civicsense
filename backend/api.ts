@@ -3,8 +3,8 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { IncomingMessage, ServerResponse } from "http";
 import fs from "fs";
 import { canAccessComplaint } from "./access.ts";
-import { campusPlaceNames, translateReply, understandComplaint } from "./ai.ts";
-import { applyRules, AUTO_CLOSE_DAYS, CATEGORIES, messages, routeComplaint, ticketRef, type Message } from "../src/logic.ts";
+import { campusPlaceNames, embedText, translateReply, understandComplaint } from "./ai.ts";
+import { applyRules, AUTO_CLOSE_DAYS, CATEGORIES, DUPLICATE_THRESHOLD, messages, routeComplaint, textSimilarity, ticketRef, type Message } from "../src/logic.ts";
 
 // Secrets come only from the environment or git-ignored .env files. Never hardcode fallbacks here.
 for (const file of [".env.local", ".env"]) {
@@ -119,7 +119,7 @@ async function isRoutingInstalled(): Promise<boolean> {
   // not head:true: for a missing table that returns status 204 with no error
   const checks = await Promise.all([
     supabaseAdmin.from("complaint_routes").select("id").limit(1),
-    supabaseAdmin.from("complaints").select("ai_category, hide_name_from_union").limit(1),
+    supabaseAdmin.from("complaints").select("ai_category, hide_name_from_union, possible_duplicate_of").limit(1),
     supabaseAdmin.from("notifications").select("id").limit(1),
     supabaseAdmin.from("complaint_replies").select("id").limit(1),
   ]);
@@ -228,6 +228,45 @@ async function firstEvidenceImage(complaintId: string): Promise<{ mimeType: stri
   }
 }
 
+/**
+ * PRD "AI design" 4: embed the English summary plus the original text and look for an open complaint in the same
+ * category and campus area. A match is only flagged for the administration; nothing is merged automatically.
+ * Without Gemini, word overlap is used instead (same language only).
+ */
+async function flagPossibleDuplicate(c: any, actorId: string): Promise<{ id: string; score: number } | null> {
+  const text = (c.summary_en || "") + "\n" + c.title + "\n" + c.description;
+  const { values, attempt } = await embedText(text);
+  if (attempt) await supabaseAdmin.from("ai_logs").insert({ ...attempt, complaint_id: c.id });
+  let best: { id: string; score: number } | null = null;
+  if (values) {
+    await supabaseAdmin.from("complaints").update({ embedding: JSON.stringify(values) }).eq("id", c.id);
+    const { data } = await supabaseAdmin.rpc("match_duplicates", { p_complaint_id: c.id, p_limit: 1 });
+    if (data?.[0] && data[0].score >= DUPLICATE_THRESHOLD.embedding) best = { id: data[0].id, score: data[0].score };
+  } else {
+    let query = supabaseAdmin.from("complaints").select("id, title, description, summary_en, location_id")
+      .eq("ai_category", c.ai_category).neq("id", c.id).not("status", "in", "(closed,merged,rejected,resolved)").limit(200);
+    if (c.location_id) query = query.or(`location_id.is.null,location_id.eq.${c.location_id}`);
+    const { data } = await query;
+    for (const o of data || []) {
+      const score = textSimilarity(text, (o.summary_en || "") + "\n" + o.title + "\n" + o.description);
+      if (score >= DUPLICATE_THRESHOLD.words && (!best || score > best.score)) best = { id: o.id, score };
+    }
+  }
+  if (!best) return null;
+  await supabaseAdmin.from("complaints").update({ possible_duplicate_of: best.id, duplicate_score: best.score }).eq("id", c.id);
+  await supabaseAdmin.from("activity_log").insert({
+    actor_id: actorId, action: "possible_duplicate",
+    target: `Complaint #${c.id.slice(0, 8)} may duplicate #${best.id.slice(0, 8)} (similarity ${best.score.toFixed(2)})`,
+  });
+  return best;
+}
+
+/** Reporters of complaints merged into this one: they receive every update of the surviving complaint (PRD). */
+async function mergedReporterIds(complaintId: string): Promise<string[]> {
+  const { data } = await supabaseAdmin.from("complaints").select("student_id").eq("duplicate_of", complaintId);
+  return (data || []).map((x: any) => x.student_id);
+}
+
 /** PRD steps 2-3: understand the complaint, apply the code rules, save the AI fields, then route it or send it to review. */
 async function analyseAndRoute(complaint: any, location: string | null, hideName: boolean | null, actorId: string) {
   const text = `${complaint.title}\n${complaint.description}`;
@@ -247,6 +286,8 @@ async function analyseAndRoute(complaint: any, location: string | null, hideName
     updated_at: new Date().toISOString(),
   }).eq("id", complaint.id);
   if (error) throw new Error("Failed to save AI analysis: " + error.message);
+  const duplicate = await flagPossibleDuplicate(
+    { ...complaint, ai_category: r.category, location_id: location || complaint.location_id || null, summary_en: r.summary_en }, actorId);
 
   if (r.needs_review) {
     await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: complaint.id, status: "needs_review", remark: "Sent to administration review: " + r.review_reason, changed_by: actorId });
@@ -273,6 +314,7 @@ async function analyseAndRoute(complaint: any, location: string | null, hideName
     category: r.category, priority: r.priority, is_sensitive: r.is_sensitive, location_text: r.location_text,
     summary_en: r.summary_en, summary_as: r.summary_as, image_findings: r.image_findings, confidence: r.confidence,
     language: r.language, source: ai.source, needs_review: r.needs_review, review_reason: r.review_reason, routes,
+    possible_duplicate_of: duplicate?.id ?? null,
   };
 }
 
@@ -421,7 +463,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       }
       if (visibility === "public") {
         const from = (post as any)?.authority?.post_title || requester.profile.unit_name || requester.profile.name;
-        await notify([complaint.student_id], complaint.id, messages.newReply(ticketRef(complaint.id), from));
+        await notify([complaint.student_id, ...(await mergedReporterIds(complaint.id))], complaint.id, messages.newReply(ticketRef(complaint.id), from));
       }
       await supabaseAdmin.from("activity_log").insert({
         actor_id: requester.user.id, action: visibility === "public" ? "complaint_reply" : "complaint_internal_note",
@@ -465,6 +507,106 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       }
       await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: action === "confirm" ? "complaint_confirmed" : "complaint_reopened", target: `Reporter ${action === "confirm" ? "confirmed" : "reopened"} complaint #${complaint.id.slice(0, 8)}` });
       return sendJson(res, 200, { success: true, status: action === "confirm" ? "closed" : "submitted" });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed" });
+    }
+  }
+
+  // POSSIBLE DUPLICATES (PRD admin dashboard): flagged pairs, newest first
+  if (pathname === "/api/admin/duplicates" && req.method === "GET") {
+    const requester = await getRequester(req);
+    if (!requester?.profile?.is_active || requester.profile.role !== "administration") return sendJson(res, 403, { error: "Administration role required" });
+    if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Not set up yet.", notInstalled: true });
+    const cols = "id, title, description, summary_en, summary_as, ai_category, location_text, status, created_at";
+    const { data: flagged, error } = await supabaseAdmin.from("complaints").select(cols + ", possible_duplicate_of, duplicate_score")
+      .not("possible_duplicate_of", "is", null).eq("duplicate_dismissed", false).neq("status", "merged").order("created_at", { ascending: false });
+    if (error) return sendJson(res, 500, { error: error.message });
+    const ids = [...new Set((flagged || []).map((c: any) => c.possible_duplicate_of))];
+    const { data: originals } = ids.length ? await supabaseAdmin.from("complaints").select(cols).in("id", ids) : { data: [] };
+    const byId = new Map((originals || []).map((o: any) => [o.id, o]));
+    return sendJson(res, 200, {
+      pairs: (flagged || []).map((c: any) => ({ complaint: c, original: byId.get(c.possible_duplicate_of) || null, score: c.duplicate_score })),
+    });
+  }
+
+  // MERGE (admin confirms) or DISMISS a possible duplicate. Merged reporters then get the surviving complaint's updates.
+  if ((pathname === "/api/admin/merge" || pathname === "/api/admin/dismiss-duplicate") && req.method === "POST") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester?.profile?.is_active || requester.profile.role !== "administration") return sendJson(res, 403, { error: "Administration role required" });
+      if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Not set up yet.", notInstalled: true });
+      const { complaintId, intoId } = await parseBody(req);
+      const { data: c } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
+      if (!c) return sendJson(res, 404, { error: "Complaint not found" });
+      const now = new Date().toISOString();
+
+      if (pathname === "/api/admin/dismiss-duplicate") {
+        await supabaseAdmin.from("complaints").update({ possible_duplicate_of: null, duplicate_score: null, duplicate_dismissed: true, updated_at: now }).eq("id", c.id);
+        await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: "duplicate_dismissed", target: `Complaint #${c.id.slice(0, 8)} is not a duplicate` });
+        return sendJson(res, 200, { success: true });
+      }
+
+      const target = intoId || c.possible_duplicate_of;
+      if (!target || target === c.id) return sendJson(res, 400, { error: "Say which complaint to merge into." });
+      const { data: into } = await supabaseAdmin.from("complaints").select("id, status, duplicate_of").eq("id", target).maybeSingle();
+      if (!into) return sendJson(res, 404, { error: "Target complaint not found" });
+      if (into.status === "merged" || into.duplicate_of) return sendJson(res, 400, { error: "That complaint was itself merged; merge into the surviving one." });
+      await supabaseAdmin.from("complaints").update({ status: "merged", duplicate_of: into.id, possible_duplicate_of: null, updated_at: now }).eq("id", c.id);
+      // complaints already merged into this one follow it to the surviving complaint
+      await supabaseAdmin.from("complaints").update({ duplicate_of: into.id }).eq("duplicate_of", c.id);
+      await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: c.id, status: "merged", remark: `Merged into ${ticketRef(into.id)}`, changed_by: requester.user.id });
+      await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: "complaint_merged", target: `Complaint #${c.id.slice(0, 8)} merged into #${into.id.slice(0, 8)}` });
+      await notify([c.student_id], c.id, messages.statusChanged(ticketRef(c.id), "merged"));
+      return sendJson(res, 200, { success: true, mergedInto: into.id });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed" });
+    }
+  }
+
+  // ROUTING EDITOR (PRD P1, /admin/routing): posts and rules
+  if (pathname === "/api/admin/routing" && (req.method === "GET" || req.method === "PUT")) {
+    try {
+      const requester = await getRequester(req);
+      if (!requester?.profile?.is_active || requester.profile.role !== "administration") return sendJson(res, 403, { error: "Administration role required" });
+      if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Not set up yet.", notInstalled: true });
+
+      if (req.method === "PUT") {
+        const { authorities, rules } = await parseBody(req);
+        const errors: string[] = [];
+        const postRows = (Array.isArray(authorities) ? authorities : []).map((a: any) => {
+          if (!a.id || !a.post_title?.trim()) errors.push("Every post needs a title.");
+          if (a.email && !/^[^\s@]+@[^\s@]+$/.test(a.email)) errors.push(`Invalid email for ${a.post_title}.`);
+          return { id: a.id, post_title: String(a.post_title || "").trim(), person_name: a.person_name?.trim() || null, email: a.email?.trim().toLowerCase() || null, active: a.active !== false };
+        });
+        const ruleRows = (Array.isArray(rules) ? rules : []).map((r: any) => {
+          if (!CATEGORIES.includes(r.category)) errors.push("Unknown category: " + r.category);
+          if (!r.primary_authority_id) errors.push(`Category ${r.category} needs a primary post.`);
+          const hours = Number(r.response_hours);
+          if (!Number.isInteger(hours) || hours < 1 || hours > 2000) errors.push(`Response hours for ${r.category} must be 1 to 2000.`);
+          return {
+            category: r.category, primary_authority_id: r.primary_authority_id,
+            copy_authority_ids: (Array.isArray(r.copy_authority_ids) ? r.copy_authority_ids : []).filter((id: string) => id && id !== r.primary_authority_id),
+            escalate_to_id: r.escalate_to_id || null, response_hours: hours, active: r.active !== false,
+          };
+        });
+        if (errors.length) return sendJson(res, 400, { error: [...new Set(errors)].join(" ") });
+        for (const p of postRows) {
+          const { id, ...fields } = p;
+          const { error } = await supabaseAdmin.from("authorities").update(fields).eq("id", id);
+          if (error) return sendJson(res, 500, { error: "Failed to save post: " + error.message });
+        }
+        if (ruleRows.length) {
+          const { error } = await supabaseAdmin.from("routing_rules").upsert(ruleRows, { onConflict: "category" });
+          if (error) return sendJson(res, 500, { error: "Failed to save rules: " + error.message });
+        }
+        await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: "routing_edited", target: `Routing updated: ${postRows.length} posts, ${ruleRows.length} rules` });
+      }
+
+      const [{ data: posts }, { data: ruleList }] = await Promise.all([
+        supabaseAdmin.from("authorities").select("id, post_key, post_title, person_name, level, is_union, email, active").order("level", { ascending: false }).order("post_title"),
+        supabaseAdmin.from("routing_rules").select("category, primary_authority_id, copy_authority_ids, escalate_to_id, response_hours, active").order("category"),
+      ]);
+      return sendJson(res, 200, { authorities: posts || [], rules: ruleList || [], categories: CATEGORIES });
     } catch (err: any) {
       return sendJson(res, 500, { error: err.message || "Failed" });
     }
@@ -828,7 +970,9 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
           await supabaseAdmin.from("complaint_routes").update({ resolved_at: now }).eq("complaint_id", complaintId).eq("kind", "primary").is("resolved_at", null);
           await supabaseAdmin.from("complaints").update({ resolved_at: now }).eq("id", complaintId);
         }
-        if (await isRoutingInstalled()) await notify([complaint.student_id], complaintId, messages.statusChanged(ticketRef(complaintId), status));
+        if (await isRoutingInstalled()) {
+          await notify([complaint.student_id, ...(await mergedReporterIds(complaintId))], complaintId, messages.statusChanged(ticketRef(complaintId), status));
+        }
       }
 
       return sendJson(res, 200, {
@@ -1130,13 +1274,38 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         return sendJson(res, 403, { error: "Administration privileges required" });
       }
 
+      const installed = await isRoutingInstalled();
       const { data: complaints, error } = await supabaseAdmin
         .from("complaints")
-        .select("id, status, target_unit_id, target_unit:profiles!target_unit_id(unit_name, name)");
+        .select("id, status, category, created_at, target_unit_id, target_unit:profiles!target_unit_id(unit_name, name)"
+          + (installed ? ", ai_category, priority, location_id, location_text, resolved_at, closed_at, possible_duplicate_of, duplicate_dismissed" : ""));
 
       if (error) {
         return sendJson(res, 500, { error: error.message });
       }
+
+      // PRD dashboard: counts by status, category and place, and the average resolution time
+      const count = (key: (c: any) => string | null | undefined) => {
+        const out: Record<string, number> = {};
+        for (const c of (complaints || []) as any[]) { const k = key(c) || "Unspecified"; out[k] = (out[k] || 0) + 1; }
+        return out;
+      };
+      const resolvedTimes = ((complaints || []) as any[])
+        .map((c) => ({ start: Date.parse(c.created_at), end: Date.parse(c.resolved_at || c.closed_at || "") }))
+        .filter((t) => t.end > t.start);
+      const prd = {
+        byStatusAll: count((c) => c.status),
+        byCategory: count((c) => c.ai_category || c.category),
+        byLocation: count((c) => c.location_text || c.location_id),
+        byPriority: installed ? count((c) => (c.priority ? "P" + c.priority : null)) : {},
+        averageResolutionHours: resolvedTimes.length
+          ? Math.round((resolvedTimes.reduce((s, t) => s + (t.end - t.start), 0) / resolvedTimes.length / 3600e3) * 10) / 10
+          : null,
+        resolvedCount: resolvedTimes.length,
+        needsReview: ((complaints || []) as any[]).filter((c) => c.status === "needs_review").length,
+        possibleDuplicates: ((complaints || []) as any[]).filter((c) => c.possible_duplicate_of && !c.duplicate_dismissed && c.status !== "merged").length,
+        prdInstalled: installed,
+      };
 
       const byStatus: Record<string, number> = {
         submitted: 0,
@@ -1161,6 +1330,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
         total: (complaints || []).length,
         byStatus,
         byUnit,
+        ...prd,
       });
     } catch (err: any) {
       return sendJson(res, 500, { error: err.message || "Failed to calculate stats" });

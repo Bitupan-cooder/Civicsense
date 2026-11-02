@@ -188,3 +188,23 @@ export const ticketRef = (id: string) => 'CS-' + id.slice(0, 8).toUpperCase();
 
 /** PRD: with no answer 7 days after resolution, a complaint closes automatically. */
 export const AUTO_CLOSE_DAYS = 7;
+
+// ── Duplicate detection (PRD "AI design" 4) ──
+
+/** Similarity above this flags a possible duplicate: embeddings (PRD: about 0.80), word overlap without Gemini. */
+export const DUPLICATE_THRESHOLD = { embedding: 0.8, words: 0.5 } as const;
+
+const STOP = new Set(['the', 'a', 'an', 'in', 'on', 'at', 'of', 'to', 'and', 'is', 'are', 'was', 'for', 'from', 'since', 'with', 'no', 'not', 'r', 't', 'ৰ', 'ত', 'আৰু', 'নাই']);
+const words = (text: string) => new Set(
+  normaliseDigits(text).toLowerCase().normalize('NFC').split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 1 && !STOP.has(w)),
+);
+
+/** Word-overlap (Jaccard) similarity, 0…1. Works within one language only; cross-language needs embeddings. */
+export function textSimilarity(a: string, b: string): number {
+  const x = words(a);
+  const y = words(b);
+  if (!x.size || !y.size) return 0;
+  let both = 0;
+  for (const w of x) if (y.has(w)) both++;
+  return both / (x.size + y.size - both);
+}

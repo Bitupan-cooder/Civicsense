@@ -10,6 +10,7 @@ Students report campus problems (water, power, Wi-Fi, hostel, safety, labs) and 
 |---|---|
 | `src/site/` | Student site (React): landing page, sign-up with ID card, complaint form, campus map, status tracker. Sections in `sections/`, dialogs in `modals/`, state in `studentSession.ts`, `reportForm.ts` and `tracker.ts`. |
 | `src/site/campusMap.js`, `animations.js`, `analyzer.js`, `demoData.js` | Plain-JS modules the components import: the canvas campus map, the GSAP/Lenis scroll animations, the language/landmark detector, and local sample data. |
+| `docs/FRONTEND.md` | **For the frontend:** every route and screen, where its data comes from, and what not to break while styling. |
 | `src/admin/` | Official console (React): department, DUSU (social service) and administration logins. State and actions in `console.ts`. |
 | `src/toast.ts`, `src/civicAuth.ts` | Toast notifications and the types of `window.CivicAuth`, shared by both pages. |
 | `index.html`, `admin.html` | Thin HTML shells: `<head>`, the Supabase/civic-auth and campus-map-data `<script>` tags, and the React entry point. |
@@ -78,5 +79,6 @@ Until the migration is run, none of this appears and the site works exactly as b
 | `npm run preview` | Serves the production build **with** the API (needs `.env.local`) |
 | `npm run server` | API only, on port 3001 (no static files) |
 | `npm test` | Tests for the access rule, the PRD routing/safety rules (against its demo scenarios) and the AI module |
+| `npm run test:live -- <url>` | Live test of the database rules and the complaint flow against the real Supabase project, through a running dev server (default `http://localhost:3000`). Uses temporary `zz-migration-test-*` accounts and always deletes them again |
 
 Without a complete `.env.local` the pages still load, but every `/api/*` call returns a "Server not configured" error.

@@ -230,3 +230,8 @@ if(document.readyState !== 'loading'){
   document.addEventListener('DOMContentLoaded', init3DStage);
 }
 }
+
+/** The landing page stays mounted while other routes show; re-measure the scroll triggers when it is shown again. */
+export function refreshAnimations() {
+  ScrollTrigger.refresh();
+}

@@ -1,17 +1,19 @@
 // Markup converted 1:1 from the original admin.html (React migration, step 1).
 import { loadOfficialComplaints, logoutAdmin, openDocket, useConsole } from '../console';
 import { NotificationBell } from '../../NotificationBell';
+import { useLanguage } from '../../i18n';
 
 const MODE_TEXT = { administration: 'Central Administration', social_service: 'Social Party (DUSU Council)' } as Record<string, string>;
 
 export function AdminHeader() {
   const { profile } = useConsole();
+  const { lang } = useLanguage();
   return (
     <div className="top-header-wrap">
       {" "}
       <header className="nav-pill-bar">
         {" "}
-        <a href="index.html" className="brand">
+        <a href="/" className="brand">
           {" "}
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
             <path d="M11 2C11 2 4 6 4 13a7 7 0 0014 0C18 6 11 2 11 2z" fill="currentColor" opacity=".9" />
@@ -36,7 +38,7 @@ export function AdminHeader() {
             {" "}
           </span>
           {" "}
-          <NotificationBell userId={profile?.id} lang="en" onOpen={(id) => openDocket(id)} onLive={() => loadOfficialComplaints()} />          <div className="user-badge" id="headerUserBadge">
+          <NotificationBell userId={profile?.id} lang={lang} onOpen={(id) => openDocket(id)} onLive={() => loadOfficialComplaints()} />          <div className="user-badge" id="headerUserBadge">
             {" "}
             <span id="headerAvatar">
               {profile ? profile.name.slice(0, 2).toUpperCase() : 'DU'}
@@ -52,7 +54,7 @@ export function AdminHeader() {
         {" "}
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           {" "}
-          <a href="index.html" className="btn btn-blue" style={{ height: "32px", fontSize: "12px", padding: "0 14px", textDecoration: "none" }}>
+          <a href="/" className="btn btn-blue" style={{ height: "32px", fontSize: "12px", padding: "0 14px", textDecoration: "none" }}>
             ← Student Portal
           </a>
           {" "}
