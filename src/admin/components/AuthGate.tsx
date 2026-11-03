@@ -1,6 +1,7 @@
 // Markup converted 1:1 from the original admin.html (React migration, step 1).
 import { useState } from 'react';
 import { gateLogin, setGateField, switchGateRole, useConsole, type GateRole } from '../console';
+import { requestOfficialPasswordReset } from '../../civicAuth';
 
 const ROLE_NOTICE: Record<GateRole, [string, string, string]> = {
   department: ['Department Head Console:', ' Manage maintenance dispatch, update resolution milestones, and verify assigned tickets.', 'e.g. electrical@dibru.ac.in'],
@@ -11,6 +12,33 @@ const ROLE_NOTICE: Record<GateRole, [string, string, string]> = {
 export function AuthGate() {
   const g = useConsole();
   const [showPassword, setShowPassword] = useState(false);
+  const [resetBusy, setResetBusy] = useState(false);
+  const [resetMessage, setResetMessage] = useState('');
+  const [resetError, setResetError] = useState('');
+  const sendResetLink = async () => {
+    const emailInput = document.getElementById('gateEmail') as HTMLInputElement | null;
+    if (!g.gateEmail.trim()) {
+      setResetError('Enter your official email address first.');
+      setResetMessage('');
+      emailInput?.focus();
+      return;
+    }
+    if (emailInput && !emailInput.checkValidity()) {
+      emailInput.reportValidity();
+      return;
+    }
+    setResetBusy(true);
+    setResetError('');
+    setResetMessage('');
+    try {
+      await requestOfficialPasswordReset(g.gateEmail);
+      setResetMessage('If an official account exists for this email, a password reset link has been sent.');
+    } catch (err) {
+      setResetError((err as Error).message || 'Could not send the password reset email.');
+    } finally {
+      setResetBusy(false);
+    }
+  };
   const tab = (role: GateRole) => (g.gateRole === role
     ? { className: 'auth-subtab active', colors: { background: '#ffffff', color: 'var(--ink)' } }
     : { className: 'auth-subtab', colors: { background: 'transparent', color: '#4a6142' } });
@@ -93,7 +121,7 @@ export function AuthGate() {
                 Official Email
               </label>
               {" "}
-              <input type="email" id="gateEmail" required placeholder={placeholder} value={g.gateEmail} onChange={(e) => setGateField('gateEmail', e.target.value)} style={{ width: "100%", height: "40px", padding: "0 12px", border: "1.5px solid var(--line)", borderRadius: "8px", fontSize: "13px", boxSizing: "border-box", outline: "none" }} />
+              <input type="email" id="gateEmail" required placeholder={placeholder} value={g.gateEmail} onChange={(e) => { setGateField('gateEmail', e.target.value); setResetMessage(''); setResetError(''); }} style={{ width: "100%", height: "40px", padding: "0 12px", border: "1.5px solid var(--line)", borderRadius: "8px", fontSize: "13px", boxSizing: "border-box", outline: "none" }} />
               {" "}
             </div>
             {" "}
@@ -109,12 +137,19 @@ export function AuthGate() {
                   {showPassword ? "Hide" : "Show"}
                 </button>
               </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '7px' }}>
+                <button type="button" onClick={sendResetLink} disabled={resetBusy} style={{ border: 0, padding: '3px 0', background: 'transparent', color: 'var(--olive)', fontSize: '12px', fontWeight: 650, cursor: resetBusy ? 'wait' : 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px' }}>
+                  {resetBusy ? 'Sending reset link...' : 'Forgot password?'}
+                </button>
+              </div>
               {" "}
             </div>
             {" "}
             <div id="gateErrBox" style={{ display: g.gateError ? "block" : "none", background: "#fef2f2", border: "1px solid #fecaca", color: "#991b1b", padding: "10px 12px", borderRadius: "8px", fontSize: "12px", fontWeight: "600", marginBottom: "16px", lineHeight: "1.4" }}>
               {g.gateError}
             </div>
+            {resetMessage && <p role="status" style={{ background: '#eff8f1', border: '1px solid #cde8d0', color: '#176c3a', padding: '10px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, marginBottom: '14px', lineHeight: 1.4 }}>{resetMessage}</p>}
+            {resetError && <p role="alert" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: '10px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, marginBottom: '14px', lineHeight: 1.4 }}>{resetError}</p>}
             {" "}
             <button type="submit" id="gateSubmitBtn" className="btn" disabled={g.gateBusy} style={{ width: "100%", height: "44px", fontSize: "13.5px", fontWeight: "700", borderRadius: "8px" }}>
               {g.gateBusy ? 'Verifying credentials...' : <>{" "}Sign In to Console{" "}</>}

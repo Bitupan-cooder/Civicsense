@@ -293,6 +293,18 @@ export async function logout() {
   await client.auth.signOut();
 }
 
+export async function requestOfficialPasswordReset(email: string): Promise<void> {
+  const normalizedEmail = (email || '').trim().toLowerCase();
+  if (!normalizedEmail) throw new Error('Enter your official email address first.');
+  const { error } = await client.auth.resetPasswordForEmail(normalizedEmail, {
+    redirectTo: `${window.location.origin}/admin?password-reset=1`,
+  });
+  if (error) {
+    console.warn('Official password reset email could not be sent:', error.message);
+    throw new Error('We could not send a reset email right now. Check the address and try again.');
+  }
+}
+
 async function changePassword(newPassword: string) {
   if (!newPassword || newPassword.length < 8) throw new Error('Password must be at least 8 characters long.');
   const update = await client.auth.updateUser({ password: newPassword });
@@ -303,11 +315,11 @@ async function changePassword(newPassword: string) {
     .update({ must_change_password: false, updated_at: new Date().toISOString() })
     .eq('id', user.id);
   if (profileRes.error) console.warn('Could not reset must_change_password flag:', profileRes.error);
-  await logActivity(user.id, 'password_change', 'Initial temporary password replaced with permanent password');
+  await logActivity(user.id, 'password_change', 'Official password updated by account holder');
 }
 
 /** Blocking dialog for officials still on the temporary password the administration gave them. */
-export function ensurePasswordChangeModal() {
+export function ensurePasswordChangeModal(recovery = false) {
   const existing = document.getElementById('forcePasswordModal');
   if (existing) return existing;
 
@@ -319,11 +331,13 @@ export function ensurePasswordChangeModal() {
   modal.innerHTML =
     '<div style="background:#ffffff;border:1.5px solid #1a7a3a;border-radius:16px;max-width:460px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,0.2);overflow:hidden;">' +
     '  <div style="background:#1a7a3a;color:#ffffff;padding:16px 20px;font-weight:700;font-size:15px;letter-spacing:-0.01em;">' +
-    '    Security Notice: Set Permanent Password' +
+    '    ' + (recovery ? 'Reset Your Official Password' : 'Security Notice: Set Permanent Password') +
     '  </div>' +
     '  <div style="padding:22px 20px;">' +
     '    <p style="font-size:13px;color:#334155;line-height:1.5;margin-bottom:16px;">' +
-    '      Your account was provisioned with a temporary password by administration. You must set a personal password before accessing campus records.' +
+    '      ' + (recovery
+      ? 'Choose a new password for your official account to finish the reset and return to the console.'
+      : 'Your account was provisioned with a temporary password by administration. You must set a personal password before accessing campus records.') +
     '    </p>' +
     '    <div style="margin-bottom:14px;">' +
     '      <label style="display:block;font-size:12px;font-weight:700;color:#1a7a3a;margin-bottom:6px;text-transform:uppercase;">New Password</label>' +
@@ -335,7 +349,7 @@ export function ensurePasswordChangeModal() {
     '    </div>' +
     '    <div id="forcePwError" style="display:none;color:#b91c1c;font-size:12px;font-weight:600;margin-bottom:14px;"></div>' +
     '    <button id="forcePwSubmitBtn" style="width:100%;height:42px;background:#1a7a3a;color:#ffffff;border:none;border-radius:8px;font-size:13.5px;font-weight:700;cursor:pointer;">' +
-    '      Update Password and Continue' +
+    '      ' + (recovery ? 'Save New Password and Continue' : 'Update Password and Continue') +
     '    </button>' +
     '  </div>' +
     '</div>';
@@ -357,10 +371,15 @@ export function ensurePasswordChangeModal() {
     try {
       await changePassword(p1);
       modal.remove();
+      if (recovery) {
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('password-reset');
+        window.history.replaceState(window.history.state, '', cleanUrl.pathname + cleanUrl.search);
+      }
       showToast('Password updated successfully.', 'success');
     } catch (err) {
       btn.disabled = false;
-      btn.textContent = 'Update Password and Continue';
+      btn.textContent = recovery ? 'Save New Password and Continue' : 'Update Password and Continue';
       showError((err as Error).message || 'Failed to update password.');
     }
   };

@@ -114,16 +114,17 @@ export const shortRef = (id: string) => 'CS-' + id.slice(0, 8).toUpperCase();
 
 // ── AUTH ──
 
-async function enterWorkspace(profile: Profile, welcome = false): Promise<void> {
+async function enterWorkspace(profile: Profile, welcome = false, passwordRecovery = false): Promise<void> {
   update({ auth: 'workspace', profile, section: 'complaints' });
   if (profile.preferred_language) setLanguage(profile.preferred_language, { save: false });
   await loadOfficialComplaints();
   if (welcome) showToast('Welcome, ' + profile.name, 'success');
-  if (profile.must_change_password) auth.ensurePasswordChangeModal();
+  if (profile.must_change_password || passwordRecovery) auth.ensurePasswordChangeModal(passwordRecovery);
 }
 
 export async function initAuth(): Promise<void> {
   try {
+    const passwordRecovery = new URLSearchParams(window.location.search).get('password-reset') === '1';
     const sb = auth.getClient();
     if (!sb) { update({ auth: 'gate' }); return; }
     const session = (await sb.auth.getSession()).data?.session;
@@ -142,7 +143,7 @@ export async function initAuth(): Promise<void> {
       setTimeout(() => { window.location.href = '/'; }, 1200);
       return;
     }
-    await enterWorkspace(profile);
+    await enterWorkspace(profile, false, passwordRecovery);
   } catch {
     update({ auth: 'gate' });
   }
@@ -168,7 +169,10 @@ export async function gateLogin(): Promise<void> {
     update({ gateBusy: false });
     await enterWorkspace(profile, true);
   } catch (err) {
-    update({ gateBusy: false, gateError: errorText(err, 'Authentication failed.') });
+    const message = errorText(err, 'Authentication failed.');
+    update({ gateBusy: false, gateError: /invalid login credentials/i.test(message)
+      ? 'Email or password is incorrect. Check your details, or use Forgot password to reset it.'
+      : message });
   }
 }
 

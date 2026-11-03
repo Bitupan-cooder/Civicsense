@@ -56,17 +56,21 @@ export function AdminApp() {
       {auth === 'workspace' && <div id="authenticatedWorkspace">
         {/* ══════════ FLOATING TOP NAVIGATION BAR (MATCHING HOME) ══════════ */}
         <AdminHeader />
-        <ConsoleNav />
-        <DocketFromUrl />
+        <div className="console-layout">
+          <ConsoleNav />
+          <div className="console-content">
+            <DocketFromUrl />
         {/* ══════════ MAIN WORKSPACE ══════════ */}
-        <Routes>
-          <Route path="/admin" element={<AdminMain />} />
-          <Route path="/admin/review" element={<AdminOnly><ReviewQueuePage /></AdminOnly>} />
-          <Route path="/admin/duplicates" element={<AdminOnly><DuplicatesPage /></AdminOnly>} />
-          <Route path="/admin/stats" element={<AdminOnly><StatsPage /></AdminOnly>} />
-          <Route path="/admin/routing" element={<AdminOnly><RoutingEditorPage /></AdminOnly>} />
-          <Route path="*" element={<RoleHome />} />
-        </Routes>
+            <Routes>
+              <Route path="/admin" element={<AdminMain />} />
+              <Route path="/admin/review" element={<AdminOnly><ReviewQueuePage /></AdminOnly>} />
+              <Route path="/admin/duplicates" element={<AdminOnly><DuplicatesPage /></AdminOnly>} />
+              <Route path="/admin/stats" element={<AdminOnly><StatsPage /></AdminOnly>} />
+              <Route path="/admin/routing" element={<AdminOnly><RoutingEditorPage /></AdminOnly>} />
+              <Route path="*" element={<RoleHome />} />
+            </Routes>
+          </div>
+        </div>
       </div>}
       {/* /#authenticatedWorkspace */}
       {/* ══════════ REASSIGN UNIT MODAL (ADMIN ONLY) ══════════ */}
