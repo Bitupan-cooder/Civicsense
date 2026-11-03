@@ -1,4 +1,4 @@
-// Toast notifications (moved from the admin page script). Also on window.showToast for civic-auth.js.
+// Toast notifications (moved from the admin page script), shared by both pages.
 export function showToast(message: string, type: 'info' | 'success' | 'error' | 'warning' = 'info', duration = 3500): void {
   let container = document.getElementById('toast-container');
   if (!container) {

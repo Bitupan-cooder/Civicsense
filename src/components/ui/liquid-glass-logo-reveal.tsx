@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-import { cn } from "@/lib/utils"
+import { clsx } from "clsx"
 
 /*
  * 21st.dev Glass Reveal: the 21st.dev mark lingers big against the rim of a clear glass tile, the
@@ -894,7 +894,7 @@ export function GlassIconReveal({
       ref={wrapRef}
       role="img"
       aria-label={label}
-      className={cn("relative isolate cursor-pointer overflow-hidden select-none", className)}
+      className={clsx("relative isolate cursor-pointer overflow-hidden select-none", className)}
       style={{ backgroundColor: settings.background, ...style }}
       onClick={(e) => {
         engineRef.current?.replay()

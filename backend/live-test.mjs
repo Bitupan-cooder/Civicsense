@@ -10,7 +10,7 @@ import { readFileSync } from 'node:fs';
 const base = process.argv[2] || 'http://localhost:3000';
 process.loadEnvFile('.env.local');
 const URL_ = process.env.SUPABASE_URL;
-const ANON = readFileSync('public/js/civic-auth.js', 'utf8').match(/SUPABASE_ANON_KEY = '([^']+)'/)[1];
+const ANON = readFileSync('src/civicAuth.ts', 'utf8').match(/SUPABASE_ANON_KEY = '([^']+)'/)[1];
 const db = createClient(URL_, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 const must = (r, what) => { if (r.error) throw new Error(what + ': ' + r.error.message); return r.data; };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -46,7 +46,7 @@ async function api(path, who, method = 'GET', body) {
   return { status: res.status, json };
 }
 
-// the writes the student site makes (public/js/civic-auth.js submitComplaint); analyse=true then runs the AI + routing
+// the writes the student site makes (src/civicAuth.ts submitStudentComplaint); analyse=true then runs the AI + routing
 async function file(who, title, description, { hideName = false, analyse = true, ...extra } = {}) {
   const { data: c, error } = await who.client.from('complaints').insert({
     student_id: who.id, title, description, category: 'Other', visibility: 'administration', target_unit_id: null, status: 'submitted', ...extra,

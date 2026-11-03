@@ -541,6 +541,17 @@ The signed-in console (`/admin`, `/admin/review`, `/admin/duplicates`, `/admin/s
   - No console errors. The build and `npm test` (29) pass.
   - The only database writes were the account's sign-in entries in `activity_log`.
 
+### 3.21 Cleanup: browser client as a module, dead files removed — 2026-11-03
+
+| File | Change |
+|---|---|
+| [src/civicAuth.ts](src/civicAuth.ts) | Now *is* the browser client (was `public/js/civic-auth.js` on `window.CivicAuth`, plus three hand-written interfaces for it). Callers use `import * as auth from '…/civicAuth'`. Supabase comes from the npm package instead of the CDN `<script>`. Repeated fetch/auth-header code shares one `request()` helper; the two Cloudinary upload copies are one function. Unused functions dropped: `getProfile`, `getSession`, `loginDepartmentOrSocial`, `loginAdministration`, `enforceRoleGuard`, `checkRateLimit`/`clearRateLimit` exports, `fetchStudentIdCard`, `fetchAdminStats`, `analyseComplaint`. |
+| `index.html`, `admin.html` | Supabase CDN and `civic-auth.js` `<script>` tags removed. `window.showToast` removed (the module imports `showToast`). |
+| [backend/live-test.mjs](backend/live-test.mjs) | Reads the publishable key from `src/civicAuth.ts`. |
+| removed | `public/halden.html` (unrelated page), `metadata.json` (unused), `src/lib/utils.ts` (`cn()` only wrapped `clsx`). |
+
+Checked: type-check, `npm test`, build; both pages boot with no console errors; reads, signed-out errors and a failed login behave as before. Signed-in flows not re-run (they write to the live DB).
+
 ### 3.20 Student Sign-in 3D Card ([src/components/ui/sign-in-card-2.tsx](src/components/ui/sign-in-card-2.tsx))
 
 - **Modern interactive 3D card component:**

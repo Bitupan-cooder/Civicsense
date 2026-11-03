@@ -1,6 +1,7 @@
 // Who is signed in as a student, and the sign-in / registration / ID re-upload dialogs.
 import { useSyncExternalStore } from 'react';
-import { civicAuth, routingApi, type StudentProfile } from '../civicAuth';
+import type { StudentProfile } from '../civicAuth';
+import * as auth from '../civicAuth';
 import { showToast } from '../toast';
 import { setLanguage } from '../i18n';
 import { clearTrackerSession, loadStudentComplaints, openTracker, switchTrackerMode } from './tracker';
@@ -53,7 +54,7 @@ export function setStudentSession(profile: StudentProfile | null, idCardStatus?:
 export async function checkCurrentStudentSession(): Promise<void> {
   const startedAt = sessionVersion;
   try {
-    const sb = civicAuth().getClient();
+    const sb = auth.getClient();
     if (!sb) return;
     const session = (await sb.auth.getSession()).data?.session;
     if (session?.user) {
@@ -76,16 +77,16 @@ export function setReadingLanguage(lang: 'en' | 'as'): void {
   const p = state.profile;
   if (!p) return;
   update({ profile: { ...p, preferred_language: lang } });
-  if (p.id) routingApi().setPreferredLanguage(p.id, lang);
+  if (p.id) auth.setPreferredLanguage(p.id, lang);
 }
 
 export async function signOutStudent(): Promise<void> {
-  await civicAuth().logout();
+  await auth.logout();
   showToast('Signed out of student session.', 'info');
   setStudentSession(null);
 }
 
-/** Signed in as a student. Uses this store: CivicAuth.getProfile() stays null after a page reload on the student site. */
+/** Signed in as a student. Uses this store, which is restored from the Supabase session on page load. */
 export const isStudentSignedIn = (): boolean => !!state.profile;
 
 /** Nav button: the tracker when signed in as a student, otherwise the sign-in page (/login). */
@@ -112,10 +113,10 @@ export async function submitStudentLogin(email: string, password: string): Promi
   }
   update({ loginBusy: true, loginError: '' });
   try {
-    const res = await civicAuth().loginStudent(email, password);
+    const res = await auth.loginStudent(email, password);
     update({ loginBusy: false, authOpen: false });
     showToast('Signed in as ' + res.profile.name, 'success');
-    const card = await civicAuth().getClient().from('id_cards').select('status').eq('user_id', res.profile.id).maybeSingle();
+    const card = await auth.getClient().from('id_cards').select('status').eq('user_id', res.profile.id).maybeSingle();
     setStudentSession(res.profile, card.data ? card.data.status : 'pending');
     loadStudentComplaints();
     return true;
@@ -136,7 +137,7 @@ export async function submitStudentSignup(f: { name: string; email: string; pass
 
   update({ signupBusy: true, signupError: '' });
   try {
-    const registration = await civicAuth().signUpStudent({ name, email, password: f.password, file: f.file! }) as { profile?: StudentProfile & { id: string } };
+    const registration = await auth.signUpStudent({ name, email, password: f.password, file: f.file! }) as { profile?: StudentProfile & { id: string } };
     update({ signupBusy: false, authOpen: false });
     showToast('Registration complete. ID card uploaded for official verification.', 'success');
     if (registration.profile) {
@@ -159,7 +160,7 @@ export async function submitReuploadId(file: File | null): Promise<void> {
   if (!file) { update({ reuploadError: 'Please select a new valid ID card file.' }); return; }
   update({ reuploadBusy: true, reuploadError: '' });
   try {
-    await civicAuth().reuploadIdCard(file);
+    await auth.reuploadIdCard(file);
     update({ reuploadBusy: false, reuploadOpen: false });
     showToast('Student ID card re-uploaded. Status reset to pending verification.', 'success');
     checkCurrentStudentSession();

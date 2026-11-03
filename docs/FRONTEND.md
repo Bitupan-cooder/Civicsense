@@ -79,7 +79,7 @@ The migration (`backend/migrations/001_ai_routing_tracker.sql`) has been run on 
 
 ## Backend contract
 
-The client functions live on `window.CivicAuth` (`public/js/civic-auth.js`), and their TypeScript types are in `src/civicAuth.ts`. The ones these screens use:
+The client functions and their types are exports of `src/civicAuth.ts` (`import * as auth from ...`). The ones these screens use:
 
 | Function | Endpoint | Returns |
 |---|---|---|

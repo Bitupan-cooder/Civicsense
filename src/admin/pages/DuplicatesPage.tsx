@@ -2,10 +2,11 @@
 // merge. Reporters of a merged complaint then receive every update of the surviving one.
 // Styled in src/admin/console-redesign.css (hallmark redesign).
 //
-// Data: GET /api/admin/duplicates (CivicAuth.fetchDuplicates);
-// actions: CivicAuth.mergeComplaint(id, intoId) → POST /api/admin/merge, CivicAuth.dismissDuplicate(id) → POST /api/admin/dismiss-duplicate.
+// Data: GET /api/admin/duplicates (auth.fetchDuplicates);
+// actions: auth.mergeComplaint(id, intoId) → POST /api/admin/merge, auth.dismissDuplicate(id) → POST /api/admin/dismiss-duplicate.
 import { useCallback, useEffect, useState } from 'react';
-import { routingApi, type DuplicatePair, type DuplicateSide } from '../../civicAuth';
+import type { DuplicatePair, DuplicateSide } from '../../civicAuth';
+import * as auth from '../../civicAuth';
 import { useLanguage } from '../../i18n';
 import { ticketRef } from '../../logic';
 import { categoryLabel } from '../../RouteTracker';
@@ -34,7 +35,7 @@ export function DuplicatesPage() {
 
   const load = useCallback(async () => {
     setError(null);
-    try { setPairs((await routingApi().fetchDuplicates()).pairs); }
+    try { setPairs((await auth.fetchDuplicates()).pairs); }
     catch (err) { if ((err as { notInstalled?: boolean }).notInstalled) setNotInstalled(true); else setError((err as Error).message); }
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -58,11 +59,11 @@ export function DuplicatesPage() {
             <Side c={p.original} />
             {p.score != null && <p data-field="score">{t('dup.similarity')}: {Math.round(p.score * 100)}%</p>}
             <button type="button" disabled={busy === p.complaint.id || !p.original}
-              onClick={() => act(p.complaint.id, () => routingApi().mergeComplaint(p.complaint.id, p.original?.id), 'Merged.')}>
+              onClick={() => act(p.complaint.id, () => auth.mergeComplaint(p.complaint.id, p.original?.id), 'Merged.')}>
               {t('dup.merge')}
             </button>
             <button type="button" disabled={busy === p.complaint.id}
-              onClick={() => act(p.complaint.id, () => routingApi().dismissDuplicate(p.complaint.id), 'Dismissed.')}>
+              onClick={() => act(p.complaint.id, () => auth.dismissDuplicate(p.complaint.id), 'Dismissed.')}>
               {t('dup.dismiss')}
             </button>
           </li>

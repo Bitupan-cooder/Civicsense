@@ -12,9 +12,9 @@ Students report campus problems (water, power, Wi-Fi, hostel, safety, labs) and 
 | `src/site/campusMap.js`, `animations.js`, `analyzer.js`, `demoData.js` | Plain-JS modules the components import: the canvas campus map, the GSAP/Lenis scroll animations, the language/landmark detector, and local sample data. |
 | `docs/FRONTEND.md` | **For the frontend:** every route and screen, where its data comes from, and what not to break while styling. |
 | `src/admin/` | Official console (React): department, DUSU (social service) and administration logins. State and actions in `console.ts`. |
-| `src/toast.ts`, `src/civicAuth.ts` | Toast notifications and the types of `window.CivicAuth`, shared by both pages. |
-| `index.html`, `admin.html` | Thin HTML shells: `<head>`, the Supabase/civic-auth and campus-map-data `<script>` tags, and the React entry point. |
-| `public/js/civic-auth.js` | Shared browser client: Supabase auth, complaints, uploads, calls to `/api/*`. |
+| `src/toast.ts` | Toast notifications, shared by both pages. |
+| `index.html`, `admin.html` | Thin HTML shells: `<head>`, the campus-map-data `<script>` tags, and the React entry point. |
+| `src/civicAuth.ts` | Shared browser client (`import * as auth`): Supabase auth, complaints, uploads, calls to `/api/*`. |
 | `backend/api.ts` | Server API (`/api/*`): Cloudinary upload signing, signed file URLs, complaint workflow, admin account management. Uses the Supabase service-role key. |
 | `backend/access.ts` | Who-can-see-which-complaint rule used by the API. Mirrors `can_read_complaint()` in `schema.sql`; keep them in sync. |
 | `backend/schema.sql` | Database tables, Row Level Security policies and triggers. |
@@ -29,7 +29,7 @@ How it fits together:
 - Data-driven UI (sign-in state, dialogs, complaint form, tracker, official console) is React state: small stores (`useSyncExternalStore`) with actions, and components that render from them.
 - Code that draws or animates the page directly stays imperative, as ES modules: `campusMap.js` (canvas) and `animations.js` (GSAP, ScrollTrigger and Lenis from npm, pinned to the versions the page always used). `main.tsx` renders React synchronously, then starts these in the order and at the moment the old page script did.
 - `animations.js` changes some rendered elements directly (splits headings into words, adds decorations, sets inline transforms). Those components have no state, so React never re-renders them. Keep it that way, or move the animation for that element into the component.
-- `window` is only used where outside code needs it: `window.CivicAuth` (from `civic-auth.js`), `window.showToast` (used by `civic-auth.js`), and the campus map data globals from `Dibrugarh-University-Map-Kit/`.
+- `window` is only used for the campus map data globals from `Dibrugarh-University-Map-Kit/`.
 
 ## Setup
 

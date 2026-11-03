@@ -1,7 +1,8 @@
 // In-app notifications (PRD), shared by the student site and the official console. New ones arrive live
 // through Supabase Realtime. Hidden until migration 001 has been run.
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { routingApi, type AppNotification } from './civicAuth';
+import type { AppNotification } from './civicAuth';
+import * as auth from './civicAuth';
 
 // ── which PRD features the server has switched on (fetched once per page) ──
 let features = { routing: false, gemini: false };
@@ -13,7 +14,7 @@ export function useFeatures() {
       featureListeners.add(notify);
       if (!featuresLoaded) {
         featuresLoaded = true;
-        routingApi().fetchFeatures().then((f) => { features = f; featureListeners.forEach((n) => n()); });
+        auth.fetchFeatures().then((f) => { features = f; featureListeners.forEach((n) => n()); });
       }
       return () => { featureListeners.delete(notify); };
     },
@@ -48,8 +49,8 @@ export function NotificationBell({ userId, lang, onOpen, onLive }: Props) {
   useEffect(() => {
     if (!routing || !userId) { setItems([]); return; }
     let active = true;
-    routingApi().fetchNotifications().then((n) => { if (active) setItems(n); });
-    const unsubscribe = routingApi().subscribeNotifications(userId, (n) => {
+    auth.fetchNotifications().then((n) => { if (active) setItems(n); });
+    const unsubscribe = auth.subscribeNotifications(userId, (n) => {
       setItems((list) => [n, ...list.filter((x) => x.id !== n.id)]);
       live.current?.(n);
     });
@@ -62,7 +63,7 @@ export function NotificationBell({ userId, lang, onOpen, onLive }: Props) {
   const markRead = (ids: string[]) => {
     if (!ids.length) return;
     setItems((list) => list.map((n) => (ids.includes(n.id) ? { ...n, read: true } : n)));
-    routingApi().markNotificationsRead(ids);
+    auth.markNotificationsRead(ids);
   };
 
   return (

@@ -4,10 +4,11 @@
 // UNSTYLED ON PURPOSE: styling is done by the frontend. (AiPanel / RouteTracker / Replies are shared components the
 // official console also uses; restyle them in src/RouteTracker.tsx.)
 //
-// Data: CivicAuth.fetchComplaintById + CivicAuth.fetchRouting; reloads on live notifications for this complaint.
+// Data: auth.fetchComplaintById + auth.fetchRouting; reloads on live notifications for this complaint.
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { civicAuth, routingApi, type Complaint, type Routing } from '../../civicAuth';
+import type { Complaint, Routing } from '../../civicAuth';
+import * as auth from '../../civicAuth';
 import { useLanguage } from '../../i18n';
 import { STATUS_NAMES, ticketRef, waitingOn } from '../../logic';
 import { AiPanel, Replies, RouteTracker } from '../../RouteTracker';
@@ -56,9 +57,9 @@ export function ComplaintPage() {
   const load = useCallback(async () => {
     setError('');
     try {
-      const c = await civicAuth().fetchComplaintById(id);
+      const c = await auth.fetchComplaintById(id);
       setComplaint(c);
-      setRouting(c ? (await routingApi().fetchRouting([c.id]))[c.id] ?? null : null);
+      setRouting(c ? (await auth.fetchRouting([c.id]))[c.id] ?? null : null);
     } catch (err) { setError((err as Error).message || 'Unable to load this complaint.'); }
   }, [id]);
 

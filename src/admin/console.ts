@@ -1,6 +1,7 @@
 // State and actions of the official console (admin.html). Ported from the original admin.html page script.
 import { useSyncExternalStore } from 'react';
-import { routingApi, type DepartmentUnit, type Routing } from '../civicAuth';
+import type { DepartmentUnit, Routing } from '../civicAuth';
+import * as auth from '../civicAuth';
 import { showToast } from '../toast';
 import { setLanguage } from '../i18n';
 
@@ -39,28 +40,6 @@ export interface ActivityLog {
   actor?: { name: string; role: string; unit_name: string | null } | null;
 }
 
-interface AdminAuthApi {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getClient(): any;
-  login(email: string, password: string, roles: string[]): Promise<{ profile: Profile }>;
-  logout(): Promise<void>;
-  ensurePasswordChangeModal(): void;
-  fetchOfficialComplaints(): Promise<OfficialComplaint[]>;
-  fetchDepartmentUnits(): Promise<DepartmentUnit[]>;
-  getViewableIdCardUrl(userId: string): Promise<{ signedUrl: string; status?: string }>;
-  reviewStudentIdCard(userId: string, status: string): Promise<void>;
-  updateComplaintWorkflow(id: string, status: string, remark: string | null): Promise<void>;
-  reassignComplaint(id: string, targetUnitId: string, remark: string): Promise<void>;
-  getViewableEvidenceUrl(complaintId: string, publicId: string): Promise<{ signedUrl?: string }>;
-  fetchAdminOfficials(): Promise<Profile[]>;
-  createOfficialAccount(o: { email: string; password: string; name: string; role: string; unitName: string }): Promise<void>;
-  editOfficialProfile(id: string, name: string, unit: string): Promise<void>;
-  toggleOfficialActive(id: string, active: boolean): Promise<void>;
-  resetOfficialPassword(id: string, password: string): Promise<void>;
-  deleteOfficialAccount(id: string): Promise<void>;
-  fetchActivityLogs(limit: number): Promise<ActivityLog[]>;
-}
-const api = () => (window as unknown as { CivicAuth: AdminAuthApi }).CivicAuth;
 
 export type GateRole = 'department' | 'administration' | 'social_service';
 export type Section = 'complaints' | 'officials' | 'audit';
@@ -140,12 +119,12 @@ async function enterWorkspace(profile: Profile, welcome = false): Promise<void> 
   if (profile.preferred_language) setLanguage(profile.preferred_language, { save: false });
   await loadOfficialComplaints();
   if (welcome) showToast('Welcome, ' + profile.name, 'success');
-  if (profile.must_change_password) api().ensurePasswordChangeModal();
+  if (profile.must_change_password) auth.ensurePasswordChangeModal();
 }
 
 export async function initAuth(): Promise<void> {
   try {
-    const sb = api().getClient();
+    const sb = auth.getClient();
     if (!sb) { update({ auth: 'gate' }); return; }
     const session = (await sb.auth.getSession()).data?.session;
     if (!session?.user) { update({ auth: 'gate' }); return; }
@@ -185,7 +164,7 @@ export async function gateLogin(): Promise<void> {
   }
   update({ gateBusy: true, gateError: '' });
   try {
-    const { profile } = await api().login(email, state.gatePassword, ['administration', 'department', 'social_service']);
+    const { profile } = await auth.login(email, state.gatePassword, ['administration', 'department', 'social_service']);
     update({ gateBusy: false });
     await enterWorkspace(profile, true);
   } catch (err) {
@@ -195,7 +174,7 @@ export async function gateLogin(): Promise<void> {
 
 export async function logoutAdmin(): Promise<void> {
   if (!confirm('Log out of Official Redressal Workspace?')) return;
-  await api().logout();
+  await auth.logout();
   update({ auth: 'gate', gateEmail: '', gatePassword: '', complaints: [], loaded: false, officials: null, logs: null, profile: null });
   showToast('Logged out of official console.', 'info');
 }
@@ -205,9 +184,9 @@ export async function logoutAdmin(): Promise<void> {
 export async function loadOfficialComplaints(): Promise<void> {
   update({ loading: true, loadError: null });
   try {
-    const complaints = (await api().fetchOfficialComplaints()) || [];
+    const complaints = (await auth.fetchOfficialComplaints()) || [];
     update({ complaints, loaded: true, loading: false });
-    update({ routing: await routingApi().fetchRouting(complaints.map((c) => c.id)) });
+    update({ routing: await auth.fetchRouting(complaints.map((c) => c.id)) });
   } catch (err) {
     console.error('Failed to load official complaints:', err);
     update({ loading: false, loadError: errorText(err, 'Database connection error.') });
@@ -267,18 +246,18 @@ export function exportAuditCsv(): void {
 export function openDocket(docketId: string): void {
   update({ docketId });
   // route tracker: record that this official's post has seen it, then refresh its checkpoints
-  routingApi().markComplaintSeen(docketId).then(() => refreshRouting(docketId));
+  auth.markComplaintSeen(docketId).then(() => refreshRouting(docketId));
 }
 
 async function refreshRouting(complaintId: string): Promise<void> {
-  const r = await routingApi().fetchRouting([complaintId]);
+  const r = await auth.fetchRouting([complaintId]);
   update({ routing: { ...state.routing, ...r } });
 }
 
 /** Review queue: the administration routes a complaint by hand, optionally correcting the AI category. */
 export async function routeByHand(complaintId: string, category: string): Promise<void> {
   try {
-    const res = await routingApi().routeComplaintByHand(complaintId, category);
+    const res = await auth.routeComplaintByHand(complaintId, category);
     showToast('Complaint routed to ' + res.routes.map((r) => r.post_title).join(', ') + '.', 'success');
     await loadOfficialComplaints();
   } catch (err) {
@@ -290,7 +269,7 @@ export const closeDocket = () => update({ docketId: null });
 export async function openIdCard(userId: string, name: string, email: string): Promise<void> {
   update({ idCard: { userId, name, email, loading: true, url: null, status: null, error: null } });
   try {
-    const res = await api().getViewableIdCardUrl(userId);
+    const res = await auth.getViewableIdCardUrl(userId);
     if (state.idCard?.userId === userId) update({ idCard: { ...state.idCard, loading: false, url: res.signedUrl, status: res.status || 'pending' } });
   } catch (err) {
     if (state.idCard?.userId === userId) update({ idCard: { ...state.idCard, loading: false, error: errorText(err, 'Failed to load signed ID card from Cloudinary.') } });
@@ -302,7 +281,7 @@ export const closeIdCard = () => update({ idCard: null });
 export async function reviewIdCard(status: 'verified' | 'not_valid', userId = state.idCard?.userId): Promise<void> {
   if (!userId) return;
   try {
-    await api().reviewStudentIdCard(userId, status);
+    await auth.reviewStudentIdCard(userId, status);
     showToast('Student ID card successfully marked as ' + status.toUpperCase(), 'success');
     update({
       complaints: state.complaints.map((c) => (c.student_id === userId ? { ...c, idCard: { ...c.idCard, status } } : c)),
@@ -315,7 +294,7 @@ export async function reviewIdCard(status: 'verified' | 'not_valid', userId = st
 
 export async function viewEvidenceAttachment(complaintId: string, publicId: string): Promise<void> {
   try {
-    const res = await api().getViewableEvidenceUrl(complaintId, publicId);
+    const res = await auth.getViewableEvidenceUrl(complaintId, publicId);
     if (res?.signedUrl) window.open(res.signedUrl, '_blank', 'noopener,noreferrer');
     else showToast('Unable to open evidence preview URL.', 'error');
   } catch (err) {
@@ -332,7 +311,7 @@ export const closeWorkflow = () => update({ workflow: null });
 export async function submitWorkflow(remark: string): Promise<void> {
   const w = state.workflow;
   if (!w) return;
-  await api().updateComplaintWorkflow(w.complaintId, w.status, remark || (w.status === 'accepted' ? 'Grievance accepted by department authority.' : null));
+  await auth.updateComplaintWorkflow(w.complaintId, w.status, remark || (w.status === 'accepted' ? 'Grievance accepted by department authority.' : null));
   showToast('Complaint #' + w.complaintId.slice(0, 8).toUpperCase() + ' status calibrated to ' + w.status.toUpperCase(), 'success');
   closeWorkflow();
   await loadOfficialComplaints();
@@ -343,13 +322,13 @@ export const closeReassign = () => update({ reassignId: null });
 
 export async function submitReassign(targetUnitId: string, remark: string): Promise<void> {
   if (!state.reassignId) return;
-  await api().reassignComplaint(state.reassignId, targetUnitId, remark);
+  await auth.reassignComplaint(state.reassignId, targetUnitId, remark);
   showToast('Complaint reassigned successfully to destination department.', 'success');
   closeReassign();
   await loadOfficialComplaints();
 }
 
-export const fetchDepartmentUnits = () => api().fetchDepartmentUnits();
+export const fetchDepartmentUnits = () => auth.fetchDepartmentUnits();
 
 // ── ADMINISTRATION: SECTIONS, OFFICIAL ACCOUNTS, AUDIT LOG ──
 
@@ -362,7 +341,7 @@ export function switchAdminSection(section: Section): void {
 export async function loadAdminOfficials(): Promise<void> {
   update({ officials: null, officialsError: null });
   try {
-    update({ officials: (await api().fetchAdminOfficials()) || [] });
+    update({ officials: (await auth.fetchAdminOfficials()) || [] });
   } catch (err) {
     update({ officials: [], officialsError: errorText(err, 'Server error.') });
   }
@@ -378,7 +357,7 @@ export const openCreateOfficial = () => update({ createOpen: true, formKey: stat
 export const closeCreateOfficial = () => update({ createOpen: false });
 
 export async function createOfficial(o: { name: string; role: string; unit: string; email: string; password: string }): Promise<void> {
-  await api().createOfficialAccount({ email: o.email, password: o.password, name: o.name, role: o.role, unitName: o.unit });
+  await auth.createOfficialAccount({ email: o.email, password: o.password, name: o.name, role: o.role, unitName: o.unit });
   update({ createOpen: false, credentials: { name: o.name, role: o.role, unit: o.unit, email: o.email, password: o.password } });
   showToast('Official account for ' + o.name + ' created successfully.', 'success');
   await loadAdminOfficials();
@@ -406,7 +385,7 @@ export const closeEditOfficial = () => update({ editOfficial: null });
 
 export async function editOfficial(name: string, unit: string): Promise<void> {
   if (!state.editOfficial) return;
-  await api().editOfficialProfile(state.editOfficial.id, name, unit);
+  await auth.editOfficialProfile(state.editOfficial.id, name, unit);
   showToast('Official profile updated successfully.', 'success');
   closeEditOfficial();
   await loadAdminOfficials();
@@ -415,7 +394,7 @@ export async function editOfficial(name: string, unit: string): Promise<void> {
 export async function toggleOfficialStatus(id: string, isActive: boolean): Promise<void> {
   if (!confirm('Are you sure you want to ' + (isActive ? 'deactivate' : 'activate') + ' this official account?')) return;
   try {
-    await api().toggleOfficialActive(id, !isActive);
+    await auth.toggleOfficialActive(id, !isActive);
     showToast('Official account ' + (isActive ? 'deactivated' : 'activated') + ' successfully.', 'success');
     await loadAdminOfficials();
   } catch (err) {
@@ -430,7 +409,7 @@ export const closeResetPassword = () => update({ resetOfficial: null });
 export async function resetPassword(password: string): Promise<void> {
   const r = state.resetOfficial;
   if (!r) return;
-  await api().resetOfficialPassword(r.id, password);
+  await auth.resetOfficialPassword(r.id, password);
   update({ resetOfficial: null, credentials: { name: r.name, role: 'Department / Council', unit: r.unit, email: r.email, password } });
   showToast('Password reset successfully for ' + r.name, 'success');
   await loadAdminOfficials();
@@ -439,7 +418,7 @@ export async function resetPassword(password: string): Promise<void> {
 export async function deleteOfficial(id: string, name: string): Promise<void> {
   if (!confirm('CAUTION: Permanently delete official profile and login access for ' + name + '?\n\nThis action cannot be undone.')) return;
   try {
-    await api().deleteOfficialAccount(id);
+    await auth.deleteOfficialAccount(id);
     showToast('Official account permanently deleted.', 'success');
     await loadAdminOfficials();
   } catch (err) {
@@ -450,7 +429,7 @@ export async function deleteOfficial(id: string, name: string): Promise<void> {
 export async function loadActivityLogs(): Promise<void> {
   update({ logs: null, logsError: null });
   try {
-    update({ logs: await api().fetchActivityLogs(150) });
+    update({ logs: await auth.fetchActivityLogs(150) });
   } catch (err) {
     update({ logs: [], logsError: errorText(err, 'Server error.') });
   }
@@ -460,7 +439,7 @@ export const setLogFilter = (logFilter: string) => update({ logFilter });
 
 /** Reply to the reporter ('public', translated into both languages) or an internal note. Throws on failure. */
 export async function postReply(complaintId: string, body: string, visibility: 'public' | 'internal'): Promise<void> {
-  const res = await routingApi().postReply(complaintId, body, visibility);
+  const res = await auth.postReply(complaintId, body, visibility);
   showToast(visibility === 'public'
     ? 'Reply sent to the reporter' + (res.translated ? ' in both languages.' : '.')
     : 'Internal note added.', 'success');

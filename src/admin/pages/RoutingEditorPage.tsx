@@ -1,12 +1,13 @@
 // /admin/routing (PRD P1 "Routing editor"): who holds each post (names change every term, no code change) and
 // which post receives each category. Styled in src/admin/console-redesign.css (hallmark redesign).
 //
-// Data: GET /api/admin/routing (CivicAuth.fetchRoutingConfig) → { authorities, rules, categories };
-// save: PUT /api/admin/routing (CivicAuth.saveRoutingConfig) with the edited { authorities, rules }; the server
+// Data: GET /api/admin/routing (auth.fetchRoutingConfig) → { authorities, rules, categories };
+// save: PUT /api/admin/routing (auth.saveRoutingConfig) with the edited { authorities, rules }; the server
 // validates and returns the saved config. A post's "login email" links it to an official account: that official
 // then receives the post's complaints.
 import { useEffect, useState } from 'react';
-import { routingApi, type Authority, type RoutingConfig, type RoutingRule } from '../../civicAuth';
+import type { Authority, RoutingConfig, RoutingRule } from '../../civicAuth';
+import * as auth from '../../civicAuth';
 import { useLanguage } from '../../i18n';
 import { categoryLabel } from '../../RouteTracker';
 import { showToast } from '../../toast';
@@ -20,7 +21,7 @@ export function RoutingEditorPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    routingApi().fetchRoutingConfig().then(setConfig, (err) => {
+    auth.fetchRoutingConfig().then(setConfig, (err) => {
       if ((err as { notInstalled?: boolean }).notInstalled) setNotInstalled(true); else setError((err as Error).message);
     });
   }, []);
@@ -34,7 +35,7 @@ export function RoutingEditorPage() {
     if (!config) return;
     setSaving(true);
     try {
-      setConfig(await routingApi().saveRoutingConfig({ authorities: config.authorities, rules: config.rules }));
+      setConfig(await auth.saveRoutingConfig({ authorities: config.authorities, rules: config.rules }));
       showToast('Routing saved.', 'success');
     } catch (err) {
       showToast((err as Error).message, 'error');

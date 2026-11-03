@@ -8,7 +8,7 @@ import { CATEGORIES, CATEGORY_LABELS, STATUS_NAMES } from '../../logic';
 /** "in progress" → "In progress": sentence case, no shouting capitals. */
 const statusText = (s: string | null | undefined) => { const t = STATUS_NAMES[s || 'submitted']?.en ?? (s || '').replace(/_/g, ' '); return t.charAt(0).toUpperCase() + t.slice(1); };
 import { postReply, routeByHand, type OfficialComplaint } from '../console';
-import { routingApi } from '../../civicAuth';
+import * as auth from '../../civicAuth';
 import { loadOfficialComplaints } from '../console';
 
 /** Reply to the reporter (translated into both languages) or add an internal note for officials. */
@@ -48,7 +48,7 @@ function DocketRouting({ d, isAdmin }: { d: OfficialComplaint; isAdmin: boolean 
       <AiPanel routing={routing} />
       {isAdmin && !['closed', 'merged', 'rejected'].includes(d.status) && <form onSubmit={async (e) => {
         e.preventDefault(); setBusy(true); setEditError('');
-        try { await routingApi().editAnalysis(d.id, category, priority); await loadOfficialComplaints(); }
+        try { await auth.editAnalysis(d.id, category, priority); await loadOfficialComplaints(); }
         catch (err) { setEditError((err as Error).message); }
         finally { setBusy(false); }
       }} className="ai-correction-form">

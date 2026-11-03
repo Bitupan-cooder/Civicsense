@@ -1,6 +1,7 @@
 // State and actions of the complaint tracker modal ("My Complaints" and "Track by Complaint ID").
 import { useSyncExternalStore } from 'react';
-import { civicAuth, routingApi, type Complaint, type Routing } from '../civicAuth';
+import type { Complaint, Routing } from '../civicAuth';
+import * as auth from '../civicAuth';
 import { showToast } from '../toast';
 import { resolveLocationId } from '../locations';
 import { isStudentSignedIn } from './studentSession';
@@ -85,7 +86,7 @@ export async function loadStudentComplaints(): Promise<void> {
   const generation = sessionGeneration;
   update({ mineLoading: true, mineError: null, expanded: [] });
   try {
-    const mine = (await civicAuth().fetchStudentComplaints()) || [];
+    const mine = (await auth.fetchStudentComplaints()) || [];
     if (generation !== sessionGeneration) return;
     update({ mine, mineLoaded: true, mineLoading: false, demoIds: mine.slice(0, 4).map((c) => 'CS-' + c.id.slice(0, 8).toUpperCase()) });
     await loadRouting(mine.map((c) => c.id));
@@ -98,7 +99,7 @@ export async function loadStudentComplaints(): Promise<void> {
 async function loadRouting(ids: string[]): Promise<void> {
   if (!ids.length) return;
   const generation = sessionGeneration;
-  const routing = await routingApi().fetchRouting(ids);
+  const routing = await auth.fetchRouting(ids);
   if (generation !== sessionGeneration) return;
   update({ routing: { ...state.routing, ...routing } });
 }
@@ -143,7 +144,7 @@ export async function searchComplaint(): Promise<void> {
   }
   update({ searchError: null });
   try {
-    const found = await civicAuth().fetchComplaintById(id);
+    const found = await auth.fetchComplaintById(id);
     if (generation !== sessionGeneration) return;
     if (found) {
       update({ result: found });
@@ -159,7 +160,7 @@ export async function searchComplaint(): Promise<void> {
 export async function viewEvidenceFile(complaintId: string, publicId: string): Promise<void> {
   try {
     showToast('Requesting secure signed delivery link...', 'info');
-    const res = await civicAuth().getViewableEvidenceUrl(complaintId, publicId);
+    const res = await auth.getViewableEvidenceUrl(complaintId, publicId);
     if (res?.signedUrl) window.open(res.signedUrl, '_blank', 'noopener,noreferrer');
   } catch (err) {
     showToast((err as Error).message || 'Access denied to evidence file.', 'error');
@@ -180,7 +181,7 @@ export function initTracker(): void {
 /** Reporter confirms a resolved complaint is fixed (closed) or reopens it with a note (PRD step 7). */
 export async function confirmResolution(complaintId: string, action: 'confirm' | 'reopen', note = ''): Promise<boolean> {
   try {
-    await routingApi().confirmComplaint(complaintId, action, note);
+    await auth.confirmComplaint(complaintId, action, note);
     showToast(action === 'confirm' ? 'Thanks: the complaint is now closed.' : 'Complaint reopened and sent back to the responsible post.', 'success');
     await loadStudentComplaints();
     return true;

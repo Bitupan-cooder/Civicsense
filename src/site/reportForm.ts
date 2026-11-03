@@ -1,7 +1,8 @@
 // State and actions of the complaint form. Shared by the form, the success card, the category cards
 // (pre-filled examples) and the campus map (campusMap.js calls setReportPlace).
 import { useSyncExternalStore } from 'react';
-import { civicAuth, type Analysis, type DepartmentUnit } from '../civicAuth';
+import type { Analysis, DepartmentUnit } from '../civicAuth';
+import * as auth from '../civicAuth';
 import { loadStudentComplaints } from './tracker';
 import { analyzeComplaint } from './analyzer.js';
 import { showToast } from '../toast';
@@ -113,7 +114,7 @@ export function setVisibility(visibility: Visibility): void {
 export async function loadDepartmentUnits(): Promise<void> {
   if (state.units?.length) return;
   try {
-    update({ units: (await civicAuth().fetchDepartmentUnits()) || [] });
+    update({ units: (await auth.fetchDepartmentUnits()) || [] });
   } catch (err) {
     console.error('Failed to load department units:', err);
   }
@@ -169,7 +170,7 @@ export function removeEvidenceFile(index: number): void {
 /** Validates and submits (was submitReport). Returns the field to focus when validation fails. */
 export async function submitReport(): Promise<FocusField | null> {
   update({ submitError: '' });
-  const sb = civicAuth().getClient();
+  const sb = auth.getClient();
   const session = sb ? (await sb.auth.getSession()).data.session : null;
   if (!session?.user) {
     update({ submitError: 'You must be signed in with your student account to register and track a grievance.' });
@@ -189,7 +190,7 @@ export async function submitReport(): Promise<FocusField | null> {
 
   try {
     const place = state.location === 'OTHER' ? state.customLoc.trim() : state.location;
-    const complaint = await civicAuth().submitStudentComplaint({
+    const complaint = await auth.submitStudentComplaint({
       title, description: desc, visibility: state.visibility, targetUnitId, evidenceFiles: state.files,
       location: place || null, hideName: state.hideName,
     });
