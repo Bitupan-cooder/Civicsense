@@ -16,18 +16,31 @@ import { Footer } from './sections/Footer';
 import { TrackerModal } from './modals/TrackerModal';
 import { StudentAuthModal } from './modals/StudentAuthModal';
 import { ReuploadIdModal } from './modals/ReuploadIdModal';
+import { StartupLoader } from './components/StartupLoader';
 
 const LANDING_PATHS = ['/'];
 
 export function SiteApp() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   const onLanding = LANDING_PATHS.includes(pathname);
   useEffect(() => {
     document.body.classList.toggle('route-page', !onLanding);
-    if (onLanding) refreshAnimations(); else window.scrollTo(0, 0);
-  }, [onLanding]);
+    if (onLanding) {
+      refreshAnimations();
+      return;
+    }
+
+    if (hash) {
+      const target = document.getElementById(decodeURIComponent(hash.slice(1)));
+      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      // Route changes should reset to the top without visibly dragging the scrollbar.
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, hash, onLanding]);
   return (
     <>
+      <StartupLoader />
       <Landing />
       <Routes>
         <Route path="/" element={null} />

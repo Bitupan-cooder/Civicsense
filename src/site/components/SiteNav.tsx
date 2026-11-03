@@ -1,13 +1,17 @@
 import { Link } from 'react-router-dom';
 import { StudentNavButton, StudentNotifications } from './StudentAuthWidgets';
+import { BrandMark } from './BrandMark';
+import { LanguageToggle } from '../../i18n';
+import { signOutStudent, useStudentSession } from '../studentSession';
 
 /** Shared navigation used by the index hero and standalone report routes. */
-export function SiteNav({ standalone = false }: { standalone?: boolean }) {
+export function SiteNav({ standalone = false, pageShell = false }: { standalone?: boolean; pageShell?: boolean }) {
   const home = standalone ? '/' : '#hero';
   const anchor = (id: string) => standalone ? `/#${id}` : `#${id}`;
+  const { profile } = useStudentSession();
 
   return (
-    <nav className={`nav${standalone ? ' report-page-nav' : ''}`} aria-label="Main navigation">
+    <nav className={`nav${standalone ? ' report-page-nav' : ''}${pageShell ? ' page-shell-nav' : ''}`} aria-label="Main navigation">
       {' '}
       {standalone ? (
         <Link className="brand" to="/" aria-label="CivicSense home">
@@ -38,7 +42,19 @@ export function SiteNav({ standalone = false }: { standalone?: boolean }) {
       <div className="nav-actions">
         {' '}
         <StudentNotifications />
-        <StudentNavButton standalone={standalone} />
+        {pageShell ? (
+          profile ? (
+            <button className="btn-outline nav-student-button" type="button" onClick={() => void signOutStudent()} aria-label="Sign out">
+              <span key={profile.id} className="nav-account-label">{profile.name}</span>
+            </button>
+          ) : (
+            <>
+              <Link className="btn-outline nav-track-link" to="/login">Sign In</Link>
+              <Link className="btn nav-student-button" to="/login?mode=signup">Sign Up</Link>
+            </>
+          )
+        ) : <StudentNavButton standalone={standalone} />}
+        {pageShell && <LanguageToggle />}
         {' '}
         <Link className="btn-outline nav-track-link" to="/report?view=mine#report-tracker" aria-label="Track status">
           <span className="nav-track-long">Track Status</span>
@@ -50,11 +66,3 @@ export function SiteNav({ standalone = false }: { standalone?: boolean }) {
   );
 }
 
-function BrandMark() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-      <path d="M11 2C11 2 4 6 4 13a7 7 0 0014 0C18 6 11 2 11 2z" fill="currentColor" opacity=".9" />
-      <line x1="11" y1="14" x2="11" y2="20" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}

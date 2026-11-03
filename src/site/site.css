@@ -10,6 +10,7 @@ html{background:#c8e0b0}
 html.lenis,html.lenis body{height:auto}
 .lenis.lenis-smooth{scroll-behavior:auto!important}
 body{font-family:"Inter Tight",system-ui,sans-serif;color:var(--ink);background:transparent;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body.site-loading{overflow:hidden}
 img,video{display:block;max-width:100%}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit;cursor:pointer}
@@ -30,6 +31,12 @@ button{font-family:inherit;cursor:pointer}
 .w{display:inline-block;will-change:transform,filter,opacity}
 .glass{position:absolute;border-radius:12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.55);-webkit-backdrop-filter:blur(10px) saturate(1.2);backdrop-filter:blur(10px) saturate(1.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
 .grid-sq{position:absolute;border:1px solid #c8e0b0;border-radius:10px;pointer-events:none}
+.startup-loader{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;overflow:hidden;background:#f8fbf3;opacity:1;transition:opacity .3s ease,visibility .3s ease}
+.startup-loader.is-leaving,.startup-loader.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+.startup-loader.is-hydrated #startup-loader-fallback{display:none!important}
+.startup-loader-brand{display:block;width:min(56vw,220px);height:min(56vw,220px)}
+.startup-loader-mark{position:relative;width:100%;height:100%;overflow:hidden;border-radius:0;background:#f8fbf3!important}
+@media(prefers-reduced-motion:reduce){.startup-loader{transition:none}body.site-entered .nav,.nav-account-label{animation:none}}
 
 /* ── KEYFRAMES ───────────────────────────────────────── */
 @keyframes driftA{to{transform:translateX(26px) translateY(4px)}}
@@ -45,11 +52,12 @@ button{font-family:inherit;cursor:pointer}
 
 /* ── APP ─────────────────────────────────────────────── */
 #app{position:relative;z-index:1;background:#fff;transform-origin:50% 50vh;overflow:clip}
+body.intro-pending #app{visibility:hidden}
 body.intro #app{transform:scale(.9);border-radius:28px}
 
 /* ══════════════════════ HERO ════════════════════════ */
 .hero{position:relative;height:100vh;min-height:640px;overflow:hidden;background:var(--bg)}
-.nav{position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:26px;height:48px;padding:0 8px 0 16px;border-radius:0 0 20px 20px;background:rgba(255,255,255,.95);box-shadow:0 8px 26px rgba(0,0,0,.06),0 1px 0 rgba(255,255,255,.9) inset,0 0 0 1px rgba(0,0,0,.05);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);white-space:nowrap}
+.nav{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:26px;height:48px;padding:0 8px 0 16px;border-radius:0 0 20px 20px;background:rgba(255,255,255,.95);box-shadow:0 8px 26px rgba(0,0,0,.06),0 1px 0 rgba(255,255,255,.9) inset,0 0 0 1px rgba(0,0,0,.05);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);white-space:nowrap}
 .nav::before,.nav::after{content:'';position:absolute;top:0;width:16px;height:16px;pointer-events:none}
 .nav::before{left:-16px;background:radial-gradient(circle at 0 100%,transparent 16px,rgba(255,255,255,.95) 16.5px)}
 .nav::after{right:-16px;background:radial-gradient(circle at 100% 100%,transparent 16px,rgba(255,255,255,.95) 16.5px)}
@@ -58,6 +66,11 @@ body.intro #app{transform:scale(.9);border-radius:28px}
 .nav-links a:hover{color:var(--olive)}
 .nav-actions{display:flex;gap:8px;align-items:center}
 .nav-student-button{height:32px;padding:0 14px;font-size:12px}
+.nav-student-button{min-width:126px;transition:background .25s ease,color .25s ease,box-shadow .25s ease}
+.nav-account-label{display:inline-block;animation:nav-label-enter .3s ease both}
+@keyframes nav-label-enter{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+body.site-entered .nav{animation:nav-enter .65s cubic-bezier(.2,.75,.25,1) both}
+@keyframes nav-enter{from{opacity:0;transform:translate(-50%,-14px)}to{opacity:1;transform:translate(-50%,0)}}
 .nav-track-link{height:32px;padding:0 14px;font-size:12px}
 .nav-track-short{display:none}
 .hero-backdrop-title{position:absolute;left:0;right:0;margin:0 auto;bottom:clamp(340px,44vh,470px);width:100%;text-align:center;font-family:"Inter Tight",system-ui,sans-serif;font-size:clamp(46px,10.5vw,156px);font-weight:800;letter-spacing:-.04em;line-height:.92;color:#8abe05;text-shadow:0 4px 30px rgba(30,168,84,.16),0 1px 4px rgba(0,0,0,.04);z-index:2;pointer-events:none;user-select:none;white-space:nowrap}

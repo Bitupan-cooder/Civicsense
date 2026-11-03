@@ -8,6 +8,7 @@ import Lenis from 'lenis';
 export function initAnimations() {
   if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
     document.body.classList.remove('intro');
+    document.body.classList.remove('intro-pending');
     document.querySelector('.backdrop')?.remove();
     return;
   }
@@ -56,7 +57,9 @@ export function initAnimations() {
   /* ══════════ INTRO ══════════ */
   lenis.stop();
   var hw = document.querySelectorAll('#heroTitle .w,#heroTitle em .w');
-  gsap.set(hw, { opacity: 0, y: 24, filter: 'blur(10px)' }); gsap.set('.nav', { xPercent: -50, x: 0, opacity: 0, y: -16 }); // keep the CSS translateX(-50%) as a percentage; GSAP would otherwise freeze it in px before the web font loads
+  gsap.set(hw, { opacity: 0, y: 24, filter: 'blur(10px)' });
+  // Keep the hero covered until its one-time intro animation has its starting styles.
+  document.body.classList.remove('intro-pending');
   gsap.timeline({
     delay: .25, onComplete: function () {
       document.body.classList.remove('intro'); gsap.set('#app', { clearProps: 'all' });
@@ -64,7 +67,6 @@ export function initAnimations() {
     }
   })
     .fromTo('#app', { scale: .9, borderRadius: 28 }, { scale: 1, borderRadius: 0, duration: 1.4, ease: 'expo.inOut' })
-    .to('.nav', { opacity: 1, y: 0, duration: .8, ease: 'power3.out' }, '-=.5')
     .to(hw, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1, stagger: .07, ease: 'power3.out' }, '-=.7')
     .from('.hero-backdrop-title', { opacity: 0, duration: 1.2, ease: 'power3.out', clearProps: 'all' }, '-=.8')
     .from('.cloud-l', { x: -120, opacity: 0, duration: 1.6, ease: 'power3.out' }, .4)

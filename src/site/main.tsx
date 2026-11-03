@@ -22,7 +22,11 @@ const root = createRoot(document.getElementById('root')!);
 // the English/Assamese choice is saved to the signed-in student's profile (PRD)
 setLanguagePersister((lang) => setReadingLanguage(lang));
 flushSync(() => root.render(<StrictMode><BrowserRouter><SiteApp /></BrowserRouter></StrictMode>));
-initAnimations();
+// Let the startup logo reveal finish first so the original landing-page intro is visible afterward.
+window.addEventListener('civicsense:startup-complete', () => {
+  initAnimations();
+  document.body.classList.add('site-entered');
+}, { once: true });
 checkCurrentStudentSession();
 initReportForm();
 initTracker();

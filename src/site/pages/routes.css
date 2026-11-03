@@ -13,6 +13,11 @@ body.route-page { margin: 0; background: #f8fbf3 !important; }
 [data-page] > header nav > a:first-child { margin-right: auto; color: var(--olive); font-size: 17px; font-weight: 750; letter-spacing: -.04em; }
 [data-page] > header nav > a:not(:first-child) { color: #344733; font-size: 13px; font-weight: 600; }
 [data-page] > header nav button { min-height: 34px; padding: 0 12px; border: 1px solid #d6e7cb; border-radius: 999px; background: #f3f8ee; color: var(--olive); font-size: 12px; font-weight: 700; }
+[data-page] > header.page-shell-header { position: relative; top: auto; z-index: 25; height: 48px; padding: 0; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-page] > header.page-shell-header > nav.page-shell-nav { position: fixed; width: min(900px, calc(100% - 32px)); min-width: min(560px, calc(100% - 32px)); max-width: calc(100% - 32px); min-height: 48px; margin: 0; padding: 0 8px 0 16px; flex-wrap: nowrap; gap: 26px; border: 0; border-radius: 0 0 20px 20px; background: rgba(255,255,255,.95); box-shadow: 0 8px 26px rgba(0,0,0,.06),0 1px 0 rgba(255,255,255,.9) inset,0 0 0 1px rgba(0,0,0,.05); }
+[data-page] > header.page-shell-header > nav.page-shell-nav .nav-actions { flex-wrap: nowrap; gap: 6px; }
+[data-page] > header.page-shell-header > nav.page-shell-nav .nav-actions button[lang] { min-height: 30px; padding: 0 8px; background: transparent; }
+[data-page] > header.page-shell-header > nav.page-shell-nav .nav-student-button { min-height: 32px; padding: 0 12px; background: var(--olive); color: #fff; }
 [data-page] > main { width: min(900px, calc(100% - 36px)); flex: 1; margin: clamp(28px, 6vh, 64px) auto 72px; padding: clamp(20px, 4vw, 36px); border: 1px solid #e0edd4; border-radius: 24px; background: rgba(255,255,255,.96); box-shadow: 0 18px 54px rgba(39,82,27,.08); }
 [data-page] > main > h1 { margin: 0 0 22px; color: var(--ink); font-family: var(--display-font); font-size: clamp(30px, 5vw, 44px); font-weight: 600; letter-spacing: -.035em; line-height: 1.05; }
 [data-page] > main form { display: grid; gap: 16px; }
@@ -155,12 +160,21 @@ body.route-page { margin: 0; background: #f8fbf3 !important; }
   [data-page] > header nav { gap: 8px 12px; padding: 8px 10px; border-radius: 15px; }
   [data-page] > header nav > a:first-child { flex-basis: 100%; margin: 0; }
   [data-page] > header nav > a:not(:first-child) { font-size: 12px; }
+  [data-page] > header.page-shell-header > nav.page-shell-nav { width: calc(100% - 16px); min-width: 0; max-width: none; gap: 8px; padding: 0 8px 0 10px; }
+  [data-page] > header.page-shell-header > nav.page-shell-nav .nav-actions { gap: 4px; }
+  [data-page] > header.page-shell-header > nav.page-shell-nav .nav-actions button[lang] { display: none; }
+  [data-page] > header.page-shell-header > nav.page-shell-nav .nav-track-link { height: 30px; padding: 0 8px; font-size: 11px; }
+  [data-page] > header.page-shell-header > nav.page-shell-nav .nav-student-button { height: 30px; padding: 0 8px; font-size: 11px; }
+  [data-page] > header.page-shell-header > nav.page-shell-nav .nav-actions a[href*="mode=signup"] { display: none; }
   [data-page] > main { width: calc(100% - 20px); margin: 18px auto 38px; padding: 18px 14px; border-radius: 18px; }
   [data-page] > main > h1 { margin-bottom: 18px; font-size: clamp(28px, 8vw, 36px); }
   [data-page] > main > ul > li { grid-template-columns: 1fr; gap: 7px; padding: 13px; }
   .reply-marquee { height: 380px; }
   .reply-marquee-tilt { inset-inline: -42%; transform: rotateX(7deg) rotateY(-3deg) rotateZ(-3deg) scale(.96); }
   .reply-marquee-column:nth-child(2),.reply-marquee-column:nth-child(4) { padding-top: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-shell-nav { animation: none; }
 }
 
 @media (max-width: 420px) {

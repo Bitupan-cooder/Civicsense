@@ -32,7 +32,9 @@ export function StudentNavButton({ standalone = false }: { standalone?: boolean 
   const { profile } = useStudentSession();
   return (
     <button className="btn-outline nav-student-button" id={standalone ? undefined : 'navStudentBtn'} onClick={() => handleNavStudentClick()}>
-      {profile ? 'Student: ' + profile.name.split(' ')[0] : 'Student Sign In'}
+      <span key={profile?.id ?? 'signed-out'} className="nav-account-label">
+        {profile ? 'Student: ' + profile.name.split(' ')[0] : 'Student Sign In'}
+      </span>
     </button>
   );
 }
