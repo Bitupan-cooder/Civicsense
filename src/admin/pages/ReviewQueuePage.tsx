@@ -1,5 +1,5 @@
 // /admin/review (PRD admin dashboard "review queue"): low-confidence results, non-complaints and failed AI calls,
-// routed by hand. UNSTYLED ON PURPOSE: styling is done by the frontend.
+// routed by hand. Styled in src/admin/console-redesign.css (hallmark redesign).
 //
 // Data: console.ts store (complaints with status 'needs_review', routing[id] for the AI suggestion);
 // actions: routeByHand(id, category) → POST /api/admin/route-complaint; openDocket(id) for the full detail.

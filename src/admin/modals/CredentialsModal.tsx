@@ -44,7 +44,7 @@ export function CredentialsModal() {
             {" "}
             <div>
               {" "}
-              <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase" }}>
+              <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)" }}>
                 Official:
               </span>
               {" "}
@@ -56,7 +56,7 @@ export function CredentialsModal() {
             {" "}
             <div>
               {" "}
-              <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase" }}>
+              <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)" }}>
                 Email:
               </span>
               {" "}
@@ -68,7 +68,7 @@ export function CredentialsModal() {
             {" "}
             <div>
               {" "}
-              <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase" }}>
+              <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)" }}>
                 Unit:
               </span>
               {" "}
@@ -82,7 +82,7 @@ export function CredentialsModal() {
               {" "}
               <div>
                 {" "}
-                <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", display: "block" }}>
+                <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", display: "block" }}>
                   Temporary Password
                 </span>
                 {" "}

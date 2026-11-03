@@ -1,5 +1,5 @@
 // /admin/stats (PRD admin dashboard "statistics"): counts by status, category, place and priority, and the average
-// resolution time. UNSTYLED ON PURPOSE: styling is done by the frontend (the PRD suggests Recharts for charts;
+// resolution time. Styled in src/admin/console-redesign.css (the PRD suggests Recharts for charts;
 // each `counts` object below is ready to map to chart data: Object.entries(counts) → [{ name, value }]).
 //
 // Data: GET /api/admin/stats (CivicAuth.fetchStats). Category, place and priority need migration 001
@@ -37,21 +37,21 @@ export function StatsPage() {
   return (
     <section className="workflow-page" aria-label={t('stats.title')}>
       <h1>{t('stats.title')}</h1>
-      <button type="button" disabled={running} onClick={async () => {
+      <button type="button" className="stats-maintenance" title="Escalate overdue complaints and close resolutions the reporter did not answer within 7 days" disabled={running} onClick={async () => {
         setRunning(true); setError(null);
         try { const result = await routingApi().runMaintenance(); setMaintenanceResult(`Deadline checks complete. ${result.escalated} overdue cases notified.`); setStats(await routingApi().fetchStats()); }
         catch (err) { setError((err as Error).message); }
         finally { setRunning(false); }
-      }}>{running ? 'Checking deadlines…' : 'Check overdue cases and close expired resolutions'}</button>
+      }}>{running ? 'Checking deadlines…' : 'Run deadline check'}</button>
       {maintenanceResult && <p role="status">{maintenanceResult}</p>}
       <PageState loading={!stats && !error} error={error} />
       {stats && (
         <>
-          <dl>
-            <dt>{t('stats.total')}</dt><dd>{stats.total}</dd>
-            <dt>{t('stats.avgResolution')}</dt><dd>{stats.averageResolutionHours ?? '—'}</dd>
-            <dt>{t('nav.review')}</dt><dd>{stats.needsReview}</dd>
-            <dt>{t('nav.duplicates')}</dt><dd>{stats.possibleDuplicates}</dd>
+          <dl className="stats-summary">
+            <div><dt>{t('stats.total')}</dt><dd>{stats.total}</dd></div>
+            <div><dt>{t('stats.avgResolution')}</dt><dd>{stats.averageResolutionHours ?? '—'}</dd></div>
+            <div><dt>{t('nav.review')}</dt><dd>{stats.needsReview}</dd></div>
+            <div><dt>{t('nav.duplicates')}</dt><dd>{stats.possibleDuplicates}</dd></div>
           </dl>
           <Counts title="stats.byStatus" counts={stats.byStatusAll} label={(k) => STATUS_NAMES[k]?.[lang] ?? k} />
           <Counts title="stats.byCategory" counts={stats.byCategory} label={categoryLabel} />

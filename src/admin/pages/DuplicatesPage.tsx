@@ -1,6 +1,6 @@
 // /admin/duplicates (PRD admin dashboard "possible duplicates"): pairs flagged by the AI; the admin confirms every
 // merge. Reporters of a merged complaint then receive every update of the surviving one.
-// UNSTYLED ON PURPOSE: styling is done by the frontend.
+// Styled in src/admin/console-redesign.css (hallmark redesign).
 //
 // Data: GET /api/admin/duplicates (CivicAuth.fetchDuplicates);
 // actions: CivicAuth.mergeComplaint(id, intoId) → POST /api/admin/merge, CivicAuth.dismissDuplicate(id) → POST /api/admin/dismiss-duplicate.

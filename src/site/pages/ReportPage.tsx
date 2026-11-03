@@ -1,15 +1,23 @@
 import { useEffect, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ReportAuthGate } from '../components/ReportForm';
-import { signOutStudent, useStudentSession } from '../studentSession';
+import { signOutStudent, switchStudentAuthTab, useStudentSession } from '../studentSession';
 import { ReportSection } from '../sections/ReportSection';
 import { ShaderCanvas } from '../../components/ui/ShaderCanvas';
 import { SiteNav } from '../components/SiteNav';
 import { Footer } from '../sections/Footer';
 import { ReportTrackerSection } from '../sections/ReportTrackerSection';
 
+/** /login: student sign-in / registration and the tracker. ?mode=signup opens Register; ?next=<page> returns there after sign-in. */
 export function ReportPage() {
   const { profile } = useStudentSession();
+  const [params] = useSearchParams();
+  const mode = params.get('mode');
+  const next = params.get('next');
+  useEffect(() => { switchStudentAuthTab(mode === 'signup' ? 'signup' : 'signin'); }, [mode]);
+
+  // only same-site paths: never //host or backslash tricks
+  if (profile && next && next.startsWith('/') && !next.startsWith('//') && !next.includes('\\')) return <Navigate to={next} replace />;
   return (
     <ReportPageLayout>
       <section className="report-section report-entry-section">
@@ -47,7 +55,7 @@ export function ReportFormPage() {
   const { profile } = useStudentSession();
   const navigate = useNavigate();
   useEffect(() => {
-    if (profile === null) navigate('/report', { replace: true });
+    if (profile === null) navigate('/login?next=%2Freport%2Fnew', { replace: true });
   }, [profile, navigate]);
 
   if (profile === null) return null;

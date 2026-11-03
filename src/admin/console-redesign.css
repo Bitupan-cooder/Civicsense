@@ -1,0 +1,254 @@
+/* Signed-in console redesign (hallmark "redesign" pass, 2026-11-03).
+   Loaded last (after admin.css and workflow.css). Uses the project's own design system:
+   --bg warm skin, white cards, --olive / --green / --pill / --line, Inter Tight for text and
+   Cormorant Garamond for page titles, as on the student site. Markup, IDs and handlers are unchanged. */
+
+:root {
+  --muted: #4a6142;          /* secondary text, already used across both apps */
+  --amber: #b45309;          /* "awaiting" states */
+  --danger: #b91c1c;
+  --surface: #ffffff;
+  --display-font: "Cormorant Garamond", Georgia, serif;
+  --console-pad: clamp(16px, 3.5vw, 56px);
+  --console-width: min(100% - 2 * var(--console-pad), 1320px);
+  --card-shadow: 0 1px 2px rgba(26, 48, 16, .04), 0 8px 24px rgba(26, 48, 16, .05);
+}
+
+/* ── Page frame ─────────────────────────────────────────────── */
+#authenticatedWorkspace { background: var(--bg); color: var(--ink); }
+.pill-dot { display: none; } /* decorative blinking dot (hallmark: no ambient dots) */
+
+/* Header: one calm row; the role pill and name step aside on small screens */
+#authenticatedWorkspace .top-header-wrap { padding: 12px var(--console-pad) 0; }
+#authenticatedWorkspace .nav-pill-bar {
+  max-width: 1320px;
+  min-height: 60px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .92);
+  border: 1px solid var(--line);
+  box-shadow: var(--card-shadow);
+}
+#authenticatedWorkspace .brand-sub { background: var(--bg); color: var(--muted); }
+#headerModePill { background: var(--bg); color: var(--muted); font-size: 12px; padding: 6px 12px; }
+#authenticatedWorkspace .user-badge { border-color: var(--line); font-size: 13px; }
+.header-site-link, .header-logout { height: 40px; font-size: 13px; gap: 6px; padding: 0 16px; }
+.header-site-link svg { transition: transform .18s ease; }
+.header-site-link:hover svg { transform: translateX(-2px); }
+
+/* Toasts sit at the bottom, never over the header */
+#toast-container { top: auto; bottom: 24px; left: auto; right: 24px; transform: none; align-items: flex-end; }
+
+/* Console navigation: a single tab strip aligned with the content */
+#consoleNav {
+  width: var(--console-width);
+  max-width: none;
+  min-height: 0;
+  margin: 28px auto 28px;
+  padding: 0;
+  gap: 4px;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+}
+#consoleNav a {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 0;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  background: none;
+  box-shadow: none;
+}
+#consoleNav a:hover { background: none; color: var(--olive); border-bottom-color: var(--line); }
+#consoleNav a.active { background: none; color: var(--olive); border-bottom-color: var(--olive); box-shadow: none; }
+#consoleNav button[lang] {
+  margin-left: auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--olive);
+  font-size: 14px;
+}
+
+/* Queue page and the workflow pages share one width */
+#authenticatedWorkspace .admin-main { width: var(--console-width); max-width: none; padding: 0 0 64px; }
+#authenticatedWorkspace .workflow-page {
+  width: var(--console-width);
+  max-width: none;
+  margin: 0 auto 64px;
+  padding: clamp(22px, 3vw, 40px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+}
+
+/* ── Typography ─────────────────────────────────────────────── */
+#authenticatedWorkspace :is(.workflow-page h1, .jurisdiction-title) {
+  font-family: var(--display-font);
+  font-weight: 500;
+  font-size: clamp(32px, 3.6vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -.02em;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+#authenticatedWorkspace .jurisdiction-title em { font-style: italic; color: var(--olive); }
+#authenticatedWorkspace .workflow-page h1 { margin-bottom: 24px; }
+#authenticatedWorkspace .workflow-page h2 { font-size: 18px; font-weight: 650; letter-spacing: -.01em; color: var(--ink); margin: 32px 0 12px; }
+#authenticatedWorkspace :is(.admin-table th, .admin-checklist-title) { text-transform: none; letter-spacing: 0; font-size: 12.5px; }
+
+/* ── Queue (/admin) ─────────────────────────────────────────── */
+#authenticatedWorkspace .jurisdiction-box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: clamp(22px, 3vw, 34px);
+  box-shadow: var(--card-shadow);
+}
+#authenticatedWorkspace .jurisdiction-box::before { display: none; }
+#bannerSubtitle { display: flex; flex-wrap: wrap; gap: 4px 18px; color: var(--muted); font-size: 14px; }
+
+#adminSubNavRow > div { background: var(--surface) !important; border: 1px solid var(--line) !important; border-radius: 999px !important; padding: 5px !important; display: inline-flex !important; }
+#adminSubNavRow button { min-height: 40px !important; border-radius: 999px !important; border-width: 0 !important; font-size: 13.5px !important; }
+#adminSubNavRow button.btn-outline { background: none; color: var(--muted); }
+#adminSubNavRow button.btn-outline:hover { color: var(--olive); background: var(--bg); transform: none; }
+
+#adminUnitBreakdownCard { border: 1px solid var(--line) !important; border-radius: var(--radius) !important; box-shadow: var(--card-shadow) !important; }
+#authenticatedWorkspace .unit-badge-card { background: var(--bg); border-color: var(--line); }
+
+#authenticatedWorkspace .kpi-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--card-shadow); }
+/* numbers stay in Inter Tight: the serif's old-style 1 and 0 read as I and O */
+#authenticatedWorkspace .kpi-val { font-weight: 650; font-size: 40px; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--ink); }
+#authenticatedWorkspace .kpi-lbl { color: var(--muted); font-weight: 600; margin-top: 6px; }
+
+#authenticatedWorkspace .filter-pills-group { background: var(--surface); border: 1px solid var(--line); }
+#authenticatedWorkspace .filter-pill-btn { min-height: 36px; color: var(--muted); }
+#authenticatedWorkspace .filter-pill-btn.active { background: var(--olive); color: #fff; }
+#authenticatedWorkspace :is(.filter-select-pill, .search-input-pill) { min-height: 42px; background: var(--surface); border-color: var(--line); color: var(--ink); }
+
+#authenticatedWorkspace .ticket-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: clamp(18px, 2.4vw, 28px);
+  box-shadow: var(--card-shadow);
+}
+#authenticatedWorkspace .ticket-card:hover { transform: none; border-color: #cbe3b8; }
+#authenticatedWorkspace .ticket-id-tag { background: var(--bg); color: var(--muted); font-variant-numeric: tabular-nums; }
+#authenticatedWorkspace .ticket-heading { font-size: 18px; font-weight: 650; color: var(--ink); }
+#authenticatedWorkspace .ticket-meta-row { display: flex; flex-wrap: wrap; gap: 6px 22px; color: var(--muted); font-size: 13px; }
+#authenticatedWorkspace .ticket-meta-row strong { color: var(--ink); }
+.ticket-evidence { color: var(--olive); font-weight: 600; }
+.ticket-description {
+  margin: 14px 0;
+  padding: 14px 16px;
+  background: var(--bg);
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+#authenticatedWorkspace .ticket-actions-row { gap: 8px; }
+#authenticatedWorkspace .ticket-actions-row :is(.btn, .btn-outline) { height: auto; min-height: 40px; font-size: 13px; }
+
+/* Status and category chips in the system palette (no slate, fuchsia or sky blues) */
+#authenticatedWorkspace .chip,
+.modal-overlay .chip { font-size: 12px; font-weight: 600; padding: 4px 11px; letter-spacing: 0; }
+:is(#authenticatedWorkspace, .modal-overlay) :is(.chip-submitted, .chip-category, .chip-vis-dept, .chip-vis-social, .chip-vis-admin) { background: var(--surface); color: var(--muted); border: 1px solid var(--line); }
+:is(#authenticatedWorkspace, .modal-overlay) :is(.chip-under_verification, .chip-needs_review) { background: var(--bg); color: var(--amber); border: 1px solid #f0d9bd; }
+:is(#authenticatedWorkspace, .modal-overlay) :is(.chip-accepted, .chip-in_progress) { background: var(--pill); color: var(--olive); border: 1px solid #cbe3b8; }
+:is(#authenticatedWorkspace, .modal-overlay) .chip-resolved { background: var(--olive); color: #fff; border: 1px solid var(--olive); }
+:is(#authenticatedWorkspace, .modal-overlay) .chip-rejected { background: #fdf0ee; color: var(--danger); border: 1px solid #f3c9c2; }
+:is(#authenticatedWorkspace, .modal-overlay) :is(.pill-id-pending, .pill-id-verified, .pill-id-not_valid) { font-size: 12px; font-weight: 600; padding: 4px 11px; }
+:is(#authenticatedWorkspace, .modal-overlay) .pill-id-pending { background: var(--bg); color: var(--amber); border-color: #f0d9bd; }
+
+/* ── Workflow pages ────────────────────────────────────────── */
+#authenticatedWorkspace .workflow-page button { min-height: 44px; border-radius: 999px; padding: 0 20px; background: var(--surface); border: 1.5px solid var(--olive); color: var(--olive); font-weight: 600; }
+#authenticatedWorkspace .workflow-page button[type=submit] { background: var(--olive); color: #fff; }
+#authenticatedWorkspace .workflow-page button:hover:not(:disabled) { background: var(--pill); filter: none; }
+#authenticatedWorkspace .workflow-page button[type=submit]:hover:not(:disabled) { background: #0e5c28; }
+#authenticatedWorkspace .workflow-page :is(input, select, textarea) { min-height: 44px; border: 1px solid #cbe3b8; border-radius: 10px; color: var(--ink); background: var(--surface); }
+#authenticatedWorkspace .workflow-page :is(input, select, textarea):focus-visible { outline: 3px solid rgba(30, 168, 84, .3); outline-offset: 1px; border-color: var(--olive); }
+#authenticatedWorkspace .workflow-page [role=status] { background: var(--bg); color: var(--muted); border-radius: 12px; }
+
+/* Review queue and duplicates: each item is a card */
+#authenticatedWorkspace .workflow-page > ul { gap: 14px; }
+#authenticatedWorkspace .workflow-page > ul > li { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; }
+#authenticatedWorkspace .workflow-page li > button:first-child,
+#authenticatedWorkspace .workflow-page li > div > button:first-child { min-height: 0; padding: 0; border: 0; background: none; color: var(--ink); font-size: 16px; font-weight: 650; text-align: left; border-radius: 0; }
+#authenticatedWorkspace .workflow-page li > div > button:first-child:hover,
+#authenticatedWorkspace .workflow-page li > button:first-child:hover { background: none; color: var(--olive); text-decoration: underline; text-underline-offset: 4px; }
+#authenticatedWorkspace .workflow-page li p { color: var(--muted); font-size: 14px; margin: 6px 0; }
+#authenticatedWorkspace .workflow-page li [data-field] { color: var(--olive); font-weight: 600; }
+#authenticatedWorkspace .workflow-page li label { display: inline-flex; align-items: center; gap: 8px; margin: 10px 10px 0 0; font-weight: 600; color: var(--muted); }
+
+/* Statistics */
+.stats-maintenance { margin-bottom: 24px; }
+#authenticatedWorkspace .stats-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; padding: 0; background: none; margin: 0 0 8px; }
+.stats-summary > div { background: var(--bg); border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column-reverse; gap: 4px; }
+.stats-summary dt { color: var(--muted); font-size: 13.5px; font-weight: 600; }
+#authenticatedWorkspace .stats-summary dd { font-size: 36px; font-weight: 650; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--ink); }
+#authenticatedWorkspace .workflow-page section[aria-label] > table { display: table; width: 100%; max-width: 720px; margin: 0; }
+#authenticatedWorkspace .workflow-page section[aria-label] th[scope=row] { font-weight: 600; color: var(--ink); width: 38%; }
+#authenticatedWorkspace .workflow-page section[aria-label] th[scope=row]::first-letter { text-transform: uppercase; }
+#authenticatedWorkspace .workflow-page section[aria-label] td:last-child { width: 48px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+#authenticatedWorkspace .stats-bar { width: auto; min-width: 120px; }
+#authenticatedWorkspace .stats-bar progress { appearance: none; -webkit-appearance: none; display: block; width: 100%; height: 10px; border: 0; border-radius: 99px; background: var(--bg); overflow: hidden; }
+#authenticatedWorkspace .stats-bar progress::-webkit-progress-bar { background: var(--bg); border-radius: 99px; }
+#authenticatedWorkspace .stats-bar progress::-webkit-progress-value { background: var(--green); border-radius: 99px; }
+#authenticatedWorkspace .stats-bar progress::-moz-progress-bar { background: var(--green); border-radius: 99px; }
+
+/* Routing editor: both tables fit the page; the "copied" list stays a native multi-select */
+#authenticatedWorkspace .workflow-page form:has(table) table { display: table; width: 100%; table-layout: fixed; }
+#authenticatedWorkspace .workflow-page form:has(table) :is(td, th) { padding: 10px 8px; }
+#authenticatedWorkspace .workflow-page form:has(table) thead th { font-size: 13px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); }
+#authenticatedWorkspace .workflow-page td :is(input:not([type=checkbox]), select) { min-width: 0; width: 100%; font-size: 13.5px; padding: 8px 10px; }
+#authenticatedWorkspace .workflow-page td select[multiple] { height: 96px; padding: 4px; }
+#authenticatedWorkspace .workflow-page td select[multiple] option:checked { background: var(--pill); color: var(--olive); }
+#authenticatedWorkspace .workflow-page tbody th[scope=row] { font-weight: 600; color: var(--ink); font-size: 14px; }
+#authenticatedWorkspace .workflow-page form:has(table) > button[type=submit] { position: sticky; bottom: 16px; box-shadow: var(--card-shadow); }
+
+/* ── Complaint detail and other modals ─────────────────────── */
+.modal-overlay .modal-box-large { border-radius: var(--radius); }
+.modal-overlay .modal-head { border-bottom: 1px solid var(--line); }
+.ai-correction-form { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 14px; margin: 12px 0 16px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.ai-correction-form label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.ai-correction-form select { min-height: 40px; padding: 0 10px; border: 1px solid #cbe3b8; border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; }
+.ai-correction-form .btn-outline { min-height: 40px; height: auto; }
+
+/* ── Small screens ─────────────────────────────────────────── */
+@media (max-width: 760px) {
+  #authenticatedWorkspace .top-header-wrap { padding: 8px 12px 0; }
+  #authenticatedWorkspace .nav-pill-bar { flex-wrap: nowrap; border-radius: 999px; padding: 6px 6px 6px 16px; gap: 8px; min-height: 56px; }
+  #authenticatedWorkspace .brand { font-size: 17px; }
+  #authenticatedWorkspace .brand-sub,
+  #headerModePill,
+  #headerUserBadge,
+  .header-link-text { display: none; }
+  #authenticatedWorkspace .nav-center-status { order: 0; width: auto; margin-left: auto; gap: 6px; }
+  #authenticatedWorkspace .user-badge { padding: 0; border: 0; background: none; min-height: 44px; }
+  .header-site-link { width: 44px; height: 44px; padding: 0; }
+  .header-logout { height: 44px; padding: 0 14px; }
+  #toast-container { right: 12px; left: 12px; bottom: 12px; align-items: stretch; }
+  #consoleNav { margin: 16px auto 20px; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+  #consoleNav a { flex: none; padding: 0 12px; font-size: 13.5px; }
+  #consoleNav button[lang] { flex: none; }
+  #adminSubNavRow > div { display: flex !important; border-radius: 18px !important; }
+  #adminSubNavRow button { flex: 1 1 auto; min-height: 44px !important; white-space: normal; }
+  #authenticatedWorkspace .ticket-actions-row :is(.btn, .btn-outline) { min-height: 44px; flex: 1 1 auto; }
+  #authenticatedWorkspace .workflow-page form:has(table) table { table-layout: auto; display: block; overflow-x: auto; }
+  #authenticatedWorkspace .workflow-page td :is(input:not([type=checkbox]), select) { min-width: 150px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-site-link svg { transition: none; }
+}

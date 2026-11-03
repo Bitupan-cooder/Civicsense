@@ -1,5 +1,5 @@
 // Navigation between the officials' routes (PRD "Pages"), by role. Hidden until migration 001 has been run.
-// UNSTYLED ON PURPOSE: styling is done by the frontend.
+// Styled in src/admin/console-redesign.css (hallmark redesign).
 import { NavLink } from 'react-router-dom';
 import { LanguageToggle, useLanguage } from '../../i18n';
 import { useFeatures } from '../../NotificationBell';
@@ -14,7 +14,7 @@ export function ConsoleNav() {
   const review = complaints.filter((c) => c.status === 'needs_review').length;
   return (
     <nav id="consoleNav" aria-label="Console">
-      {isAdmin ? <NavLink to="/admin" end>{t('nav.queue')}</NavLink> : <NavLink to="/authority">{t('nav.queue')}</NavLink>}
+      <NavLink to="/admin" end>{t('nav.queue')}</NavLink>
       {isAdmin && <NavLink to="/admin/review">{t('nav.review')}{review ? ` (${review})` : ''}</NavLink>}
       {isAdmin && <NavLink to="/admin/duplicates">{t('nav.duplicates')}</NavLink>}
       {isAdmin && <NavLink to="/admin/stats">{t('nav.stats')}</NavLink>}

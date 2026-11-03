@@ -16,7 +16,7 @@ function when(ts: string | null): string {
   return new Date(ts).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
-const LABEL: CSSProperties = { fontSize: '11px', fontWeight: 700, color: 'var(--olive)', textTransform: 'uppercase', letterSpacing: '.03em', marginBottom: '6px' };
+const LABEL: CSSProperties = { fontSize: '11px', fontWeight: 700, color: 'var(--olive)', marginBottom: '6px' };
 const BOX: CSSProperties = { background: '#ffffff', border: '1px solid var(--line)', borderRadius: '12px', padding: '12px 14px' };
 
 export function PriorityChip({ priority }: { priority: number | null | undefined }) {

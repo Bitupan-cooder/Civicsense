@@ -60,7 +60,7 @@ function CreateForm({ open }: { open: boolean }) {
             {" "}
             <div>
               {" "}
-              <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", marginBottom: "4px" }}>
+              <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", marginBottom: "4px" }}>
                 Official Full Name
               </label>
               {" "}
@@ -72,7 +72,7 @@ function CreateForm({ open }: { open: boolean }) {
               {" "}
               <div>
                 {" "}
-                <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", marginBottom: "4px" }}>
+                <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", marginBottom: "4px" }}>
                   Role Type
                 </label>
                 {" "}
@@ -89,7 +89,7 @@ function CreateForm({ open }: { open: boolean }) {
               {" "}
               <div>
                 {" "}
-                <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", marginBottom: "4px" }}>
+                <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", marginBottom: "4px" }}>
                   Unit / Desk Name
                 </label>
                 {" "}
@@ -101,7 +101,7 @@ function CreateForm({ open }: { open: boolean }) {
             {" "}
             <div>
               {" "}
-              <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", marginBottom: "4px" }}>
+              <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", marginBottom: "4px" }}>
                 Official Email
               </label>
               {" "}
@@ -113,7 +113,7 @@ function CreateForm({ open }: { open: boolean }) {
               {" "}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
                 {" "}
-                <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase" }}>
+                <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)" }}>
                   Temporary Password
                 </label>
                 {" "}

@@ -60,7 +60,7 @@ function ResetForm({ target }: { target: { name: string } | null }) {
               {" "}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
                 {" "}
-                <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase" }}>
+                <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)" }}>
                   New Temporary Password
                 </label>
                 {" "}

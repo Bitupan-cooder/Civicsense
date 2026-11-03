@@ -64,7 +64,7 @@ function WorkflowForm({ status }: { status: string | null }) {
             {a ? <><strong>{a[2]}</strong>{a[3]}</> : <>{" "}Notice text{" "}</>}
           </div>
           {" "}
-          <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", letterSpacing: "0.02em", marginBottom: "6px" }} id="actionModalInputLabel">
+          <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", marginBottom: "6px" }} id="actionModalInputLabel">
             {a ? a[4] : <>{" "}Official Remark{" "}</>}
           </label>
           {" "}

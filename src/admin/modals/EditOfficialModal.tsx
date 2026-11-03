@@ -55,7 +55,7 @@ function EditForm({ target }: { target: { name: string; unit: string } | null })
             {" "}
             <div>
               {" "}
-              <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", marginBottom: "4px" }}>
+              <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", marginBottom: "4px" }}>
                 Official Name
               </label>
               {" "}
@@ -65,7 +65,7 @@ function EditForm({ target }: { target: { name: string; unit: string } | null })
             {" "}
             <div>
               {" "}
-              <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", marginBottom: "4px" }}>
+              <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", marginBottom: "4px" }}>
                 Unit / Desk Name
               </label>
               {" "}

@@ -35,7 +35,7 @@ export function SiteNav({ standalone = false, pageShell = false }: { standalone?
         {' '}
         <a href={anchor('categories')}>Categories</a>
         {' '}
-        <Link to="/report">Report</Link>
+        <a href={anchor('student-signin')}>Report</a>
         {' '}
       </div>
       {' '}
@@ -56,7 +56,7 @@ export function SiteNav({ standalone = false, pageShell = false }: { standalone?
         ) : <StudentNavButton standalone={standalone} />}
         {pageShell && <LanguageToggle />}
         {' '}
-        <Link className="btn-outline nav-track-link" to="/report?view=mine#report-tracker" aria-label="Track status">
+        <Link className="btn-outline nav-track-link" to="/login?view=mine#report-tracker" aria-label="Track status">
           <span className="nav-track-long">Track Status</span>
           <span className="nav-track-short" aria-hidden="true">Track</span>
         </Link>

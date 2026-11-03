@@ -7,7 +7,7 @@ export function Footer() {
       wordmark="civicsense"
       homeHref="/"
       navLabel="Report an issue"
-      navHref="/report"
+      navHref="/login"
       chatHref="mailto:network-helpdesk@dibru.ac.in"
       chatLabel="Email the campus helpdesk"
       jobsLabel="Explore CivicSense"
@@ -15,7 +15,7 @@ export function Footer() {
         { title: 'Home', href: '/' },
         { title: 'Workflow', href: '/#how' },
         { title: 'Categories', href: '/#categories' },
-        { title: 'Track a complaint', href: '/report?view=mine#report-tracker' },
+        { title: 'Track a complaint', href: '/login?view=mine#report-tracker' },
       ]}
       officeLabel="Associated with"
       officeLinkText="Blitz"

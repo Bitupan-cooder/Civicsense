@@ -64,6 +64,9 @@ export function initAnimations() {
     delay: .25, onComplete: function () {
       document.body.classList.remove('intro'); gsap.set('#app', { clearProps: 'all' });
       var bd = document.querySelector('.backdrop'); if (bd) bd.remove(); lenis.start(); setupScroll();
+      // Arriving from another page via /#section: the browser's own jump happened before the intro settled the layout.
+      var hashTarget = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (hashTarget) { ScrollTrigger.refresh(); lenis.scrollTo(hashTarget, { immediate: true }); }
     }
   })
     .fromTo('#app', { scale: .9, borderRadius: 28 }, { scale: 1, borderRadius: 0, duration: 1.4, ease: 'expo.inOut' })

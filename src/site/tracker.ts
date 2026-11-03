@@ -3,6 +3,7 @@ import { useSyncExternalStore } from 'react';
 import { civicAuth, routingApi, type Complaint, type Routing } from '../civicAuth';
 import { showToast } from '../toast';
 import { resolveLocationId } from '../locations';
+import { isStudentSignedIn } from './studentSession';
 
 export type TrackerMode = 'my_complaints' | 'track_single';
 
@@ -63,8 +64,8 @@ export function getMapComplaints() {
 }
 
 export function openTracker(): void {
-  const view = civicAuth().getProfile()?.role === 'student' ? 'mine' : 'track';
-  window.location.assign(`/report?view=${view}#report-tracker`);
+  const view = isStudentSignedIn() ? 'mine' : 'track';
+  window.location.assign(`/login?view=${view}#report-tracker`);
 }
 
 export function closeTracker(): void {
@@ -77,7 +78,7 @@ export function switchTrackerMode(mode: TrackerMode): void {
 
 export function openTrackerWithId(id: string | null | undefined): void {
   if (!id?.trim()) { openTracker(); return; }
-  window.location.assign(`/report?track=${encodeURIComponent(id.trim())}#report-tracker`);
+  window.location.assign(`/login?track=${encodeURIComponent(id.trim())}#report-tracker`);
 }
 
 export async function loadStudentComplaints(): Promise<void> {

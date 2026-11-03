@@ -3,6 +3,7 @@ import { loadOfficialComplaints, logoutAdmin, openDocket, useConsole } from '../
 import { NotificationBell } from '../../NotificationBell';
 import { useLanguage } from '../../i18n';
 import { BrandMark } from '../../site/components/BrandMark';
+import { ArrowLeft } from 'lucide-react';
 
 const MODE_TEXT = { administration: 'Central Administration', social_service: 'Social Party (DUSU Council)' } as Record<string, string>;
 
@@ -55,12 +56,13 @@ export function AdminHeader() {
         {" "}
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           {" "}
-          <a href="/" className="btn btn-blue" style={{ height: "32px", fontSize: "12px", padding: "0 14px", textDecoration: "none" }}>
-            ← Student Portal
+          <a href="/" className="btn-outline header-site-link" aria-label="Back to the student site">
+            <ArrowLeft aria-hidden="true" size={16} strokeWidth={2.2} />
+            <span className="header-link-text">Student site</span>
           </a>
           {" "}
-          <button className="btn-outline btn-red" onClick={() => logoutAdmin()} style={{ height: "32px", fontSize: "12px", padding: "0 10px" }}>
-            Logout
+          <button className="btn-outline btn-red header-logout" onClick={() => logoutAdmin()}>
+            Log out
           </button>
           {" "}
         </div>

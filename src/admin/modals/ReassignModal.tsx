@@ -67,7 +67,7 @@ function ReassignForm({ complaintId }: { complaintId: string | null }) {
           {" "}
           <div style={{ marginBottom: "14px" }}>
             {" "}
-            <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", letterSpacing: "0.02em", marginBottom: "6px" }}>
+            <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", marginBottom: "6px" }}>
               Target Department Unit
             </label>
             {" "}
@@ -84,7 +84,7 @@ function ReassignForm({ complaintId }: { complaintId: string | null }) {
           {" "}
           <div>
             {" "}
-            <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", letterSpacing: "0.02em", marginBottom: "6px" }}>
+            <label style={{ display: "block", fontSize: "11.5px", fontWeight: "700", color: "var(--olive)", marginBottom: "6px" }}>
               Administrative Reassignment Remark
             </label>
             {" "}

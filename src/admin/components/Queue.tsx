@@ -33,21 +33,21 @@ function roleTitle(p: Profile): string {
 }
 
 /** Texts of the jurisdiction banner. */
-export function Banner({ part }: { part: 'pill' | 'heading' | 'name' | 'role' | 'sla' }) {
+export function Banner({ part }: { part: 'heading' | 'name' | 'role' }) {
   const { profile: p } = useConsole();
   if (!p) {
-    const defaults = { pill: 'Official Jurisdiction', name: 'Authorized Official', role: 'Campus Jurisdiction', sla: 'Target Resolution' };
+    const defaults = { name: 'Authorized Official', role: 'Campus Jurisdiction' };
     return part === 'heading' ? <>Official Redressal{' '}<em id="bannerItalic">Workspace</em></> : <>{defaults[part]}</>;
   }
   const dept = p.unit_name || 'Official Desk';
-  const byRole = {
-    administration: { pill: 'Central Administration & Ombudsman Jurisdiction', heading: <>Central Administration <em>&amp; Registry</em></>, sla: 'Campus SLA: 48h (Hazard: 4h)' },
-    social_service: { pill: 'DUSU Student Union & Social Redressal Jurisdiction', heading: <>DUSU Executive Council <em>Oversight</em></>, sla: 'Council Review: <24h' },
-    department: { pill: 'Department Jurisdiction: ' + dept, heading: <>{dept} <em>(Desk)</em></>, sla: '24 Hours Target' },
+  const heading = {
+    administration: <>Central Administration <em>&amp; Registry</em></>,
+    social_service: <>DUSU Executive Council <em>Oversight</em></>,
+    department: <>{dept} <em>(Desk)</em></>,
   }[p.role === 'administration' || p.role === 'social_service' ? p.role : 'department'];
   if (part === 'name') return <>{p.name}</>;
   if (part === 'role') return <>{roleTitle(p)}</>;
-  return <>{byRole[part]}</>;
+  return heading;
 }
 
 const isActiveCase = (c: OfficialComplaint) => !['resolved', 'rejected', 'closed', 'merged'].includes(c.status);
@@ -72,7 +72,7 @@ export function KpiCards() {
   if (!loaded) return null;
   const kpis: [number, string, string][] = [
     [all.length, 'Total Grievances in Queue', 'var(--olive)'],
-    [all.filter((c) => c.status === 'submitted' || c.status === 'under_verification').length, 'Awaiting Verification & Review', '#b45309'],
+    [all.filter((c) => c.status === 'submitted' || c.status === 'under_verification').length, 'Awaiting Verification & Review', 'var(--amber)'],
     [all.filter((c) => c.status === 'accepted' || c.status === 'in_progress').length, 'Under Active Remediation', 'var(--blue)'],
     [all.filter((c) => c.status === 'resolved').length, 'Resolved & Signed Off', 'var(--green)'],
   ];
@@ -84,7 +84,6 @@ export function KpiCards() {
 const STATUS_CHIP: Record<string, string> = {
   under_verification: 'Under Verification', accepted: 'Accepted', in_progress: 'In Progress', resolved: 'Resolved', rejected: 'Rejected', closed: 'Closed', merged: 'Merged',
 };
-const SMALL_BTN = { height: '32px', fontSize: '12px', padding: '0 12px' };
 
 function TicketCard({ c, isAdmin }: { c: OfficialComplaint; isAdmin: boolean }) {
   const ai = useConsole().routing[c.id];
@@ -95,20 +94,21 @@ function TicketCard({ c, isAdmin }: { c: OfficialComplaint; isAdmin: boolean }) 
   const statusChip = STATUS_CHIP[c.status]
     ? <span className={'chip chip-' + c.status}>{STATUS_CHIP[c.status]}</span>
     : <span className="chip chip-submitted">Submitted</span>;
-  const visChip = c.visibility === 'social_service' ? <span className="chip chip-vis-social">Campus (Social Service)</span>
-    : c.visibility === 'administration' ? <span className="chip chip-vis-admin">Administration Vault</span>
-    : <span className="chip chip-vis-dept">Department Specific</span>;
+  // the default (administration) needs no badge; only say so when a complaint was aimed at a desk
+  const visChip = c.visibility === 'social_service' ? <span className="chip chip-vis-social">DUSU desk</span>
+    : c.visibility === 'department' ? <span className="chip chip-vis-dept">Department desk</span>
+    : null;
   const act = (status: string) => () => openWorkflow(c.id, status);
   let workflow;
   if (c.status === 'submitted' || c.status === 'under_verification') {
-    workflow = <><button type="button" className="btn" style={{ ...SMALL_BTN, background: 'var(--olive)' }} onClick={act('accepted')}>Accept Grievance</button>
-      <button type="button" className="btn-outline btn-red" style={SMALL_BTN} onClick={act('rejected')}>Reject</button></>;
+    workflow = <><button type="button" className="btn" onClick={act('accepted')}>Accept Grievance</button>
+      <button type="button" className="btn-outline btn-red" onClick={act('rejected')}>Reject</button></>;
   } else if (c.status === 'accepted') {
-    workflow = <><button type="button" className="btn" style={{ ...SMALL_BTN, background: 'var(--olive)' }} onClick={act('in_progress')}>Start Remediation</button>
-      <button type="button" className="btn-outline btn-red" style={SMALL_BTN} onClick={act('rejected')}>Reject</button></>;
+    workflow = <><button type="button" className="btn" onClick={act('in_progress')}>Start Remediation</button>
+      <button type="button" className="btn-outline btn-red" onClick={act('rejected')}>Reject</button></>;
   } else if (c.status === 'in_progress') {
-    workflow = <><button type="button" className="btn-outline" style={SMALL_BTN} onClick={act('in_progress')}>Log Progress Remark</button>
-      <button type="button" className="btn btn-blue" style={SMALL_BTN} onClick={act('resolved')}>Mark Resolved</button></>;
+    workflow = <><button type="button" className="btn-outline" onClick={act('in_progress')}>Log Progress Remark</button>
+      <button type="button" className="btn btn-blue" onClick={act('resolved')}>Mark Resolved</button></>;
   } else if (c.status === 'resolved') {
     workflow = <span style={{ fontSize: '12px', color: 'var(--olive)', fontWeight: 700 }}>Remediation Complete</span>;
   } else if (c.status === 'rejected') {
@@ -123,34 +123,32 @@ function TicketCard({ c, isAdmin }: { c: OfficialComplaint; isAdmin: boolean }) 
           <h3 className="ticket-heading">{c.title}</h3>
         </div>
         <div className="ticket-badges-group">
-          <span className="chip" style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1' }}>{c.category}</span>
-          {visChip}
           {c.status === 'needs_review'
-            ? <span className="chip" style={{ background: '#fff7ed', color: '#9a3412', border: '1px solid #fdba74' }}>Needs Review</span>
+            ? <span className="chip chip-needs_review">Needs review</span>
             : statusChip}
-          {ai?.analysed_at && <span className="chip" style={{ background: '#FAF2EB', color: '#1a3010', border: '1px solid var(--line)' }}>AI: {categoryLabel(ai.ai_category)}</span>}
+          {/* the AI's category replaces the reporter's legacy one once the complaint is analysed */}
+          <span className="chip chip-category">{ai?.analysed_at ? categoryLabel(ai.ai_category) : c.category}</span>
           {ai?.analysed_at && <PriorityChip priority={ai.priority} />}
+          {visChip}
           {id === 'verified' ? <span className="pill-id-verified">ID Verified</span>
             : id === 'not_valid' ? <span className="pill-id-not_valid">ID Not Valid</span>
             : <span className="pill-id-pending">ID Pending Review</span>}
         </div>
       </div>
       <div className="ticket-meta-row">
-        <span>Student: <strong>{studentName}</strong> ({studentEmail})</span>
-        <span>·</span>
-        <span>Unit: <strong>{unitName(c, 'Assigned Department', 'General Campus')}</strong></span>
-        <span>·</span>
-        <span>Submitted: {formatDate(c.created_at)} ({formatRelative(c.created_at)})</span>
-        {evidenceCount > 0 && <><span>·</span><span style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--olive)', background: 'var(--pill)', padding: '2px 8px', borderRadius: '999px' }}>{evidenceCount} Evidence Attachment(s)</span></>}
+        <span>Student <strong>{studentName}</strong>{studentEmail && <> ({studentEmail})</>}</span>
+        <span>Unit <strong>{unitName(c, 'Assigned Department', 'General Campus')}</strong></span>
+        <span>Filed <time dateTime={c.created_at}>{formatDate(c.created_at)}</time> ({formatRelative(c.created_at)})</span>
+        {evidenceCount > 0 && <span className="ticket-evidence">{evidenceCount === 1 ? '1 attachment' : evidenceCount + ' attachments'}</span>}
       </div>
-      <div style={{ background: '#FAF2EB', border: '1px solid var(--line)', borderRadius: '12px', padding: '12px 16px', marginBottom: '14px', fontSize: '13px', color: 'var(--ink)', lineHeight: 1.5 }}>
+      <p className="ticket-description">
         {c.description}
-      </div>
+      </p>
       <div className="ticket-actions-row">
-        <button type="button" className="btn" style={{ height: '32px', fontSize: '12px', padding: '0 14px' }} onClick={() => openDocket(c.id)}>Open Docket &amp; History</button>
-        <button type="button" className="btn-outline" style={SMALL_BTN} onClick={() => openIdCard(c.student_id, studentName, studentEmail)}>View Student ID Card</button>
+        <button type="button" className="btn" onClick={() => openDocket(c.id)}>Open Docket &amp; History</button>
+        <button type="button" className="btn-outline" onClick={() => openIdCard(c.student_id, studentName, studentEmail)}>View Student ID Card</button>
         {isAdmin && isActiveCase(c) && (
-          <button type="button" className="btn-outline" style={{ ...SMALL_BTN, borderColor: 'var(--blue)', color: 'var(--blue)' }} onClick={() => openReassign(c.id)}>Reassign Unit</button>
+          <button type="button" className="btn-outline" onClick={() => openReassign(c.id)}>Reassign Unit</button>
         )}
         {workflow}
       </div>

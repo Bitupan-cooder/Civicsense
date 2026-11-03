@@ -20,10 +20,10 @@ export function CallToAction() {
           Direct reporting to campus authorities. Your ticket is tracked openly from submission until the resolution is verified.
         </p>
         <div className="cta-btns">
-          <Link className="btn reveal" to="/report" style={{ fontSize: "14px", height: "44px", padding: "0 26px" }}>
+          <Link className="btn reveal" to="/login" style={{ fontSize: "14px", height: "44px", padding: "0 26px" }}>
             File a Report Now
           </Link>
-          <Link className="btn-outline reveal" to="/report?view=mine#report-tracker">
+          <Link className="btn-outline reveal" to="/login?view=mine#report-tracker">
             Track Complaint
           </Link>
         </div>
@@ -35,7 +35,7 @@ export function CallToAction() {
             <input className="track-input" id="ctaTrackInput" type="text" placeholder="Complaint ID (e.g. CS-8921)" />
             <button className="btn" onClick={() => {
               const id = (document.getElementById('ctaTrackInput') as HTMLInputElement).value.trim();
-              if (id) navigate(`/report?track=${encodeURIComponent(id)}#report-tracker`);
+              if (id) navigate(`/login?track=${encodeURIComponent(id)}#report-tracker`);
             }}>
               Track
             </button>

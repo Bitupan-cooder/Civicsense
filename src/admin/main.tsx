@@ -8,6 +8,7 @@ import { AdminApp } from './AdminApp';
 import { getSignedInOfficialId, initAuth } from './console';
 import './admin.css';
 import '../workflow.css';
+import './console-redesign.css'; // last: the hallmark redesign of the signed-in console
 
 // civic-auth.js shows its own toasts (password change) through window.showToast.
 Object.assign(window, { showToast });

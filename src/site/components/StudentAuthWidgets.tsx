@@ -1,5 +1,5 @@
 // Everything that shows who is signed in, rendered from the student session store.
-import { handleNavStudentClick, openReuploadModal, openStudentAuth, scrollToSignIn, signOutStudent, useStudentSession } from '../studentSession';
+import { handleNavStudentClick, openReuploadModal, openStudentAuth, signOutStudent, useStudentSession } from '../studentSession';
 import { loadStudentComplaints, openTracker, switchTrackerMode } from '../tracker';
 import { NotificationBell } from '../../NotificationBell';
 import { useLanguage } from '../../i18n';
@@ -30,30 +30,13 @@ function IdStatusLabel({ status }: { status?: string }) {
 /** Hero nav button. */
 export function StudentNavButton({ standalone = false }: { standalone?: boolean }) {
   const { profile } = useStudentSession();
+  const navigate = useNavigate();
   return (
-    <button className="btn-outline nav-student-button" id={standalone ? undefined : 'navStudentBtn'} onClick={() => handleNavStudentClick()}>
+    <button className="btn-outline nav-student-button" id={standalone ? undefined : 'navStudentBtn'} onClick={() => handleNavStudentClick(() => navigate('/login'))}>
       <span key={profile?.id ?? 'signed-out'} className="nav-account-label">
         {profile ? 'Student: ' + profile.name.split(' ')[0] : 'Student Sign In'}
       </span>
     </button>
-  );
-}
-
-/** Footer link: sign in, or sign out when signed in. */
-export function FooterStudentLink() {
-  const { profile } = useStudentSession();
-  return (
-    <a
-      href="#"
-      id="studentLoginFooterLink"
-      onClick={(e) => {
-        e.preventDefault();
-        if (profile) signOutStudent();
-        else scrollToSignIn('signin');
-      }}
-    >
-      {profile ? `${profile.name} (Sign Out)` : 'Student Sign In'}
-    </a>
   );
 }
 
@@ -121,7 +104,7 @@ export function StudentNotifications() {
     <NotificationBell
       userId={profile?.id}
       lang={lang}
-      onOpen={(id) => navigate(`/report?track=${encodeURIComponent(id)}#report-tracker`)}
+      onOpen={(id) => navigate(`/login?track=${encodeURIComponent(id)}#report-tracker`)}
       onLive={(n) => {
         loadStudentComplaints();
         // route pages (e.g. /complaints/:id) refresh themselves on this event

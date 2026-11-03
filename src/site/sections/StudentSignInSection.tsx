@@ -52,7 +52,7 @@ export function StudentSignInSection() {
                 <p>{profile ? 'Your student account is ready to submit a report.' : 'Tell us what happened. We’ll guide you through signing in and submitting your report.'}</p>
               </div>
               <div className="student-signin-actions">
-                <Link className="student-signin-report-button" to="/report">Report here <span aria-hidden="true">→</span></Link>
+                <Link className="student-signin-report-button" to="/login">Report here <span aria-hidden="true">→</span></Link>
                 {profile && <button type="button" className="student-signout-button" onClick={() => void signOutStudent()}>Log out</button>}
               </div>
             </div>
@@ -81,7 +81,7 @@ export function StudentSignInSection() {
                                     <span className="index-reply-avatar" aria-hidden="true">{from.trim().charAt(0).toUpperCase()}</span>
                                     <div><strong>{from}</strong><small>Official update</small></div>
                                   </div>
-                                  <Link to={`/report?track=${encodeURIComponent(complaint.id)}#report-tracker`}>{ticketRef(complaint.id)} · {complaint.title}</Link>
+                                  <Link to={`/login?track=${encodeURIComponent(complaint.id)}#report-tracker`}>{ticketRef(complaint.id)} · {complaint.title}</Link>
                                   <blockquote lang={lang}>{body}</blockquote>
                                   <time dateTime={created_at}>{new Date(created_at).toLocaleDateString(profile.preferred_language === 'as' ? 'as-IN' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</time>
                                 </article>

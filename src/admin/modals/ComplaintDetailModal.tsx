@@ -3,7 +3,10 @@ import { closeDocket, openIdCard, openReassign, openWorkflow, reviewIdCard, shor
 import { formatDate, formatRelative, unitName } from '../components/Queue';
 import { useState } from 'react';
 import { AiPanel, Replies, RouteTracker } from '../../RouteTracker';
-import { CATEGORIES, CATEGORY_LABELS } from '../../logic';
+import { CATEGORIES, CATEGORY_LABELS, STATUS_NAMES } from '../../logic';
+
+/** "in progress" → "In progress": sentence case, no shouting capitals. */
+const statusText = (s: string | null | undefined) => { const t = STATUS_NAMES[s || 'submitted']?.en ?? (s || '').replace(/_/g, ' '); return t.charAt(0).toUpperCase() + t.slice(1); };
 import { postReply, routeByHand, type OfficialComplaint } from '../console';
 import { routingApi } from '../../civicAuth';
 import { loadOfficialComplaints } from '../console';
@@ -20,7 +23,7 @@ function ReplyBox({ complaintId }: { complaintId: string }) {
   };
   return (
     <div style={{ background: '#ffffff', border: '1px solid var(--line)', borderRadius: '12px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--olive)', textTransform: 'uppercase', letterSpacing: '.03em' }}>Reply or internal note</div>
+      <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--olive)' }}>Reply or internal note</div>
       <textarea rows={3} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Write in English or Assamese. Replies are translated so the reporter can read them in their language." style={{ width: '100%', padding: '10px 12px', border: '1.5px solid var(--line)', borderRadius: '8px', fontSize: '13px', fontFamily: 'inherit', boxSizing: 'border-box' }} />
       {error && <div style={{ color: '#991b1b', fontSize: '12px', fontWeight: 600 }}>{error}</div>}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -48,7 +51,7 @@ function DocketRouting({ d, isAdmin }: { d: OfficialComplaint; isAdmin: boolean 
         try { await routingApi().editAnalysis(d.id, category, priority); await loadOfficialComplaints(); }
         catch (err) { setEditError((err as Error).message); }
         finally { setBusy(false); }
-      }} style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+      }} className="ai-correction-form">
         <label>Category <select value={category} onChange={(e) => setCategory(e.target.value)}>{CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}</select></label>
         <label>Priority <select value={priority} onChange={(e) => setPriority(Number(e.target.value))}>{[1, 2, 3, 4].map((p) => <option key={p} value={p}>P{p}</option>)}</select></label>
         <button className="btn-outline" type="submit" disabled={busy}>Save correction</button>
@@ -154,14 +157,14 @@ export function ComplaintDetailModal() {
             <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
               {" "}
               <span id="modalDocketStatus" className={d ? 'chip chip-' + d.status : 'chip'}>
-                {d ? d.status.replace('_', ' ').toUpperCase() : 'Status'}
+                {d ? statusText(d.status) : 'Status'}
               </span>
               {" "}
               <span id="modalDocketVisibility" className={d ? 'chip chip-vis-' + (d.visibility === 'administration' ? 'admin' : d.visibility === 'social_service' ? 'social' : 'dept') : 'chip'}>
-                {d ? (d.visibility === 'social_service' ? 'Campus (Social Service)' : d.visibility === 'administration' ? 'Administration Vault' : 'Department Specific') : 'Visibility'}
+                {d ? (d.visibility === 'social_service' ? 'DUSU desk' : d.visibility === 'administration' ? 'Administration' : 'Department desk') : 'Visibility'}
               </span>
               {" "}
-              <span id="modalDocketCategory" className="chip" style={{ background: "#f1f5f9", color: "#334155", border: "1px solid #cbd5e1" }}>
+              <span id="modalDocketCategory" className="chip chip-category">
                 {d ? d.category : 'Category'}
               </span>
               {" "}
@@ -179,7 +182,7 @@ export function ComplaintDetailModal() {
             {" "}
             <div style={{ background: "#ffffff", padding: "14px 18px", borderRadius: "14px", border: "1px solid var(--line)" }}>
               {" "}
-              <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: "6px" }}>
+              <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", marginBottom: "6px" }}>
                 Student Reporter
               </div>
               {" "}
@@ -195,7 +198,7 @@ export function ComplaintDetailModal() {
             {" "}
             <div style={{ background: "#ffffff", padding: "14px 18px", borderRadius: "14px", border: "1px solid var(--line)" }}>
               {" "}
-              <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: "6px" }}>
+              <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", marginBottom: "6px" }}>
                 Assigned Redressal Unit
               </div>
               {" "}
@@ -257,7 +260,7 @@ export function ComplaintDetailModal() {
           {" "}
           <div style={{ background: "#ffffff", padding: "16px 20px", borderRadius: "14px", border: "1px solid var(--line)" }}>
             {" "}
-            <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: "8px" }}>
+            <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", marginBottom: "8px" }}>
               Grievance Narrative
             </div>
             {" "}
@@ -272,7 +275,7 @@ export function ComplaintDetailModal() {
           {" "}
           <div style={{ background: "#ffffff", padding: "16px 20px", borderRadius: "14px", border: "1px solid var(--line)" }} id="modalEvidenceSection">
             {" "}
-            <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: "8px" }}>
+            <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", marginBottom: "8px" }}>
               Evidence Attachments (Authenticated Cloudinary)
             </div>
             {" "}
@@ -293,7 +296,7 @@ export function ComplaintDetailModal() {
           {" "}
           <div style={{ background: "#ffffff", padding: "16px 20px", borderRadius: "14px", border: "1px solid var(--line)" }}>
             {" "}
-            <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: "8px" }}>
+            <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", marginBottom: "8px" }}>
               Status Timeline &amp; Remarks History
             </div>
             {" "}
@@ -305,7 +308,7 @@ export function ComplaintDetailModal() {
               ) : d.history?.length ? d.history.map((h, i) => (
                 <div key={i} className="timeline-item">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
-                    <span className={'chip chip-' + h.status} style={{ fontSize: '10.5px' }}>{(h.status || '').replace('_', ' ').toUpperCase()}</span>
+                    <span className={'chip chip-' + h.status} style={{ fontSize: '11.5px' }}>{statusText(h.status)}</span>
                     <span style={{ fontSize: '11.5px', color: '#64748b' }}>{formatDate(h.created_at)} ({formatRelative(h.created_at)})</span>
                   </div>
                   <div style={{ fontSize: '12.5px', color: 'var(--ink)', fontWeight: 600 }}>{h.actor ? h.actor.name + ' (' + (h.actor.unit_name || h.actor.role) + ')' : 'Authorized Official'}</div>

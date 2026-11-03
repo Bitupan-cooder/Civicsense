@@ -2,8 +2,6 @@
 import { memo, useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { refreshAnimations } from './animations.js';
-import { LoginPage } from './pages/LoginPage';
-import { MyComplaintsPage } from './pages/MyComplaintsPage';
 import { ReportFormPage, ReportPage } from './pages/ReportPage';
 import './pages/routes.css';
 import { Hero } from './sections/Hero';
@@ -44,10 +42,11 @@ export function SiteApp() {
       <Landing />
       <Routes>
         <Route path="/" element={null} />
-        <Route path="/report" element={<ReportPage />} />
+        <Route path="/login" element={<ReportPage />} />
+        <Route path="/report" element={<ReportRedirect />} />
         <Route path="/report/new" element={<ReportFormPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/my" element={<MyComplaintsPage />} />
+        {/* "My complaints" is the tracker below the sign-in on /login and /report/new */}
+        <Route path="/my" element={<Navigate to="/login?view=mine#report-tracker" replace />} />
         <Route path="/complaints/:id" element={<ComplaintRedirect />} />
         <Route path="/index.html" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
@@ -58,7 +57,13 @@ export function SiteApp() {
 
 function ComplaintRedirect() {
   const { id = '' } = useParams();
-  return <Navigate to={`/report?track=${encodeURIComponent(id)}#report-tracker`} replace />;
+  return <Navigate to={`/login?track=${encodeURIComponent(id)}#report-tracker`} replace />;
+}
+
+/** Old /report links (bookmarks, shared tickets) keep working: the sign-in and tracker page is now /login. */
+function ReportRedirect() {
+  const { search, hash } = useLocation();
+  return <Navigate to={`/login${search}${hash}`} replace />;
 }
 
 const Landing = memo(function Landing() {

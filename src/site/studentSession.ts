@@ -85,28 +85,16 @@ export async function signOutStudent(): Promise<void> {
   setStudentSession(null);
 }
 
-/** Nav button: the tracker when signed in as a student, otherwise the sign-in dialog. */
-/** Take students to the report entry point on the index page without opening a login modal. */
-export function scrollToSignIn(tab: 'signin' | 'signup' = 'signin'): void {
-  update({ authOpen: false, authTab: tab });
+/** Signed in as a student. Uses this store: CivicAuth.getProfile() stays null after a page reload on the student site. */
+export const isStudentSignedIn = (): boolean => !!state.profile;
 
-  if (typeof window !== 'undefined') {
-    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
-      window.location.href = '/#student-signin';
-      return;
-    }
-
-    document.getElementById('student-signin')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
-
-/** Nav button: the tracker when signed in as a student, otherwise smoothly scrolls to the existing sign-in card. */
-export function handleNavStudentClick(): void {
-  if (civicAuth().getProfile()?.role === 'student') {
+/** Nav button: the tracker when signed in as a student, otherwise the sign-in page (/login). */
+export function handleNavStudentClick(openLogin: () => void): void {
+  if (isStudentSignedIn()) {
     openTracker();
     switchTrackerMode('my_complaints');
   } else {
-    scrollToSignIn('signin');
+    openLogin();
   }
 }
 

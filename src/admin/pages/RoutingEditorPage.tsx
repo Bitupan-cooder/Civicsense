@@ -1,5 +1,5 @@
 // /admin/routing (PRD P1 "Routing editor"): who holds each post (names change every term, no code change) and
-// which post receives each category. UNSTYLED ON PURPOSE: styling is done by the frontend.
+// which post receives each category. Styled in src/admin/console-redesign.css (hallmark redesign).
 //
 // Data: GET /api/admin/routing (CivicAuth.fetchRoutingConfig) → { authorities, rules, categories };
 // save: PUT /api/admin/routing (CivicAuth.saveRoutingConfig) with the edited { authorities, rules }; the server

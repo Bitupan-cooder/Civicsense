@@ -24,10 +24,6 @@ export function AdminMain() {
         {" "}
         <div>
           {" "}
-          <div className="pill" id="bannerModePill" style={{ marginBottom: "8px" }}>
-            <Banner part="pill" />
-          </div>
-          {" "}
           <h2 className="jurisdiction-title" id="bannerDeptHeading">
             <Banner part="heading" />
           </h2>
@@ -41,10 +37,6 @@ export function AdminMain() {
               </strong>
             </span>
             {" "}
-            <span>
-              ·
-            </span>
-            {" "}
             <span id="bannerRole">
               <Banner part="role" />
             </span>
@@ -54,14 +46,6 @@ export function AdminMain() {
         </div>
         {" "}
         <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-          {" "}
-          <div style={{ background: "var(--pill)", padding: "6px 16px", borderRadius: "999px", fontSize: "12px", fontWeight: "700", color: "#0e3018" }}>
-            {" "}SLA Window:{" "}
-            <span id="bannerSla">
-              <Banner part="sla" />
-            </span>
-            {" "}
-          </div>
           {" "}
           <button className="btn btn-outline" onClick={() => exportAuditCsv()}>
             Export Audit CSV

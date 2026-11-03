@@ -15,7 +15,7 @@ Each new file starts with a comment that says where its data comes from.
 | App | Entry | Stylesheet | Serves |
 |---|---|---|---|
 | Student site | `index.html` → `src/site/main.tsx` → `SiteApp.tsx` | `src/site/site.css` | every URL not below |
-| Officials' console | `admin.html` → `src/admin/main.tsx` → `AdminApp.tsx` | `src/admin/admin.css` | `/admin`, `/admin/*`, `/authority`, `/map` (and the old `/admin.html`) |
+| Officials' console | `admin.html` → `src/admin/main.tsx` → `AdminApp.tsx` | `src/admin/admin.css` | `/admin`, `/admin/*` (the old `/authority`, `/map` and `/admin.html` redirect to `/admin`) |
 
 They stay separate because `site.css` and `admin.css` define the same class names (`.btn`, `.modal`, `.pill`…) differently.
 - In development and `npm run preview`, `vite.config.ts` (`pageRewrite`) sends each URL to the right HTML file.
@@ -30,10 +30,11 @@ Routing uses **React Router 6.28**. Links between pages inside one app use `<Lin
 | URL | File | Status | Data and actions |
 |---|---|---|---|
 | `/` | `SiteApp.tsx` → `Landing` (sections in `src/site/sections/`) | **styled** (existing) | unchanged; the report form, campus map and dialogs live here |
-| `/report` | `SiteApp.tsx` → `ReportRoute` | existing | the landing page, scrolled to its report form (the form shares the campus map with the landing) |
-| `/login`, `/login?mode=signup`, `?next=/path` | `src/site/pages/LoginPage.tsx` | **new, unstyled** | `studentSession.ts`: `submitStudentLogin(email, password)`, `submitStudentSignup({ name, email, password, file })`, `loginError` / `signupError`, `loginBusy` / `signupBusy`. After success: `?next`, otherwise `/report` (sign-up) or `/my` (log-in). |
-| `/my` | `src/site/pages/MyComplaintsPage.tsx` | **new, unstyled** | `tracker.ts` store: `loadStudentComplaints()` → `mine`, `mineLoading`, `mineError`, `routing[id]`; `confirmResolution(id, 'confirm' \| 'reopen', note)` |
-| `/complaints/:id` (full id or `CS-XXXXXXXX`) | `src/site/pages/ComplaintPage.tsx` | **new, unstyled** | `CivicAuth.fetchComplaintById(id)` + `CivicAuth.fetchRouting([id])`; reloads on the `civicsense:notification` window event for this complaint |
+| `/login`, `/login?mode=signup`, `?next=/path`, `?track=<id>`, `?view=mine` | `src/site/pages/ReportPage.tsx` → `ReportPage` | styled | Student sign-in / "Register with ID" card (`src/components/ui/sign-in-card-2.tsx`), then "Report an issue"; below it the tracker (`ReportTrackerSection`). `?mode=signup` opens Register, `?next` returns there after sign-in. The nav's "Student Sign In" button opens this page. |
+| `/report/new` | `src/site/pages/ReportPage.tsx` → `ReportFormPage` | styled | The report form. Signed out → `/login?next=/report/new`. |
+| `/report` | `SiteApp.tsx` → `ReportRedirect` | redirect | Old address: forwards to `/login` with its query and hash. |
+| `/my` | `SiteApp.tsx` | redirect | Removed page: "My complaints" is the tracker below the sign-in on `/login` and `/report/new`. Forwards to `/login?view=mine#report-tracker`. |
+| `/complaints/:id` (full id or `CS-XXXXXXXX`) | `SiteApp.tsx` → `ComplaintRedirect` | redirect | Forwards to `/login?track=<id>#report-tracker` (the tracker shows the complaint). `ComplaintPage.tsx` only supplies `ConfirmOrReopen` now. |
 
 Shared shell for the new student pages: `src/site/pages/PageShell.tsx` (header nav, language toggle, notification bell) and `SignInRequired` ("Log in or sign up to continue", with `?next=` back to the page).
 
@@ -41,16 +42,15 @@ Shared shell for the new student pages: `src/site/pages/PageShell.tsx` (header n
 
 | URL | Who | File | Status | Data and actions |
 |---|---|---|---|---|
-| `/authority` | officers (department, DUSU, posts) | `src/admin/components/AdminMain.tsx` | **styled** (existing) | `console.ts` store |
-| `/admin` | administration | same | **styled** (existing) | same |
-| `/admin/review` | administration | `src/admin/pages/ReviewQueuePage.tsx` | **new, unstyled** | complaints with status `needs_review`; `routeByHand(id, category)` → `POST /api/admin/route-complaint` |
-| `/admin/duplicates` | administration | `src/admin/pages/DuplicatesPage.tsx` | **new, unstyled** | `GET /api/admin/duplicates`; `mergeComplaint(id, intoId)` → `POST /api/admin/merge`; `dismissDuplicate(id)` → `POST /api/admin/dismiss-duplicate` |
-| `/admin/stats` | administration | `src/admin/pages/StatsPage.tsx` | **new, unstyled** | `GET /api/admin/stats`. The PRD suggests Recharts: every `byStatusAll` / `byCategory` / `byLocation` / `byPriority` object maps to chart data with `Object.entries(counts)`. |
-| `/admin/routing` | administration | `src/admin/pages/RoutingEditorPage.tsx` | **new, unstyled** | `GET /api/admin/routing` → `{ authorities, rules, categories }`; save with `PUT /api/admin/routing` (the server validates and returns the saved config) |
+| `/admin` | everyone signed in to the console (officers see what is routed to their post; admins see all) | `src/admin/components/AdminMain.tsx` | **styled** (existing) | `console.ts` store. The old `/authority` redirects here. |
+| `/admin/review` | administration | `src/admin/pages/ReviewQueuePage.tsx` | styled (`src/admin/console-redesign.css`) | complaints with status `needs_review`; `routeByHand(id, category)` → `POST /api/admin/route-complaint` |
+| `/admin/duplicates` | administration | `src/admin/pages/DuplicatesPage.tsx` | styled (`src/admin/console-redesign.css`) | `GET /api/admin/duplicates`; `mergeComplaint(id, intoId)` → `POST /api/admin/merge`; `dismissDuplicate(id)` → `POST /api/admin/dismiss-duplicate` |
+| `/admin/stats` | administration | `src/admin/pages/StatsPage.tsx` | styled (`src/admin/console-redesign.css`) | `GET /api/admin/stats`. The PRD suggests Recharts: every `byStatusAll` / `byCategory` / `byLocation` / `byPriority` object maps to chart data with `Object.entries(counts)`. |
+| `/admin/routing` | administration | `src/admin/pages/RoutingEditorPage.tsx` | styled (`src/admin/console-redesign.css`) | `GET /api/admin/routing` → `{ authorities, rules, categories }`; save with `PUT /api/admin/routing` (the server validates and returns the saved config) |
 | `/map` | officers and administration | `src/admin/pages/CampusMapPage.tsx` | **new, unstyled, no map drawn yet** | builds `pins` (lat/lng, worst priority, complaints) from the store and `CAMPUS_LOCATION_COORDS`. **Draw the map here** (PRD: Leaflet + OpenStreetMap): one marker per pin, colour by `pin.priority`, clusters by `pin.complaints.length`. |
-| any other / `/admin.html` | | `AdminApp.tsx` → `RoleHome` | | sends the official to `/admin` or `/authority` after sign-in |
+| any other / `/admin.html` | | `AdminApp.tsx` → `RoleHome` | | sends the official to `/admin` after sign-in, keeping `?complaint=<id>` |
 
-- Navigation between the console pages: `src/admin/pages/ConsoleNav.tsx`, unstyled, rendered under the header.
+- Navigation between the console pages: `src/admin/pages/ConsoleNav.tsx` (styled in `src/admin/console-redesign.css`), rendered under the header.
 - Shared loading/error/"not set up" states: `PageState` in the same file.
 - `?complaint=<id>` on any console URL opens that complaint's docket.
 
@@ -97,6 +97,16 @@ The client functions live on `window.CivicAuth` (`public/js/civic-auth.js`), and
 | `setPreferredLanguage(userId, lang)` | Supabase (RLS) | |
 
 Errors: these functions throw an `Error` with the server's message, which the screens show. Getters for not-yet-installed features throw with `err.notInstalled === true`.
+
+## Console styling (signed-in `/admin` pages)
+
+Redesigned on 2026-11-03 with the project's hallmark rules (`.agents/skills/hallmark/`, `npm run audit:slop`). All of it is in **`src/admin/console-redesign.css`**, loaded last (after `admin.css` and `workflow.css`), and scoped to `#authenticatedWorkspace` and the modals.
+
+- **Same design system as the student site:** warm skin `--bg` page, white cards, `--olive` / `--green` / `--pill` / `--line`, `--radius`.
+- **Fonts:** page titles use Cormorant Garamond (`--display-font`, now also loaded in `admin.html`); everything else, numbers included, uses Inter Tight. The serif's old-style 1 and 0 read as I and O.
+- **New tokens:** `--muted` (secondary text), `--amber` (awaiting), `--danger`, `--surface`, `--console-width`.
+- **Hallmark choices to keep:** sentence-case labels (no uppercase tracking), no decorative dots, icons instead of glued `←`/`→` arrows, no invented numbers (the old "Campus SLA: 48h" was removed), touch targets of at least 40px on desktop and 44px on phones, no sideways page scroll.
+- Two hallmark rules deliberately **not** followed, because the PRD wins: Assamese text stays (bilingual is a requirement), and body text uses the dark `--ink` rather than white or green, for contrast.
 
 ## Rules: don't break these while styling
 

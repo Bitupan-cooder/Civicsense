@@ -12,26 +12,27 @@ import { IdCardModal } from './modals/IdCardModal';
 import { WorkflowActionModal } from './modals/WorkflowActionModal';
 import { openDocket, useConsole } from './console';
 import { useEffect, type ReactNode } from 'react';
-import { Navigate, Route, Routes, useSearchParams } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useSearchParams } from 'react-router-dom';
 import { ConsoleNav } from './pages/ConsoleNav';
 import { DuplicatesPage } from './pages/DuplicatesPage';
 import { ReviewQueuePage } from './pages/ReviewQueuePage';
 import { RoutingEditorPage } from './pages/RoutingEditorPage';
 import { StatsPage } from './pages/StatsPage';
 
-// Officials' routes (PRD "Pages"): officers land on /authority, the administration on /admin.
+// Officials' routes: everyone's queue is /admin (officers see what is routed to them); /admin/* pages are admin-only.
 // The gate shows at whatever URL was opened, so signing in returns there (the PRD's ?next).
 function AdminOnly({ children }: { children: ReactNode }) {
   const { profile } = useConsole();
-  if (profile && profile.role !== 'administration') return <Navigate to="/authority" replace />;
+  if (profile && profile.role !== 'administration') return <Navigate to="/admin" replace />;
   return <>{children}</>;
 }
 
-/** Unknown paths and /admin.html go to the role's home. */
+/** Unknown paths, the old /authority and /admin.html go to /admin, keeping ?complaint=<id>. */
 function RoleHome() {
   const { profile } = useConsole();
-  if (!profile) return null; // wait for sign-in: the gate shows, then the role decides
-  return <Navigate to={profile.role === 'administration' ? '/admin' : '/authority'} replace />;
+  const { search } = useLocation();
+  if (!profile) return null; // wait for sign-in: the gate shows first
+  return <Navigate to={{ pathname: '/admin', search }} replace />;
 }
 
 /** ?complaint=<id> opens that docket (links from notifications, e-mails, the map). */
@@ -59,8 +60,7 @@ export function AdminApp() {
         <DocketFromUrl />
         {/* ══════════ MAIN WORKSPACE ══════════ */}
         <Routes>
-          <Route path="/authority" element={<AdminMain />} />
-          <Route path="/admin" element={<AdminOnly><AdminMain /></AdminOnly>} />
+          <Route path="/admin" element={<AdminMain />} />
           <Route path="/admin/review" element={<AdminOnly><ReviewQueuePage /></AdminOnly>} />
           <Route path="/admin/duplicates" element={<AdminOnly><DuplicatesPage /></AdminOnly>} />
           <Route path="/admin/stats" element={<AdminOnly><StatsPage /></AdminOnly>} />

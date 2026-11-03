@@ -468,6 +468,79 @@ For the frontend teammate: every PRD screen now exists and is wired to the backe
   - It links 3 posts to its test accounts for the run, so it **refuses to run** once those posts (Head, General Secretary, Sports Secretary) are linked to real officials. Otherwise they would be notified about test complaints.
   - Run on 2026-11-02: **43 of 43 checks pass, 0 rows left.** Type-check, build and `npm test` (15 tests) pass.
 
+### 3.23 Console redesign with hallmark (2026-11-03)
+
+The signed-in console (`/admin`, `/admin/review`, `/admin/duplicates`, `/admin/stats`, `/admin/routing`, the complaint detail and the other modals) was redesigned with the project's hallmark skill. It uses the existing design system shared with the student site. Details are in `docs/FRONTEND.md` → "Console styling".
+
+| Before | After |
+|---|---|
+| The "Welcome …" pop-up covered the header; on phones the header wrapped into 3 rows | Pop-ups appear at the bottom; the header is one row on phones (logo, bell, back, log out) |
+| "← Student Portal" in off-palette electric blue (glued arrow) | "Student site" with an arrow icon, olive outline |
+| About 100 px of empty space; two stacked nav bars; the nav was narrower than the content | One tab strip, aligned with the content |
+| White page, black body-font titles | Warm skin `--bg` page, white cards, Cormorant Garamond titles (now loaded in `admin.html`) |
+| Eyebrow pill over the queue heading; **"Campus SLA: 48h (Hazard: 4h)"**: hard-coded, not real data (routing rules say 120 h) | Both removed |
+| 6–7 pills per complaint ("Other" next to "AI: Internet", "Administration Vault", …), middle-dot meta line, 32 px buttons | Status, one category (the AI's once analysed), priority, ID status; spaced meta fields; 40 px buttons (44 px on phones) |
+| Uppercase tracked labels in the complaint detail and modals, "SUBMITTED" | Sentence case everywhere (22 labels) |
+| Stats: plain list, thin bars | Summary tiles and real bars; the maintenance button is now "Run deadline check" |
+| Routing editor overflowed sideways on desktop | Both tables fit; the "copied" lists are compact |
+| Chips in Tailwind slate / fuchsia / sky colours | Chips in the system palette |
+
+- **Files:**
+  - New: `src/admin/console-redesign.css`, loaded last.
+  - Markup touched only where hallmark required it, in `AdminHeader.tsx`, `AdminMain.tsx`, `Queue.tsx`, `StatsPage.tsx` and `ComplaintDetailModal.tsx`; uppercase labels in the other modals; `RouteTracker.tsx`, whose labels are also sentence case on the student tracker now.
+  - All IDs, handlers, `data-*` and `aria-*` attributes kept.
+- **Not followed on purpose:** hallmark's "no Assamese text" (the PRD requires both languages) and "white or green text only" (body text stays dark `--ink` for contrast).
+- **Verified** in headless Edge as the temp admin, desktop (1440 px) and phone (390 px):
+  - Every console page and the complaint detail; no sideways scroll; no console errors.
+  - The 20 functional console checks from 3.22 still pass (admin and officer).
+  - Build and `npm test` (29) pass.
+  - `npm run audit:slop` finds nothing in the console. Its one failure is in the startup-loader animation (`src/components/ui/liquid-glass-logo-reveal.tsx`), outside this change.
+
+### 3.22 One console route, no `/my`, nav "Report" scrolls (2026-11-03)
+
+- **`/my` removed** (`MyComplaintsPage.tsx` deleted). "My complaints" is the tracker below the sign-in on `/login` and `/report/new`. Old `/my` links (including `?next=/my`) go to `/login?view=mine#report-tracker`.
+- **Nav "Report" scrolls** to the "Have an issue on campus?" section (`#student-signin`) instead of opening `/login`. On the landing page that's a smooth scroll; from other pages it's `/#student-signin`.
+  - New: after the landing intro finishes, the page scrolls to the `#section` in the URL. Before, the browser's own jump happened while the intro was still laying out the page, so links like `/#stats` from other pages landed about 350 px off. This fixes Stats, Workflow and Categories too.
+- **`/admin` and `/authority` merged into `/admin`.** It's the queue for everyone in the console: officers see what is routed to their post, admins see all.
+  - The `/admin/*` pages stay admin-only (officers are sent to `/admin`).
+  - The old `/authority`, `/map` and `/admin.html` redirect to `/admin`, keeping `?complaint=<id>`.
+  - The console nav has one "Queue" link.
+  - The new-official credentials text now gives `/admin` as the portal URL.
+- **Not changed, worth knowing:** the student site no longer shows the English/Assamese toggle on any page. It was only on `/my` and the old `/login`. `ComplaintPage.tsx` and `PageShell.tsx` are now used only for `ConfirmOrReopen`.
+- `docs/FRONTEND.md` route tables updated.
+- **Verified** in headless Edge:
+  - The landing "Report" scrolls to the section (top at 0 px).
+  - From `/login`, all four section links (`/#stats`, `/#how`, `/#categories`, `/#student-signin`) land at their section (0 px).
+  - `/my` redirects, and signed in (student account) the tracker lists the student's complaints.
+  - `/admin`, `/authority` and `/authority?complaint=…` show the console sign-in when signed out.
+  - No console errors. The build and `npm test` (29) pass.
+  - **Console signed in, 20 of 20,** with two temporary accounts created for this on the live database: `zz-temp-admin@example.com` (administration) and `zz-temp-officer@example.com` (department, no post linked). Passwords were shared privately, not in this file.
+    - The admin lands on `/admin` with Queue + Review, Duplicates, Stats, Routing, and all four admin pages open.
+    - `/authority` and `/map` redirect to `/admin`, and `/authority?complaint=<id>` opens that complaint on `/admin`.
+    - The officer signs in at `/authority`, lands on `/admin`, sees only "Queue", and is sent back to `/admin` from every admin-only page.
+    - No console errors. Database writes: one sign-in record per account; no complaint marked seen.
+  - **Delete the two `zz-temp-*` accounts before the demo or a real launch** (Supabase → Authentication → Users), or reset the real officials' passwords and use those.
+
+### 3.21 Student sign-in moves to `/login` (2026-11-03)
+
+- **Nav "Student Sign In" button:** when signed out, it now opens `/login` in the app instead of scrolling the landing page to "Have an issue on campus?". Signed in, it still opens the student's complaints. `scrollToSignIn()` was removed, and so was the unused `FooterStudentLink`.
+- **`/report` renamed to `/login`:** the sign-in / Register with ID card plus the tracker (`ReportPage`). All links now point there: nav, footer, call to action, landing section, `/my`, notifications, tracker search and the report confirmation.
+  - `?mode=signup` opens the Register tab, and `?next=<path>` returns there after sign-in (same-site paths only). Both came over from the old login page.
+  - `/report/new` (the form) is unchanged. Signed out, it sends the visitor to `/login?next=/report/new`.
+  - Old `/report…` links still work: they redirect to `/login` with the same query and hash. `/complaints/:id` now redirects to `/login?track=<id>`.
+- **The old unstyled `/login` page (`src/site/pages/LoginPage.tsx`) was deleted.** Its `login.*` dictionary strings, including the Assamese ones, are kept in `src/i18n.ts` for when the sign-in card's text moves into the dictionary. That page's reading-language choice and its link to the official console aren't on the new page.
+- `docs/FRONTEND.md` route table updated.
+- **Bug fixed (found while testing, older than this change):** after a page reload, a signed-in student's navbar button didn't open their complaints. The button and `openTracker()` asked `CivicAuth.getProfile()`, which the student site never fills when it restores a session (only a fresh log-in or the officials' console sets it). Both now use the student session store (`isStudentSignedIn()` in `src/site/studentSession.ts`). Before this change, the same bug showed up as the button scrolling down the page.
+- **Verified** in headless Edge:
+  - **Signed out, 10 of 10:** the nav button opens `/login` without a reload; all 4 redirects keep their query and hash; `?mode=signup` and the default tab open correctly.
+  - **Signed in with a real student account, 14 of 14:**
+    - Signing in from `/login?next=/my` and `/login?next=/report/new` returns to those pages.
+    - `/login` shows "Signed in as …", and "Report an issue" opens the form.
+    - The navbar button opens the student's complaints.
+    - `?next` values pointing off the site (`//host`, backslashes, `https://…`) are ignored.
+  - No console errors. The build and `npm test` (29) pass.
+  - The only database writes were the account's sign-in entries in `activity_log`.
+
 ### 3.20 Student Sign-in 3D Card ([src/components/ui/sign-in-card-2.tsx](src/components/ui/sign-in-card-2.tsx))
 
 - **Modern interactive 3D card component:**
