@@ -19,7 +19,6 @@ export function ConsoleNav() {
       {isAdmin && <NavLink to="/admin/duplicates">{t('nav.duplicates')}</NavLink>}
       {isAdmin && <NavLink to="/admin/stats">{t('nav.stats')}</NavLink>}
       {isAdmin && <NavLink to="/admin/routing">{t('nav.routing')}</NavLink>}
-      <NavLink to="/map">{t('nav.map')}</NavLink>
       <LanguageToggle />
     </nav>
   );

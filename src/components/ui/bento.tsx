@@ -91,6 +91,12 @@ export function BentoCard({
 export default function FUIBentoGridDark() {
   return (
     <div className="bento-container">
+      <img
+        className="university-seal-sticker"
+        src="/images/dibrugarh-university-seal-sticker.png"
+        alt="Dibrugarh University seal"
+        loading="lazy"
+      />
       {/* Header - Human-crafted & Un-slopped */}
       <div className="bento-header">
         <h2 className="h2 split">

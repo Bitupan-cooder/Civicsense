@@ -1,9 +1,22 @@
 /* ── LIGHT MODE HUMAN-CRAFTED BENTO GRID FOR CIVICSENSE ────────── */
 .bento-container {
+  position: relative;
   width: 100%;
   max-width: 1240px;
   margin: 0 auto;
   padding: 10px 16px 20px;
+}
+
+.university-seal-sticker {
+  position: absolute;
+  z-index: 4;
+  width: clamp(76px, 8vw, 112px);
+  height: auto;
+  top: 6px;
+  right: clamp(8px, 2vw, 28px);
+  transform: rotate(9deg);
+  filter: drop-shadow(0 8px 10px rgba(22, 30, 75, 0.2));
+  pointer-events: none;
 }
 
 .bento-header {
@@ -237,6 +250,12 @@
   }
   .bento-header {
     margin-bottom: 24px;
+  }
+  .university-seal-sticker {
+    width: 62px;
+    top: -4px;
+    right: 2px;
+    opacity: 0.95;
   }
   .bento-header h2 {
     font-size: clamp(27px, 8vw, 36px);

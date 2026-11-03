@@ -42,7 +42,7 @@ export function initAnimations() {
 
   /* Petals */
   var pe = document.getElementById('petals');
-  var pc = ['#b8d9aa', '#1EA854', '#c8f090', '#1EA854', '#b8d9aa', '#e0f0d0'];
+  var pc = ['#d97732', '#bd4f2b', '#e8a642', '#a83f27', '#c66b32', '#e4b85a'];
   for (var i = 0; i < 18; i++) { var p = document.createElement('span'); p.className = 'petal'; var l = Math.random() * 100; var dx = (Math.random() - .5) * 160; var dur = 9 + Math.random() * 9; var del = -(Math.random() * 15); var sc = .6 + Math.random() * .8; p.style.cssText = 'left:' + l + '%;--dx:' + dx + 'px;animation-duration:' + dur + 's;animation-delay:' + del + 's;transform:scale(' + sc + ');background:' + pc[Math.floor(Math.random() * pc.length)] + ';'; pe.appendChild(p); }
 
   /* Lenis */

@@ -1,7 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ReportAuthGate } from '../components/ReportForm';
-import { useStudentSession } from '../studentSession';
+import { signOutStudent, useStudentSession } from '../studentSession';
 import { ReportSection } from '../sections/ReportSection';
 import { ShaderCanvas } from '../../components/ui/ShaderCanvas';
 import { SiteNav } from '../components/SiteNav';
@@ -28,7 +28,10 @@ export function ReportPage() {
           ) : profile ? (
             <div className="report-entry-card report-entry-ready">
               <p>Signed in as <strong>{profile.name}</strong>. Your verified account is ready to submit a report.</p>
-              <Link className="report-start-button" to="/report/new">Report an issue <span aria-hidden="true">→</span></Link>
+              <div className="report-entry-actions">
+                <Link className="report-start-button" to="/report/new">Report an issue <span aria-hidden="true">→</span></Link>
+                <button type="button" className="report-entry-logout" onClick={() => void signOutStudent()}>Log out</button>
+              </div>
             </div>
           ) : (
             <ReportAuthGate />

@@ -438,26 +438,27 @@
   user-select: none;
 }
 
-/* Blue student portal accents follow the shared site palette. */
-.sic-card-surface{border-color:#e0f0d0;box-shadow:0 8px 28px rgba(20,50,20,.06),0 2px 8px rgba(20,50,20,.025)}
-.sic-card-inner:hover .sic-card-surface{border-color:#c7dec0}
-.sic-icon-badge{background:#d4f5c0;color:#1a7a3a}
-.sic-tabs{background:#f2f8ec;border-color:#e0f0d0}
+/* Electric blue and lime accents from the student portal reference palette. */
+.sic-card-surface{border-color:#dbe5ff;box-shadow:0 8px 28px rgba(0,54,255,.06),0 2px 8px rgba(20,50,20,.025)}
+.sic-card-inner:hover .sic-card-surface{border-color:#b9caff}
+.sic-icon-badge{background:#f0ffd0;color:#0036ff}
+.sic-tabs{background:#f5f8ee;border-color:#e3ebd7}
 .sic-tab{color:#4a6142}
-.sic-tab:hover,.sic-pw-toggle:hover{color:#1a7a3a}
-.sic-input-group.is-focused .sic-input-icon{color:#1EA854}
-.sic-input{border-color:#d9e5d4;color:#121410}
-.sic-input::placeholder{color:#728f6c}
-.sic-input:focus{border-color:#1EA854;box-shadow:0 0 0 3px rgba(30,168,84,.14)}
-.sic-file-input-wrap{border-color:#cfe2c4}
-.sic-file-input-wrap:hover{border-color:#1EA854;background:#f8fbf5}
-.sic-checkbox{accent-color:#1a7a3a}
-.sic-link-btn{color:#1a7a3a}
-.sic-btn-primary{background:#1a7a3a;box-shadow:0 4px 14px rgba(26,122,58,.2)}
-.sic-btn-primary:hover{background:#0e5c28;box-shadow:0 6px 18px rgba(26,122,58,.28)}
-.sic-divider-line,.sic-footer{border-color:#e0f0d0}
-.sic-btn-secondary{color:#1a7a3a;border-color:#cfe2c4}
-.sic-btn-secondary:hover{background:#FAF2EB;border-color:#b8d9aa}
+.sic-tab:hover,.sic-pw-toggle:hover{color:#0036ff}
+.sic-tab.is-active{background:#0036ff;color:#fff;box-shadow:0 2px 8px rgba(0,54,255,.2)}
+.sic-input-group.is-focused .sic-input-icon{color:#0036ff}
+.sic-input{border-color:#d7e2f3;color:#121410}
+.sic-input::placeholder{color:#72809a}
+.sic-input:focus{border-color:#0036ff;box-shadow:0 0 0 3px rgba(0,54,255,.12)}
+.sic-file-input-wrap{border-color:#d5e2f2}
+.sic-file-input-wrap:hover{border-color:#0036ff;background:#f5f8ff}
+.sic-checkbox{accent-color:#0036ff}
+.sic-link-btn{color:#0036ff}
+.sic-btn-primary{background:#0036ff;box-shadow:0 4px 14px rgba(0,54,255,.2)}
+.sic-btn-primary:hover{background:#002bd0;box-shadow:0 6px 18px rgba(0,54,255,.26)}
+.sic-divider-line,.sic-footer{border-color:#dce5f2}
+.sic-btn-secondary{color:#0036ff;border-color:#c9d8f2}
+.sic-btn-secondary:hover{background:#f2f6ff;border-color:#9eb9ef}
 
 @media (max-width: 480px) {
   .sic-card-surface {

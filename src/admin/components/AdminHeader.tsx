@@ -2,6 +2,7 @@
 import { loadOfficialComplaints, logoutAdmin, openDocket, useConsole } from '../console';
 import { NotificationBell } from '../../NotificationBell';
 import { useLanguage } from '../../i18n';
+import { BrandMark } from '../../site/components/BrandMark';
 
 const MODE_TEXT = { administration: 'Central Administration', social_service: 'Social Party (DUSU Council)' } as Record<string, string>;
 
@@ -40,8 +41,8 @@ export function AdminHeader() {
           {" "}
           <NotificationBell userId={profile?.id} lang={lang} onOpen={(id) => openDocket(id)} onLive={() => loadOfficialComplaints()} />          <div className="user-badge" id="headerUserBadge">
             {" "}
-            <span id="headerAvatar">
-              {profile ? profile.name.slice(0, 2).toUpperCase() : 'DU'}
+            <span id="headerAvatar" className="user-brand-avatar">
+              <BrandMark />
             </span>
             {" "}
             <span id="headerUserName">

@@ -109,7 +109,7 @@ export function ReportTrackerSection() {
                   </section>
                   {routing?.duplicate_of && <p className="report-tracker-duplicate">This report was merged with ticket <button type="button" onClick={() => searchFor(routing.duplicate_of!)}>{ticketRef(routing.duplicate_of)}</button>.</p>}
                   {routing && <AiPanel routing={routing} />}
-                  {routing && <RouteTracker routes={routing.routes} status={status} />}
+                  {routing && <RouteTracker routes={routing.routes} status={status} stepper />}
                   {routing && <Replies replies={routing.replies} lang={lang} showInternal={false} />}
                   {status === 'resolved' && routing && profile && <ConfirmOrReopen complaintId={result.id} onDone={() => searchFor(result.id)} />}
                   <section className="report-tracker-history" aria-label="Status history">

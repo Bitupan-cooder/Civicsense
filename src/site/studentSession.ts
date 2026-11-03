@@ -86,28 +86,17 @@ export async function signOutStudent(): Promise<void> {
 }
 
 /** Nav button: the tracker when signed in as a student, otherwise the sign-in dialog. */
-/** Smoothly scroll to the existing in-page student sign-in / registration card without opening an extra page/modal. */
+/** Take students to the report entry point on the index page without opening a login modal. */
 export function scrollToSignIn(tab: 'signin' | 'signup' = 'signin'): void {
   update({ authOpen: false, authTab: tab });
 
   if (typeof window !== 'undefined') {
-    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html' && window.location.pathname !== '/report') {
-      window.location.href = '/#report';
+    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+      window.location.href = '/#student-signin';
       return;
     }
 
-    const gate = document.getElementById('reportAuthGate') || document.getElementById('report');
-    if (gate) {
-      gate.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => {
-        const input = gate.querySelector(tab === 'signin' ? 'input[type="email"]' : 'input') as HTMLInputElement | null;
-        if (input) {
-          input.focus({ preventScroll: true });
-        }
-      }, 500);
-    } else {
-      openStudentAuth();
-    }
+    document.getElementById('student-signin')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
 

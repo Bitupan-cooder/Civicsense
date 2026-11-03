@@ -13,7 +13,6 @@ import { WorkflowActionModal } from './modals/WorkflowActionModal';
 import { openDocket, useConsole } from './console';
 import { useEffect, type ReactNode } from 'react';
 import { Navigate, Route, Routes, useSearchParams } from 'react-router-dom';
-import { CampusMapPage } from './pages/CampusMapPage';
 import { ConsoleNav } from './pages/ConsoleNav';
 import { DuplicatesPage } from './pages/DuplicatesPage';
 import { ReviewQueuePage } from './pages/ReviewQueuePage';
@@ -66,7 +65,6 @@ export function AdminApp() {
           <Route path="/admin/duplicates" element={<AdminOnly><DuplicatesPage /></AdminOnly>} />
           <Route path="/admin/stats" element={<AdminOnly><StatsPage /></AdminOnly>} />
           <Route path="/admin/routing" element={<AdminOnly><RoutingEditorPage /></AdminOnly>} />
-          <Route path="/map" element={<CampusMapPage />} />
           <Route path="*" element={<RoleHome />} />
         </Routes>
       </div>}

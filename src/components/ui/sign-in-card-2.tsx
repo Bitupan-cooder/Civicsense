@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { Mail, Lock, Eye, EyeClosed, ArrowRight, User, Upload, FileText } from 'lucide-react';
 import { submitStudentLogin, submitStudentSignup, switchStudentAuthTab, useStudentSession } from "@/site/studentSession";
 import { openTracker } from "@/site/tracker";
@@ -40,23 +40,6 @@ export function Component({ embedded = false, className = "", defaultTab = 'sign
   const [isLoading, setIsLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [localError, setLocalError] = useState("");
-
-  // 3D card tilt effect
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const rotateX = useTransform(mouseY, [-300, 300], [5, -5]);
-  const rotateY = useTransform(mouseX, [-300, 300], [-5, 5]);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    mouseX.set(e.clientX - rect.left - rect.width / 2);
-    mouseY.set(e.clientY - rect.top - rect.height / 2);
-  };
-
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-  };
 
   const handleSignInSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -129,18 +112,8 @@ export function Component({ embedded = false, className = "", defaultTab = 'sign
   const isBusy = isLoading || (activeTab === 'signin' ? session?.loginBusy : session?.signupBusy);
 
   const cardContent = (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="sic-card-outer"
-    >
-      <motion.div
-        className="sic-card-inner"
-        style={{ rotateX, rotateY }}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-      >
+    <div className="sic-card-outer">
+      <div className="sic-card-inner">
         {/* Main Clean Solid White Card Surface */}
         <div className="sic-card-surface">
           {/* Header */}
@@ -455,8 +428,8 @@ export function Component({ embedded = false, className = "", defaultTab = 'sign
             <span>Zero Spam Policy</span>
           </div>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 
   if (embedded) {

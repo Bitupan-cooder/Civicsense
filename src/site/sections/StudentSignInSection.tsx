@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ReportAuthGate } from '../components/ReportForm';
-import { useStudentSession } from '../studentSession';
+import { signOutStudent, useStudentSession } from '../studentSession';
 import { loadStudentComplaints, useTracker } from '../tracker';
 import { ticketRef } from '../../logic';
+import { LayeredText } from '../../components/ui/layered-text';
 
 export function StudentSignInSection() {
   const { profile } = useStudentSession();
@@ -43,20 +43,22 @@ export function StudentSignInSection() {
   return (
     <section className="student-signin-section" id="student-signin">
       <div className="student-signin-inner">
-        <p className="student-signin-kicker">Student Portal</p>
-        <h2>Sign in to report an issue</h2>
-        <p className="student-signin-description">
-          Sign in with your verified student account, or register with your student ID to get started.
-        </p>
-        {profile === undefined ? (
-          <div className="student-signin-card" role="status">Checking your student account…</div>
-        ) : profile ? (
-          <>
+        <div className="student-portal-layout">
+          <LayeredText className="student-portal-art" />
+          <div className="student-portal-content">
             <div className="student-signin-card student-signin-ready">
-              <p>Welcome back, <strong>{profile.name}</strong>. You can now submit a campus report.</p>
-              <Link className="student-signin-report-button" to="/report/new">Report an issue <span aria-hidden="true">→</span></Link>
+              <div>
+                <h2>{profile ? `Welcome back, ${profile.name}.` : 'Have an issue on campus?'}</h2>
+                <p>{profile ? 'Your student account is ready to submit a report.' : 'Tell us what happened. We’ll guide you through signing in and submitting your report.'}</p>
+              </div>
+              <div className="student-signin-actions">
+                <Link className="student-signin-report-button" to="/report">Report here <span aria-hidden="true">→</span></Link>
+                {profile && <button type="button" className="student-signout-button" onClick={() => void signOutStudent()}>Log out</button>}
+              </div>
             </div>
-            <section className="index-confirmed-replies" aria-labelledby="index-confirmed-replies-title">
+          </div>
+        </div>
+        {profile && <section className="index-confirmed-replies" aria-labelledby="index-confirmed-replies-title">
               <div className="index-replies-heading">
                 <p>Report updates</p>
                 <h3 id="index-confirmed-replies-title">Official replies &amp; status updates</h3>
@@ -97,13 +99,7 @@ export function StudentSignInSection() {
                   {tracker.mineLoading ? 'Loading your report updates…' : 'Public admin replies on your reports will appear here.'}
                 </div>
               )}
-            </section>
-          </>
-        ) : (
-          <div className="student-signin-card">
-            <ReportAuthGate />
-          </div>
-        )}
+        </section>}
       </div>
     </section>
   );

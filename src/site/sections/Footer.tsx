@@ -26,7 +26,6 @@ export function Footer() {
       contactLabel="Campus helpdesk"
       email="network-helpdesk@dibru.ac.in"
       copiedLabel="Copied to clipboard"
-      note="Game of Codes · ANAZORI v16.0 · PS-04 · © 2026 · All rights reserved."
       stickers={[]}
       socials={[]}
       credits={[

@@ -3,6 +3,7 @@
 import { useState, type CSSProperties } from 'react';
 import type { ComplaintRoute, Reply, Routing } from './civicAuth';
 import { CATEGORY_LABELS, waitingOn, type Category } from './logic';
+import { TrackStatusStepper } from './components/ui/track-status-stepper';
 
 const PRIORITY_LABELS: Record<number, string> = { 1: 'P1 · Urgent (safety risk)', 2: 'P2 · High', 3: 'P3 · Normal', 4: 'P4 · Minor' };
 const PRIORITY_COLORS: Record<number, string> = { 1: '#b91c1c', 2: '#b45309', 3: '#4a6142', 4: '#64748b' };
@@ -28,7 +29,7 @@ export function PriorityChip({ priority }: { priority: number | null | undefined
 export function AiPanel({ routing }: { routing: Routing }) {
   if (!routing.analysed_at) return null;
   return (
-    <div style={BOX}>
+    <div className="ai-analysis-panel" style={BOX}>
       <div style={{ ...LABEL, display: 'flex', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
         <span>AI analysis</span>
         <span style={{ fontWeight: 600, textTransform: 'none', color: '#64748b' }}>
@@ -53,11 +54,11 @@ export function AiPanel({ routing }: { routing: Routing }) {
 const CHECKPOINTS: [keyof ComplaintRoute, string][] = [['delivered_at', 'Delivered'], ['seen_at', 'Seen'], ['replied_at', 'Replied'], ['resolved_at', 'Resolved']];
 
 /** Each recipient with its four checkpoints, and who the complaint is waiting on. */
-export function RouteTracker({ routes, status }: { routes: ComplaintRoute[]; status: string | null }) {
+export function RouteTracker({ routes, status, stepper = false }: { routes: ComplaintRoute[]; status: string | null; stepper?: boolean }) {
   if (!routes.length) return null;
   const waiting = waitingOn(routes, status || '');
   return (
-    <div style={BOX}>
+    <div className="route-tracker-panel" style={BOX}>
       <div style={{ ...LABEL, display: 'flex', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
         <span>Route tracker</span>
         <span style={{ fontWeight: 600, textTransform: 'none', color: waiting ? '#b45309' : 'var(--olive)' }}>
@@ -74,7 +75,10 @@ export function RouteTracker({ routes, status }: { routes: ComplaintRoute[]; sta
                 {r.kind === 'primary' ? 'Must resolve' : r.kind === 'copy' ? 'Copied' : 'Escalation'}
               </span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '4px', marginTop: '6px' }}>
+            {stepper ? <TrackStatusStepper steps={CHECKPOINTS.map(([key, label]) => {
+              const ts = r[key] as string | null;
+              return { label, timestamp: ts };
+            })} /> : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '4px', marginTop: '6px' }}>
               {CHECKPOINTS.map(([key, label]) => {
                 const ts = r[key] as string | null;
                 return (
@@ -84,7 +88,7 @@ export function RouteTracker({ routes, status }: { routes: ComplaintRoute[]; sta
                   </div>
                 );
               })}
-            </div>
+            </div>}
           </div>
         ))}
       </div>
@@ -98,7 +102,7 @@ export function Replies({ replies, lang, showInternal }: { replies: Reply[]; lan
   const list = replies.filter((r) => showInternal || r.visibility === 'public');
   if (!list.length) return null;
   return (
-    <div style={BOX}>
+    <div className="official-replies-panel" style={BOX}>
       <div style={LABEL}>{lang === 'as' ? 'উত্তৰসমূহ' : 'Replies'}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {list.map((r) => {

@@ -188,6 +188,7 @@
       border-radius: 999px;
       border: 1px solid var(--line);
     }
+    .user-brand-avatar { display: inline-flex; align-items: center; justify-content: center; color: #1a7a3a; }
 
     /* ── MAIN CONTENT CONTAINER ── */
     .admin-main {

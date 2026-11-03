@@ -7,7 +7,7 @@ export function CallToAction() {
     <section className="cta" id="cta">
       <div className="sq-field" data-count="14" aria-hidden="true" />
       <div className="cta-img">
-        <img id="ctaImg" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093217_cc690198-ad8c-4127-8734-8485bd878351.png" alt="Moonlit campus" />
+        <img id="ctaImg" src="/images/campus-autumn-artwork.png" alt="Illustrated Dibrugarh University campus in autumn" />
       </div>
       <div id="petals" aria-hidden="true" />
       <div className="cta-card" id="ctaCard">
