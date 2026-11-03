@@ -1,8 +1,7 @@
 // Student app routes (PRD "Pages"). The landing page (/) stays mounted, only hidden, while another route shows.
 import { memo, useEffect } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { refreshAnimations } from './animations.js';
-import { ComplaintPage } from './pages/ComplaintPage';
 import { LoginPage } from './pages/LoginPage';
 import { MyComplaintsPage } from './pages/MyComplaintsPage';
 import { ReportFormPage, ReportPage } from './pages/ReportPage';
@@ -36,12 +35,17 @@ export function SiteApp() {
         <Route path="/report/new" element={<ReportFormPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/my" element={<MyComplaintsPage />} />
-        <Route path="/complaints/:id" element={<ComplaintPage />} />
+        <Route path="/complaints/:id" element={<ComplaintRedirect />} />
         <Route path="/index.html" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );
+}
+
+function ComplaintRedirect() {
+  const { id = '' } = useParams();
+  return <Navigate to={`/report?track=${encodeURIComponent(id)}#report-tracker`} replace />;
 }
 
 const Landing = memo(function Landing() {

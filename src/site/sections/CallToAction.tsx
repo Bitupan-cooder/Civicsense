@@ -1,8 +1,8 @@
 // Markup converted 1:1 from the original index.html (React migration, step 1).
-import { openTracker, openTrackerWithId } from '../tracker';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export function CallToAction() {
+  const navigate = useNavigate();
   return (
     <section className="cta" id="cta">
       <div className="sq-field" data-count="14" aria-hidden="true" />
@@ -23,9 +23,9 @@ export function CallToAction() {
           <Link className="btn reveal" to="/report" style={{ fontSize: "14px", height: "44px", padding: "0 26px" }}>
             File a Report Now
           </Link>
-          <button className="btn-outline reveal" onClick={() => openTracker()}>
+          <Link className="btn-outline reveal" to="/report?view=mine#report-tracker">
             Track Complaint
-          </button>
+          </Link>
         </div>
         <div className="track-form reveal">
           <p>
@@ -33,7 +33,10 @@ export function CallToAction() {
           </p>
           <div className="track-input-row">
             <input className="track-input" id="ctaTrackInput" type="text" placeholder="Complaint ID (e.g. CS-8921)" />
-            <button className="btn" onClick={() => openTrackerWithId((document.getElementById('ctaTrackInput') as HTMLInputElement).value)}>
+            <button className="btn" onClick={() => {
+              const id = (document.getElementById('ctaTrackInput') as HTMLInputElement).value.trim();
+              if (id) navigate(`/report?track=${encodeURIComponent(id)}#report-tracker`);
+            }}>
               Track
             </button>
           </div>

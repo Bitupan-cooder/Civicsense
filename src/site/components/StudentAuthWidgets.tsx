@@ -1,8 +1,9 @@
 // Everything that shows who is signed in, rendered from the student session store.
 import { handleNavStudentClick, openReuploadModal, openStudentAuth, scrollToSignIn, signOutStudent, useStudentSession } from '../studentSession';
-import { loadStudentComplaints, openTracker, openTrackerWithId, switchTrackerMode } from '../tracker';
+import { loadStudentComplaints, openTracker, switchTrackerMode } from '../tracker';
 import { NotificationBell } from '../../NotificationBell';
 import { useLanguage } from '../../i18n';
+import { useNavigate } from 'react-router-dom';
 
 function IdStatusLabel({ status }: { status?: string }) {
   if (status === 'verified') {
@@ -30,7 +31,7 @@ function IdStatusLabel({ status }: { status?: string }) {
 export function StudentNavButton({ standalone = false }: { standalone?: boolean }) {
   const { profile } = useStudentSession();
   return (
-    <button className="btn-outline nav-student-button" id={standalone ? undefined : 'navStudentBtn'} onClick={() => handleNavStudentClick()} style={{ height: '32px', fontSize: '12px', padding: '0 14px' }}>
+    <button className="btn-outline nav-student-button" id={standalone ? undefined : 'navStudentBtn'} onClick={() => handleNavStudentClick()}>
       {profile ? 'Student: ' + profile.name.split(' ')[0] : 'Student Sign In'}
     </button>
   );
@@ -113,11 +114,12 @@ export function ReportAuthNotice() {
 export function StudentNotifications() {
   const { profile } = useStudentSession();
   const { lang } = useLanguage();
+  const navigate = useNavigate();
   return (
     <NotificationBell
       userId={profile?.id}
       lang={lang}
-      onOpen={(id) => openTrackerWithId(id)}
+      onOpen={(id) => navigate(`/report?track=${encodeURIComponent(id)}#report-tracker`)}
       onLive={(n) => {
         loadStudentComplaints();
         // route pages (e.g. /complaints/:id) refresh themselves on this event

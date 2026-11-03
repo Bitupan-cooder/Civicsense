@@ -6,6 +6,7 @@ import { ReportSection } from '../sections/ReportSection';
 import { ShaderCanvas } from '../../components/ui/ShaderCanvas';
 import { SiteNav } from '../components/SiteNav';
 import { Footer } from '../sections/Footer';
+import { ReportTrackerSection } from '../sections/ReportTrackerSection';
 
 export function ReportPage() {
   const { profile } = useStudentSession();
@@ -34,6 +35,7 @@ export function ReportPage() {
           )}
         </div>
       </section>
+      <ReportTrackerSection />
     </ReportPageLayout>
   );
 }
@@ -49,6 +51,7 @@ export function ReportFormPage() {
   return (
     <ReportPageLayout>
       {profile === undefined ? <div className="report-page-loading" role="status">Checking your student account…</div> : <ReportSection />}
+      {profile && <ReportTrackerSection />}
     </ReportPageLayout>
   );
 }

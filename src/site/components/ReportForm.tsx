@@ -1,13 +1,13 @@
 // Complaint form, its sign-in gate and the success card, rendered from ../reportForm.ts.
 // These elements always stay mounted (only `display` changes): animations.js attaches GSAP reveal animations to them.
 import { useEffect, useRef, type CSSProperties } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   addCameraPhoto, addEvidenceFiles, clearReportSuccess, LOCATION_OPTIONS, removeEvidenceFile, resetReportForm,
   setCustomLocation, setDescription, setField, setHideName, setLocation, setVisibility, submitReport, useReportForm, type FocusField, type Visibility,
 } from '../reportForm';
 import { openStudentAuth, useStudentSession } from '../studentSession';
 import { ReportAuthNotice } from './StudentAuthWidgets';
-import { openTracker, openTrackerWithId } from '../tracker';
 import type { Analysis } from '../../civicAuth';
 import { categoryLabel, PriorityChip } from '../../RouteTracker';
 import { useFeatures } from '../../NotificationBell';
@@ -44,6 +44,7 @@ function sizeLabel(bytes: number): string {
 export function ReportSuccessCard() {
   const { profile } = useStudentSession();
   const { success } = useReportForm();
+  const navigate = useNavigate();
   const shown = !!profile && !!success;
   return (
     <div className="success-card" id="successCard" style={shown ? { display: "flex", width: "100%", flexDirection: "column" } : { display: "none", width: "100%" }}>
@@ -63,8 +64,8 @@ export function ReportSuccessCard() {
       {" "}
       <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
         {" "}
-        <button className="btn" onClick={() => openTrackerWithId(success ? success.ticket : 'CS-0000')}>
-          View in Student Dashboard
+        <button className="btn" onClick={() => success && navigate(`/report?track=${encodeURIComponent(success.ticket)}#report-tracker`)}>
+          Track this report
         </button>
         {" "}
         <button className="btn-outline" onClick={() => resetReportForm()}>

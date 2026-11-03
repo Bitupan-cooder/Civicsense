@@ -1,7 +1,6 @@
 // State and actions of the complaint tracker modal ("My Complaints" and "Track by Complaint ID").
 import { useSyncExternalStore } from 'react';
 import { civicAuth, routingApi, type Complaint, type Routing } from '../civicAuth';
-import { checkCurrentStudentSession } from './studentSession';
 import { showToast } from '../toast';
 import { resolveLocationId } from '../locations';
 
@@ -64,14 +63,8 @@ export function getMapComplaints() {
 }
 
 export function openTracker(): void {
-  update({ open: true, demoIds: demoIds() });
-  checkCurrentStudentSession();
-  if (civicAuth().getProfile()?.role === 'student') {
-    switchTrackerMode('my_complaints');
-    loadStudentComplaints();
-  } else {
-    switchTrackerMode('track_single');
-  }
+  const view = civicAuth().getProfile()?.role === 'student' ? 'mine' : 'track';
+  window.location.assign(`/report?view=${view}#report-tracker`);
 }
 
 export function closeTracker(): void {
@@ -83,12 +76,8 @@ export function switchTrackerMode(mode: TrackerMode): void {
 }
 
 export function openTrackerWithId(id: string | null | undefined): void {
-  openTracker();
-  if (id && id.trim()) {
-    switchTrackerMode('track_single');
-    update({ query: id.trim() });
-    setTimeout(searchComplaint, 150);
-  }
+  if (!id?.trim()) { openTracker(); return; }
+  window.location.assign(`/report?track=${encodeURIComponent(id.trim())}#report-tracker`);
 }
 
 export async function loadStudentComplaints(): Promise<void> {

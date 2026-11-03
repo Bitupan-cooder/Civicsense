@@ -37,7 +37,7 @@ export function MyComplaintsPage() {
           const waiting = r ? waitingOn(r.routes, status) : null;
           return (
             <li key={c.id} data-status={status}>
-              <Link to={`/complaints/${c.id}`}>{ticketRef(c.id)} · {c.title}</Link>
+              <Link to={`/report?track=${encodeURIComponent(c.id)}#report-tracker`}>{ticketRef(c.id)} · {c.title}</Link>
               <span data-field="status">{STATUS_NAMES[status]?.[lang] ?? status}</span>
               {r?.analysed_at && <span data-field="ai">{categoryLabel(r.ai_category)} · {priorityLabel(r.priority)}</span>}
               {waiting && <span data-field="waiting">Waiting on: {waiting}</span>}

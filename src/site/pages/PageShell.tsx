@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { LanguageToggle, useLanguage } from '../../i18n';
 import { StudentNotifications } from '../components/StudentAuthWidgets';
 import { signOutStudent, useStudentSession } from '../studentSession';
+import { Footer } from '../sections/Footer';
 
 export function PageShell({ title, children }: { title: string; children: ReactNode }) {
   const { t } = useLanguage();
@@ -34,6 +35,7 @@ export function PageShell({ title, children }: { title: string; children: ReactN
         <h1>{title}</h1>
         {children}
       </main>
+      <Footer />
     </div>
   );
 }

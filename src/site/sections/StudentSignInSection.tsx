@@ -79,7 +79,7 @@ export function StudentSignInSection() {
                                     <span className="index-reply-avatar" aria-hidden="true">{from.trim().charAt(0).toUpperCase()}</span>
                                     <div><strong>{from}</strong><small>Official update</small></div>
                                   </div>
-                                  <Link to={`/complaints/${complaint.id}`}>{ticketRef(complaint.id)} · {complaint.title}</Link>
+                                  <Link to={`/report?track=${encodeURIComponent(complaint.id)}#report-tracker`}>{ticketRef(complaint.id)} · {complaint.title}</Link>
                                   <blockquote lang={lang}>{body}</blockquote>
                                   <time dateTime={created_at}>{new Date(created_at).toLocaleDateString(profile.preferred_language === 'as' ? 'as-IN' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</time>
                                 </article>

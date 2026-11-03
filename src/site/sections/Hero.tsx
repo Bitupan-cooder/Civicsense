@@ -15,7 +15,7 @@ export function Hero() {
       {/* Massive backdrop typography layered behind characters and clouds */}
       {" "}
       <div className="hero-backdrop-title" aria-hidden="true">
-        Report Fearlessly
+        Report <span>Fearlessly</span>
       </div>
       {" "}
       <div className="cloud cloud-l" data-par="-60">

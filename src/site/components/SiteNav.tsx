@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { StudentNavButton, StudentNotifications } from './StudentAuthWidgets';
-import { openTracker } from '../tracker';
 
 /** Shared navigation used by the index hero and standalone report routes. */
 export function SiteNav({ standalone = false }: { standalone?: boolean }) {
@@ -41,9 +40,10 @@ export function SiteNav({ standalone = false }: { standalone?: boolean }) {
         <StudentNotifications />
         <StudentNavButton standalone={standalone} />
         {' '}
-        <button className="btn-outline" id={standalone ? undefined : 'openTrackerBtn'} type="button" onClick={() => openTracker()} style={{ height: '32px', fontSize: '12px', padding: '0 14px' }}>
-          Track Status
-        </button>
+        <Link className="btn-outline nav-track-link" to="/report?view=mine#report-tracker" aria-label="Track status">
+          <span className="nav-track-long">Track Status</span>
+          <span className="nav-track-short" aria-hidden="true">Track</span>
+        </Link>
       </div>
       {' '}
     </nav>

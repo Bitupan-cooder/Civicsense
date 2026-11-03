@@ -168,11 +168,8 @@ export function initAnimations() {
       document.querySelectorAll('.panel>*').forEach(function (el) { gsap.from(el, { y: 40, opacity: 0, duration: .9, stagger: .1, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 85%' } }); });
       return function () { };
     });
-    gsap.from('.cat-card', { y: 24, opacity: 0, stagger: { each: .05, from: 'start' }, duration: .7, ease: 'power3.out', scrollTrigger: { trigger: '#catGrid', start: 'top 88%' } });
     ScrollTrigger.create({ trigger: '#cta', start: 'top bottom', end: 'bottom bottom', scrub: true, onUpdate: function (s) { gsap.set('#ctaImg', { yPercent: -12 + 12 * s.progress }); } });
     gsap.from('#ctaCard', { y: 80, scale: .94, opacity: 0, filter: 'blur(10px)', duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: '#cta', start: 'top 60%' } });
-    var ftl = gsap.timeline({ scrollTrigger: { trigger: '#footer', start: 'top 92%' } });
-    ftl.to('.fdot', { y: -8, duration: .25, stagger: .08, yoyo: true, repeat: 3, ease: 'sine.inOut' }).to('.fdot', { attr: { cx: 27, cy: 50 }, duration: .45, ease: 'power3.inOut' }).to('.fdot:nth-child(3),.fdot:nth-child(4)', { opacity: 0, duration: .1 }, '>').to('#fMark', { strokeDashoffset: 0, duration: .6, ease: 'power3.out' }, '-=.05').to('.fdot:nth-child(2)', { attr: { r: 5.5 }, duration: .3, ease: 'back.out(3)' }, '<').to('#fRing', { strokeDashoffset: 0, duration: .9, ease: 'power2.inOut' }, '-=.3');
     ScrollTrigger.refresh();
 
     /* 3D Civic Characters Parallax & Continuous Levitation */

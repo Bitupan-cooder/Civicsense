@@ -1,8 +1,21 @@
 "use client";
 import React from "react";
 import { clsx } from "clsx";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import "./bento.css";
+
+const bentoRevealVariants: Variants = {
+  hidden: { opacity: 0, y: 30, scale: 0.985, filter: "blur(7px)" },
+  visible: (index: number = 0) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    filter: "blur(0px)",
+    transition: { duration: 0.72, delay: Math.min(index, 6) * 0.075, ease: [0.22, 1, 0.36, 1] },
+  }),
+  idle: {},
+  active: { y: -4, transition: { duration: 0.24, ease: "easeOut" } },
+};
 
 function ArrowDownIcon() {
   return (
@@ -20,6 +33,7 @@ export interface BentoCardProps {
   imgSrc: string;
   imgAlt: string;
   onSelect?: () => void;
+  revealIndex?: number;
 }
 
 export function BentoCard({
@@ -29,6 +43,7 @@ export function BentoCard({
   imgSrc,
   imgAlt,
   onSelect,
+  revealIndex = 0,
 }: BentoCardProps) {
   const handleClick = () => {
     onSelect?.();
@@ -37,9 +52,12 @@ export function BentoCard({
 
   return (
     <motion.div
-      initial="idle"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.18 }}
+      custom={revealIndex}
       whileHover="active"
-      variants={{ idle: {}, active: {} }}
+      variants={bentoRevealVariants}
       onClick={handleClick}
       className={clsx("bento-card cat-card", className)}
       role="button"
@@ -89,6 +107,7 @@ export default function FUIBentoGridDark() {
       <div id="catGrid" className="bento-grid">
         {/* Row 1, Card 1: Water & Plumbing (Span 3, Top-Left Rounded) */}
         <BentoCard
+          revealIndex={0}
           className="bento-col-3 bento-rounded-tl"
           title="Water & Plumbing"
           description="Leaking taps, pipe bursts, washroom repairs, and drinking water coolers."
@@ -98,6 +117,7 @@ export default function FUIBentoGridDark() {
 
         {/* Row 1, Card 2: Power & Lighting (Span 3, Top-Right Rounded) */}
         <BentoCard
+          revealIndex={1}
           className="bento-col-3 bento-rounded-tr"
           title="Power & Lighting"
           description="Dark walkways, failed streetlights, broken ceiling fans, and circuit trips."
@@ -107,6 +127,7 @@ export default function FUIBentoGridDark() {
 
         {/* Row 2, Card 3: Campus IT & LAN (Span 2) */}
         <BentoCard
+          revealIndex={2}
           className="bento-col-2"
           title="Campus Wi-Fi & IT"
           description="Library and hostel Wi-Fi, Ethernet connections, and student portal access."
@@ -116,6 +137,7 @@ export default function FUIBentoGridDark() {
 
         {/* Row 2, Card 4: Safety & Proctorial (Span 2) */}
         <BentoCard
+          revealIndex={3}
           className="bento-col-2"
           title="Safety & Security"
           description="Broken gate locks, unlit spots, perimeter concerns, and emergency security."
@@ -125,6 +147,7 @@ export default function FUIBentoGridDark() {
 
         {/* Row 2, Card 5: Clean Campus (Span 2) */}
         <BentoCard
+          revealIndex={4}
           className="bento-col-2"
           title="Sanitation & Grounds"
           description="Overflowing bins, pathway litter, waste clearance, and campus groundskeeping."
@@ -134,6 +157,7 @@ export default function FUIBentoGridDark() {
 
         {/* Row 3, Card 6: Hostels & Housing (Span 2, Bottom-Left Rounded) */}
         <BentoCard
+          revealIndex={5}
           className="bento-col-2 bento-rounded-bl"
           title="Hostel Facilities"
           description="Dorm room fixtures, hot water geysers, mess hall concerns, and room maintenance."
@@ -143,6 +167,7 @@ export default function FUIBentoGridDark() {
 
         {/* Row 3, Card 7: Classrooms & Labs (Span 2) */}
         <BentoCard
+          revealIndex={6}
           className="bento-col-2"
           title="Classrooms & Labs"
           description="Projectors, lab instruments, podium acoustics, student desks, and lecture halls."
@@ -151,7 +176,13 @@ export default function FUIBentoGridDark() {
         />
 
         {/* Row 3, Card 8: 20 Campus Areas Action Card (Span 2, Bottom-Right Rounded) */}
-        <div
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.18 }}
+          custom={7}
+          whileHover="active"
+          variants={bentoRevealVariants}
           className="bento-card cat-card bento-col-2 bento-rounded-br bento-action-card"
           role="button"
           tabIndex={0}
@@ -189,7 +220,7 @@ export default function FUIBentoGridDark() {
               <ArrowDownIcon />
             </button>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
