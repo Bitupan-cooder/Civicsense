@@ -1,7 +1,13 @@
 import StickerSlapFooter from '../../components/ui/sticker-slap-footer';
+import { useLanguage } from '../../i18n';
 
 /** Shared Xohari footer used on the landing, report, sign-in, and complaint pages. */
 export function Footer() {
+  const { lang } = useLanguage();
+  const address = lang === 'as'
+    ? ['পৰিকলন বিজ্ঞান আৰু প্ৰয়োগ কেন্দ্ৰ (CCSA)', 'ডিব্ৰুগড় বিশ্ববিদ্যালয়']
+    : ['Centre for Computer Science & Applications (CCSA)', 'Dibrugarh University'];
+
   return (
     <StickerSlapFooter
       wordmark="xohari"
@@ -20,7 +26,7 @@ export function Footer() {
       officeLabel="Associated with"
       officeLinkText="Blitz"
       officeHref="https://blitz.ccsdu.in"
-      address={['Centre for Computer Science & Applications (CCSA)', 'Dibrugarh University']}
+      address={address}
       mapLabel="Campus emergency: +91 373 237-0239"
       mapHref="tel:+913732370239"
       contactLabel="Campus helpdesk"

@@ -667,10 +667,14 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     const { data: c, error } = await supabaseAdmin.from('complaints').select('*').eq('id', complaintId).maybeSingle();
     if (error || !c) return sendJson(res, 404, { error: 'Complaint not found.' });
     if (['closed', 'merged', 'rejected'].includes(c.status)) return sendJson(res, 409, { error: 'This complaint is no longer active.' });
-    const corrected = applyRules({ language: c.input_language || 'en', is_complaint: true, category, priority, is_sensitive: c.is_sensitive,
-      location_text: c.location_text, summary_en: c.summary_en || '', summary_as: c.summary_as || '', image_findings: c.image_findings, confidence: 1 }, `${c.title}\n${c.description}`);
-    const saved = await supabaseAdmin.from('complaints').update({ ai_category: category, priority: corrected.priority, is_sensitive: corrected.is_sensitive, human_edited: true,
-      ...(corrected.head_only ? { visibility: 'administration', target_unit_id: null } : {}), updated_at: new Date().toISOString() }).eq('id', c.id);
+    const corrected = applyRules({
+      language: c.input_language || 'en', is_complaint: true, category, priority, is_sensitive: c.is_sensitive,
+      location_text: c.location_text, summary_en: c.summary_en || '', summary_as: c.summary_as || '', image_findings: c.image_findings, confidence: 1
+    }, `${c.title}\n${c.description}`);
+    const saved = await supabaseAdmin.from('complaints').update({
+      ai_category: category, priority: corrected.priority, is_sensitive: corrected.is_sensitive, human_edited: true,
+      ...(corrected.head_only ? { visibility: 'administration', target_unit_id: null } : {}), updated_at: new Date().toISOString()
+    }).eq('id', c.id);
     if (saved.error) return sendJson(res, 500, { error: saved.error.message });
     if (c.status !== 'needs_review') await insertRoutes(c.id, category, corrected.head_only);
     await supabaseAdmin.from('activity_log').insert({ actor_id: requester.user.id, action: 'ai_corrected', target: `${ticketRef(c.id)} corrected to ${category}, P${corrected.priority}` });
