@@ -96,4 +96,4 @@ Set `CHAT_BOTS=true` in **one** process only: two processes polling the same Tel
 | `npm test` | Tests for the access rule, the PRD routing/safety rules (against its demo scenarios) and the AI module |
 | `npm run test:live -- <url>` | Live test of the database rules and the complaint flow against the real Supabase project, through a running dev server (default `http://localhost:3000`). Uses temporary `zz-migration-test-*` accounts and always deletes them again |
 
-Without a complete `.env.local` the pages still load, but every `/api/*` call returns a "Server not configured" error...
+Without a complete `.env.local` the pages still load, but every `/api/*` call returns a "Server not configured" error.
