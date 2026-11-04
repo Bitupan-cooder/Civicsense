@@ -6,7 +6,7 @@ Students report campus problems in **Assamese or English**. AI sorts, summarises
 
 > Codename in the repository: **CivicSense** (also the name of the chat bot).
 >
-> **Live demo:** _add the link once deployed ([docs/DEPLOY.md](docs/DEPLOY.md))_
+> **Live demo:** _add the link once deployed ([docs/DEPLOY.md](docs/DEPLOY.md))_.
 
 ---
 
