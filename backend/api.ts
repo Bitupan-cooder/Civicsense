@@ -7,7 +7,8 @@ import { validateSubmission } from "./submission.ts";
 import { deadlinePlan } from "./maintenance.ts";
 import { canAccessComplaint } from "./access.ts";
 import { campusPlaceNames, embedText, translateReply, understandComplaint } from "./ai.ts";
-import { applyRules, AUTO_CLOSE_DAYS, CATEGORIES, DUPLICATE_THRESHOLD, messages, routeComplaint, textSimilarity, ticketRef, type Message } from "../src/logic.ts";
+import { applyRules, AUTO_CLOSE_DAYS, CATEGORIES, CATEGORY_LABELS, DUPLICATE_THRESHOLD, messages, routeComplaint, STATUS_NAMES, textSimilarity, ticketRef, type Message } from "../src/logic.ts";
+import { ATTEMPTS_PER_DAY, bestMatch, initialSignalStatus, makeLinkToken, parseEmbedding, PLATFORM_NAMES, readLinkToken, sendChatMessage, sendDirectMessage, signalVisibleTo, SIGNAL_CORROBORATION, TAGS_PER_DAY, type Platform, type Tag } from "./chat.ts";
 
 // Secrets come only from the environment or git-ignored .env files. Never hardcode fallbacks here.
 for (const file of process.env.NODE_ENV === 'test' ? [] : [".env.local", ".env"]) {
@@ -144,7 +145,7 @@ async function postHolderIds(authorityIds: string[]): Promise<string[]> {
 }
 
 /** In-app notification (PRD), pushed live through Supabase Realtime. Failures never block the action itself. */
-async function notify(userIds: string[], complaintId: string, msg: Message): Promise<void> {
+async function notify(userIds: string[], complaintId: string | null, msg: Message): Promise<void> {
   const unique = [...new Set(userIds.filter(Boolean))];
   if (!unique.length) return;
   const { error } = await supabaseAdmin.from("notifications").insert(unique.map((user_id) => ({ user_id, complaint_id: complaintId, message_en: msg.en, message_as: msg.as })));
@@ -369,6 +370,186 @@ async function analyseAndRoute(complaint: any, location: string | null, hideName
   };
 }
 
+// ── Agent tag (migration 002): issues raised by tagging the bot in Telegram / Discord groups. Listeners: chatbots.ts ──
+
+let signalsInstalled: boolean | null = null;
+async function isSignalsInstalled(): Promise<boolean> {
+  if (signalsInstalled) return true;
+  const checks = await Promise.all(["chat_links", "signals", "signal_supporters"].map((t) => supabaseAdmin.from(t).select("*").limit(1)));
+  signalsInstalled = checks.every((c) => !c.error) && (await isRoutingInstalled());
+  return signalsInstalled;
+}
+
+const SIGNAL_COLS = "id, platform, chat_id, chat_title, message_id, text, summary_en, summary_as, ai_category, priority, is_sensitive, location_text, confidence, authority_ids, status, complaint_id, handled_note, handled_at, created_at";
+const daysAgo = (days: number) => new Date(Date.now() - days * 86400e3).toISOString();
+const siteUrl = () => (process.env.PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+const botConfigured = (p: Platform) => !!(p === "telegram" ? process.env.TELEGRAM_BOT_TOKEN : process.env.DISCORD_BOT_TOKEN);
+
+// ponytail: in-memory, resets on restart; the durable per-student limit is TAGS_PER_DAY in signal_supporters.
+const tagAttempts = new Map<string, number[]>();
+function tooManyAttempts(key: string): boolean {
+  const recent = (tagAttempts.get(key) || []).filter((t) => t > Date.now() - 86400e3);
+  recent.push(Date.now());
+  tagAttempts.set(key, recent);
+  return recent.length > ATTEMPTS_PER_DAY;
+}
+
+function linkMessage(tag: Tag): string {
+  const token = makeLinkToken(tag.platform, tag.userId, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  return `Link your CivicSense student account to report from ${PLATFORM_NAMES[tag.platform]}. Open this link while signed in on CivicSense. It is only for you and works for 30 minutes:\n${siteUrl()}/login?link=${encodeURIComponent(token)}`;
+}
+
+/** Post titles in the order of the ids (primary post first). */
+async function postTitles(ids: string[]): Promise<string[]> {
+  if (!ids.length) return [];
+  const { data } = await supabaseAdmin.from("authorities").select("id, post_title").in("id", ids);
+  const byId = new Map((data || []).map((a: any) => [a.id, a.post_title]));
+  return ids.map((id) => byId.get(id)).filter(Boolean) as string[];
+}
+
+async function tagsToday(studentId: string): Promise<number> {
+  const { data } = await supabaseAdmin.from("signal_supporters").select("signal_id").eq("student_id", studentId).gte("created_at", daysAgo(1));
+  return data?.length || 0;
+}
+
+async function supporterIds(signalId: string): Promise<string[]> {
+  const { data } = await supabaseAdmin.from("signal_supporters").select("student_id").eq("signal_id", signalId).order("created_at");
+  return (data || []).map((x: any) => x.student_id);
+}
+
+async function notifySignalPosts(s: any, students: number): Promise<void> {
+  await notify(await postHolderIds(s.authority_ids), null, messages.signalRaised(s.chat_title || PLATFORM_NAMES[s.platform as Platform], s.summary_en || s.text, students));
+}
+
+/** Adds the student's +1; a pending signal moves to its posts once SIGNAL_CORROBORATION students raised it. */
+async function supportSignal(s: any, studentId: string): Promise<TagResult> {
+  if ((await tagsToday(studentId)) >= TAGS_PER_DAY) return { public: `You have raised ${TAGS_PER_DAY} issues today, the daily limit. Please use the CivicSense website for more.` };
+  const added = await supabaseAdmin.from("signal_supporters").insert({ signal_id: s.id, student_id: studentId });
+  if (added.error?.code === "23505") return { public: "You have already raised this one. Thanks!" };
+  if (added.error) throw new Error(added.error.message);
+  const students = (await supporterIds(s.id)).length;
+  const posts = await postTitles(s.authority_ids);
+  if (s.status === "pending" && students >= SIGNAL_CORROBORATION) {
+    const { data } = await supabaseAdmin.from("signals").update({ status: "open", updated_at: new Date().toISOString() }).eq("id", s.id).eq("status", "pending").select("id");
+    if (data?.length) {
+      await notifySignalPosts(s, students);
+      return { public: `${students} students have raised this. Sent to ${posts.join(", ")}.` };
+    }
+  }
+  return { public: `+1 recorded: ${students} students have raised this${s.status === "pending" ? "" : ` with ${posts[0]}`}.` };
+}
+
+export interface TagResult {
+  /** posted in the group as a reply to the tag */
+  public?: string;
+  /** sent to the tagger only */
+  private?: string;
+  /** a new signal: the adapter saves the id of its public reply, so "+1" replies to it count */
+  signalId?: string;
+}
+
+/**
+ * One tag from a group. Guardrails, in order: linked and active student account, attempt limit, minimum length,
+ * daily limit, AI check (not a complaint → nothing stored), already an open complaint or earlier signal (→ +1),
+ * sensitive (→ Head only, nothing posted in the group), corroboration before non-urgent issues reach a post.
+ */
+export async function handleTag(tag: Tag): Promise<TagResult> {
+  if (missingEnv.length || !(await isSignalsInstalled())) return tag.kind === "private" ? { private: "CivicSense group reporting is not set up yet." } : {};
+  const { data: link } = await supabaseAdmin.from("chat_links").select("student_id").eq("platform", tag.platform).eq("external_user_id", tag.userId).maybeSingle();
+  const { data: student } = link ? await supabaseAdmin.from("profiles").select("id, name, role, is_active").eq("id", link.student_id).maybeSingle() : { data: null };
+  const linked = student?.role === "student" && student.is_active;
+
+  if (tag.kind === "private") {
+    return { private: linked
+      ? `You're linked as ${student.name}. Tag me in a campus group to raise an issue, for example "@CivicSense no water in Hostel 3 since morning". Students who are also affected can reply to my answer with +1.`
+      : linkMessage(tag) };
+  }
+  if (tooManyAttempts(`${tag.platform}:${tag.userId}`)) return {};
+  if (!linked) {
+    return {
+      public: tag.platform === "telegram"
+        ? `To report through CivicSense, link your student account first: open https://t.me/${tag.botName}?start=link and press Start.`
+        : "To report through CivicSense, link your student account first. I've sent you a private message with a link.",
+      private: linkMessage(tag),
+    };
+  }
+
+  if (tag.kind === "support") {
+    const { data: s } = await supabaseAdmin.from("signals").select(SIGNAL_COLS)
+      .eq("platform", tag.platform).eq("chat_id", tag.chatId).eq("bot_message_id", tag.replyToBotMessageId!).maybeSingle();
+    if (!s || s.status === "dismissed") return {};
+    if (s.status === "converted" && s.complaint_id) return { public: `This is already official complaint ${ticketRef(s.complaint_id)}.` };
+    return supportSignal(s, student.id);
+  }
+
+  const text = tag.text.normalize("NFC").slice(0, 2000);
+  if (text.length < 8) return { public: "Tell me what is wrong and where, for example \"no water in Hostel 3 since morning\". Or tag me in a reply to the message that describes it." };
+  if ((await tagsToday(student.id)) >= TAGS_PER_DAY) return { public: `You have raised ${TAGS_PER_DAY} issues today, the daily limit. Please use the CivicSense website for more.` };
+
+  const ai = await understandComplaint({ text, location: null, image: null });
+  await supabaseAdmin.from("ai_logs").insert(ai.attempts.map((a) => ({ ...a, complaint_id: null })));
+  const r = applyRules(ai.understanding, text, campusPlaceNames());
+  if (ai.failed) r.needs_review = true;
+  if (!r.is_complaint) return { public: "This doesn't look like a campus problem I can pass on. Say what is broken and where." };
+
+  const mine = { text: `${r.summary_en}\n${text}`, embedding: null as number[] | null };
+  if (!r.is_sensitive) {
+    const { values, attempt } = await embedText(mine.text);
+    if (attempt) await supabaseAdmin.from("ai_logs").insert({ ...attempt, complaint_id: null });
+    mine.embedding = values;
+
+    const { data: open } = await supabaseAdmin.from("complaints").select("id, status, title, description, summary_en, embedding")
+      .eq("ai_category", r.category).eq("is_sensitive", false).in("status", ["submitted", "under_verification", "accepted", "in_progress"])
+      .gte("created_at", daysAgo(60)).order("created_at", { ascending: false }).limit(100);
+    const complaint = bestMatch(open, mine, (c: any) => ({ text: `${c.summary_en || ""}\n${c.title}\n${c.description}`, embedding: parseEmbedding(c.embedding) }));
+    if (complaint) return { public: `This is already official complaint ${ticketRef(complaint.id)} (${STATUS_NAMES[complaint.status]?.en ?? complaint.status}). Officials are working on it; you can follow it on CivicSense.` };
+
+    // raised before, in this or another group: count it as a +1
+    const { data: earlier } = await supabaseAdmin.from("signals").select(SIGNAL_COLS + ", embedding")
+      .eq("ai_category", r.category).eq("is_sensitive", false).in("status", ["pending", "open", "acknowledged"])
+      .gte("created_at", daysAgo(7)).order("created_at", { ascending: false }).limit(50);
+    const same = bestMatch(earlier, mine, (s: any) => ({ text: `${s.summary_en || ""}\n${s.text}`, embedding: parseEmbedding(s.embedding) }));
+    if (same) return supportSignal(same, student.id);
+  }
+
+  const [{ data: rules }, { data: head }] = await Promise.all([
+    supabaseAdmin.from("routing_rules").select("category, primary_authority_id, copy_authority_ids").eq("active", true),
+    supabaseAdmin.from("authorities").select("id").eq("post_key", "head").maybeSingle(),
+  ]);
+  if (!head) throw new Error("Routing is not seeded: no 'head' authority.");
+  const authorityIds = routeComplaint(r.category, r.head_only, rules || [], head.id).map((x) => x.authority_id);
+  const status = initialSignalStatus(r);
+  const { data: s, error } = await supabaseAdmin.from("signals").insert({
+    platform: tag.platform, chat_id: tag.chatId, chat_title: tag.chatTitle, message_id: tag.messageId, text,
+    summary_en: r.summary_en, summary_as: r.summary_as, ai_category: r.category, priority: r.priority, is_sensitive: r.is_sensitive,
+    location_text: r.location_text, confidence: r.confidence, embedding: mine.embedding, authority_ids: authorityIds, status,
+  }).select(SIGNAL_COLS).single();
+  if (error) throw new Error("Failed to save signal: " + error.message);
+  const supported = await supabaseAdmin.from("signal_supporters").insert({ signal_id: s.id, student_id: student.id });
+  if (supported.error) throw new Error(supported.error.message);
+  await supabaseAdmin.from("activity_log").insert({
+    actor_id: student.id, action: "signal_raised",
+    target: `Signal from ${PLATFORM_NAMES[tag.platform]} group "${tag.chatTitle || tag.chatId}": ${r.category} P${r.priority}, ${status}`,
+  });
+
+  const posts = await postTitles(authorityIds);
+  if (status === "open") await notifySignalPosts(s, 1);
+  if (r.is_sensitive) {
+    return { private: `Received. This was sent privately to ${posts.join(", ")} only, and nothing about it is posted in the group. Your message is still visible there, so you may want to delete it. You can also report it on CivicSense: ${siteUrl()}/report/new` };
+  }
+  return {
+    public: status === "open"
+      ? `Noted and sent to ${posts.join(", ")}. Also affected? Reply to this message with +1.`
+      : `Noted (${CATEGORY_LABELS[r.category]}). It goes to ${posts[0]} once one more student confirms: reply to this message with +1.`,
+    signalId: s.id,
+  };
+}
+
+/** Remembers the bot's public reply to a new signal, so "+1" replies to it count as support. */
+export async function saveBotMessage(signalId: string, botMessageId: string): Promise<void> {
+  await supabaseAdmin.from("signals").update({ bot_message_id: botMessageId }).eq("id", signalId);
+}
+
 /** Admin account-management routes may only act on department / social_service accounts, never on admins or students. */
 async function isManagedOfficial(userId: string): Promise<boolean> {
   const { data } = await supabaseAdmin.from("profiles").select("role").eq("id", userId).maybeSingle();
@@ -521,7 +702,115 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
 
   // WHAT IS SWITCHED ON: the pages show the PRD features only once the migration has been run
   if (pathname === "/api/features" && req.method === "GET") {
-    return sendJson(res, 200, { routing: await isRoutingInstalled(), gemini: !!process.env.GEMINI_API_KEY });
+    return sendJson(res, 200, { routing: await isRoutingInstalled(), gemini: !!process.env.GEMINI_API_KEY, signals: await isSignalsInstalled() });
+  }
+
+  // AGENT TAG: a signed-in student opens the link the bot sent privately, linking that chat account to theirs
+  if (pathname === "/api/chat/link" && req.method === "POST") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester?.profile?.is_active || requester.profile.role !== "student") return sendJson(res, 403, { error: "Sign in with an active student account to link it." });
+      if (!(await isSignalsInstalled())) return sendJson(res, 503, { error: "Group reporting is not set up yet.", notInstalled: true });
+      const link = readLinkToken((await parseBody(req)).token, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+      if (!link) return sendJson(res, 400, { error: "This link has expired or is not valid. Message the bot again for a new one." });
+      const { error } = await supabaseAdmin.from("chat_links").upsert({ platform: link.platform, external_user_id: link.userId, student_id: requester.user.id }, { onConflict: "platform,external_user_id" });
+      if (error) return sendJson(res, 500, { error: "Could not link the account: " + error.message });
+      await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: "chat_linked", target: `Linked a ${PLATFORM_NAMES[link.platform]} account` });
+      if (botConfigured(link.platform)) {
+        await sendDirectMessage(link.platform, link.userId, `Linked to CivicSense as ${requester.profile.name}. You can now tag me in campus groups to raise an issue.`).catch(() => {});
+      }
+      return sendJson(res, 200, { platform: link.platform });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Linking failed" });
+    }
+  }
+
+  // AGENT TAG: signals for the console. Administration sees all; a post holder sees open ones routed to their post.
+  if (pathname === "/api/signals" && req.method === "GET") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester?.profile?.is_active || requester.profile.role === "student") return sendJson(res, 403, { error: "Official role required" });
+      if (!(await isSignalsInstalled())) return sendJson(res, 503, { error: "Group signals are not set up yet.", notInstalled: true });
+      const isAdmin = requester.profile.role === "administration";
+      const authorityIds = await myAuthorityIds(requester);
+      if (!isAdmin && !authorityIds.length) return sendJson(res, 200, { signals: [] });
+      let query = supabaseAdmin.from("signals").select(SIGNAL_COLS + ", supporters:signal_supporters(count)")
+        .gte("created_at", daysAgo(30)).order("created_at", { ascending: false }).limit(200);
+      if (!isAdmin) query = query.overlaps("authority_ids", authorityIds).in("status", ["open", "acknowledged", "converted"]);
+      const { data, error } = await query;
+      if (error) return sendJson(res, 500, { error: error.message });
+      const { data: posts } = await supabaseAdmin.from("authorities").select("id, post_title");
+      const titles = new Map((posts || []).map((p: any) => [p.id, p.post_title]));
+      const signals = (data || []).map((s: any) => ({
+        ...s, supporters: s.supporters?.[0]?.count ?? 0, posts: s.authority_ids.map((id: string) => titles.get(id)).filter(Boolean),
+      }));
+      return sendJson(res, 200, { signals });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed" });
+    }
+  }
+
+  // AGENT TAG: acknowledge (the bot answers in the group), convert to an official complaint, or dismiss
+  if (pathname === "/api/signals/act" && req.method === "POST") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester?.profile?.is_active || requester.profile.role === "student") return sendJson(res, 403, { error: "Official role required" });
+      if (!(await isSignalsInstalled())) return sendJson(res, 503, { error: "Group signals are not set up yet.", notInstalled: true });
+      const { signalId, action, note } = await parseBody(req);
+      const { data: s } = await supabaseAdmin.from("signals").select(SIGNAL_COLS).eq("id", signalId).maybeSingle();
+      if (!s) return sendJson(res, 404, { error: "Signal not found" });
+      const isAdmin = requester.profile.role === "administration";
+      const authorityIds = await myAuthorityIds(requester);
+      if (!signalVisibleTo(s, { isAdmin, authorityIds })) return sendJson(res, 403, { error: "This signal is not routed to your post." });
+      if (s.status === "converted" || s.status === "dismissed") return sendJson(res, 409, { error: "This signal was already handled." });
+      const remark = typeof note === "string" ? note.trim().normalize("NFC").slice(0, 500) : "";
+      const post = (await postTitles(s.authority_ids.filter((id: string) => authorityIds.includes(id))))[0]
+        || (isAdmin ? "the administration" : requester.profile.unit_name || requester.profile.name);
+      const now = new Date().toISOString();
+      const handled = { handled_by: requester.user.id, handled_note: remark || null, handled_at: now, updated_at: now };
+      const supporters = await supporterIds(s.id);
+      let chatText: string | null = null;
+      let complaintId: string | null = null;
+
+      if (action === "acknowledge") {
+        const { error } = await supabaseAdmin.from("signals").update({ ...handled, status: "acknowledged" }).eq("id", s.id);
+        if (error) return sendJson(res, 500, { error: error.message });
+        chatText = `Seen by ${post}${remark ? `: ${remark}` : "."}`;
+        await notify(supporters, null, messages.signalAcknowledged(post));
+      } else if (action === "convert") {
+        if (!supporters.length) return sendJson(res, 409, { error: "No linked student raised this signal." });
+        // the first student who raised it becomes the reporter, so they can track, confirm or reopen it
+        const summary = (s.summary_en || s.text).trim();
+        const { data: complaint, error } = await supabaseAdmin.from("complaints").insert({
+          student_id: supporters[0], title: (summary.length >= 5 ? summary : `Issue: ${summary}`).slice(0, 200),
+          description: `${s.text}\n\nRaised in the ${PLATFORM_NAMES[s.platform as Platform]} group "${s.chat_title || s.chat_id}" by ${supporters.length} student${supporters.length === 1 ? "" : "s"}.`,
+          category: "Other", visibility: "administration", target_unit_id: null, status: "needs_review", hide_name_from_union: !!s.is_sensitive,
+        }).select().single();
+        if (error) return sendJson(res, 500, { error: "Could not create the complaint: " + error.message });
+        complaintId = complaint.id;
+        await supabaseAdmin.from("signals").update({ ...handled, status: "converted", complaint_id: complaint.id }).eq("id", s.id);
+        await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: complaint.id, status: "submitted", changed_by: requester.user.id, remark: `Created from a group signal by ${post}.` });
+        try { await analyseAndRoute(complaint, null, null, requester.user.id); }
+        catch (err: any) { console.error("[api] converted signal left in review:", err.message); }
+        await notify(supporters.slice(1), null, messages.signalConverted(ticketRef(complaint.id)));
+        chatText = `This is now official complaint ${ticketRef(complaint.id)}, opened by ${post}.`;
+      } else if (action === "dismiss") {
+        const { error } = await supabaseAdmin.from("signals").update({ ...handled, status: "dismissed" }).eq("id", s.id);
+        if (error) return sendJson(res, 500, { error: error.message });
+      } else {
+        return sendJson(res, 400, { error: "action must be acknowledge, convert or dismiss" });
+      }
+
+      await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: `signal_${action}`, target: `Signal ${s.id.slice(0, 8)} from "${s.chat_title || s.chat_id}": ${action}${complaintId ? ` as ${ticketRef(complaintId)}` : ""}` });
+      // sensitive signals never get a public answer
+      let posted = false;
+      if (chatText && !s.is_sensitive && botConfigured(s.platform)) {
+        posted = await sendChatMessage(s.platform, s.chat_id, chatText, s.message_id).then(() => true, (err) => { console.error("[api] chat reply failed:", err.message); return false; });
+      }
+      return sendJson(res, 200, { success: true, complaintId, posted });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed" });
+    }
   }
 
   // REPLIES AND INTERNAL NOTES (PRD): officials who can see the complaint; stored in both languages

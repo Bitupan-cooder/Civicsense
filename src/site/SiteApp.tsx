@@ -1,6 +1,9 @@
 // Student app routes (PRD "Pages"). The landing page (/) stays mounted, only hidden, while another route shows.
 import { memo, useEffect } from 'react';
-import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useParams, useSearchParams } from 'react-router-dom';
+import * as auth from '../civicAuth';
+import { showToast } from '../toast';
+import { useStudentSession } from './studentSession';
 import { refreshAnimations } from './animations.js';
 import { ReportFormPage, ReportPage } from './pages/ReportPage';
 import './pages/routes.css';
@@ -39,6 +42,7 @@ export function SiteApp() {
   return (
     <>
       <StartupLoader />
+      <ChatLink />
       <Landing />
       <Routes>
         <Route path="/" element={null} />
@@ -55,15 +59,36 @@ export function SiteApp() {
   );
 }
 
+/**
+ * Agent tag: the bot privately sends /login?link=<token>. Once a student is signed in, that Telegram or Discord
+ * account is linked to theirs. Signed out, /login shows its sign-in form and the link waits in the URL.
+ */
+function ChatLink() {
+  const [params, setParams] = useSearchParams();
+  const { profile } = useStudentSession();
+  const token = params.get('link');
+  useEffect(() => {
+    if (!token || profile === undefined) return;
+    if (profile === null) { showToast('Sign in to link your chat account to CivicSense.', 'info'); return; }
+    const drop = () => setParams((p) => { p.delete('link'); return p; }, { replace: true });
+    auth.linkChatAccount(token).then(
+      (r) => { drop(); showToast(`${r.platform === 'telegram' ? 'Telegram' : 'Discord'} linked. You can now tag the CivicSense bot in campus groups.`, 'success'); },
+      (err) => { drop(); showToast((err as Error).message, 'error'); },
+    );
+  }, [token, profile, setParams]);
+  return null;
+}
+
 function ComplaintRedirect() {
   const { id = '' } = useParams();
   return <Navigate to={`/report/new?track=${encodeURIComponent(id)}#report-tracker`} replace />;
 }
 
-/** Old /report links (bookmarks, shared tickets) keep working: the sign-in and tracker page is now /login. */
+/** Old /report links keep working: tracker links (?track= / ?view=) go to the tracker on /report/new, the rest to /login. */
 function ReportRedirect() {
   const { search, hash } = useLocation();
-  return <Navigate to={`/login${search}${hash}`} replace />;
+  const target = /[?&](track|view)=/.test(search) ? '/report/new' : '/login';
+  return <Navigate to={`${target}${search}${hash}`} replace />;
 }
 
 const Landing = memo(function Landing() {

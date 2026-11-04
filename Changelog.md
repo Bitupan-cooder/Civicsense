@@ -468,6 +468,68 @@ For the frontend teammate: every PRD screen now exists and is wired to the backe
   - It links 3 posts to its test accounts for the run, so it **refuses to run** once those posts (Head, General Secretary, Sports Secretary) are linked to real officials. Otherwise they would be notified about test complaints.
   - Run on 2026-11-02: **43 of 43 checks pass, 0 rows left.** Type-check, build and `npm test` (15 tests) pass.
 
+### 3.26 Group signals page brought up to the console standard (2026-11-04)
+
+`/admin/signals` (3.24) was already built, routed and in the console sidebar. It had never rendered a real signal because the live database has none yet. Checked with sample signals injected in the browser only (no database writes), then fixed:
+
+- **Status** in words, in both languages, instead of codes (`pending` → "Waiting for more students", `converted` → "Made a complaint", …), as coloured chips.
+- **Dates:** "4 Nov, 03:30 pm" in the reader's language, instead of "4/11/2026, 3:28:22 pm".
+- **"1 student"**, not "1 students".
+- **No middle-dot strings** (hallmark): source and facts are spaced fields. Priority uses the same chip as the queue.
+- **One primary action:** "Make official complaint" is filled; "Dismiss" is quiet.
+- **Phones:** cards no longer run past the screen edge (a grid-item minimum-width issue, fixed for all console list pages); the note field stacks under its label.
+- **Verified** desktop, phone and Assamese in headless Edge; no console errors; build and `npm test` (47) pass.
+- **Noticed, not changed:**
+  - The page intro still says "the CivicSense bot", though the app is now "Xohari".
+  - On phones, the console's new top bar (sidebar layout) cuts off the "Log out" button at the right edge.
+
+### 3.25 Ready for Vercel and a Namecheap domain (2026-11-04)
+
+Step-by-step guide: [docs/DEPLOY.md](docs/DEPLOY.md): the Vercel project, environment variables, Namecheap DNS records, Supabase URL settings, and what doesn't run on Vercel.
+
+- **`npm run vercel-build`** (Vercel runs it automatically) builds the site as before, then `scripts/vercel-output.mjs` writes Vercel's Build Output API format to `.vercel/output/`:
+  - the static site;
+  - **the API as a single bundled Node 22 function** (`backend/vercel.ts` wraps the existing `handleApiRequest()`; rolldown, already installed, bundles it with its dependencies). Bundling sidesteps Vercel compiling the backend's `.ts` imports;
+  - **the routes:** `/api/*` → the function; `/admin`, `/admin/*`, `/authority`, `/map` → `admin.html`; other page URLs → `index.html`; long-term caching for `/assets/*`;
+  - a **daily cron** for `/api/cron/escalations` (the Hobby-plan limit; it uses `CRON_SECRET`).
+- `.vercel` added to `.gitignore`.
+- **Fixed on the way:**
+  - `index.html` and `admin.html` still loaded three scripts from the deleted `Dibrugarh-University-Map-Kit/` folder (404s on every page). Nothing live used them, so the tags were removed.
+  - The "Track this report" button after filing, and old `/report?track=…` links, went to `/login`, which no longer has the tracker. Both now go to `/report/new?track=…`.
+- **Verified locally**, with a small server that applies `config.json` the way Vercel does and runs the bundled function:
+  - API: health and features (live database, Gemini on), query strings kept, 401/404 responses, cron refused without its secret.
+  - Pages: every page URL maps to the right HTML; `/assets` gets the cache header; unknown files return 404.
+  - In headless Edge: the student signs in, opens the report form, and sees their complaints in the tracker. The admin signs in, and `/admin`, `/admin/stats` (charts) and `/admin/routing` load data through the function. No console errors.
+  - The build and `npm test` (47) pass.
+- **Not done here:** creating the Vercel project, environment variables and DNS records. Those happen in your Vercel and Namecheap accounts (steps in the guide).
+- **On Vercel:** the Telegram/Discord bots (3.24) don't run, because they need an always-on process; escalation runs daily, plus the "Run deadline check" button.
+
+### 3.24 Agent tag: issues raised in Telegram and Discord groups (2026-11-04)
+
+Students tag the CivicSense bot in a campus group (`@CivicSenseBot no water in Hostel 3 since morning`). The bot analyses the message with the same AI and rules as a complaint and routes it to the right post as a **signal**, before anyone files a complaint. Officials see signals on a new console page, **Group signals** (`/admin/signals`). They can acknowledge one (the bot answers in the group), turn it into an official complaint, or dismiss it.
+
+- **How students tag:**
+  - **Telegram:** `/report <issue>`, `@bot <issue>`, or either one as a reply to the message that describes the issue. Others reply `+1` to the bot's answer.
+  - **Discord:** `@bot <issue>`, or a reply with `+1`.
+- **Guardrails, in order:**
+  1. The bot only reads messages meant for it; everything else is ignored and never stored. Discord needs no Message Content intent.
+  2. **Linked students only.** An unlinked tagger gets a private, signed link (30 minutes, only for their chat account). They open it while signed in on CivicSense.
+  3. At most 10 attempts per chat account per day, and 3 accepted issues per student per day.
+  4. The issue must be at least 8 characters. The AI check and `applyRules` run next; something that is not a complaint is not stored.
+  5. If the issue is already an open complaint, the bot points to the ticket instead. If another group already raised it, the tag counts as a +1.
+  6. **Sensitive** issues go to the Head only. Nothing is posted in the group, and the bot answers the student privately.
+  7. A normal issue reaches its post once **2 different students** raise it. Urgent ones (P1–P2) reach it at once, and the admin sees everything.
+- **Turning a signal into a complaint:** the complaint is created for the first student who raised it, analysed and routed as usual. The other supporters are notified.
+- **Files:**
+  - New: `backend/chat.ts` (pure parts and send calls), `backend/chatbots.ts` (Telegram long polling, Discord Gateway), `backend/migrations/002_chat_signals.sql`, `src/admin/pages/SignalsPage.tsx`, `backend/chat.test.ts`.
+  - Changed: `handleTag()` plus `/api/chat/link`, `/api/signals` and `/api/signals/act` in `backend/api.ts`; the `?link=` handler in `src/site/SiteApp.tsx` (renders nothing; toasts only); console nav and route; i18n; 3 notification messages in `src/logic.ts`.
+- **Setup:** see README → "Agent tag".
+- **Verified:**
+  - `npm test`: 47 pass, 18 of them new. They cover the whole tag pipeline against the mock database: link, wait for a second student, cross-group +1, open-complaint match, sensitive routing, limits, convert.
+  - Both type checks pass.
+  - The dev server loads with the bots off, and `/api/features` reports `signals: false` until migration 002 runs.
+- **Not yet verified:** a real Telegram or Discord bot. No bot tokens exist yet, and migration 002 is not applied to the live database.
+
 ### 3.23 Console redesign with hallmark (2026-11-03)
 
 The signed-in console (`/admin`, `/admin/review`, `/admin/duplicates`, `/admin/stats`, `/admin/routing`, the complaint detail and the other modals) was redesigned with the project's hallmark skill. It uses the existing design system shared with the student site. Details are in `docs/FRONTEND.md` → "Console styling".
@@ -687,6 +749,8 @@ Most of these became outdated when the app moved to `index.html` + Supabase.
 | Supabase advisor: the helper functions (`can_read_complaint`, `is_routed_to_me`, `can_see_reporter`, `current_user_role`, …) are callable through `/rest/v1/rpc` (3.16). Low risk: they answer only about the caller. | Probably leave as is. Don't simply `revoke execute … from anon`: the policies call these functions as `anon` too, so logged-out reads would then error instead of returning nothing. Test first if you change it. |
 | Supabase advisor: `protect_complaint_ai_fields` / `protect_complaint_duplicate_fields` have no fixed `search_path`. | Fixed in the migration file (3.17). ⏳ **Still to run on the live database:** the two `alter function` lines in 3.17. |
 | Supabase advisor: leaked-password protection is off. | Supabase → Authentication → Passwords → turn it on. |
+| ⏳ Agent tag (3.24) is built but not live: migration 002 is not applied, and no bots exist yet. | Run `backend/migrations/002_chat_signals.sql`, create the bots, set the env vars (README → "Agent tag"), then test once in a real group. |
+| Agent tag runs only in a long-running process (polling/Gateway). | If the app moves to Vercel functions, switch to a Telegram webhook and Discord interactions; `handleTag()` stays the same. |
 
 ---
 

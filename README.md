@@ -70,6 +70,18 @@ After a student files a complaint, the server analyses it (`backend/ai.ts`), app
 
 Until the migration is run, none of this appears and the site works exactly as before.
 
+### Agent tag (Telegram and Discord groups)
+
+Students tag the CivicSense bot in a campus group to raise an issue. It is analysed and routed like a complaint, and it shows up as a **signal** on the console page **Group signals** for the admin and the post it is routed to. The official can acknowledge it (the bot answers in the group), turn it into an official complaint, or dismiss it. The guardrails are listed in `Changelog.md` 3.24.
+
+1. Run `backend/migrations/002_chat_signals.sql` in the Supabase SQL Editor, after 001.
+2. **Telegram:** create a bot with [@BotFather](https://t.me/BotFather) (`/newbot`) and copy the token. Keep the default privacy mode, so the bot only receives commands and replies to itself. `/report` always works; plain `@mentions` may need the bot to be a group admin.
+3. **Discord:** in the [Developer Portal](https://discord.com/developers/applications), create an application and add a bot. Copy its token. Invite it with the `bot` scope and the *Send Messages* and *Read Message History* permissions. No privileged intents are needed.
+4. In `.env.local`, set `TELEGRAM_BOT_TOKEN` and/or `DISCORD_BOT_TOKEN`, `PUBLIC_SITE_URL` (where students open the link, for example `https://civicsense.vercel.app`) and `CHAT_BOTS=true`.
+5. Start the app (`npm run dev`, `npm run preview` or `npm run server`). The log shows `[chatbots] Telegram: listening as @…`.
+
+Set `CHAT_BOTS=true` in **one** process only: two processes polling the same Telegram bot conflict. The bots connect outwards, so no public URL or tunnel is needed. They do need a long-running process, so they won't run as Vercel functions as they are.
+
 ## Commands
 
 | Command | What it does |
@@ -78,6 +90,7 @@ Until the migration is run, none of this appears and the site works exactly as b
 | `npm run build` | Type-checks, then builds `index.html` + `admin.html` into `dist/` |
 | `npm run preview` | Serves the production build **with** the API (needs `.env.local`) |
 | `npm run server` | API only, on port 3001 (no static files) |
+| `npm run vercel-build` | Production build for Vercel: `dist/` plus the API bundled as one function, in `.vercel/output/`. Deploying and the custom domain: [docs/DEPLOY.md](docs/DEPLOY.md) |
 | `npm test` | Tests for the access rule, the PRD routing/safety rules (against its demo scenarios) and the AI module |
 | `npm run test:live -- <url>` | Live test of the database rules and the complaint flow against the real Supabase project, through a running dev server (default `http://localhost:3000`). Uses temporary `zz-migration-test-*` accounts and always deletes them again |
 

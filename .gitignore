@@ -40,3 +40,6 @@ scratch/
 *.tsbuildinfo
 .agents/
 powershell.cmd
+
+# Vercel build output and local project link
+.vercel

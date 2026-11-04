@@ -5,7 +5,7 @@ import type { AppNotification } from './civicAuth';
 import * as auth from './civicAuth';
 
 // ── which PRD features the server has switched on (fetched once per page) ──
-let features = { routing: false, gemini: false };
+let features: { routing: boolean; gemini: boolean; signals?: boolean } = { routing: false, gemini: false };
 let featuresLoaded = false;
 const featureListeners = new Set<() => void>();
 export function useFeatures() {

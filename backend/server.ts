@@ -1,5 +1,8 @@
 import http from "http";
 import { handleApiRequest, runMaintenance } from "./api.ts";
+import { startChatBots } from "./chatbots.ts";
+
+startChatBots(); // only with CHAT_BOTS=true
 
 const PORT = parseInt(process.env.PORT || process.env.SERVER_PORT || "3001", 10);
 

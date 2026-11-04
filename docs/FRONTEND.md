@@ -30,6 +30,7 @@ Routing uses **React Router 6.28**. Links between pages inside one app use `<Lin
 | URL | File | Status | Data and actions |
 |---|---|---|---|
 | `/` | `SiteApp.tsx` → `Landing` (sections in `src/site/sections/`) | **styled** (existing) | unchanged; the report form, campus map and dialogs live here |
+| `/login?link=<token>` (any page) | `SiteApp.tsx` → `ChatLink` | renders nothing | Agent tag: the bot's private account-link link. Once a student is signed in, it calls `linkChatAccount(token)` → `POST /api/chat/link` and shows a toast. Keep `ChatLink` mounted. |
 | `/login`, `/login?mode=signup`, `?next=/path`, `?track=<id>`, `?view=mine` | `src/site/pages/ReportPage.tsx` → `ReportPage` | styled | Student sign-in / "Register with ID" card (`src/components/ui/sign-in-card-2.tsx`), then "Report an issue"; below it the tracker (`ReportTrackerSection`). `?mode=signup` opens Register, `?next` returns there after sign-in. The nav's "Student Sign In" button opens this page. |
 | `/report/new` | `src/site/pages/ReportPage.tsx` → `ReportFormPage` | styled | The report form. Signed out → `/login?next=/report/new`. |
 | `/report` | `SiteApp.tsx` → `ReportRedirect` | redirect | Old address: forwards to `/login` with its query and hash. |
@@ -44,6 +45,7 @@ Shared shell for the new student pages: `src/site/pages/PageShell.tsx` (header n
 |---|---|---|---|---|
 | `/admin` | everyone signed in to the console (officers see what is routed to their post; admins see all) | `src/admin/components/AdminMain.tsx` | **styled** (existing) | `console.ts` store. The old `/authority` redirects here. |
 | `/admin/review` | administration | `src/admin/pages/ReviewQueuePage.tsx` | styled (`src/admin/console-redesign.css`) | complaints with status `needs_review`; `routeByHand(id, category)` → `POST /api/admin/route-complaint` |
+| `/admin/signals` | every official (the API filters to their post); nav link only after migration 002 | `src/admin/pages/SignalsPage.tsx` | styled (shared card rules in `src/admin/console-redesign.css`) | `GET /api/signals`; `actOnSignal(id, action, note)` → `POST /api/signals/act` (acknowledge / convert / dismiss) |
 | `/admin/duplicates` | administration | `src/admin/pages/DuplicatesPage.tsx` | styled (`src/admin/console-redesign.css`) | `GET /api/admin/duplicates`; `mergeComplaint(id, intoId)` → `POST /api/admin/merge`; `dismissDuplicate(id)` → `POST /api/admin/dismiss-duplicate` |
 | `/admin/stats` | administration | `src/admin/pages/StatsPage.tsx` | styled (`src/admin/console-redesign.css`) | `GET /api/admin/stats`. The PRD suggests Recharts: every `byStatusAll` / `byCategory` / `byLocation` / `byPriority` object maps to chart data with `Object.entries(counts)`. |
 | `/admin/routing` | administration | `src/admin/pages/RoutingEditorPage.tsx` | styled (`src/admin/console-redesign.css`) | `GET /api/admin/routing` → `{ authorities, rules, categories }`; save with `PUT /api/admin/routing` (the server validates and returns the saved config) |
