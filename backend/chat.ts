@@ -1,12 +1,13 @@
-// Agent tag: students tag the CivicSense bot in a Telegram or Discord group to raise a campus issue ("signal").
-// This file holds the pure parts (tag parsing, link tokens, matching, visibility) and the two platforms' send calls.
-// The listeners are in chatbots.ts; the pipeline that analyses, filters and routes a tag is handleTag() in api.ts.
-// Tested in backend/chat.test.ts.
+// Agent tag: students tag the CivicSense bot in a Telegram or Discord group, or write @CivicSense in a Moodle forum
+// post, to raise a campus issue ("signal").
+// This file holds the pure parts (tag parsing, link tokens, matching, visibility) and each platform's send calls.
+// The listeners are in chatbots.ts, the Moodle plugin in moodle/local_civicsense (it calls POST /api/chat/moodle);
+// the pipeline that analyses, filters and routes a tag is handleTag() in api.ts. Tested in backend/chat.test.ts.
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { textSimilarity, DUPLICATE_THRESHOLD } from '../src/logic.ts';
 
-export type Platform = 'telegram' | 'discord';
-export const PLATFORM_NAMES: Record<Platform, string> = { telegram: 'Telegram', discord: 'Discord' };
+export type Platform = 'telegram' | 'discord' | 'moodle';
+export const PLATFORM_NAMES: Record<Platform, string> = { telegram: 'Telegram', discord: 'Discord', moodle: 'Moodle' };
 
 /** Guardrails. A signal reaches the post holders once this many different students raised it (urgent ones at once). */
 export const SIGNAL_CORROBORATION = 2;
@@ -83,6 +84,33 @@ export function discordTag(m: any, botId: string): Tag | null {
   return { ...base, kind: 'report', text: issue };
 }
 
+// ── Moodle (posts forwarded by the local_civicsense plugin, already plain text) ──
+
+const MOODLE_HANDLE = /@civicsense\b/gi;
+
+/** Same rules again: "@CivicSense" in the post, or a +1 reply to the bot's post. With an empty tag, the post it replies
+ * to is the issue. The plugin forwards only such posts, so nothing else ever leaves Moodle. */
+export function moodleTag(p: any): Tag | null {
+  if (!p?.postid || !p.userid || !p.discussionid) return null;
+  const text = String(p.text ?? '').trim();
+  const base = { platform: 'moodle' as const, chatId: String(p.discussionid), chatTitle: [p.forum, p.subject].filter(Boolean).join(': ') || null, messageId: String(p.postid), userId: String(p.userid) };
+  if (p.replytobot && p.parentid && SUPPORT.test(text)) return { ...base, kind: 'support', text, replyToBotMessageId: String(p.parentid) };
+  const bare = text.replace(MOODLE_HANDLE, '').trim();
+  if (bare === text) return null;
+  return { ...base, kind: 'report', text: bare || String(p.parenttext ?? '').trim() };
+}
+
+const MOODLE_MAX_SKEW_S = 300;
+
+/** The plugin signs `<unix time>.<raw body>` with HMAC-SHA256 and the shared MOODLE_SECRET. */
+export function verifyMoodleSignature(body: string, time: unknown, signature: unknown, secret: string, now = Date.now()): boolean {
+  if (!secret || typeof time !== 'string' || typeof signature !== 'string') return false;
+  if (!(Math.abs(now / 1000 - Number(time)) <= MOODLE_MAX_SKEW_S)) return false; // also rejects a non-numeric time
+  const expected = Buffer.from(createHmac('sha256', secret).update(`${time}.${body}`).digest('hex'));
+  const given = Buffer.from(signature);
+  return expected.length === given.length && timingSafeEqual(expected, given);
+}
+
 // ── Account linking: a signed, short-lived link the bot sends privately; the student opens it signed in ──
 
 const LINK_TTL_MS = 30 * 60e3;
@@ -96,12 +124,12 @@ export function makeLinkToken(platform: Platform, userId: string, secret: string
 export function readLinkToken(token: unknown, secret: string, now = Date.now()): { platform: Platform; userId: string } | null {
   if (typeof token !== 'string' || token.length > 300) return null;
   const [platform, userId, exp, sig] = token.split('.');
-  if ((platform !== 'telegram' && platform !== 'discord') || !/^\d{1,25}$/.test(userId || '') || !sig) return null;
+  if (!Object.hasOwn(PLATFORM_NAMES, platform) || !/^\d{1,25}$/.test(userId || '') || !sig) return null;
   const expected = Buffer.from(sign(`${platform}.${userId}.${exp}`, secret));
   const given = Buffer.from(sig);
   if (expected.length !== given.length || !timingSafeEqual(expected, given)) return null;
   if (!(Number(exp) > now)) return null;
-  return { platform, userId };
+  return { platform: platform as Platform, userId };
 }
 
 // ── Matching a tag to an open complaint or an earlier signal ──
@@ -179,8 +207,24 @@ export async function discord(path: string, method = 'GET', body?: object): Prom
   return json;
 }
 
+/** Moodle's core web services (REST), as the bot user that owns MOODLE_TOKEN. */
+export async function moodle(fn: string, params: Record<string, string>): Promise<any> {
+  const res = await fetch(`${(process.env.MOODLE_URL || '').replace(/\/$/, '')}/webservice/rest/server.php`, {
+    method: 'POST', body: new URLSearchParams({ wstoken: process.env.MOODLE_TOKEN || '', wsfunction: fn, moodlewsrestformat: 'json', ...params }),
+    signal: AbortSignal.timeout(15000),
+  });
+  const json: any = await res.json().catch(() => ({}));
+  if (!res.ok || json?.exception) throw new Error(`Moodle ${fn}: ${json?.message || res.status}`);
+  return json;
+}
+
 /** Posts in the group, as a reply to the tag message when given. Returns the new message's id. */
 export async function sendChatMessage(platform: Platform, chatId: string, text: string, replyTo?: string | null): Promise<string> {
+  if (platform === 'moodle') {
+    // a forum reply always has a parent post: the tag post (chatId, the discussion, is not needed)
+    const sent = await moodle('mod_forum_add_discussion_post', { postid: String(replyTo), subject: 'CivicSense', message: text, messageformat: '2' });
+    return String(sent.postid);
+  }
   if (platform === 'telegram') {
     const sent = await telegram('sendMessage', { chat_id: chatId, text, link_preview_options: { is_disabled: true },
       ...(replyTo ? { reply_parameters: { message_id: Number(replyTo), allow_sending_without_reply: true } } : {}) });
@@ -194,6 +238,11 @@ export async function sendChatMessage(platform: Platform, chatId: string, text: 
 /** Direct message to one person. On Telegram this only works once they have opened a chat with the bot. */
 export async function sendDirectMessage(platform: Platform, userId: string, text: string): Promise<void> {
   if (platform === 'telegram') { await telegram('sendMessage', { chat_id: userId, text, link_preview_options: { is_disabled: true } }); return; }
+  if (platform === 'moodle') {
+    const [sent] = await moodle('core_message_send_instant_messages', { 'messages[0][touserid]': userId, 'messages[0][text]': text, 'messages[0][textformat]': '2' });
+    if (!(sent?.msgid > 0)) throw new Error('Moodle message: ' + (sent?.errormessage || 'not sent'));
+    return;
+  }
   const dm = await discord('/users/@me/channels', 'POST', { recipient_id: userId });
   await discord(`/channels/${dm.id}/messages`, 'POST', { content: text, allowed_mentions: { parse: [] } });
 }

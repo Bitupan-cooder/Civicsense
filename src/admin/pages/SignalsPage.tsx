@@ -1,4 +1,4 @@
-// /admin/signals (Agent tag): issues raised by tagging the bot in Telegram / Discord groups. Administration sees all;
+// /admin/signals (Agent tag): issues raised by tagging the bot in Telegram / Discord groups or Moodle forums. Administration sees all;
 // a post holder sees the open ones routed to their post. Acknowledging answers in the group; converting creates an
 // official complaint for the first student who raised it.
 // Styled by the shared .workflow-page card rules in src/admin/console-redesign.css.
@@ -14,7 +14,7 @@ import { showToast } from '../../toast';
 import { loadOfficialComplaints, openDocket } from '../console';
 import { PageState } from './ConsoleNav';
 
-const PLATFORM = { telegram: 'Telegram', discord: 'Discord' } as const;
+const PLATFORM = { telegram: 'Telegram', discord: 'Discord', moodle: 'Moodle' } as const;
 
 export function SignalsPage() {
   const { t, lang } = useLanguage();

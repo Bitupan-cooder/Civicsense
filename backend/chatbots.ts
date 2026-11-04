@@ -1,27 +1,10 @@
 // Agent tag listeners: Telegram long polling and the Discord Gateway. Both connect outwards, so no public URL is needed.
 // Opt in with CHAT_BOTS=true in exactly one long-running process (a second poller on the same Telegram bot gets 409).
-// Each tag goes to handleTag() in api.ts; this file only moves messages in and out.
-import { handleTag, saveBotMessage, type TagResult } from './api.ts';
-import { discord, discordTag, sendChatMessage, sendDirectMessage, telegram, telegramTag, type Tag } from './chat.ts';
+// Each tag goes to respondToTag() in api.ts; this file only receives messages. (Moodle pushes instead: /api/chat/moodle.)
+import { respondToTag as respond } from './api.ts';
+import { discord, discordTag, telegram, telegramTag } from './chat.ts';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-async function respond(tag: Tag): Promise<void> {
-  let result: TagResult;
-  try { result = await handleTag(tag); }
-  catch (err) {
-    console.error('[chatbots] tag failed:', (err as Error).message);
-    result = tag.kind === 'private' ? { private: 'Something went wrong. Please try again later.' } : { public: 'Something went wrong on my side. Please try again later.' };
-  }
-  // Telegram cannot message someone who never opened the bot; the public reply already tells them how
-  if (result.private) await sendDirectMessage(tag.platform, tag.userId, result.private).catch(() => {});
-  if (result.public && tag.kind !== 'private') {
-    try {
-      const id = await sendChatMessage(tag.platform, tag.chatId, result.public, tag.messageId);
-      if (result.signalId) await saveBotMessage(result.signalId, id);
-    } catch (err) { console.error('[chatbots] reply failed:', (err as Error).message); }
-  }
-}
 
 // ponytail: tags are handled one at a time per platform; queue them in parallel if groups get busy.
 async function pollTelegram(): Promise<void> {

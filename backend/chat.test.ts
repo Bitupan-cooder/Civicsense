@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { bestMatch, discordTag, initialSignalStatus, makeLinkToken, matchScore, parseEmbedding, readLinkToken, signalVisibleTo, telegramTag } from './chat.ts';
+import { createHmac } from 'node:crypto';
+import { bestMatch, discordTag, initialSignalStatus, makeLinkToken, matchScore, moodleTag, parseEmbedding, readLinkToken, signalVisibleTo, telegramTag, verifyMoodleSignature } from './chat.ts';
 
 const group = { id: -100123, type: 'supergroup', title: 'Hostel 3 Boys' };
 const tg = (message: object) => ({ update_id: 1, message: { message_id: 50, from: { id: 777, is_bot: false }, chat: group, ...message } });
@@ -88,4 +89,29 @@ test('visibility: admin sees all; a post sees only its open signals', () => {
   assert.ok(!signalVisibleTo(s, { isAdmin: false, authorityIds: ['sports'] }));
   assert.ok(!signalVisibleTo({ ...s, status: 'pending' }, { isAdmin: false, authorityIds: ['water'] }));
   assert.ok(!signalVisibleTo({ ...s, status: 'dismissed' }, { isAdmin: false, authorityIds: ['water'] }));
+});
+
+const post = (extra: object = {}) => ({ postid: 90, discussionid: 7, forum: 'Hostel forum', subject: 'Water', userid: 31, text: '', parentid: null, replytobot: false, parenttext: '', ...extra });
+
+test('moodle: @CivicSense raises an issue, an empty tag uses the post it replies to, +1 under the bot supports', () => {
+  assert.deepEqual(moodleTag(post({ text: '@CivicSense no water in Hostel 3 since morning' })), {
+    platform: 'moodle', kind: 'report', chatId: '7', chatTitle: 'Hostel forum: Water', messageId: '90', userId: '31', text: 'no water in Hostel 3 since morning',
+  });
+  assert.equal(moodleTag(post({ text: '@civicsense', parentid: 89, parenttext: 'Hostel 3 taps are dry' }))!.text, 'Hostel 3 taps are dry');
+  assert.equal(moodleTag(post({ text: 'me too', parentid: 91, replytobot: true }))!.replyToBotMessageId, '91');
+  assert.equal(moodleTag(post({ text: 'this is fake', parentid: 91, replytobot: true })), null);
+  assert.equal(moodleTag(post({ text: 'see you at CivicSense@du.ac.in' })), null);
+  assert.equal(moodleTag({ text: '@CivicSense hi' }), null);
+});
+
+test('moodle: the signature covers time and body, and expires', () => {
+  const now = 1_800_000_000_000, time = String(now / 1000), body = '{"postid":90}';
+  const sig = createHmac('sha256', 's3cret').update(`${time}.${body}`).digest('hex');
+  assert.ok(verifyMoodleSignature(body, time, sig, 's3cret', now));
+  assert.ok(!verifyMoodleSignature(body + ' ', time, sig, 's3cret', now));
+  assert.ok(!verifyMoodleSignature(body, time, sig, 'other', now));
+  assert.ok(!verifyMoodleSignature(body, time, sig, 's3cret', now + 301e3));
+  assert.ok(!verifyMoodleSignature(body, 'x', sig, 's3cret', now));
+  assert.ok(!verifyMoodleSignature(body, time, sig, '', now));
+  assert.ok(!verifyMoodleSignature(body, undefined, undefined, 's3cret', now));
 });

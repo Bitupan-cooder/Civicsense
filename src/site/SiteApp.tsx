@@ -72,7 +72,7 @@ function ChatLink() {
     if (profile === null) { showToast('Sign in to link your chat account to CivicSense.', 'info'); return; }
     const drop = () => setParams((p) => { p.delete('link'); return p; }, { replace: true });
     auth.linkChatAccount(token).then(
-      (r) => { drop(); showToast(`${r.platform === 'telegram' ? 'Telegram' : 'Discord'} linked. You can now tag the CivicSense bot in campus groups.`, 'success'); },
+      (r) => { drop(); showToast(`${{ telegram: 'Telegram', discord: 'Discord', moodle: 'Moodle' }[r.platform]} linked. You can now tag CivicSense in campus groups and forums.`, 'success'); },
       (err) => { drop(); showToast((err as Error).message, 'error'); },
     );
   }, [token, profile, setParams]);

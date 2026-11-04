@@ -8,7 +8,7 @@ import { deadlinePlan } from "./maintenance.ts";
 import { canAccessComplaint } from "./access.ts";
 import { campusPlaceNames, embedText, translateReply, understandComplaint } from "./ai.ts";
 import { applyRules, AUTO_CLOSE_DAYS, CATEGORIES, CATEGORY_LABELS, DUPLICATE_THRESHOLD, messages, routeComplaint, STATUS_NAMES, textSimilarity, ticketRef, type Message } from "../src/logic.ts";
-import { ATTEMPTS_PER_DAY, bestMatch, initialSignalStatus, makeLinkToken, parseEmbedding, PLATFORM_NAMES, readLinkToken, sendChatMessage, sendDirectMessage, signalVisibleTo, SIGNAL_CORROBORATION, TAGS_PER_DAY, type Platform, type Tag } from "./chat.ts";
+import { ATTEMPTS_PER_DAY, bestMatch, initialSignalStatus, makeLinkToken, moodleTag, parseEmbedding, PLATFORM_NAMES, readLinkToken, sendChatMessage, sendDirectMessage, signalVisibleTo, SIGNAL_CORROBORATION, TAGS_PER_DAY, verifyMoodleSignature, type Platform, type Tag } from "./chat.ts";
 
 // Secrets come only from the environment or git-ignored .env files. Never hardcode fallbacks here.
 for (const file of process.env.NODE_ENV === 'test' ? [] : [".env.local", ".env"]) {
@@ -58,7 +58,12 @@ function sendJson(res: ServerResponse, status: number, data: any): boolean {
   return true;
 }
 
-function parseBody(req: IncomingMessage): Promise<any> {
+async function parseBody(req: IncomingMessage): Promise<any> {
+  const body = await readBody(req);
+  return body ? JSON.parse(body) : {};
+}
+
+function readBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     let body = "";
     req.on("data", (chunk) => {
@@ -68,13 +73,7 @@ function parseBody(req: IncomingMessage): Promise<any> {
         req.destroy();
       }
     });
-    req.on("end", () => {
-      try {
-        resolve(body ? JSON.parse(body) : {});
-      } catch (err) {
-        reject(err);
-      }
-    });
+    req.on("end", () => resolve(body));
     req.on("error", reject);
   });
 }
@@ -383,7 +382,8 @@ async function isSignalsInstalled(): Promise<boolean> {
 const SIGNAL_COLS = "id, platform, chat_id, chat_title, message_id, text, summary_en, summary_as, ai_category, priority, is_sensitive, location_text, confidence, authority_ids, status, complaint_id, handled_note, handled_at, created_at";
 const daysAgo = (days: number) => new Date(Date.now() - days * 86400e3).toISOString();
 const siteUrl = () => (process.env.PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
-const botConfigured = (p: Platform) => !!(p === "telegram" ? process.env.TELEGRAM_BOT_TOKEN : process.env.DISCORD_BOT_TOKEN);
+const BOT_TOKENS: Record<Platform, string> = { telegram: "TELEGRAM_BOT_TOKEN", discord: "DISCORD_BOT_TOKEN", moodle: "MOODLE_TOKEN" };
+const botConfigured = (p: Platform) => !!process.env[BOT_TOKENS[p]];
 
 // ponytail: in-memory, resets on restart; the durable per-student limit is TAGS_PER_DAY in signal_supporters.
 const tagAttempts = new Map<string, number[]>();
@@ -548,6 +548,24 @@ export async function handleTag(tag: Tag): Promise<TagResult> {
 /** Remembers the bot's public reply to a new signal, so "+1" replies to it count as support. */
 export async function saveBotMessage(signalId: string, botMessageId: string): Promise<void> {
   await supabaseAdmin.from("signals").update({ bot_message_id: botMessageId }).eq("id", signalId);
+}
+
+/** Runs handleTag() and sends its replies on the tag's platform. Used by the bot listeners and the Moodle endpoint. */
+export async function respondToTag(tag: Tag): Promise<void> {
+  let result: TagResult;
+  try { result = await handleTag(tag); }
+  catch (err) {
+    console.error("[agent tag] tag failed:", (err as Error).message);
+    result = tag.kind === "private" ? { private: "Something went wrong. Please try again later." } : { public: "Something went wrong on my side. Please try again later." };
+  }
+  // Telegram cannot message someone who never opened the bot; the public reply already tells them how
+  if (result.private) await sendDirectMessage(tag.platform, tag.userId, result.private).catch(() => {});
+  if (result.public && tag.kind !== "private") {
+    try {
+      const id = await sendChatMessage(tag.platform, tag.chatId, result.public, tag.messageId);
+      if (result.signalId) await saveBotMessage(result.signalId, id);
+    } catch (err) { console.error("[agent tag] reply failed:", (err as Error).message); }
+  }
 }
 
 /** Admin account-management routes may only act on department / social_service accounts, never on admins or students. */
@@ -722,6 +740,22 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       return sendJson(res, 200, { platform: link.platform });
     } catch (err: any) {
       return sendJson(res, 500, { error: err.message || "Linking failed" });
+    }
+  }
+
+  // AGENT TAG: a forum post forwarded by the Moodle plugin (moodle/local_civicsense), signed with MOODLE_SECRET.
+  // Answers once the replies are posted in Moodle, so it also works as a serverless function.
+  if (pathname === "/api/chat/moodle" && req.method === "POST") {
+    try {
+      const raw = await readBody(req);
+      if (!verifyMoodleSignature(raw, req.headers["x-civicsense-time"], req.headers["x-civicsense-signature"], process.env.MOODLE_SECRET || "")) {
+        return sendJson(res, 401, { error: "Bad or expired signature" });
+      }
+      const tag = moodleTag(JSON.parse(raw));
+      if (tag) await respondToTag(tag);
+      return sendJson(res, 200, { handled: !!tag });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed" });
     }
   }
 
@@ -1776,14 +1810,24 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       if (!complaintId || !targetUnitId) {
         return sendJson(res, 400, { error: "Missing required fields: complaintId, targetUnitId" });
       }
-      if (!(await isManagedOfficial(targetUnitId))) {
+      const { data: target } = await supabaseAdmin.from("profiles").select("role").eq("id", targetUnitId).maybeSingle();
+      if (target?.role !== "department" && target?.role !== "social_service") {
         return sendJson(res, 400, { error: "targetUnitId must be a department or social_service account" });
       }
+      const { data: current } = await supabaseAdmin.from("complaints").select("is_sensitive").eq("id", complaintId).maybeSingle();
+      if (!current) return sendJson(res, 404, { error: "Complaint not found" });
+      // PRD: sensitive complaints (harassment, threats) stay with the Head / administration, never a union desk
+      if (current.is_sensitive && target.role === "social_service") {
+        return sendJson(res, 400, { error: "Sensitive complaints can't be sent to the DUSU desk. Reassign it to a department, or keep it with the administration." });
+      }
 
+      // Visibility decides who can read it (can_read_complaint / canAccessComplaint): a DUSU account reads
+      // social_service complaints, a department reads department complaints targeted to its unit.
       const { error } = await supabaseAdmin
         .from("complaints")
         .update({
           target_unit_id: targetUnitId,
+          visibility: target.role === "social_service" ? "social_service" : "department",
           updated_at: new Date().toISOString(),
         })
         .eq("id", complaintId);

@@ -1,16 +1,17 @@
 -- ====================================================================
--- Migration 002: Agent tag (issues raised in Telegram / Discord groups)
+-- Migration 002: Agent tag (issues raised in Telegram / Discord groups and Moodle forums)
 -- Run once in the Supabase SQL Editor, after 001. Safe to re-run. Additive only.
+-- Already ran it before Moodle was added? Run it again: the last block widens the platform checks.
 --
 -- Adds:
---   * chat_links: a student's Telegram or Discord account, linked once through a signed link the bot sends privately
+--   * chat_links: a student's Telegram, Discord or Moodle account, linked once through a signed link the bot sends privately
 --   * signals: an issue raised by tagging the bot in a group, analysed and routed like a complaint but not one yet
 --   * signal_supporters: the linked students who raised or +1'd a signal (corroboration and rate limit)
 -- All three are read and written only by the server (service role): RLS is on and there are no policies.
 -- ====================================================================
 
 create table if not exists public.chat_links (
-  platform text not null check (platform in ('telegram', 'discord')),
+  platform text not null check (platform in ('telegram', 'discord', 'moodle')),
   external_user_id text not null,
   student_id uuid not null references public.profiles(id) on delete cascade,
   created_at timestamptz not null default timezone('utc'::text, now()),
@@ -20,7 +21,7 @@ create index if not exists chat_links_student_idx on public.chat_links (student_
 
 create table if not exists public.signals (
   id uuid primary key default gen_random_uuid(),
-  platform text not null check (platform in ('telegram', 'discord')),
+  platform text not null check (platform in ('telegram', 'discord', 'moodle')),
   chat_id text not null,
   chat_title text,
   message_id text,                                          -- the tag message the bot replies to
@@ -57,3 +58,9 @@ create index if not exists signal_supporters_student_idx on public.signal_suppor
 alter table public.chat_links enable row level security;
 alter table public.signals enable row level security;
 alter table public.signal_supporters enable row level security;
+
+-- platforms (Moodle added after the first release): replace the checks on tables created earlier
+alter table public.chat_links drop constraint if exists chat_links_platform_check;
+alter table public.chat_links add constraint chat_links_platform_check check (platform in ('telegram', 'discord', 'moodle'));
+alter table public.signals drop constraint if exists signals_platform_check;
+alter table public.signals add constraint signals_platform_check check (platform in ('telegram', 'discord', 'moodle'));

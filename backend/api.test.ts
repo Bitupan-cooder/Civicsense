@@ -2,6 +2,7 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';
+import { createHmac } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
 process.env.NODE_ENV = 'test';
@@ -12,6 +13,10 @@ process.env.CLOUDINARY_API_KEY = 'test-key';
 process.env.CLOUDINARY_API_SECRET = 'test-secret';
 delete process.env.GEMINI_API_KEY;
 delete process.env.CRON_SECRET;
+process.env.MOODLE_URL = 'https://moodle.example.test';
+process.env.MOODLE_TOKEN = 'moodle-token';
+process.env.MOODLE_SECRET = 'moodle-secret';
+let moodleCalls: Record<string, string>[] = [];
 const originalFetch = globalThis.fetch;
 let tables: Record<string, any[]>;
 let failRoutes = false;
@@ -29,6 +34,11 @@ function reset() {
 reset();
 globalThis.fetch = (async (input: string | URL | Request, init: any = {}) => {
   const url = new URL(String(input));
+  if (url.hostname === 'moodle.example.test') {
+    const call = Object.fromEntries(new URLSearchParams(String(init.body)));
+    moodleCalls.push(call);
+    return new Response(JSON.stringify(call.wsfunction === 'core_message_send_instant_messages' ? [{ msgid: 5 }] : { postid: 900 }));
+  }
   assert.equal(url.hostname, 'database.example.test', 'No live service calls are allowed in this test.');
   const headers = new Headers(init.headers);
   const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json' } });
@@ -132,6 +142,31 @@ test('official deletion is blocked to preserve historical attribution', async ()
   const result = await request('/api/admin/delete-official', { userId: 'official-a' }, 'admin-token');
   assert.equal(result.status, 409);
   assert.equal(writes.length, 0);
+});
+
+test('reassigning makes the complaint visible to the new desk; sensitive complaints never go to DUSU', async () => {
+  const { canAccessComplaint } = await import('./access.ts');
+  reset();
+  tables.profiles.push({ id: 'dusu-a', role: 'social_service', is_active: true, unit_name: 'DUSU Desk' }, { id: 'dept-a', role: 'department', is_active: true, unit_name: 'Electrical' });
+  tables.complaints.push(
+    { id: 'c-normal', student_id: 'student-a', visibility: 'administration', target_unit_id: null, is_sensitive: false },
+    { id: 'c-sensitive', student_id: 'student-a', visibility: 'administration', target_unit_id: null, is_sensitive: true },
+  );
+  const c = () => tables.complaints.find((x) => x.id === 'c-normal');
+
+  assert.equal((await request('/api/admin/reassign-complaint', { complaintId: 'c-normal', targetUnitId: 'dusu-a' }, 'admin-token')).status, 200);
+  assert.equal(c().visibility, 'social_service');
+  assert.ok(canAccessComplaint({ id: 'dusu-a', role: 'social_service' }, c()), 'the DUSU desk can now read it');
+
+  assert.equal((await request('/api/admin/reassign-complaint', { complaintId: 'c-normal', targetUnitId: 'dept-a' }, 'admin-token')).status, 200);
+  assert.equal(c().visibility, 'department');
+  assert.ok(canAccessComplaint({ id: 'dept-a', role: 'department', unit_name: 'Electrical' }, c()), 'the department can now read it');
+  assert.ok(!canAccessComplaint({ id: 'dusu-a', role: 'social_service' }, c()), 'and DUSU no longer can');
+
+  const sensitive = await request('/api/admin/reassign-complaint', { complaintId: 'c-sensitive', targetUnitId: 'dusu-a' }, 'admin-token');
+  assert.equal(sensitive.status, 400);
+  assert.equal(tables.complaints.find((x) => x.id === 'c-sensitive').visibility, 'administration');
+  assert.equal((await request('/api/admin/reassign-complaint', { complaintId: 'c-normal', targetUnitId: 'student-b' }, 'admin-token')).status, 400);
 });
 
 test('admin corrections preserve safety floors and replace previous recipients', async () => {
@@ -260,4 +295,35 @@ test('signals: students cannot list them; administration converts one into a rou
   assert.deepEqual(tables.complaint_routes.filter((r) => r.complaint_id === complaint.id).map((r) => r.authority_id).sort(), ['gs', 'sports']);
   assert.ok(tables.notifications.some((n) => n.user_id === 'student-b' && /now official complaint/.test(n.message_en)));
   assert.equal((await request('/api/signals/act', { signalId: tables.signals[0].id, action: 'dismiss' }, 'admin-token')).status, 409);
+});
+
+test('moodle: the endpoint needs a valid signature; a tagged forum post is answered in Moodle', async () => {
+  reset(); moodleCalls = [];
+  const send = async (payload: object, secret = 'moodle-secret') => {
+    const body = JSON.stringify(payload), time = String(Math.floor(Date.now() / 1000));
+    const req = Readable.from([body]) as IncomingMessage;
+    req.url = '/api/chat/moodle'; req.method = 'POST';
+    req.headers = { 'x-civicsense-time': time, 'x-civicsense-signature': createHmac('sha256', secret).update(`${time}.${body}`).digest('hex') };
+    let status = 0;
+    await handleApiRequest(req, { writeHead(code: number) { status = code; }, end() {} } as unknown as ServerResponse);
+    return status;
+  };
+  const post = { postid: 90, discussionid: 7, forum: 'Hostel forum', subject: 'Sports', userid: 31, text: '@CivicSense ' + sportsIssue, parentid: null, replytobot: false, parenttext: '' };
+  assert.equal(await send(post, 'wrong-secret'), 401);
+  assert.equal(moodleCalls.length, 0);
+
+  // unlinked: the link goes as a private Moodle message, and the forum reply says so
+  assert.equal(await send(post), 200);
+  assert.equal(moodleCalls[0]['messages[0][touserid]'], '31');
+  assert.match(moodleCalls[0]['messages[0][text]'], /login\?link=/);
+  assert.equal(moodleCalls[1].wsfunction, 'mod_forum_add_discussion_post');
+  assert.equal(moodleCalls[1].postid, '90');
+  assert.equal(tables.signals.length, 0);
+
+  // linked: a signal from the forum, with the bot's reply remembered so +1 replies to it count
+  tables.chat_links.push({ platform: 'moodle', external_user_id: '31', student_id: 'student-a' });
+  assert.equal(await send({ ...post, postid: 92 }), 200);
+  assert.equal(tables.signals[0].platform, 'moodle');
+  assert.equal(tables.signals[0].chat_title, 'Hostel forum: Sports');
+  assert.equal(tables.signals[0].bot_message_id, '900');
 });

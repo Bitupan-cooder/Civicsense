@@ -28,8 +28,8 @@ yarn-error.log*
 .env*.local
 .env
 
-# Nested duplicate folder
-Civicsense/
+# Nested duplicate folder (root only: moodle/local/civicsense is the Moodle plugin)
+/Civicsense/
 
 # AI Studio and Agent Cache
 .aistudio/

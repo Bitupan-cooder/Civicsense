@@ -468,6 +468,39 @@ For the frontend teammate: every PRD screen now exists and is wired to the backe
   - It links 3 posts to its test accounts for the run, so it **refuses to run** once those posts (Head, General Secretary, Sports Secretary) are linked to real officials. Otherwise they would be notified about test complaints.
   - Run on 2026-11-02: **43 of 43 checks pass, 0 rows left.** Type-check, build and `npm test` (15 tests) pass.
 
+### 3.27 Agent tag in Moodle forums: plugin and adapter (2026-11-04)
+
+Students write `@CivicSense <issue>` in any Moodle forum post. Everything else works as in 3.24: the same guardrails, signals on `/admin/signals`, and +1 replies to the bot's answer. Acknowledging or converting a signal replies in the forum.
+
+- **Moodle plugin `local_civicsense`** (`moodle/local/civicsense/`, Moodle 4.1+):
+  - It watches new forum posts and discussions, and queues only the posts that contain "@CivicSense" or reply to the bot's own post. No other content leaves Moodle.
+  - An ad hoc task (the next cron run) sends the post to CivicSense, signed with HMAC-SHA256 over `time.body` and the shared secret. Moodle retries if CivicSense can't be reached.
+  - Three settings: CivicSense address, shared secret, bot username. It includes the Privacy API metadata that an IT sign-off asks about.
+- **Adapter:**
+  - `POST /api/chat/moodle` checks the signature, which must be at most 5 minutes old (401 otherwise), and runs the tag through `handleTag()`.
+  - CivicSense replies through Moodle's core web services: `mod_forum_add_discussion_post` for forum replies, `core_message_send_instant_messages` for private messages such as the account link. **No custom code runs in Moodle for replies.**
+  - The endpoint answers only after the replies are posted, so it works on Vercel. No `CHAT_BOTS` setting is needed.
+- **Changed:**
+  - `backend/chat.ts`: `moodleTag()`, `verifyMoodleSignature()`, and Moodle sending.
+  - `backend/api.ts`: the endpoint. The respond-and-reply step moved here from `chatbots.ts` as `respondToTag()`, shared by all three platforms.
+  - Migration 002 accepts `moodle`.
+  - The platform label on the signals page and in the link toast.
+  - `.env.example` has `MOODLE_URL`, `MOODLE_TOKEN` and `MOODLE_SECRET`.
+- **Setup:** the plugin's [README](moodle/local/civicsense/README.md), written for the Moodle admin: install, bot account, web service token, settings.
+- **Verified:**
+  - `npm test`: 50 pass, 3 of them new. They cover tag parsing, the signature (tampered, expired or wrong secret), and the endpoint end to end against a mock Moodle: a bad signature is refused; an unlinked student gets the link as a Moodle message; a linked student creates a signal, with the bot's reply id saved for +1s.
+  - Both type checks pass, and `php -l` passes on every plugin file.
+- **Not yet verified:** a real Moodle site. That needs a Moodle install (or the university's test site) and migration 002 live.
+
+### 3.27 Reassigning a complaint to DUSU (or a department) makes it visible there (2026-11-04)
+
+- **Bug:** "Reassign Unit" in the console changed only `target_unit_id`, not `visibility`. Who can read a complaint depends on its visibility (`can_read_complaint()` in the database, `canAccessComplaint()` in the API): a DUSU (`social_service`) account reads `social_service` complaints, a department reads `department` complaints targeted to its unit. New complaints are created with `administration` visibility, so after a reassign the new desk couldn't see the complaint. Live examples: `CS-5DF7D7BB` (to `dusu@`) and `CS-997A0155` (to `dusu1@`).
+- **Fix** (`/api/admin/reassign-complaint` in `backend/api.ts`): visibility now follows the target account's role (`social_service` or `department`).
+- **Guard:** a **sensitive** complaint (harassment, threats) can't be reassigned to DUSU (PRD: those stay with the Head / administration). The admin gets a clear error instead.
+- **Test:** `backend/api.test.ts` covers a reassign to DUSU, then to a department (each can read it, DUSU no longer can after the move), the sensitive guard, and a non-official target. `npm test`: 51 pass.
+- **Note:** visibility is per role, not per account. Every DUSU account (`dusu@` and `dusu1@`) sees every complaint sent to the DUSU desk.
+- **Existing complaints** reassigned before this fix stay hidden until they're reassigned again or updated in the database.
+
 ### 3.26 Group signals page brought up to the console standard (2026-11-04)
 
 `/admin/signals` (3.24) was already built, routed and in the console sidebar. It had never rendered a real signal because the live database has none yet. Checked with sample signals injected in the browser only (no database writes), then fixed:
@@ -750,7 +783,8 @@ Most of these became outdated when the app moved to `index.html` + Supabase.
 | Supabase advisor: `protect_complaint_ai_fields` / `protect_complaint_duplicate_fields` have no fixed `search_path`. | Fixed in the migration file (3.17). ⏳ **Still to run on the live database:** the two `alter function` lines in 3.17. |
 | Supabase advisor: leaked-password protection is off. | Supabase → Authentication → Passwords → turn it on. |
 | ⏳ Agent tag (3.24) is built but not live: migration 002 is not applied, and no bots exist yet. | Run `backend/migrations/002_chat_signals.sql`, create the bots, set the env vars (README → "Agent tag"), then test once in a real group. |
-| Agent tag runs only in a long-running process (polling/Gateway). | If the app moves to Vercel functions, switch to a Telegram webhook and Discord interactions; `handleTag()` stays the same. |
+| ⏳ Agent tag in Moodle (3.27) is built but untested on a real Moodle. **If 002 was already run before 3.27, run it again** (it widens the platform check). | Install the plugin on a test Moodle (steps in its README), set the three `MOODLE_*` env vars, post `@CivicSense …` in a forum, and run cron. |
+| Agent tag runs only in a long-running process (polling/Gateway). Moodle (3.27) doesn't have this limit. | If the app moves to Vercel functions, switch to a Telegram webhook and Discord interactions; `handleTag()` stays the same. |
 
 ---
 

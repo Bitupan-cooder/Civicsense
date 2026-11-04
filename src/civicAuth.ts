@@ -150,7 +150,7 @@ export interface DuplicatePair {
 /** GET /api/signals */
 export interface Signal {
   id: string;
-  platform: 'telegram' | 'discord';
+  platform: 'telegram' | 'discord' | 'moodle';
   chat_title: string | null;
   text: string;
   summary_en: string | null;
@@ -671,12 +671,12 @@ export const fetchActivityLogs = async (limit: number) => (await getJson<{ logs?
 export const fetchStats = () => getJson<Stats>('/api/admin/stats');
 export const runMaintenance = () => postJson<{ escalated: number }>('/api/admin/maintenance', {});
 export const editAnalysis = (complaintId: string, category: string, priority: number) => postJson('/api/admin/edit-analysis', { complaintId, category, priority });
-/** Agent tag: issues raised by tagging the bot in Telegram / Discord groups. */
+/** Agent tag: issues raised by tagging the bot in Telegram / Discord groups or Moodle forums. */
 export const fetchSignals = () => getJson<{ signals: Signal[] }>('/api/signals');
 export const actOnSignal = (signalId: string, action: 'acknowledge' | 'convert' | 'dismiss', note?: string) =>
   postJson<{ complaintId: string | null; posted: boolean }>('/api/signals/act', { signalId, action, note: note || '' });
 /** Links the chat account from the bot's private link to the signed-in student. */
-export const linkChatAccount = (token: string) => postJson<{ platform: 'telegram' | 'discord' }>('/api/chat/link', { token });
+export const linkChatAccount = (token: string) => postJson<{ platform: 'telegram' | 'discord' | 'moodle' }>('/api/chat/link', { token });
 /** Possible duplicate pairs. */
 export const fetchDuplicates = () => getJson<{ pairs: DuplicatePair[] }>('/api/admin/duplicates');
 export const mergeComplaint = (complaintId: string, intoId?: string | null) => postJson<{ mergedInto: string }>('/api/admin/merge', { complaintId, intoId: intoId || null });

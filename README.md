@@ -70,9 +70,9 @@ After a student files a complaint, the server analyses it (`backend/ai.ts`), app
 
 Until the migration is run, none of this appears and the site works exactly as before.
 
-### Agent tag (Telegram and Discord groups)
+### Agent tag (Telegram and Discord groups, Moodle forums)
 
-Students tag the CivicSense bot in a campus group to raise an issue. It is analysed and routed like a complaint, and it shows up as a **signal** on the console page **Group signals** for the admin and the post it is routed to. The official can acknowledge it (the bot answers in the group), turn it into an official complaint, or dismiss it. The guardrails are listed in `Changelog.md` 3.24.
+Students tag the CivicSense bot in a campus group, or write @CivicSense in a Moodle forum post, to raise an issue. It is analysed and routed like a complaint, and it shows up as a **signal** on the console page **Group signals** for the admin and the post it is routed to. The official can acknowledge it (the bot answers in the group), turn it into an official complaint, or dismiss it. The guardrails are listed in `Changelog.md` 3.24.
 
 1. Run `backend/migrations/002_chat_signals.sql` in the Supabase SQL Editor, after 001.
 2. **Telegram:** create a bot with [@BotFather](https://t.me/BotFather) (`/newbot`) and copy the token. Keep the default privacy mode, so the bot only receives commands and replies to itself. `/report` always works; plain `@mentions` may need the bot to be a group admin.
@@ -81,6 +81,8 @@ Students tag the CivicSense bot in a campus group to raise an issue. It is analy
 5. Start the app (`npm run dev`, `npm run preview` or `npm run server`). The log shows `[chatbots] Telegram: listening as @…`.
 
 Set `CHAT_BOTS=true` in **one** process only: two processes polling the same Telegram bot conflict. The bots connect outwards, so no public URL or tunnel is needed. They do need a long-running process, so they won't run as Vercel functions as they are.
+
+**Moodle** works the other way round. The plugin in [`moodle/local/civicsense/`](moodle/local/civicsense/README.md) sends tagged forum posts to `POST /api/chat/moodle`, signed with `MOODLE_SECRET`. CivicSense replies through Moodle's own web services (`MOODLE_URL`, `MOODLE_TOKEN`). It needs no `CHAT_BOTS` setting and works on Vercel, but Moodle must be able to reach the CivicSense address. The plugin's README has the setup steps for the Moodle admin.
 
 ## Commands
 
