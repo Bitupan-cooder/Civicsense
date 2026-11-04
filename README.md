@@ -82,3 +82,4 @@ Until the migration is run, none of this appears and the site works exactly as b
 | `npm run test:live -- <url>` | Live test of the database rules and the complaint flow against the real Supabase project, through a running dev server (default `http://localhost:3000`). Uses temporary `zz-migration-test-*` accounts and always deletes them again |
 
 Without a complete `.env.local` the pages still load, but every `/api/*` call returns a "Server not configured" error.
+hello
