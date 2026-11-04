@@ -50,6 +50,18 @@ cp .env.example .env.local   # then fill in your Supabase and Cloudinary keys
 4. Student registration expects **Confirm email** to be off (Authentication → Providers → Email).
 5. Run `backend/migrations/001_ai_routing_tracker.sql` (AI analysis, routing to posts, route tracker; see below). It is additive and safe to re-run. **If you run `schema.sql` again later, run the migration again afterwards**, because `schema.sql` recreates policies the migration widens.
 
+### Developer monitoring (console page "System")
+
+`/admin/system`, for administration accounts only, shows the last 7 or 30 days:
+
+- **Model usage:** Gemini calls, tokens in and out, and an estimated cost. Set `GEMINI_PRICE_INPUT_PER_M` and `GEMINI_PRICE_OUTPUT_PER_M` to see the cost.
+- **Reliability:** failures, median and slowest-5% latency per step, how often the keyword rules had to stand in for Gemini, and the latest error messages.
+- **Pipeline:** complaints and group signals by status.
+- **Server errors:** every 500 the API returned.
+- **Chat bots:** whether Telegram and Discord are connected, when the last tag arrived, and the last error.
+
+Run `backend/migrations/003_observability.sql` to record tokens and server errors. Until then, the page shows calls, failures and latency only. The data comes from `ai_logs` and `error_logs`, so no extra service or account is needed.
+
 ### AI analysis and routing (PRD)
 
 After a student files a complaint, the server analyses it (`backend/ai.ts`), applies the PRD's code rules (`src/logic.ts`: priority floors, never-invent, review queue, sensitive routing), and routes it:

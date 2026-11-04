@@ -25,6 +25,7 @@ const en = {
   'nav.duplicates': 'Possible duplicates',
   'nav.stats': 'Statistics',
   'nav.routing': 'Routing',
+  'nav.system': 'System',
   'nav.map': 'Campus map',
 
   'login.title': 'Log in',
@@ -133,6 +134,7 @@ const as: Record<TextKey, string> = {
   'nav.duplicates': 'সম্ভাব্য একে অভিযোগ',
   'nav.stats': 'পৰিসংখ্যা',
   'nav.routing': 'ৰাউটিং',
+  'nav.system': 'ছিষ্টেম',
   'nav.map': 'কেম্পাছৰ মানচিত্ৰ',
 
   'login.title': 'লগ ইন',

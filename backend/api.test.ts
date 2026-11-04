@@ -20,13 +20,14 @@ let moodleCalls: Record<string, string>[] = [];
 const originalFetch = globalThis.fetch;
 let tables: Record<string, any[]>;
 let failRoutes = false;
+let failTable: string | null = null;
 let writes: { table: string; method: string; body: any }[];
 function reset() {
-  failRoutes = false; writes = [];
+  failRoutes = false; failTable = null; writes = [];
   tables = {
     profiles: [{ id: 'student-a', role: 'student', is_active: true, email: 'student@example.test', name: 'Student A' }, { id: 'student-b', role: 'student', is_active: true, email: 'b@example.test', name: 'Student B' }, { id: 'admin-a', role: 'administration', is_active: true, email: 'admin@example.test' }],
     complaints: [], complaint_routes: [], complaint_evidence: [], complaint_status_history: [], activity_log: [], ai_logs: [], notifications: [], complaint_replies: [],
-    chat_links: [], signals: [], signal_supporters: [],
+    chat_links: [], signals: [], signal_supporters: [], error_logs: [],
     authorities: [{ id: 'head', post_key: 'head', post_title: 'Head', active: true, user_id: 'head-official' }, { id: 'sports', post_key: 'sports', post_title: 'Sports Secretary', active: true, user_id: 'sports-official' }, { id: 'gs', post_key: 'general_secretary', post_title: 'General Secretary', active: true }],
     routing_rules: [{ category: 'sports', primary_authority_id: 'sports', copy_authority_ids: ['gs'], active: true }, { category: 'other', primary_authority_id: 'head', copy_authority_ids: [], active: true }],
   };
@@ -60,6 +61,7 @@ globalThis.fetch = (async (input: string | URL | Request, init: any = {}) => {
   });
   if (method !== 'GET') writes.push({ table, method, body: structuredClone(body) });
   if (failRoutes && table === 'complaint_routes' && method === 'POST') return json({ message: 'Simulated routing outage' }, 500);
+  if (table === failTable) return json({ message: `Simulated ${table} outage` }, 500);
   if (table === 'signal_supporters' && method === 'POST' && tables.signal_supporters.some((r) => r.signal_id === body.signal_id && r.student_id === body.student_id)) {
     return json({ code: '23505', message: 'duplicate key value violates unique constraint' }, 409);
   }
@@ -86,7 +88,7 @@ async function request(path: string, body: unknown, token: string | null = 'stud
   const req = Readable.from([JSON.stringify(body)]) as IncomingMessage;
   req.url = path; req.method = method; req.headers = token ? { authorization: `Bearer ${token}` } : {};
   let status = 0, payload = '';
-  const res = { writeHead(code: number) { status = code; }, end(value: string) { payload = value; } } as unknown as ServerResponse;
+  const res = { req, writeHead(code: number) { status = code; }, end(value: string) { payload = value; } } as unknown as ServerResponse;
   await handleApiRequest(req, res);
   return { status, body: JSON.parse(payload) };
 }
@@ -326,4 +328,37 @@ test('moodle: the endpoint needs a valid signature; a tagged forum post is answe
   assert.equal(tables.signals[0].platform, 'moodle');
   assert.equal(tables.signals[0].chat_title, 'Hostel forum: Sports');
   assert.equal(tables.signals[0].bot_message_id, '900');
+});
+
+test('system: admin-only model usage, cost, fallback share and latency; a 500 lands in error_logs', async () => {
+  reset();
+  const now = new Date().toISOString();
+  tables.ai_logs.push(
+    { step: 'understanding', model: 'gemini-2.5-flash', latency_ms: 800, ok: true, error: null, created_at: now, input_tokens: 1000, output_tokens: 200 },
+    { step: 'understanding', model: 'gemini-2.5-flash', latency_ms: 3000, ok: false, error: 'Gemini HTTP 503', created_at: now, input_tokens: null, output_tokens: null },
+    { step: 'understanding', model: 'keyword-rules', latency_ms: 1, ok: true, error: null, created_at: now },
+    { step: 'translation', model: 'gemini-2.5-flash', latency_ms: 500, ok: true, error: null, created_at: now, input_tokens: 100, output_tokens: 50 },
+  );
+  process.env.GEMINI_PRICE_INPUT_PER_M = '0.3'; process.env.GEMINI_PRICE_OUTPUT_PER_M = '2.5';
+  try {
+    assert.equal((await request('/api/admin/system', null, 'student-token', 'GET')).status, 403);
+    const { status, body } = await request('/api/admin/system?days=7', null, 'admin-token', 'GET');
+    assert.equal(status, 200);
+    assert.equal(body.tokensInstalled, true);
+    assert.deepEqual([body.ai.calls, body.ai.failed, body.ai.inputTokens, body.ai.outputTokens, body.ai.rulesCalls], [3, 1, 1100, 250, 1]);
+    assert.equal(body.ai.rulesShare, 0.5, 'one of two analyses came from the keyword rules');
+    assert.ok(Math.abs(body.ai.cost - 0.000955) < 1e-9);
+    assert.deepEqual(body.ai.steps.find((s: any) => s.step === 'understanding'), { step: 'understanding', calls: 2, failed: 1, inputTokens: 1000, outputTokens: 200, p50: 3000, p95: 3000 });
+    assert.equal(body.ai.daily.length, 7);
+    assert.deepEqual([body.ai.daily.at(-1).calls, body.ai.daily.at(-1).failed], [3, 1]);
+    assert.equal(body.ai.recentFailures[0].error, 'Gemini HTTP 503');
+    assert.deepEqual(body.bots.map((b: any) => [b.platform, b.configured, b.enabled]), [['telegram', false, false], ['discord', false, false], ['moodle', true, true]]);
+  } finally {
+    delete process.env.GEMINI_PRICE_INPUT_PER_M; delete process.env.GEMINI_PRICE_OUTPUT_PER_M;
+  }
+
+  failTable = 'ai_logs';
+  assert.equal((await request('/api/admin/system', null, 'admin-token', 'GET')).status, 500);
+  await new Promise((r) => setTimeout(r, 20)); // the error write is fire-and-forget
+  assert.deepEqual(tables.error_logs.map((e) => [e.method, e.route, e.status]), [['GET', '/api/admin/system', 500]]);
 });

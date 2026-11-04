@@ -1,7 +1,7 @@
 // Navigation between the officials' routes (PRD "Pages"), by role. Hidden until migration 001 has been run.
 // Styled in src/admin/console-redesign.css (hallmark redesign).
 import { NavLink } from 'react-router-dom';
-import { ChartNoAxesColumn, ClipboardCheck, Copy, LayoutDashboard, MessagesSquare, Route as RouteIcon } from 'lucide-react';
+import { Activity, ChartNoAxesColumn, ClipboardCheck, Copy, LayoutDashboard, MessagesSquare, Route as RouteIcon } from 'lucide-react';
 import { LanguageToggle, useLanguage } from '../../i18n';
 import { useFeatures } from '../../NotificationBell';
 import { logoutAdmin, useConsole } from '../console';
@@ -23,6 +23,7 @@ export function ConsoleNav() {
         {isAdmin && <NavLink to="/admin/duplicates"><Copy aria-hidden="true" /><span>{t('nav.duplicates')}</span></NavLink>}
         {isAdmin && <NavLink to="/admin/stats"><ChartNoAxesColumn aria-hidden="true" /><span>{t('nav.stats')}</span></NavLink>}
         {isAdmin && <NavLink to="/admin/routing"><RouteIcon aria-hidden="true" /><span>{t('nav.routing')}</span></NavLink>}
+        {isAdmin && <NavLink to="/admin/system"><Activity aria-hidden="true" /><span>{t('nav.system')}</span></NavLink>}
       </nav>
       <div className="console-sidebar-footer">
         <div className="console-sidebar-language"><LanguageToggle /></div>

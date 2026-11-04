@@ -9,6 +9,14 @@ import { textSimilarity, DUPLICATE_THRESHOLD } from '../src/logic.ts';
 export type Platform = 'telegram' | 'discord' | 'moodle';
 export const PLATFORM_NAMES: Record<Platform, string> = { telegram: 'Telegram', discord: 'Discord', moodle: 'Moodle' };
 
+/** Health for /admin/system, kept in memory by the process that runs the listeners (resets on restart).
+ * connected stays null for Moodle, which pushes posts instead of holding a connection. */
+export const botStatus: Record<Platform, { connected: boolean | null; lastTagAt: string | null; lastError: string | null }> = {
+  telegram: { connected: false, lastTagAt: null, lastError: null },
+  discord: { connected: false, lastTagAt: null, lastError: null },
+  moodle: { connected: null, lastTagAt: null, lastError: null },
+};
+
 /** Guardrails. A signal reaches the post holders once this many different students raised it (urgent ones at once). */
 export const SIGNAL_CORROBORATION = 2;
 /** Accepted tags per student per day (durable, counted in signal_supporters). */

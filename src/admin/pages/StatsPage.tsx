@@ -98,7 +98,7 @@ function VolumeChart({ points, copy }: { points: MonthPoint[]; copy: (typeof ANA
   );
 }
 
-function Breakdown({ title, counts, label = (key: string) => key, description, emptyText }: { title: string; counts: Record<string, number>; label?: (key: string) => string; description?: string; emptyText: string }) {
+export function Breakdown({ title, counts, label = (key: string) => key, description, emptyText }: { title: string; counts: Record<string, number>; label?: (key: string) => string; description?: string; emptyText: string }) {
   const rows = Object.entries(counts).sort((a, b) => b[1] - a[1]);
   const max = Math.max(1, ...rows.map(([, value]) => value));
   return (

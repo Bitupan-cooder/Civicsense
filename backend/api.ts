@@ -8,7 +8,8 @@ import { deadlinePlan } from "./maintenance.ts";
 import { canAccessComplaint } from "./access.ts";
 import { campusPlaceNames, embedText, translateReply, understandComplaint } from "./ai.ts";
 import { applyRules, AUTO_CLOSE_DAYS, CATEGORIES, CATEGORY_LABELS, DUPLICATE_THRESHOLD, messages, routeComplaint, STATUS_NAMES, textSimilarity, ticketRef, type Message } from "../src/logic.ts";
-import { ATTEMPTS_PER_DAY, bestMatch, initialSignalStatus, makeLinkToken, moodleTag, parseEmbedding, PLATFORM_NAMES, readLinkToken, sendChatMessage, sendDirectMessage, signalVisibleTo, SIGNAL_CORROBORATION, TAGS_PER_DAY, verifyMoodleSignature, type Platform, type Tag } from "./chat.ts";
+import { summariseAi, tally } from "./system.ts";
+import { ATTEMPTS_PER_DAY, bestMatch, botStatus, initialSignalStatus, makeLinkToken, moodleTag, parseEmbedding, PLATFORM_NAMES, readLinkToken, sendChatMessage, sendDirectMessage, signalVisibleTo, SIGNAL_CORROBORATION, TAGS_PER_DAY, verifyMoodleSignature, type Platform, type Tag } from "./chat.ts";
 
 // Secrets come only from the environment or git-ignored .env files. Never hardcode fallbacks here.
 for (const file of process.env.NODE_ENV === 'test' ? [] : [".env.local", ".env"]) {
@@ -47,7 +48,27 @@ if (!missingEnv.length) {
 
 const MAX_BODY_BYTES = 64 * 1024;
 
+// ── Monitoring (migration 003, page /admin/system) ──
+
+/** Every 500 goes to error_logs (route without the query string). Never blocks or fails the response. */
+// ponytail: fire-and-forget; on serverless a write may be cut off with the function. No retention: prune old rows by hand.
+function logServerError(req: IncomingMessage | undefined, status: number, message: unknown): void {
+  if (!supabaseAdmin) return;
+  const row = { method: req?.method ?? null, route: (req?.url || "").split("?")[0].slice(0, 200), status, message: String(message ?? "").slice(0, 500) };
+  void Promise.resolve(supabaseAdmin.from("error_logs").insert(row)).catch(() => {});
+}
+
+/** Writes AI attempts; before migration 003 the token columns don't exist, so it retries without them. */
+async function saveAiLogs(rows: object | object[]): Promise<void> {
+  const list = (Array.isArray(rows) ? rows : [rows]) as Record<string, unknown>[];
+  const { error } = await supabaseAdmin.from("ai_logs").insert(list);
+  if (error && /input_tokens|output_tokens/.test(error.message)) {
+    await supabaseAdmin.from("ai_logs").insert(list.map(({ input_tokens, output_tokens, ...r }) => r));
+  }
+}
+
 function sendJson(res: ServerResponse, status: number, data: any): boolean {
+  if (status >= 500 && status !== 503) logServerError(res.req, status, data?.error); // 503 = a migration not run yet
   res.writeHead(status, {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
@@ -286,7 +307,7 @@ async function firstEvidenceImage(complaintId: string): Promise<{ mimeType: stri
 async function flagPossibleDuplicate(c: any, actorId: string): Promise<{ id: string; score: number } | null> {
   const text = (c.summary_en || "") + "\n" + c.title + "\n" + c.description;
   const { values, attempt } = await embedText(text);
-  if (attempt) await supabaseAdmin.from("ai_logs").insert({ ...attempt, complaint_id: c.id });
+  if (attempt) await saveAiLogs({ ...attempt, complaint_id: c.id });
   let best: { id: string; score: number } | null = null;
   if (values) {
     await supabaseAdmin.from("complaints").update({ embedding: JSON.stringify(values) }).eq("id", c.id);
@@ -321,7 +342,7 @@ async function mergedReporterIds(complaintId: string): Promise<string[]> {
 async function analyseAndRoute(complaint: any, location: string | null, hideName: boolean | null, actorId: string) {
   const text = `${complaint.title}\n${complaint.description}`;
   const ai = await understandComplaint({ text, location: locationLabel(location), image: await firstEvidenceImage(complaint.id) });
-  await supabaseAdmin.from("ai_logs").insert(ai.attempts.map((a) => ({ ...a, complaint_id: complaint.id })));
+  await saveAiLogs(ai.attempts.map((a) => ({ ...a, complaint_id: complaint.id })));
 
   const r = applyRules(ai.understanding, text, campusPlaceNames());
   if (ai.failed) { r.needs_review = true; r.review_reason = "AI call failed; analysed by keyword rules"; }
@@ -487,7 +508,7 @@ export async function handleTag(tag: Tag): Promise<TagResult> {
   if ((await tagsToday(student.id)) >= TAGS_PER_DAY) return { public: `You have raised ${TAGS_PER_DAY} issues today, the daily limit. Please use the CivicSense website for more.` };
 
   const ai = await understandComplaint({ text, location: null, image: null });
-  await supabaseAdmin.from("ai_logs").insert(ai.attempts.map((a) => ({ ...a, complaint_id: null })));
+  await saveAiLogs(ai.attempts.map((a) => ({ ...a, complaint_id: null })));
   const r = applyRules(ai.understanding, text, campusPlaceNames());
   if (ai.failed) r.needs_review = true;
   if (!r.is_complaint) return { public: "This doesn't look like a campus problem I can pass on. Say what is broken and where." };
@@ -495,7 +516,7 @@ export async function handleTag(tag: Tag): Promise<TagResult> {
   const mine = { text: `${r.summary_en}\n${text}`, embedding: null as number[] | null };
   if (!r.is_sensitive) {
     const { values, attempt } = await embedText(mine.text);
-    if (attempt) await supabaseAdmin.from("ai_logs").insert({ ...attempt, complaint_id: null });
+    if (attempt) await saveAiLogs({ ...attempt, complaint_id: null });
     mine.embedding = values;
 
     const { data: open } = await supabaseAdmin.from("complaints").select("id, status, title, description, summary_en, embedding")
@@ -552,10 +573,13 @@ export async function saveBotMessage(signalId: string, botMessageId: string): Pr
 
 /** Runs handleTag() and sends its replies on the tag's platform. Used by the bot listeners and the Moodle endpoint. */
 export async function respondToTag(tag: Tag): Promise<void> {
+  const status = botStatus[tag.platform];
+  status.lastTagAt = new Date().toISOString();
   let result: TagResult;
   try { result = await handleTag(tag); }
   catch (err) {
     console.error("[agent tag] tag failed:", (err as Error).message);
+    status.lastError = "Tag failed: " + (err as Error).message;
     result = tag.kind === "private" ? { private: "Something went wrong. Please try again later." } : { public: "Something went wrong on my side. Please try again later." };
   }
   // Telegram cannot message someone who never opened the bot; the public reply already tells them how
@@ -564,7 +588,10 @@ export async function respondToTag(tag: Tag): Promise<void> {
     try {
       const id = await sendChatMessage(tag.platform, tag.chatId, result.public, tag.messageId);
       if (result.signalId) await saveBotMessage(result.signalId, id);
-    } catch (err) { console.error("[agent tag] reply failed:", (err as Error).message); }
+    } catch (err) {
+      console.error("[agent tag] reply failed:", (err as Error).message);
+      status.lastError = "Reply failed: " + (err as Error).message;
+    }
   }
 }
 
@@ -749,6 +776,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     try {
       const raw = await readBody(req);
       if (!verifyMoodleSignature(raw, req.headers["x-civicsense-time"], req.headers["x-civicsense-signature"], process.env.MOODLE_SECRET || "")) {
+        botStatus.moodle.lastError = "Refused a post with a bad or expired signature (secret or clock mismatch?)";
         return sendJson(res, 401, { error: "Bad or expired signature" });
       }
       const tag = moodleTag(JSON.parse(raw));
@@ -862,7 +890,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       if (!(await requesterCanAccess(requester, complaint))) return sendJson(res, 403, { error: "You cannot reply to this complaint." });
 
       const { translation, attempt } = await translateReply(text);
-      if (attempt) await supabaseAdmin.from("ai_logs").insert({ ...attempt, complaint_id: complaint.id });
+      if (attempt) await saveAiLogs({ ...attempt, complaint_id: complaint.id });
       const routesHere = await myRoutes(requester, complaint.id);
       const { data: post } = routesHere.length
         ? await supabaseAdmin.from("complaint_routes").select("authority_id, authority:authorities(post_title)").eq("id", routesHere[0].id).maybeSingle()
@@ -1687,6 +1715,42 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
   }
 
   // 7f. ADMIN AGGREGATED STATS (BY STATUS AND BY UNIT)
+  // MONITORING (administration): model usage, reliability, pipeline, server errors, bot health. Page: /admin/system
+  if (pathname === "/api/admin/system" && req.method === "GET") {
+    try {
+      const requester = await getRequester(req);
+      if (!requester?.profile?.is_active || requester.profile.role !== "administration") return sendJson(res, 403, { error: "Administration privileges required" });
+      const days = url.searchParams.get("days") === "7" ? 7 : 30;
+      const since = daysAgo(days);
+      // ponytail: summarised in memory, capped at 20000 calls per window; move to SQL aggregates if usage outgrows it
+      const aiQuery = (cols: string) => supabaseAdmin.from("ai_logs").select(cols).gte("created_at", since).order("created_at", { ascending: false }).limit(20000);
+      let ai: any = await aiQuery("step, model, latency_ms, ok, error, created_at, input_tokens, output_tokens");
+      const tokensInstalled = !ai.error;
+      if (ai.error) ai = await aiQuery("step, model, latency_ms, ok, error, created_at"); // before migration 003
+      if (ai.error) return sendJson(res, 500, { error: ai.error.message });
+      const [complaints, signals, errors] = await Promise.all([
+        supabaseAdmin.from("complaints").select("status").gte("created_at", since).limit(20000),
+        supabaseAdmin.from("signals").select("status").gte("created_at", since).limit(20000),
+        supabaseAdmin.from("error_logs").select("method, route, status, message, created_at").gte("created_at", since).order("created_at", { ascending: false }).limit(1000),
+      ]);
+      return sendJson(res, 200, {
+        days,
+        gemini: !!process.env.GEMINI_API_KEY,
+        tokensInstalled,
+        ai: summariseAi(ai.data || [], days, { input: Number(process.env.GEMINI_PRICE_INPUT_PER_M) || 0, output: Number(process.env.GEMINI_PRICE_OUTPUT_PER_M) || 0 }),
+        complaints: tally(complaints.data, (c: any) => c.status),
+        signals: signals.error ? null : tally(signals.data, (s: any) => s.status),
+        errors: errors.error ? null : { total: errors.data.length, recent: errors.data.slice(0, 20) },
+        // in-memory state of THIS process: the listeners run where CHAT_BOTS=true (not in a Vercel function)
+        bots: (Object.keys(botStatus) as Platform[]).map((p) => ({
+          platform: p, configured: botConfigured(p), enabled: p === "moodle" ? !!process.env.MOODLE_SECRET : process.env.CHAT_BOTS === "true", ...botStatus[p],
+        })),
+      });
+    } catch (err: any) {
+      return sendJson(res, 500, { error: err.message || "Failed" });
+    }
+  }
+
   if (pathname === "/api/admin/stats" && req.method === "GET") {
     try {
       const requester = await getRequester(req);

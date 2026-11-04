@@ -2,7 +2,7 @@
 // Opt in with CHAT_BOTS=true in exactly one long-running process (a second poller on the same Telegram bot gets 409).
 // Each tag goes to respondToTag() in api.ts; this file only receives messages. (Moodle pushes instead: /api/chat/moodle.)
 import { respondToTag as respond } from './api.ts';
-import { discord, discordTag, telegram, telegramTag } from './chat.ts';
+import { botStatus, discord, discordTag, telegram, telegramTag } from './chat.ts';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -15,6 +15,7 @@ async function pollTelegram(): Promise<void> {
   for (;;) {
     try {
       const updates = await telegram('getUpdates', { offset, timeout: 50, allowed_updates: ['message'] }, 60000);
+      botStatus.telegram.connected = true;
       for (const u of updates) {
         offset = u.update_id + 1;
         const tag = telegramTag(u, me.username);
@@ -22,6 +23,7 @@ async function pollTelegram(): Promise<void> {
       }
     } catch (err) {
       console.error('[chatbots] Telegram poll failed:', (err as Error).message);
+      Object.assign(botStatus.telegram, { connected: false, lastError: (err as Error).message });
       await wait(5000);
     }
   }
@@ -54,6 +56,7 @@ function connectDiscord(): void {
       ws.close(); // Discord asked for a reconnect, or the session is invalid
     } else if (p.t === 'READY') {
       botId = p.d.user.id;
+      botStatus.discord.connected = true;
       console.log(`[chatbots] Discord: listening as ${p.d.user.username}`);
     } else if (p.t === 'MESSAGE_CREATE') {
       const tag = discordTag(p.d, botId);
@@ -63,6 +66,7 @@ function connectDiscord(): void {
   };
   ws.onclose = (event) => {
     clearInterval(heartbeat);
+    Object.assign(botStatus.discord, { connected: false, lastError: `Gateway closed (${event.code}${event.reason ? ' ' + event.reason : ''})` });
     // 4004 bad token, 4013/4014 intents: retrying will not help
     if ([4004, 4013, 4014].includes(event.code)) { console.error(`[chatbots] Discord stopped (${event.code} ${event.reason}). Check DISCORD_BOT_TOKEN.`); return; }
     setTimeout(connectDiscord, 5000);
@@ -74,7 +78,7 @@ export function startChatBots(): void {
   const g = globalThis as { civicChatBots?: boolean };
   if (process.env.CHAT_BOTS !== 'true' || g.civicChatBots) return; // Vite re-runs its config on change: start once
   g.civicChatBots = true;
-  if (process.env.TELEGRAM_BOT_TOKEN) pollTelegram().catch((err) => console.error('[chatbots] Telegram not started:', err.message));
+  if (process.env.TELEGRAM_BOT_TOKEN) pollTelegram().catch((err) => { console.error('[chatbots] Telegram not started:', err.message); botStatus.telegram.lastError = 'Not started: ' + err.message; });
   if (process.env.DISCORD_BOT_TOKEN) connectDiscord();
   if (!process.env.TELEGRAM_BOT_TOKEN && !process.env.DISCORD_BOT_TOKEN) console.warn('[chatbots] CHAT_BOTS=true but no TELEGRAM_BOT_TOKEN or DISCORD_BOT_TOKEN is set.');
 }

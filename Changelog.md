@@ -468,6 +468,31 @@ For the frontend teammate: every PRD screen now exists and is wired to the backe
   - It links 3 posts to its test accounts for the run, so it **refuses to run** once those posts (Head, General Secretary, Sports Secretary) are linked to real officials. Otherwise they would be notified about test complaints.
   - Run on 2026-11-02: **43 of 43 checks pass, 0 rows left.** Type-check, build and `npm test` (15 tests) pass.
 
+### 3.28 Developer monitoring: model usage, reliability, errors, bot health (2026-11-04)
+
+New console page **System** (`/admin/system`, administration only, English only), for 7 or 30 days:
+
+- **Model usage:**
+  - Gemini calls, tokens in and out, and an estimated cost. The cost appears once `GEMINI_PRICE_INPUT_PER_M` and `GEMINI_PRICE_OUTPUT_PER_M` (USD per million tokens) are set.
+  - A daily chart of calls against failures, and calls per model.
+- **Reliability:**
+  - Per step (understanding, reply translation, embeddings): calls, failures, tokens, median latency and slowest-5% latency.
+  - The share of analyses the keyword rules did instead of Gemini, and the last 10 failure messages.
+- **Pipeline:** complaints and group signals created in the period, by their status now.
+- **Server errors:** every 500 the API returns is written to `error_logs` (method, route without the query string, message). The page lists the latest 20. Responses with status 503, which means "migration not run yet", are not logged.
+- **Chat bots:**
+  - Telegram and Discord show connected or not and their last error. Moodle shows refused signatures, which point to a secret or clock mismatch.
+  - Each platform shows its last tag.
+  - This is in-memory state of the process that runs the listeners.
+- **Changed:**
+  - `backend/ai.ts` saves Gemini's token counts. Output includes "thinking" tokens, which Gemini bills as output.
+  - All `ai_logs` writes go through `saveAiLogs()`, which drops the token fields if migration 003 hasn't run, so logging never stops.
+  - `sendJson()` logs 500s.
+  - New: `backend/system.ts` (the summary, pure), `backend/migrations/003_observability.sql`, `src/admin/pages/SystemPage.tsx`, and a nav link.
+- **Skipped:** Sentry, Langfuse and Grafana. The database already holds the data, so no extra accounts or services are needed. Embeddings report no token counts, so their tokens show as 0.
+- **Verified:** `npm test` passes 53 tests, 2 of them new. One covers usage, cost, fallback share, latency, admin-only access, and a 500 landing in `error_logs`; the other covers thinking tokens counting as output. Both type checks and the build pass.
+- **Not yet verified:** the page has not been viewed in a browser with live data.
+
 ### 3.27 Agent tag in Moodle forums: plugin and adapter (2026-11-04)
 
 Students write `@CivicSense <issue>` in any Moodle forum post. Everything else works as in 3.24: the same guardrails, signals on `/admin/signals`, and +1 replies to the bot's answer. Acknowledging or converting a signal replies in the forum.
@@ -784,6 +809,7 @@ Most of these became outdated when the app moved to `index.html` + Supabase.
 | Supabase advisor: leaked-password protection is off. | Supabase → Authentication → Passwords → turn it on. |
 | ⏳ Agent tag (3.24) is built but not live: migration 002 is not applied, and no bots exist yet. | Run `backend/migrations/002_chat_signals.sql`, create the bots, set the env vars (README → "Agent tag"), then test once in a real group. |
 | ⏳ Agent tag in Moodle (3.27) is built but untested on a real Moodle. **If 002 was already run before 3.27, run it again** (it widens the platform check). | Install the plugin on a test Moodle (steps in its README), set the three `MOODLE_*` env vars, post `@CivicSense …` in a forum, and run cron. |
+| ⏳ Monitoring (3.28): token counts and server errors start once migration 003 runs. `error_logs` has no automatic clean-up. | Run `backend/migrations/003_observability.sql`. Later, prune rows older than 30 days in the maintenance job if the table grows. |
 | Agent tag runs only in a long-running process (polling/Gateway). Moodle (3.27) doesn't have this limit. | If the app moves to Vercel functions, switch to a Telegram webhook and Discord interactions; `handleTag()` stays the same. |
 
 ---

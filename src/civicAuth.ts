@@ -670,6 +670,25 @@ export const fetchActivityLogs = async (limit: number) => (await getJson<{ logs?
 /** Dashboard statistics (PRD: by status, category, place; average resolution time). */
 export const fetchStats = () => getJson<Stats>('/api/admin/stats');
 export const runMaintenance = () => postJson<{ escalated: number }>('/api/admin/maintenance', {});
+
+/** Developer monitoring (/admin/system), shaped by summariseAi() in backend/system.ts. */
+export interface SystemReport {
+  days: number;
+  gemini: boolean;
+  tokensInstalled: boolean;
+  ai: {
+    calls: number; failed: number; inputTokens: number; outputTokens: number; cost: number | null; rulesCalls: number; rulesShare: number | null;
+    steps: { step: string; calls: number; failed: number; inputTokens: number; outputTokens: number; p50: number | null; p95: number | null }[];
+    models: { model: string; calls: number; inputTokens: number; outputTokens: number }[];
+    daily: { day: string; calls: number; failed: number; tokens: number }[];
+    recentFailures: { step: string; model: string | null; error: string | null; created_at: string }[];
+  };
+  complaints: Record<string, number>;
+  signals: Record<string, number> | null;
+  errors: { total: number; recent: { method: string | null; route: string; status: number; message: string | null; created_at: string }[] } | null;
+  bots: { platform: 'telegram' | 'discord' | 'moodle'; configured: boolean; enabled: boolean; connected: boolean | null; lastTagAt: string | null; lastError: string | null }[];
+}
+export const fetchSystem = (days: 7 | 30) => getJson<SystemReport>(`/api/admin/system?days=${days}`);
 export const editAnalysis = (complaintId: string, category: string, priority: number) => postJson('/api/admin/edit-analysis', { complaintId, category, priority });
 /** Agent tag: issues raised by tagging the bot in Telegram / Discord groups or Moodle forums. */
 export const fetchSignals = () => getJson<{ signals: Signal[] }>('/api/signals');
