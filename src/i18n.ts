@@ -1,7 +1,8 @@
 // UI text in English and Assamese (PRD "Language switch"). Every key must exist in both languages: the `as`
 // object is typed against `en`, so a missing translation is a type error.
 // Assamese wording: please have a native speaker review it.
-import { createElement, useSyncExternalStore } from 'react';
+import { createElement, useEffect, useSyncExternalStore } from 'react';
+import { applyUiLanguage, ASSAMESE_UI_TEXT } from './uiTranslations';
 
 const en = {
   'lang.toggle': 'অসমীয়া',
@@ -185,6 +186,13 @@ const as: Record<TextKey, string> = {
 
 export type Language = 'en' | 'as';
 const DICTIONARIES: Record<Language, Record<TextKey, string>> = { en, as };
+const UI_TRANSLATIONS: Record<string, string> = {
+  ...Object.fromEntries(Object.keys(en).map((key) => [
+    en[key as TextKey].replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim(),
+    as[key as TextKey],
+  ])),
+  ...ASSAMESE_UI_TEXT,
+};
 const STORAGE_KEY = 'civicsense-lang';
 
 function readStored(): Language {
@@ -203,6 +211,7 @@ export function setLanguage(lang: Language, { save = true } = {}): void {
   current = lang;
   try { localStorage.setItem(STORAGE_KEY, lang); } catch { /* private mode */ }
   document.documentElement.lang = lang;
+  applyUiLanguage(lang, UI_TRANSLATIONS);
   listeners.forEach((n) => n());
   if (save) persist?.(lang);
 }
@@ -223,5 +232,15 @@ export function useLanguage() {
 /** Unstyled toggle (styling: frontend). Shows the other language's name. */
 export function LanguageToggle() {
   const { lang, t: tr } = useLanguage();
-  return createElement('button', { type: 'button', lang: lang === 'en' ? 'as' : 'en', onClick: () => setLanguage(lang === 'en' ? 'as' : 'en') }, tr('lang.toggle'));
+  useEffect(() => { applyUiLanguage(lang, UI_TRANSLATIONS); }, [lang]);
+  const target = lang === 'en' ? 'as' : 'en';
+  const label = lang === 'en' ? 'Switch language to Assamese' : 'ভাষা ইংৰাজীলৈ সলনি কৰক';
+  return createElement('button', {
+    type: 'button',
+    className: 'language-toggle',
+    lang: target,
+    'aria-label': label,
+    title: label,
+    onClick: () => setLanguage(target),
+  }, tr('lang.toggle'));
 }

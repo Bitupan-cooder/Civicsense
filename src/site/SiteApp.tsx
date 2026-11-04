@@ -45,8 +45,8 @@ export function SiteApp() {
         <Route path="/login" element={<ReportPage />} />
         <Route path="/report" element={<ReportRedirect />} />
         <Route path="/report/new" element={<ReportFormPage />} />
-        {/* "My complaints" is the tracker below the sign-in on /login and /report/new */}
-        <Route path="/my" element={<Navigate to="/login?view=mine#report-tracker" replace />} />
+        {/* Tracking links reveal the tracker on /login; signed-in reporting keeps it below the form. */}
+        <Route path="/my" element={<Navigate to="/report/new?view=mine#report-tracker" replace />} />
         <Route path="/complaints/:id" element={<ComplaintRedirect />} />
         <Route path="/index.html" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
@@ -57,7 +57,7 @@ export function SiteApp() {
 
 function ComplaintRedirect() {
   const { id = '' } = useParams();
-  return <Navigate to={`/login?track=${encodeURIComponent(id)}#report-tracker`} replace />;
+  return <Navigate to={`/report/new?track=${encodeURIComponent(id)}#report-tracker`} replace />;
 }
 
 /** Old /report links (bookmarks, shared tickets) keep working: the sign-in and tracker page is now /login. */

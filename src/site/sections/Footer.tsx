@@ -1,21 +1,21 @@
 import StickerSlapFooter from '../../components/ui/sticker-slap-footer';
 
-/** Shared CivicSense footer used on the landing, report, sign-in, and complaint pages. */
+/** Shared Xohari footer used on the landing, report, sign-in, and complaint pages. */
 export function Footer() {
   return (
     <StickerSlapFooter
-      wordmark="civicsense"
+      wordmark="xohari"
       homeHref="/"
       navLabel="Report an issue"
       navHref="/login"
       chatHref="mailto:network-helpdesk@dibru.ac.in"
       chatLabel="Email the campus helpdesk"
-      jobsLabel="Explore CivicSense"
+      jobsLabel="Explore Xohari"
       jobs={[
         { title: 'Home', href: '/' },
         { title: 'Workflow', href: '/#how' },
         { title: 'Categories', href: '/#categories' },
-        { title: 'Track a complaint', href: '/login?view=mine#report-tracker' },
+        { title: 'Track a complaint', href: '/report/new?view=mine#report-tracker' },
       ]}
       officeLabel="Associated with"
       officeLinkText="Blitz"
@@ -29,7 +29,7 @@ export function Footer() {
       stickers={[]}
       socials={[]}
       credits={[
-        { role: 'Platform', name: 'CivicSense' },
+        { role: 'Platform', name: 'Xohari' },
         { role: 'University', name: 'Dibrugarh University' },
         { role: 'Built by', name: 'BLITZ' },
       ]}

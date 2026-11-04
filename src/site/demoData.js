@@ -48,7 +48,7 @@ export var SEED = [
     },
     routeHistory: [
       { id: 'm1', ts: Date.now() - 1000 * 60 * 60 * 14, stage: 'Report Submitted', actor: 'Bikash Gogoi (Student)', role: 'Citizen', note: 'Report lodged in mixed Assamese/English.' },
-      { id: 'm2', ts: Date.now() - 1000 * 60 * 60 * 13.9, stage: 'AI Triage & Route', actor: 'CivicSense Neural Dispatch', role: 'AI Engine', note: 'AI classified root cause: water (P2 High). Auto-dispatched to PHE Operations. Copy sent to General Secretary (DUSU).' },
+      { id: 'm2', ts: Date.now() - 1000 * 60 * 60 * 13.9, stage: 'AI Triage & Route', actor: 'Xohari Neural Dispatch', role: 'AI Engine', note: 'AI classified root cause: water (P2 High). Auto-dispatched to PHE Operations. Copy sent to General Secretary (DUSU).' },
       { id: 'm3', ts: Date.now() - 1000 * 60 * 60 * 8, stage: 'Owning Desk Acknowledged', actor: 'Shri Biren Gogoi', role: 'Officer in Charge', note: 'Main intake pipeline valve replaced. Overhead tank filling initiated.' }
     ],
     replies: [
@@ -87,7 +87,7 @@ export var SEED = [
     },
     routeHistory: [
       { id: 'm21', ts: Date.now() - 1000 * 60 * 60 * 22, stage: 'Report Lodged', actor: 'Ritu Borah', role: 'Citizen', note: 'Report lodged with photo of sparking cable.' },
-      { id: 'm22', ts: Date.now() - 1000 * 60 * 60 * 21.9, stage: 'AI P1 Emergency Route', actor: 'CivicSense Neural Dispatch', role: 'AI Engine', note: 'Classified as Priority 1 (Hazard). Direct priority alert dispatched to Electrical Maintenance Desk. Copy to DUSU GS.' }
+      { id: 'm22', ts: Date.now() - 1000 * 60 * 60 * 21.9, stage: 'AI P1 Emergency Route', actor: 'Xohari Neural Dispatch', role: 'AI Engine', note: 'Classified as Priority 1 (Hazard). Direct priority alert dispatched to Electrical Maintenance Desk. Copy to DUSU GS.' }
     ],
     replies: [
       { id: 'r21', complaintId: 'CS-8922', author: 'Er. Deepshikha Kalita (Electrical)', role: 'Chief Engineer', message: 'Substation breaker tripped safely. Maintenance crew insulated the overhead cable run.', ts: Date.now() - 1000 * 60 * 60 * 18 }
@@ -125,7 +125,7 @@ export var SEED = [
     },
     routeHistory: [
       { id: 'm31', ts: Date.now() - 1000 * 60 * 60 * 6, stage: 'Report Lodged', actor: 'Priyam Saikia', role: 'Citizen', note: 'Filed in native Assamese script.' },
-      { id: 'm32', ts: Date.now() - 1000 * 60 * 60 * 5.9, stage: 'AI Triage', actor: 'CivicSense Neural Dispatch', role: 'AI Engine', note: 'Assamese natural language classified as electricity. Dispatched to Electrical Desk.' },
+      { id: 'm32', ts: Date.now() - 1000 * 60 * 60 * 5.9, stage: 'AI Triage', actor: 'Xohari Neural Dispatch', role: 'AI Engine', note: 'Assamese natural language classified as electricity. Dispatched to Electrical Desk.' },
       { id: 'm33', ts: Date.now() - 1000 * 60 * 60 * 2, stage: 'Resolved', actor: 'Er. Deepshikha Kalita', role: 'Chief Engineer', note: 'Replaced MCB fuse on 2nd floor distribution board.' }
     ],
     replies: [

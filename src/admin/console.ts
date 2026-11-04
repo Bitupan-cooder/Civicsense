@@ -372,7 +372,7 @@ export const closeCredentials = () => update({ credentials: null });
 export async function copyCredentials(): Promise<void> {
   const c = state.credentials;
   if (!c) return;
-  const text = 'CivicSense Official Portal Access\n' +
+  const text = 'Xohari Official Portal Access\n' +
     'Official Name: ' + c.name + '\nRole: ' + c.role + '\nUnit / Desk: ' + c.unit + '\nOfficial Email: ' + c.email + '\n' +
     'Temporary Password: ' + c.password + '\nPortal URL: ' + window.location.origin + '/admin\n\n' +
     'Note: You will be prompted to set a permanent password upon first sign-in.';

@@ -1,7 +1,0 @@
-© OpenStreetMap contributors (ODbL 1.0), Overture Maps Foundation. Building footprints: Google Open Buildings (CC BY 4.0), via Overture. Historical land cover and approximate western extent: Dibrugarh University Green and Carbon Audit 2020, printed p30. Source positions are not field verified. Decorative tree symbols are generated artwork.
-https://www.openstreetmap.org/copyright
-https://docs.overturemaps.org/attribution/
-https://oldweb.dibru.ac.in/wp-content/uploads/2021/11/Green-and-Carbon-Audit_BP2.pdf
-Place names/pins checked against visible Google Maps listings and the Dibrugarh University directory on 18 October 2026. Per-place reference links are retained in campus_atlas.json. Public map pins are not surveyed QR coordinates.
-https://www.dibru.ac.in/department-centre
-https://maps.google.com/

@@ -14,7 +14,7 @@ export function ShellChrome() {
   const [metrics, setMetrics] = useState({ cols: 12, colw: '98.0', gut: 10, mar: 20, w: 1440, h: 900, pct: '0.0' });
   const markSvgRef = useRef<SVGSVGElement>(null);
 
-  // Build Open Grid style 6-row modular slab wordmark for "CIVICSENSE"
+  // Build Open Grid style 6-row modular slab wordmark for "XOHARI"
   useEffect(() => {
     const svg = markSvgRef.current;
     if (!svg) return;
@@ -29,7 +29,7 @@ export function ShellChrome() {
     };
     let x = 0;
     const GAP = 1.2;
-    'CIVICSENSE'.split('').forEach((ch, idx, arr) => {
+    'XOHARI'.split('').forEach((ch, idx, arr) => {
       const g = GLYPHS[ch];
       if (!g) return;
       g[1].forEach((r) => {
@@ -88,14 +88,14 @@ export function ShellChrome() {
       </a>
 
       <header className="nav" id="nav">
-        <Link className="nav__brand" href="/" aria-label="CivicSense DU Home">
+        <Link className="nav__brand" href="/" aria-label="Xohari DU Home">
           <svg viewBox="0 0 22 14" aria-hidden="true">
             <rect x="0" y="0" width="5" height="14" fill="#0A0A0A" />
             <rect x="6" y="0" width="16" height="5" fill="#FFC400" />
             <rect x="6" y="6" width="5" height="8" fill="#19C37D" />
             <rect x="12" y="9" width="10" height="5" fill="#0A0A0A" />
           </svg>
-          <span>CivicSense</span>
+          <span>Xohari</span>
         </Link>
 
         <nav className="nav__links" aria-label="Primary Navigation">

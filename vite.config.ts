@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import { cpSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 
 const env = loadEnv('development', process.cwd(), '');
@@ -51,7 +52,14 @@ const apiAndMapKitPlugin = () => ({
   },
   closeBundle() {
     for (const file of MAP_KIT_RUNTIME) {
-      cpSync(`Dibrugarh-University-Map-Kit/${file}`, `dist/Dibrugarh-University-Map-Kit/${file}`);
+      const source = `Dibrugarh-University-Map-Kit/${file}`;
+      if (!existsSync(source)) {
+        console.warn(`[civicsense-api-and-map-kit] Skipping missing optional map runtime: ${source}`);
+        continue;
+      }
+      const destination = `dist/Dibrugarh-University-Map-Kit/${file}`;
+      mkdirSync(dirname(destination), { recursive: true });
+      cpSync(source, destination);
     }
   },
 });

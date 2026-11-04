@@ -2,6 +2,11 @@
 import React from "react";
 import { clsx } from "clsx";
 import { motion, type Variants } from "framer-motion";
+import waterPlumbingPhoto from "../../../Flat Assets/civic/Water & Plumbing.jpeg";
+import sanitationPhoto from "../../../Flat Assets/civic/Sanitation & Grounds.jpeg";
+import powerLightingPhoto from "../../../Flat Assets/civic/Power & Lighting.jpeg";
+import classroomsLabsPhoto from "../../../Flat Assets/civic/classroom and labs.jpeg";
+import allCampusPhoto from "../../../Flat Assets/civic/all campus.jpeg";
 import "./bento.css";
 
 const bentoRevealVariants: Variants = {
@@ -105,7 +110,7 @@ export default function FUIBentoGridDark() {
           routed to the <em>right team.</em>
         </h2>
         <p>
-          Report what you see in English or Assamese. CivicSense identifies the problem and sends it directly to the department handling it.
+          Report what you see in English or Assamese. Xohari identifies the problem and sends it directly to the department handling it.
         </p>
       </div>
 
@@ -117,7 +122,7 @@ export default function FUIBentoGridDark() {
           className="bento-col-3 bento-rounded-tl"
           title="Water & Plumbing"
           description="Leaking taps, pipe bursts, washroom repairs, and drinking water coolers."
-          imgSrc="/images/categories/water-plumbing.jpg"
+          imgSrc={waterPlumbingPhoto}
           imgAlt="University campus water station and drinking cooler"
         />
 
@@ -127,7 +132,7 @@ export default function FUIBentoGridDark() {
           className="bento-col-3 bento-rounded-tr"
           title="Power & Lighting"
           description="Dark walkways, failed streetlights, broken ceiling fans, and circuit trips."
-          imgSrc="/images/categories/power-lighting.jpg"
+          imgSrc={powerLightingPhoto}
           imgAlt="Campus pathway lighting and illumination fixtures"
         />
 
@@ -157,7 +162,7 @@ export default function FUIBentoGridDark() {
           className="bento-col-2"
           title="Sanitation & Grounds"
           description="Overflowing bins, pathway litter, waste clearance, and campus groundskeeping."
-          imgSrc="/images/categories/clean-campus.jpg"
+          imgSrc={sanitationPhoto}
           imgAlt="Dual-stream waste sorting and campus recycling bins"
         />
 
@@ -177,7 +182,7 @@ export default function FUIBentoGridDark() {
           className="bento-col-2"
           title="Classrooms & Labs"
           description="Projectors, lab instruments, podium acoustics, student desks, and lecture halls."
-          imgSrc="/images/categories/classrooms-labs.jpg"
+          imgSrc={classroomsLabsPhoto}
           imgAlt="University lecture hall, student desks, and academic blackboard"
         />
 
@@ -202,8 +207,8 @@ export default function FUIBentoGridDark() {
         >
           <div className="bento-graphic-wrap">
             <img
-              src="/images/categories/campus-domains-dispatch.jpg"
-              alt="University students collaborating on campus"
+              src={allCampusPhoto}
+              alt="Campus grounds and paths at Dibrugarh University"
               className="bento-graphic-img"
               loading="lazy"
             />

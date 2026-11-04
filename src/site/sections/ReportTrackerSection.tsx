@@ -60,17 +60,6 @@ export function ReportTrackerSection() {
         </div>
 
         <div className="report-tracker-panel">
-          {profile && (
-            <div className="report-tracker-tabs" role="tablist" aria-label="Choose tracker view">
-              <button type="button" role="tab" aria-selected={view === 'mine'} className={view === 'mine' ? 'is-active' : ''} onClick={() => setView('mine')}>
-                My complaints <span>{tracker.mine.length}</span>
-              </button>
-              <button type="button" role="tab" aria-selected={view === 'track'} className={view === 'track' ? 'is-active' : ''} onClick={() => setView('track')}>
-                Track by ticket ID
-              </button>
-            </div>
-          )}
-
           {(!profile || view === 'track') ? (
             <div className="report-tracker-lookup">
               <form className="report-tracker-search" onSubmit={submitSearch}>

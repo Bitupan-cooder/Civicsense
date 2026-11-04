@@ -140,7 +140,7 @@ export function ReportForm() {
         {" "}
         <div className="form-group" style={{ flex: 1 }}>
           <span className="form-label">Automatic category and routing</span>
-          <p style={{ fontSize: 13, lineHeight: 1.6 }}>Describe the issue in your own words. CivicSense analyzes the report, assigns a category, and routes it to the responsible campus authority. Unclear or sensitive reports go to Administration for review.</p>
+          <p style={{ fontSize: 13, lineHeight: 1.6 }}>Describe the issue in your own words. Xohari analyzes the report, assigns a category, and routes it to the responsible campus authority. Unclear or sensitive reports go to Administration for review.</p>
         </div>
       </div>
       {/* Description */}

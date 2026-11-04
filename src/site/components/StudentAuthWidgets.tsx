@@ -1,6 +1,6 @@
 // Everything that shows who is signed in, rendered from the student session store.
 import { handleNavStudentClick, openReuploadModal, openStudentAuth, signOutStudent, useStudentSession } from '../studentSession';
-import { loadStudentComplaints, openTracker, switchTrackerMode } from '../tracker';
+import { loadStudentComplaints } from '../tracker';
 import { NotificationBell } from '../../NotificationBell';
 import { useLanguage } from '../../i18n';
 import { useNavigate } from 'react-router-dom';
@@ -64,35 +64,11 @@ export function TrackerAuthStatus() {
 /** Notice text and button above the report form. */
 export function ReportAuthNotice() {
   const { profile, idCardStatus } = useStudentSession();
-  let text;
   if (profile) {
-    text = <>Submitting as authenticated student: <strong>{profile.name}</strong> ({profile.email})<IdStatusLabel status={idCardStatus} /></>;
-  } else if (profile === null) {
-    text = 'Notice: You must be signed in with your student account to register complaints.';
-  } else {
-    text = 'Not signed in as student.';
+    return <>Submitting as authenticated student: <strong>{profile.name}</strong> ({profile.email})<IdStatusLabel status={idCardStatus} /></>;
   }
-  return (
-    <>
-      <span id="formStudentAuthText">{text}</span>{' '}
-      <button
-        type="button"
-        className="btn"
-        id="formStudentAuthBtn"
-        onClick={() => {
-          if (profile) {
-            openTracker();
-            switchTrackerMode('my_complaints');
-          } else {
-            openStudentAuth();
-          }
-        }}
-        style={{ height: '30px', fontSize: '11.5px', padding: '0 12px', background: 'var(--olive)' }}
-      >
-        {profile ? 'My Complaints' : 'Sign In / Register with ID'}
-      </button>
-    </>
-  );
+  if (profile === null) return <>Notice: You must be signed in with your student account to register complaints.</>;
+  return <>Checking your student account…</>;
 }
 
 /** Notification bell in the nav (signed-in students, once the PRD features are switched on). */
@@ -104,7 +80,7 @@ export function StudentNotifications() {
     <NotificationBell
       userId={profile?.id}
       lang={lang}
-      onOpen={(id) => navigate(`/login?track=${encodeURIComponent(id)}#report-tracker`)}
+      onOpen={(id) => navigate(`/report/new?track=${encodeURIComponent(id)}#report-tracker`)}
       onLive={(n) => {
         loadStudentComplaints();
         // route pages (e.g. /complaints/:id) refresh themselves on this event

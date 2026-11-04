@@ -38,7 +38,7 @@ export function StartupLoader() {
         <GlassIconReveal
           className="startup-loader-mark"
           logo={CIVICSENSE_BRAND_MARK}
-          label="CivicSense"
+          label="Xohari"
           look="light"
           background="#f8fbf3"
           logoColor="#1a7a3a"

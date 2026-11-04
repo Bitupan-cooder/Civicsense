@@ -14,16 +14,16 @@ export function SiteNav({ standalone = false, pageShell = false }: { standalone?
     <nav className={`nav${standalone ? ' report-page-nav' : ''}${pageShell ? ' page-shell-nav' : ''}`} aria-label="Main navigation">
       {' '}
       {standalone ? (
-        <Link className="brand" to="/" aria-label="CivicSense home">
+        <Link className="brand" to="/" aria-label="Xohari home">
           {' '}
           <BrandMark />
-          {' '}CivicSense{' '}
+          {' '}Xohari{' '}
         </Link>
       ) : (
-        <a className="brand" href={home} aria-label="CivicSense home">
+        <a className="brand" href={home} aria-label="Xohari home">
           {' '}
           <BrandMark />
-          {' '}CivicSense{' '}
+          {' '}Xohari{' '}
         </a>
       )}
       {' '}
@@ -42,6 +42,7 @@ export function SiteNav({ standalone = false, pageShell = false }: { standalone?
       <div className="nav-actions">
         {' '}
         <StudentNotifications />
+        <LanguageToggle />
         {pageShell ? (
           profile ? (
             <button className="btn-outline nav-student-button" type="button" onClick={() => void signOutStudent()} aria-label="Sign out">
@@ -54,9 +55,8 @@ export function SiteNav({ standalone = false, pageShell = false }: { standalone?
             </>
           )
         ) : <StudentNavButton standalone={standalone} />}
-        {pageShell && <LanguageToggle />}
         {' '}
-        <Link className="btn-outline nav-track-link" to="/login?view=mine#report-tracker" aria-label="Track status">
+        <Link className="btn-outline nav-track-link" to="/report/new?view=track#report-tracker" aria-label="Track status">
           <span className="nav-track-long">Track Status</span>
           <span className="nav-track-short" aria-hidden="true">Track</span>
         </Link>

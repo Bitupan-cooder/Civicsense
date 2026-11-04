@@ -16,7 +16,7 @@ const DEFAULT_LINES: LayeredTextLine[] = [
   { top: 'BE HEARD', bottom: 'CAMPUS' },
   { top: 'CAMPUS', bottom: 'CHANGE' },
   { top: 'CHANGE', bottom: 'STARTS HERE' },
-  { top: 'STARTS HERE', bottom: 'CIVICSENSE' },
+  { top: 'STARTS HERE', bottom: 'XOHARI' },
 ];
 
 /** Hoverable layered type treatment for the student portal panel. */

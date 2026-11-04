@@ -4,7 +4,7 @@ import { ShaderCanvas } from '../../components/ui/ShaderCanvas';
 
 export function ReportSection() {
   return (
-    <section className="report-section" id="report">
+    <section className="report-section report-form-page-section" id="report">
       <ShaderCanvas />
       <div className="report-inner">
         <h2 className="h2 split reveal">

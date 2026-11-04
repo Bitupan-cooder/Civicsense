@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 import { ChartNoAxesColumn, ClipboardCheck, Copy, LayoutDashboard, Route as RouteIcon } from 'lucide-react';
 import { LanguageToggle, useLanguage } from '../../i18n';
 import { useFeatures } from '../../NotificationBell';
-import { useConsole } from '../console';
+import { logoutAdmin, useConsole } from '../console';
 
 export function ConsoleNav() {
   const { t } = useLanguage();
@@ -23,7 +23,10 @@ export function ConsoleNav() {
         {isAdmin && <NavLink to="/admin/stats"><ChartNoAxesColumn aria-hidden="true" /><span>{t('nav.stats')}</span></NavLink>}
         {isAdmin && <NavLink to="/admin/routing"><RouteIcon aria-hidden="true" /><span>{t('nav.routing')}</span></NavLink>}
       </nav>
-      <div className="console-sidebar-language"><LanguageToggle /></div>
+      <div className="console-sidebar-footer">
+        <div className="console-sidebar-language"><LanguageToggle /></div>
+        <button className="console-sidebar-logout" type="button" onClick={() => void logoutAdmin()}>Log out</button>
+      </div>
     </aside>
   );
 }

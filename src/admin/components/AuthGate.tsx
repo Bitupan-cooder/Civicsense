@@ -60,7 +60,7 @@ export function AuthGate() {
                 <path d="M11 2C11 2 4 6 4 13a7 7 0 0014 0C18 6 11 2 11 2z" fill="currentColor" opacity=".9" />
                 <line x1="11" y1="14" x2="11" y2="20" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
-              {" "}CivicSense{" "}
+              {" "}Xohari{" "}
               <span className="brand-sub" style={{ fontSize: "11px", background: "var(--pill)", color: "#0e3018", padding: "2px 8px", borderRadius: "999px", fontWeight: "600" }}>
                 Official Portal
               </span>

@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
-import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ReportAuthGate } from '../components/ReportForm';
 import { signOutStudent, switchStudentAuthTab, useStudentSession } from '../studentSession';
 import { ReportSection } from '../sections/ReportSection';
@@ -8,7 +8,7 @@ import { SiteNav } from '../components/SiteNav';
 import { Footer } from '../sections/Footer';
 import { ReportTrackerSection } from '../sections/ReportTrackerSection';
 
-/** /login: student sign-in / registration and the tracker. ?mode=signup opens Register; ?next=<page> returns there after sign-in. */
+/** /login: student sign-in / registration. Tracker appears here only when requested by a tracking link. */
 export function ReportPage() {
   const { profile } = useStudentSession();
   const [params] = useSearchParams();
@@ -38,6 +38,7 @@ export function ReportPage() {
               <p>Signed in as <strong>{profile.name}</strong>. Your verified account is ready to submit a report.</p>
               <div className="report-entry-actions">
                 <Link className="report-start-button" to="/report/new">Report an issue <span aria-hidden="true">→</span></Link>
+                <Link className="report-entry-track-button" to="/report/new?view=track#report-tracker">Track status</Link>
                 <button type="button" className="report-entry-logout" onClick={() => void signOutStudent()}>Log out</button>
               </div>
             </div>
@@ -46,7 +47,6 @@ export function ReportPage() {
           )}
         </div>
       </section>
-      <ReportTrackerSection />
     </ReportPageLayout>
   );
 }
@@ -54,19 +54,41 @@ export function ReportPage() {
 export function ReportFormPage() {
   const { profile } = useStudentSession();
   const navigate = useNavigate();
+  const location = useLocation();
+  const requestedPage = `/report/new${location.search}${location.hash}`;
   useEffect(() => {
-    if (profile === null) navigate('/login?next=%2Freport%2Fnew', { replace: true });
-  }, [profile, navigate]);
+    if (profile === null) navigate(`/login?next=${encodeURIComponent(requestedPage)}`, { replace: true });
+  }, [profile, navigate, requestedPage]);
 
   if (profile === null) return null;
   return (
     <ReportPageLayout>
-      {profile === undefined ? <div className="report-page-loading" role="status">Checking your student account…</div> : <ReportSection />}
-      {profile && <ReportTrackerSection />}
+      {profile === undefined ? <div className="report-page-loading" role="status">Checking your student account…</div> : <ReportWorkspace />}
     </ReportPageLayout>
   );
 }
 
+function ReportWorkspace() {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const trackingView = params.get('view') === 'track' || params.get('view') === 'mine' || params.has('track');
+  return (
+    <div className="report-workspace-layout">
+      <aside className="report-workspace-sidebar" aria-label="Report workspace">
+        <span className="report-workspace-eyebrow">Student workspace</span>
+        <strong>Campus redressal</strong>
+        <nav>
+          <Link className={!trackingView ? 'is-current' : undefined} to="/report/new#report">Submit a report</Link>
+          <Link className={trackingView ? 'is-current' : undefined} to="/report/new?view=track#report-tracker">Track status</Link>
+        </nav>
+        <p>Your report and its updates stay together here.</p>
+      </aside>
+      <div className="report-workspace-main">
+        {!trackingView ? <ReportSection /> : <ReportTrackerSection />}
+      </div>
+    </div>
+  );
+}
 function ReportPageLayout({ children }: { children: ReactNode }) {
   return (
     <div className="standalone-report-page">

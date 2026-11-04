@@ -1,8 +1,7 @@
 // Markup converted 1:1 from the original admin.html (React migration, step 1).
-import { loadOfficialComplaints, logoutAdmin, openDocket, useConsole } from '../console';
+import { loadOfficialComplaints, openDocket, useConsole } from '../console';
 import { NotificationBell } from '../../NotificationBell';
 import { useLanguage } from '../../i18n';
-import { BrandMark } from '../../site/components/BrandMark';
 import { ArrowLeft } from 'lucide-react';
 
 const MODE_TEXT = { administration: 'Central Administration', social_service: 'Social Party (DUSU Council)' } as Record<string, string>;
@@ -21,7 +20,7 @@ export function AdminHeader() {
             <path d="M11 2C11 2 4 6 4 13a7 7 0 0014 0C18 6 11 2 11 2z" fill="currentColor" opacity=".9" />
             <line x1="11" y1="14" x2="11" y2="20" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
-          {" "}CivicSense{" "}
+          {" "}Xohari{" "}
           <span className="brand-sub">
             Official Portal
           </span>
@@ -41,11 +40,6 @@ export function AdminHeader() {
           </span>
           {" "}
           <NotificationBell userId={profile?.id} lang={lang} onOpen={(id) => openDocket(id)} onLive={() => loadOfficialComplaints()} />          <div className="user-badge" id="headerUserBadge">
-            {" "}
-            <span id="headerAvatar" className="user-brand-avatar">
-              <BrandMark />
-            </span>
-            {" "}
             <span id="headerUserName">
               {profile ? profile.name : 'Authorized Official'}
             </span>
@@ -61,9 +55,6 @@ export function AdminHeader() {
             <span className="header-link-text">Student site</span>
           </a>
           {" "}
-          <button className="btn-outline btn-red header-logout" onClick={() => logoutAdmin()}>
-            Log out
-          </button>
           {" "}
         </div>
         {" "}

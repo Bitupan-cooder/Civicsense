@@ -1,6 +1,5 @@
 import { AuthLoading } from './components/AuthLoading';
 import { AuthGate } from './components/AuthGate';
-import { AdminHeader } from './components/AdminHeader';
 import { AdminMain } from './components/AdminMain';
 import { ReassignModal } from './modals/ReassignModal';
 import { CreateOfficialModal } from './modals/CreateOfficialModal';
@@ -55,7 +54,6 @@ export function AdminApp() {
       {/* ══════════ AUTHENTICATED WORKSPACE (HIDDEN UNTIL AUTHENTICATED) ══════════ */}
       {auth === 'workspace' && <div id="authenticatedWorkspace">
         {/* ══════════ FLOATING TOP NAVIGATION BAR (MATCHING HOME) ══════════ */}
-        <AdminHeader />
         <div className="console-layout">
           <ConsoleNav />
           <div className="console-content">

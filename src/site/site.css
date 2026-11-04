@@ -65,6 +65,8 @@ body.intro #app{transform:scale(.9);border-radius:28px}
 .nav-links{display:flex;gap:20px;font-size:13px;font-weight:500;color:#1a3a10}
 .nav-links a:hover{color:var(--olive)}
 .nav-actions{display:flex;gap:8px;align-items:center}
+.nav-actions .language-toggle{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--olive);font:600 12px "Inter Tight",system-ui,sans-serif;white-space:nowrap;transition:background .2s ease,border-color .2s ease}
+.nav-actions .language-toggle:hover{background:#f3f8e8;border-color:#b5d98a}
 .nav-student-button{height:32px;padding:0 14px;font-size:12px}
 .nav-student-button{min-width:126px;transition:background .25s ease,color .25s ease,box-shadow .25s ease}
 .nav-account-label{display:inline-block;animation:nav-label-enter .3s ease both}
@@ -370,6 +372,7 @@ div[role="dialog"][aria-label="Notifications"]>button[lang][style*="#FAF2EB"]::b
   .nav{width:calc(100% - 12px);gap:5px;padding:0 7px}
   .brand{font-size:14px}
   .nav-actions{gap:4px}
+  .nav-actions .language-toggle{height:30px;padding:0 8px;font-size:10px}
   .nav-student-button{max-width:88px;height:30px;padding:0 7px;font-size:10px}
   .nav-track-link{height:30px;padding:0 8px;font-size:10px}
   .nav-actions > div > button[aria-label^="Notifications"]{width:30px;height:30px;padding:0}
