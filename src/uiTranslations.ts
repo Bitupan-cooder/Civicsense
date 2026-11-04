@@ -322,7 +322,7 @@ export const ASSAMESE_UI_TEXT: Record<string, string> = {
   'Home': 'মুখ্য পৃষ্ঠা',
   'Track a complaint': 'অভিযোগ অনুসৰণ কৰক',
   'Associated with': 'সংযুক্ত',
-  'Centre for Computer Science & Applications (CCSA)': 'কম্পিউটাৰ বিজ্ঞান আৰু প্ৰয়োগ কেন্দ্ৰ (CCSA)',
+  'Centre for Computer Science & Applications (CCSA)': 'পৰিকলন বিজ্ঞান আৰু প্ৰয়োগ কেন্দ্ৰ (CCSA)',
   'Dibrugarh University': 'ডিব্ৰুগড় বিশ্ববিদ্যালয়',
   'Copied to clipboard': 'ক্লিপবৰ্ডলৈ কপি কৰা হৈছে',
   'Electricity': 'বিদ্যুৎ',
