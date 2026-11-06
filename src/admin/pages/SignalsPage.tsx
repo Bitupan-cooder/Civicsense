@@ -5,6 +5,7 @@
 //
 // Data: GET /api/signals (auth.fetchSignals); actions: auth.actOnSignal → POST /api/signals/act.
 import { useCallback, useEffect, useState } from 'react';
+import { Clock, Hash, MapPin, MessageSquareQuote, ShieldAlert, UsersRound } from 'lucide-react';
 import type { Signal } from '../../civicAuth';
 import * as auth from '../../civicAuth';
 import { useLanguage, type TextKey } from '../../i18n';
@@ -49,42 +50,61 @@ export function SignalsPage() {
       <p>{t('signals.intro')}</p>
       <PageState notInstalled={notInstalled} loading={signals === null && !error} error={error} />
       {signals && !signals.length && <p>{t('signals.empty')}</p>}
-      <ul>
+      <ul className="signal-list">
         {(signals || []).map((s) => {
           const done = s.status === 'converted' || s.status === 'dismissed';
+          const title = (lang === 'as' && s.summary_as) || s.summary_en || s.text;
           return (
-            <li key={s.id}>
-              {s.complaint_id
-                ? <button type="button" onClick={() => openDocket(s.complaint_id!)}><span className="signal-ref">{ticketRef(s.complaint_id)}</span> {(lang === 'as' && s.summary_as) || s.summary_en || s.text}</button>
-                : <h2>{(lang === 'as' && s.summary_as) || s.summary_en || s.text}</h2>}
-              <p data-field="meta" className="signal-source">
-                <span>{PLATFORM[s.platform]}</span>
-                {s.chat_title && <span>{s.chat_title}</span>}
-                <time dateTime={s.created_at}>{new Date(s.created_at).toLocaleString(lang === 'as' ? 'as-IN' : 'en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</time>
-              </p>
-              <blockquote>{s.text}</blockquote>
-              <div className="signal-facts">
-                <span className={'chip chip-signal-' + s.status} data-field="status">{t(`signals.status.${s.status}` as TextKey)}</span>
+            <li key={s.id} className="signal-card" data-status={s.status}>
+              <header className="signal-top">
+                <div className="signal-source">
+                  <span className="signal-platform" data-platform={s.platform}>{PLATFORM[s.platform]}</span>
+                  {s.chat_title && <span className="signal-chat"><Hash aria-hidden="true" />{s.chat_title.replace(/^#/, '')}</span>}
+                </div>
+                <div className="signal-top-right">
+                  <span className={'chip chip-signal-' + s.status}>{t(`signals.status.${s.status}` as TextKey)}</span>
+                  <time dateTime={s.created_at}><Clock aria-hidden="true" />{new Date(s.created_at).toLocaleString(lang === 'as' ? 'as-IN' : 'en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</time>
+                </div>
+              </header>
+              <h2 className="signal-title">
+                {s.complaint_id && <span className="signal-ref">{ticketRef(s.complaint_id)}</span>}
+                {title}
+              </h2>
+              <figure className="signal-quote">
+                <figcaption><MessageSquareQuote aria-hidden="true" />{t('signals.tagged')}</figcaption>
+                <blockquote>{s.text}</blockquote>
+              </figure>
+              <div className="signal-tags">
                 <span className="chip chip-category">{categoryLabel(s.ai_category)}</span>
                 <PriorityChip priority={s.priority} />
-                {s.location_text && <span>{s.location_text}</span>}
-                <strong>{s.supporters} {t(s.supporters === 1 ? 'signals.student' : 'signals.students')}</strong>
-                <span>{s.posts.join(', ')}</span>
+                <span className="signal-meta"><UsersRound aria-hidden="true" /><strong>{s.supporters}</strong> {t(s.supporters === 1 ? 'signals.student' : 'signals.students')}</span>
+                {s.location_text && <span className="signal-meta"><MapPin aria-hidden="true" />{s.location_text}</span>}
               </div>
-              {s.is_sensitive && <p role="note">{t('signals.sensitive')}</p>}
-              {s.handled_note && <p>“{s.handled_note}”</p>}
-              {!done && (
-                <>
-                  <label>
-                    {t('signals.note')}
-                    <input value={notes[s.id] || ''} maxLength={500} onChange={(e) => setNotes((n) => ({ ...n, [s.id]: e.target.value }))} />
-                  </label>
-                  {s.status !== 'acknowledged' && (
-                    <button type="button" disabled={busy === s.id} onClick={() => act(s, 'acknowledge')}>{t('signals.acknowledge')}</button>
+              {s.posts.length > 0 && (
+                <div className="signal-routed">
+                  <span className="signal-routed-label">{t('signals.routedTo')}</span>
+                  {s.posts.map((p) => <span key={p} className="signal-post">{p}</span>)}
+                </div>
+              )}
+              {s.is_sensitive && <p className="signal-sensitive" role="note"><ShieldAlert aria-hidden="true" />{t('signals.sensitive')}</p>}
+              {s.handled_note && <p className="signal-handled">“{s.handled_note}”</p>}
+              {(!done || s.complaint_id) && (
+                <footer className="signal-actions">
+                  {!done && (
+                    <label className="signal-note">
+                      <span>{t('signals.note')}</span>
+                      <input value={notes[s.id] || ''} maxLength={500} onChange={(e) => setNotes((n) => ({ ...n, [s.id]: e.target.value }))} />
+                    </label>
                   )}
-                  <button type="button" className="is-primary" disabled={busy === s.id} onClick={() => act(s, 'convert')}>{t('signals.convert')}</button>
-                  <button type="button" className="is-quiet" disabled={busy === s.id} onClick={() => act(s, 'dismiss')}>{t('signals.dismiss')}</button>
-                </>
+                  <div className="signal-buttons">
+                    {s.complaint_id && <button type="button" className="is-primary" onClick={() => openDocket(s.complaint_id!)}>{t('signals.openComplaint')}</button>}
+                    {!done && <button type="button" className="is-quiet" disabled={busy === s.id} onClick={() => act(s, 'dismiss')}>{t('signals.dismiss')}</button>}
+                    {!done && s.status !== 'acknowledged' && (
+                      <button type="button" disabled={busy === s.id} onClick={() => act(s, 'acknowledge')}>{t('signals.acknowledge')}</button>
+                    )}
+                    {!done && <button type="button" className="is-primary" disabled={busy === s.id} onClick={() => act(s, 'convert')}>{t('signals.convert')}</button>}
+                  </div>
+                </footer>
               )}
             </li>
           );

@@ -114,10 +114,9 @@ Redesigned on 2026-11-03 with the project's hallmark rules (`.agents/skills/hall
 
 ## Rules: don't break these while styling
 
-1. **The landing page (`/`) stays mounted while other routes show.** It's hidden with `body.route-page` (`src/site/pages/routes.css`), not unmounted. `animations.js` and `campusMap.js` set it up once at startup and change its DOM directly, so don't move the landing into a route element.
-2. **Don't rename these IDs or classes**; the animation and map code looks them up:
+1. **The landing page (`/`) stays mounted while other routes show.** It's hidden with `body.route-page` (`src/site/pages/routes.css`), not unmounted. `animations.js` sets it up once at startup and changes its DOM directly, so don't move the landing into a route element.
+2. **Don't rename these IDs or classes**; the animation code looks them up:
    - **`animations.js`:** `#app` `#hero` `#heroTitle` `#heroGlass` `.glass` `#hero3dStage` `.hero-3d-card` `.char-img-wrap` `.char-pedestal-ring` `.char-shadow` `.hero-backdrop-title` `.cloud-l` `.cloud-r` `.loop-cloud` `[data-par]` `.nav` `#petals` `.sq-field` `.split` (words become `.w`) `.reveal` `#stats` `#statsCards` `.stats-heading` `.card` `.card-value` `#tree` `#how` `.panel` `.panel-in` `#categories` `#catGrid` `.cat-card` `#report` `#cta` `#ctaCard` `#ctaImg` `#footer` `#fRing` `#fMark` `.fdot` `.backdrop`
-   - **`campusMap.js`:** `#campusMapCanvas` `#mapComplaintPopover` `#mapStatusText` `#pinnedCoordsText` `#pinnedSpotLabel` `#fLocation`. The map data (2.2 MB) is fetched only when `#campusMapCanvas` comes near the viewport, so the canvas must stay in the page's normal flow (not `display: none`) for the map to load.
 3. **Keep form controls controlled**, with their `value` and `onChange` exactly as they are.
 4. **Keep `data-*` attributes and `aria-*` labels** on the new pages; tests and screen readers use them. Add your own classes freely.
 5. **Links:** keep `<Link>`/`<NavLink>` (in-app navigation without reloading), and plain `<a>` across the two apps.

@@ -3,7 +3,6 @@ import { useSyncExternalStore } from 'react';
 import type { Complaint, Routing } from '../civicAuth';
 import * as auth from '../civicAuth';
 import { showToast } from '../toast';
-import { resolveLocationId } from '../locations';
 import { isStudentSignedIn } from './studentSession';
 
 export type TrackerMode = 'my_complaints' | 'track_single';
@@ -55,13 +54,6 @@ function demoIds(): string[] {
 export function clearTrackerSession(): void {
   sessionGeneration++;
   update({ mine: [], routing: {}, result: null, demoIds: [], mineLoaded: false, mineLoading: false, mineError: null });
-}
-
-/** The public landing map shows only reports already visible to the signed-in student. */
-export function getMapComplaints() {
-  return state.mine.map((c) => ({ ...c, location_id: resolveLocationId(state.routing[c.id]?.location_id),
-    urgency: state.routing[c.id]?.priority === 1 ? 'Urgent' : state.routing[c.id]?.priority === 2 ? 'High' : 'Normal',
-  }));
 }
 
 export function openTracker(): void {
@@ -172,7 +164,9 @@ export function initTracker(): void {
   update({ demoIds: demoIds() });
   const openFromUrl = () => {
     const trackId = new URLSearchParams(window.location.search).get('track');
-    if (trackId) setTimeout(() => openTrackerWithId(trackId), 250);
+    // old /?track= links jump to the tracker; on /report/new the tracker reads ?track= itself, and a reload
+    // there would race the guest redirect to /login (reload loop)
+    if (trackId && window.location.pathname !== '/report/new') setTimeout(() => openTrackerWithId(trackId), 250);
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', openFromUrl);
   else openFromUrl();

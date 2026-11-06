@@ -1,5 +1,4 @@
-// State and actions of the complaint form. Shared by the form, the success card, the category cards
-// (pre-filled examples) and the campus map (campusMap.js calls setReportPlace).
+// State and actions of the complaint form. Shared by the form, the success card and the category cards.
 import { useSyncExternalStore } from 'react';
 import type { Analysis, DepartmentUnit } from '../civicAuth';
 import * as auth from '../civicAuth';
@@ -118,24 +117,6 @@ export async function loadDepartmentUnits(): Promise<void> {
   } catch (err) {
     console.error('Failed to load department units:', err);
   }
-}
-
-/** Example complaint from a category card (was testAIComplaint). */
-export function fillReportDescription(text: string): void {
-  setDescription(text);
-  document.getElementById('report')?.scrollIntoView({ behavior: 'smooth' });
-}
-
-/** A place tapped on the campus map (was syncPlaceToForm). Same matching rule as before. */
-export function setReportPlace(placeName: string): void {
-  const name = placeName.toLowerCase();
-  const match = LOCATION_OPTIONS.find(({ label }) => {
-    const text = label.toLowerCase();
-    return name.includes(text) || text.includes(name.slice(0, 10));
-  });
-  if (match) update({ location: match.value });
-  else update({ location: 'OTHER', customLoc: placeName });
-  analyse();
 }
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;

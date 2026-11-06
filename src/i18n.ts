@@ -66,6 +66,11 @@ const en = {
   'dup.dismiss': 'Not a duplicate',
 
   'nav.signals': 'Group signals',
+  'nav.menu': 'Menu',
+  'nav.closeMenu': 'Close menu',
+  'nav.collapse': 'Collapse sidebar',
+  'nav.expand': 'Expand sidebar',
+  'nav.logout': 'Log out',
   'signals.title': 'Group signals',
   'signals.intro': 'Issues students raised by tagging the CivicSense bot in Telegram or Discord groups, before anyone filed a complaint. Only the tagged message is kept.',
   'signals.empty': 'No issues raised in groups in the last 30 days.',
@@ -81,6 +86,9 @@ const en = {
   'signals.status.acknowledged': 'Acknowledged',
   'signals.status.converted': 'Made a complaint',
   'signals.status.dismissed': 'Dismissed',
+  'signals.tagged': 'Tagged message',
+  'signals.routedTo': 'Routed to',
+  'signals.openComplaint': 'Open complaint',
 
   'stats.title': 'Statistics',
   'stats.total': 'Total complaints',
@@ -175,6 +183,11 @@ const as: Record<TextKey, string> = {
   'dup.dismiss': 'একে অভিযোগ নহয়',
 
   'nav.signals': 'গোটৰ সংকেত',
+  'nav.menu': 'মেনু',
+  'nav.closeMenu': 'মেনু বন্ধ কৰক',
+  'nav.collapse': 'চাইডবাৰ সৰু কৰক',
+  'nav.expand': 'চাইডবাৰ ডাঙৰ কৰক',
+  'nav.logout': 'লগ আউট',
   'signals.title': 'গোটৰ সংকেত',
   'signals.intro': 'অভিযোগ দাখিল কৰাৰ আগতেই ছাত্ৰ-ছাত্ৰীয়ে টেলিগ্ৰাম বা ডিস্কৰ্ড গোটত CivicSense বটক টেগ কৰি উত্থাপন কৰা সমস্যা। কেৱল টেগ কৰা বাৰ্তাটোহে ৰখা হয়।',
   'signals.empty': 'যোৱা ৩০ দিনত গোটত কোনো সমস্যা উত্থাপন কৰা হোৱা নাই।',
@@ -190,6 +203,9 @@ const as: Record<TextKey, string> = {
   'signals.status.acknowledged': 'স্বীকাৰ কৰা হৈছে',
   'signals.status.converted': 'অভিযোগ কৰা হৈছে',
   'signals.status.dismissed': 'বাতিল কৰা হৈছে',
+  'signals.tagged': 'টেগ কৰা বাৰ্তা',
+  'signals.routedTo': 'পঠোৱা হৈছে',
+  'signals.openComplaint': 'অভিযোগ খোলক',
 
   'stats.title': 'পৰিসংখ্যা',
   'stats.total': 'মুঠ অভিযোগ',
@@ -275,8 +291,7 @@ export function LanguageToggle() {
     type: 'button',
     className: 'language-toggle',
     lang: target,
-    'aria-label': label,
-    title: label,
+    title: label, // accessible name = the visible language name (Lighthouse: label must contain the visible text)
     onClick: () => setLanguage(target),
   }, tr('lang.toggle'));
 }

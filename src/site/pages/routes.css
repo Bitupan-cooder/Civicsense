@@ -17,8 +17,8 @@ body.route-page { margin: 0; background: #f8fbf3 !important; }
 [data-page] > header.page-shell-header > nav.page-shell-nav { position: fixed; width: min(900px, calc(100% - 32px)); min-width: min(560px, calc(100% - 32px)); max-width: calc(100% - 32px); min-height: 48px; margin: 0; padding: 0 8px 0 16px; flex-wrap: nowrap; gap: 26px; border: 0; border-radius: 0 0 20px 20px; background: rgba(255,255,255,.95); box-shadow: 0 8px 26px rgba(0,0,0,.06),0 1px 0 rgba(255,255,255,.9) inset,0 0 0 1px rgba(0,0,0,.05); }
 [data-page] > header.page-shell-header > nav.page-shell-nav .nav-actions { flex-wrap: nowrap; gap: 6px; }
 [data-page] > header.page-shell-header > nav.page-shell-nav .nav-actions button[lang] { min-height: 30px; padding: 0 8px; background: transparent; }
-[data-page] > header.page-shell-header > nav.page-shell-nav .nav-student-button { min-height: 32px; padding: 0 12px; background: #B4D32E; border-color: #B4D32E; color: #0036FF; box-shadow: 0 4px 12px rgba(90,120,20,.14); }
-[data-page] > header.page-shell-header > nav.page-shell-nav .nav-student-button:hover,[data-page] > header.page-shell-header > nav.page-shell-nav .nav-student-button:focus-visible { background: #B4D32E; border-color: #B4D32E; color: #0036FF; box-shadow: 0 5px 14px rgba(90,120,20,.22); }
+[data-page] > header.page-shell-header > nav.page-shell-nav .nav-student-button { min-height: 32px; padding: 0 12px; background: #B4D32E; border-color: #B4D32E; color: #0032EB; box-shadow: 0 4px 12px rgba(90,120,20,.14); }
+[data-page] > header.page-shell-header > nav.page-shell-nav .nav-student-button:hover,[data-page] > header.page-shell-header > nav.page-shell-nav .nav-student-button:focus-visible { background: #B4D32E; border-color: #B4D32E; color: #0032EB; box-shadow: 0 5px 14px rgba(90,120,20,.22); }
 [data-page] > main { width: min(900px, calc(100% - 36px)); flex: 1; margin: clamp(28px, 6vh, 64px) auto 72px; padding: clamp(20px, 4vw, 36px); border: 1px solid #e0edd4; border-radius: 24px; background: rgba(255,255,255,.96); box-shadow: 0 18px 54px rgba(39,82,27,.08); }
 [data-page] > main > h1 { margin: 0 0 22px; color: var(--ink); font-family: var(--display-font); font-size: clamp(30px, 5vw, 44px); font-weight: 600; letter-spacing: -.035em; line-height: 1.05; }
 [data-page] > main form { display: grid; gap: 16px; }
@@ -55,27 +55,17 @@ body.route-page { margin: 0; background: #f8fbf3 !important; }
 .standalone-report-page .report-form-page-section :is(.form-input, .form-select, .form-textarea) { min-height: 46px; padding: 11px 2px; border: 0; border-bottom: 1px solid #dce6d7; border-radius: 0; background-color: #fff; box-shadow: none; font-size: 15px; }
 .standalone-report-page .report-form-page-section :is(.form-input, .form-select, .form-textarea):focus { border-color: var(--olive); box-shadow: 0 1px 0 var(--olive); }
 .standalone-report-page .report-form-page-section .form-textarea { min-height: 150px; line-height: 1.65; }
-.standalone-report-page .report-form-page-section .photo-zone { border: 0; border-block: 1px dashed #cfdcc7; border-radius: 0; background: #fff; }
-.standalone-report-page .report-form-page-section .photo-zone:hover { border-color: var(--olive); background: #fbfdf9; }
 .standalone-report-page .report-form-page-section { background: #f8faf7 !important; }
 .standalone-report-page .report-form-page-section .report-inner { width: min(1240px, 100%); max-width: 1240px; }
-.report-dashboard-toolbar { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 0; border-block: 1px solid #e5eadf; }
-.report-dashboard-toolbar > span { display: grid; gap: 3px; color: #243524; font-size: 14px; }
-.report-dashboard-toolbar small { color: #6b7768; font-size: 12px; }
-.report-dashboard-track-link { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 0 16px; border: 1px solid #d6e3d0; border-radius: 10px; background: #fff; color: #176c46; font-size: 13px; font-weight: 700; white-space: nowrap; transition: background .18s ease, border-color .18s ease; }
-.report-dashboard-track-link:hover { border-color: #a9c79e; background: #f2f8ee; }
 .standalone-report-page .report-form-page-section .report-form { padding: clamp(20px, 3vw, 34px); border: 1px solid #e5eadf; border-radius: 18px; background: #fff; box-shadow: 0 8px 26px rgba(26,48,16,.045); }
 .standalone-report-page .report-form-page-section .form-row { display: grid; }
 .standalone-report-page .report-form-page-section :is(.form-input, .form-select, .form-textarea) { padding: 12px 14px; border: 1px solid #dfe7da; border-radius: 10px; }
 .standalone-report-page .report-form-page-section :is(.form-input, .form-select, .form-textarea):focus { border-color: #72a875; box-shadow: 0 0 0 3px rgba(61,146,86,.1); }
 .standalone-report-page .report-form-page-section .form-textarea { min-height: 120px; }
-.standalone-report-page .report-form-page-section .photo-zone { border: 1px dashed #cfdcc7; border-radius: 12px; background: #fbfcfa; }
 @media (max-width: 760px) {
   .standalone-report-page .report-form-page-section { padding: 42px 18px 54px; }
   .standalone-report-page .report-form-page-section .report-inner { gap: 18px; }
   .standalone-report-page .report-form-page-section .report-form { gap: 24px; padding-top: 8px; }
-  .report-dashboard-toolbar { align-items: stretch; flex-direction: column; gap: 12px; }
-  .report-dashboard-track-link { width: 100%; }
 }
 .report-entry-ready > p { margin: 0; color: #314432; font-size: 14px; line-height: 1.5; }
 .report-start-button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 0 24px; border-radius: 999px; background: #dc2626; color: #fff; font-size: 14px; font-weight: 750; box-shadow: 0 8px 22px rgba(220,38,38,.22); white-space: nowrap; transition: transform .2s ease, background .2s ease, box-shadow .2s ease; }
@@ -87,9 +77,7 @@ body.route-page { margin: 0; background: #f8fbf3 !important; }
 .student-signin-inner { width: min(1180px, 100%); margin: 0 auto; }
 .student-portal-layout { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); align-items: center; gap: clamp(28px, 5vw, 70px); }
 .student-portal-content { min-width: 0; }
-.student-signin-kicker { margin: 0 0 10px; color: var(--blue); font-size: 12px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
 .student-signin-inner > h2 { margin: 0; color: var(--ink); font-family: var(--display-font); font-size: clamp(34px, 4.5vw, 50px); font-weight: 600; letter-spacing: -.03em; line-height: 1.02; }
-.student-signin-description { margin: 10px 0 20px; color: #53624f; font-size: 14px; line-height: 1.6; }
 .student-signin-card { width: 100%; margin: 0; padding: clamp(18px, 3.2vw, 30px); border: 1px solid #e0edd4; border-radius: 22px; background: rgba(255,255,255,.95); box-shadow: 0 16px 44px rgba(39,82,27,.08); }
 .student-signin-card .report-auth-gate-card { width: 100% !important; margin: 0 !important; }
 .student-signin-card > h2,.student-signin-ready h2 { margin: 0; color: var(--ink); font-family: var(--display-font); font-size: clamp(25px, 3vw, 34px); font-weight: 600; letter-spacing: -.03em; line-height: 1.05; }
@@ -140,10 +128,6 @@ body.route-page { margin: 0; background: #f8fbf3 !important; }
 .report-tracker-heading h2 { margin: 8px 0 5px; color: var(--ink); font-family: var(--display-font); font-size: clamp(34px, 5vw, 54px); font-weight: 600; letter-spacing: -.035em; line-height: 1; }
 .report-tracker-heading p { margin: 10px 0 0; color: #53624f; font-size: 14px; line-height: 1.6; }
 .report-tracker-panel { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-.report-tracker-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 24px; padding: 5px; border: 1px solid #d5e8c9; border-radius: 14px; background: rgba(223,239,211,.88); }
-.report-tracker-tabs button { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #53624f; font-family: inherit; font-size: 13px; font-weight: 600; line-height: 1.2; cursor: pointer; transition: background .2s ease, color .2s ease, box-shadow .2s ease; }
-.report-tracker-tabs button.is-active { border-color: #d5e8c9; background: #fbfdf8; color: var(--olive); box-shadow: 0 3px 10px rgba(39,82,27,.08); }
-.report-tracker-tabs button span { min-width: 22px; padding: 3px 6px; border-radius: 999px; background: #e2f1d6; color: var(--olive); font-size: 10px; }
 .report-tracker-search { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 12px; width: 100%; box-sizing: border-box; }
 .report-tracker-search input { width: 100%; min-width: 0; height: 56px; box-sizing: border-box; padding: 0 18px; border: 1px solid #cfe3c2; border-radius: 15px; background: #fff; color: var(--ink); font-family: inherit; font-size: 15px; outline: none; transition: border-color .2s ease, box-shadow .2s ease; }
 .report-tracker-search input:focus { border-color: #3d9256; box-shadow: 0 0 0 4px rgba(61,146,86,.13); }
@@ -211,7 +195,6 @@ body.route-page { margin: 0; background: #f8fbf3 !important; }
   .student-portal-layout { grid-template-columns: 1fr; gap: 30px; }
   .student-portal-art { max-width: 520px; margin: 0 auto; }
   .student-portal-content { width: min(560px, 100%); margin: 0 auto; }
-  .student-signin-kicker { text-align: center; }
   .layered-text { font-size: clamp(36px, 9vw, 56px); }
   .layered-text-row { height: 1.08em; transform: translateX(calc(var(--layer-offset) * .55)) skew(0deg,-16deg) scaleY(1); }
   .layered-text-row.is-wide { transform: translateX(calc(var(--layer-offset) * .55)) skew(30deg,-16deg) scaleY(.84); }
@@ -269,10 +252,8 @@ body.route-page { margin: 0; background: #f8fbf3 !important; }
 
 @media (max-width: 420px) {
   .report-entry-card,.student-signin-card { padding: 16px; border-radius: 17px; }
-  .report-entry-description,.student-signin-description { font-size: 13px; }
+  .report-entry-description{ font-size: 13px; }
   .report-tracker-section { padding: 44px 10px 52px; }
-  .report-tracker-tabs { grid-template-columns: 1fr; }
-  .report-tracker-tabs button { min-height: 38px; }
   .report-tracker-search input { height: 48px; padding: 0 13px; font-size: 13px; }
   .report-tracker-search button { height: 46px; }
   .report-tracker-status { white-space: normal; }

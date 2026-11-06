@@ -1,39 +1,33 @@
 "use client"
 
 import * as React from "react"
+import { useLanguage } from "../../i18n"
 
 /**
- * Sticker Slap Footer — a loud, friendly studio footer: a cream frame, a
- * cobalt panel with three columns (jobs, office, contact), and a giant fat
- * script wordmark sinking into the bottom edge with die-cut stickers slapped
- * all over it.
+ * Sticker Slap Footer (stickers and social icons removed: CivicSense uses neither) — a cream frame, a
+ * green panel with three columns (links, office, contact), and a giant fat script wordmark sinking into
+ * the bottom edge.
  *
- * The storyboard: as the footer scrolls in, the panel grows out of the frame
- * and its corners settle. Then the column tags pop, the lines rise out of
- * their masks, the wordmark writes itself in one continuous marker stroke
- * (t-crosses and i-dots last), and every sticker slaps down the moment the
- * pen passes under it. After that it is a toy: drag the stickers anywhere
- * (they tilt with your throw and thwack back down), double-click one to send
- * it home, click the wordmark to write it again, copy the email, open the
- * credits.
+ * The storyboard: as the footer scrolls in, the panel grows out of the frame and its corners settle.
+ * Then the column tags pop, the lines rise out of their masks and the wordmark writes itself in one
+ * continuous marker stroke (t-crosses and i-dots last). Click the wordmark to write it again, copy the
+ * email, open the credits.
  *
- * No dependencies and nothing fetched. React is the only import, the script
- * is a built-in single-stroke alphabet drawn as SVG, and every sticker is
- * drawn in code.
+ * No dependencies and nothing fetched. The script is a built-in single-stroke alphabet drawn as SVG.
  */
 
 // #region slap
-// Pure: the script alphabet, layout, stars and sticker spots. Lifted out and run by the test.
+// Pure: the script alphabet, its layout, and the star path.
 
 /** A small deterministic hash → [0, 1), so every render places things the same way. */
-export const hash = (n: number): number => {
+const hash = (n: number): number => {
   const s = Math.sin(n * 127.1 + 311.7) * 43758.5453
   return s - Math.floor(s)
 }
 
-export const round = (v: number): number => Math.round(v * 100) / 100
+const round = (v: number): number => Math.round(v * 100) / 100
 
-export const clamp = (v: number, lo: number, hi: number): number => (Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : lo)
+const clamp = (v: number, lo: number, hi: number): number => (Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : lo)
 
 /**
  * A fat single-stroke script: [advance, main stroke, pen-lift strokes, lifts
@@ -41,7 +35,7 @@ export const clamp = (v: number, lo: number, hi: number): number => (Number.isFi
  * (0, -1) and, unless it lifts, ends at (advance, -1), so letters chain into
  * one continuous path. Absolute M / L / C only, so x and y simply alternate.
  */
-export const SCRIPT: Record<string, [number, string, string?, number?]> = {
+const SCRIPT: Record<string, [number, string, string?, number?]> = {
   a: [10.2, "M0 -1C1.4 -1.4 1.4 -9.6 4.3 -10C2.5 -10 1 -7.8 1 -5C1 -2.2 2.5 0 4.3 0C6.1 0 7.6 -2.2 7.6 -5L7.8 -10L7.8 -3C7.8 -0.8 8.8 -1 10.2 -1"],
   b: [9.4, "M0 -1C2.8 -3 6.2 -12 6 -16.4C5.8 -19.8 1.8 -20 1.8 -16.4L1.8 -1L1.8 -6C2.4 -9 3.4 -10 4.8 -10C6.8 -10 8.2 -8 8.2 -5C8.2 -2 6.6 0 4.8 0C3.4 0 2.4 -0.6 1.8 -1.6C2.4 -0.6 3.4 0 4.8 0C6.6 0 7.8 -0.8 9.4 -1"],
   c: [8.8, "M0 -1C1.4 -1.4 1.4 -9.6 4.3 -10C5.6 -10 6.6 -9.6 7 -8.6C6.6 -9.6 5.6 -10 4.3 -10C2.5 -10 1 -7.8 1 -5C1 -2.2 2.5 0 4.3 0C6 0 7 -1 8.8 -1"],
@@ -73,18 +67,18 @@ export const SCRIPT: Record<string, [number, string, string?, number?]> = {
 }
 
 /** Horizontal stretch and the gap between letters, in script units. */
-export const SX = 1.22
-export const TRACK = 1
-export const WORD_GAP = 6
+const SX = 1.22
+const TRACK = 1
+const WORD_GAP = 6
 
 /** Shifts and stretches every x in an absolute M/L/C path. */
-export const place = (d: string, dx: number, sx: number = SX): string => {
+const place = (d: string, dx: number, sx: number = SX): string => {
   let k = 0
   return d.replace(/-?\d*\.?\d+/g, (n) => (k++ % 2 === 0 ? String(round(+n * sx + dx)) : n))
 }
 
-export type ScriptBox = { x0: number; x1: number; top: number }
-export type ScriptWord = { main: string; extra: string[]; width: number; top: number; bottom: number; boxes: ScriptBox[] }
+type ScriptBox = { x0: number; x1: number; top: number }
+type ScriptWord = { main: string; extra: string[]; width: number; top: number; bottom: number; boxes: ScriptBox[] }
 
 const extent = (d: string): number[] => {
   const n = (d.match(/-?\d*\.?\d+/g) ?? []).map(Number)
@@ -96,7 +90,7 @@ const extent = (d: string): number[] => {
  * letter lifts or a space falls) plus the pen-lift strokes, drawn after.
  * Case is ignored, accents are stripped, anything unknown is a space.
  */
-export const layoutScript = (text: string): ScriptWord => {
+const layoutScript = (text: string): ScriptWord => {
   const clean = String(text ?? "")
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
@@ -130,7 +124,7 @@ export const layoutScript = (text: string): ScriptWord => {
 }
 
 /** A closed star: `points` spikes, alternating radii. `wobble` makes the spikes uneven, like a hand-cut sticker. */
-export const starPath = (
+const starPath = (
   points: number,
   outer: number,
   inner: number,
@@ -148,128 +142,46 @@ export const starPath = (
   }
   return "M" + pts.join("L") + "Z"
 }
-
-export type Spot = { x: number; y: number; size: number; rotate: number; depth: number }
-
-/**
- * Where n stickers land on a word, in script units: spread evenly along it,
- * each riding the top of the letter underneath (some perched above it, some
- * slapped across the stroke), with a seeded tilt and a parallax depth.
- */
-export const stickerSpots = (word: ScriptWord, n: number, seed: number = 0): Spot[] => {
-  const count = Math.max(0, Math.floor(n) || 0)
-  if (!count || !word.width) return []
-  return Array.from({ length: count }, (_, i) => {
-    const x = ((i + 0.5) / count) * word.width
-    const box = word.boxes.find((b) => x >= b.x0 && x <= b.x1 + TRACK) ?? word.boxes[word.boxes.length - 1]
-    const lift = [1.5, -5, -1, -7, 0.5, -4, -2][i % 7]
-    return {
-      x: round(x + (hash(i * 4.1 + seed) - 0.5) * 3),
-      y: round(clamp(box.top + 2.5 + lift, word.top - 4, -4)),
-      size: round(6.4 + hash(i * 2.3 + seed + 1) * 2.4),
-      rotate: round((hash(i * 7.7 + seed + 2) - 0.5) * 34),
-      depth: round(0.4 + hash(i * 5.5 + seed + 3) * 0.8),
-    }
-  })
-}
 // #endregion
 
-export type StickerKind = "burst" | "smiley" | "heart" | "bubble" | "daisy" | "camera" | "bolt"
-
-export type StickerSpec =
-  | StickerKind
-  | {
-      kind?: StickerKind
-      /** Your own sticker art (an <img>, an <svg>…). Replaces `kind`. */
-      node?: React.ReactNode
-      /** Accessible name, e.g. "Smiley sticker". */
-      label?: string
-      /** Text on the burst / bubble stickers. */
-      text?: string
-      /** Position in % of the wordmark box; omit to let it find a letter. */
-      x?: number
-      y?: number
-      /** Width in % of the wordmark box. */
-      size?: number
-      rotate?: number
-    }
-
-export type SocialKind = "linkedin" | "instagram" | "tiktok" | "x" | "youtube" | "dribbble"
-export type Social = { kind: SocialKind; href: string; label?: string }
-export type Job = { title: string; href?: string }
-export type Credit = { role: string; name: string }
-
-export interface StickerSlapFooterProps {
+/** Everything the footer shows. Edit here. */
+const FOOTER = {
   /** The giant script wordmark. Letters a–z, `!` and `.`; anything else is a space. */
-  wordmark?: string
+  wordmark: "xohari",
   /** Where the small wordmark in the top bar points. */
-  homeHref?: string
-  /** The starburst link in the top-left corner. `""` hides it. */
-  navLabel?: string
-  navHref?: string
-  /** Messaging link: the top-right bubble and the contact line. `""` hides both. */
-  chatHref?: string
-  chatLabel?: string
-  jobsLabel?: string
-  /** `[]` hides the column. */
-  jobs?: Job[]
-  officeLabel?: string
-  officeLinkText?: string
-  officeHref?: string
-  /** One entry per line. `[]` hides the column. */
-  address?: string[]
-  mapLabel?: string
-  mapHref?: string
-  contactLabel?: string
-  /** Click copies it (falls back to `mailto:`). `""` hides it. */
-  email?: string
-  copiedLabel?: string
-  /** Small print under the contact lines. `""` hides it. */
-  note?: string
-  socials?: Social[]
-  stickers?: StickerSpec[]
-  /** `[]` hides the credits pill. */
-  credits?: Credit[]
-  /** Minimum height. Any definite CSS length. */
-  height?: string
-  /** Caps the wordmark's height so short words don't get enormous. */
-  wordmarkMaxHeight?: string
-  /** The frame. */
-  paper?: string
-  /** The panel. */
-  panel?: string
-  /** Text on the frame and the tags. */
-  ink?: string
-  /** The wordmark and the panel text. Defaults to `paper`. */
-  cream?: string
-  /** The nav starburst. */
-  accent?: string
-  fontSans?: string
-  onStickerMove?: (index: number, x: number, y: number) => void
-  className?: string
-}
-
-const DEFAULT_JOBS: Job[] = [{ title: "senior motion designer", href: "#" }, { title: "junior producer", href: "#" }]
-const DEFAULT_SOCIALS: Social[] = [
-  { kind: "linkedin", href: "#" },
-  { kind: "instagram", href: "#" },
-  { kind: "tiktok", href: "#" },
-]
-const DEFAULT_STICKERS: StickerSpec[] = ["burst", "smiley", "heart", "daisy", "bubble", "camera"]
-const DEFAULT_CREDITS: Credit[] = [
-  { role: "design & code", name: "the sunny crew" },
-  { role: "stickers", name: "drawn in code, peel freely" },
-  { role: "type", name: "a felt-tip and your system font" },
-]
-
-const LABELS: Record<StickerKind, string> = {
-  burst: "Wow burst sticker",
-  smiley: "Smiley sticker",
-  heart: "Heart sticker",
-  bubble: "Speech bubble sticker",
-  daisy: "Daisy sticker",
-  camera: "Camera sticker",
-  bolt: "Lightning bolt sticker",
+  homeHref: "/",
+  /** The starburst link in the top-left corner. */
+  navLabel: "Report an issue",
+  navHref: "/login",
+  /** Messaging link: the top-right bubble and the contact line. */
+  chatHref: "mailto:network-helpdesk@dibru.ac.in",
+  chatLabel: "Email the campus helpdesk",
+  jobsLabel: "Explore Xohari",
+  jobs: [
+    { title: "Home", href: "/" },
+    { title: "Workflow", href: "/#how" },
+    { title: "Categories", href: "/#categories" },
+    { title: "Track a complaint", href: "/report/new?view=mine#report-tracker" },
+  ],
+  officeLabel: "Associated with",
+  officeLinkText: "Blitz",
+  officeHref: "https://blitz.ccsdu.in",
+  /** One entry per line. */
+  address: ["Centre for Computer Science & Applications (CCSA)", "Dibrugarh University"],
+  mapLabel: "Campus emergency: +91 373 237-0239",
+  mapHref: "tel:+913732370239",
+  contactLabel: "Campus helpdesk",
+  /** Click copies it (falls back to `mailto:`). */
+  email: "network-helpdesk@dibru.ac.in",
+  copiedLabel: "Copied to clipboard",
+  /** Small print under the contact lines, marked by an asterisk on the chat link. `""` hides it.
+   * This is the template's placeholder, shown since the footer was added: replace or remove it. */
+  note: "*phone calls give us the jitters. texts and voice notes are lovely.",
+  credits: [
+    { role: "Platform", name: "Xohari" },
+    { role: "University", name: "Dibrugarh University" },
+    { role: "Built by", name: "BLITZ" },
+  ],
 }
 
 /** How far below the baseline the panel edge cuts the wordmark, in script units. */
@@ -280,39 +192,9 @@ const SLANT = 0.1584
 
 const SQUIGGLE = "M1 5C7 1 11 1 15 4S24 8 29 4S38 0 43 4S52 8 57 4S66 1 71 4S80 7 87 3"
 
-const ICONS: Record<SocialKind, React.ReactNode> = {
-  linkedin: (
-    <>
-      <rect x="3.5" y="3.5" width="17" height="17" rx="3.5" />
-      <path d="M8 10.5V16.5M12 16.5V10.5M12 13.2C12 11.6 13.1 10.4 14.6 10.4C16.1 10.4 17 11.4 17 13.1V16.5" />
-      <path className="ssf-dot" d="M8 7.4L8 7.5" />
-    </>
-  ),
-  instagram: (
-    <>
-      <rect x="3.5" y="3.5" width="17" height="17" rx="5.2" />
-      <circle cx="12" cy="12" r="3.8" />
-      <path className="ssf-dot" d="M16.9 7.1L16.9 7.2" />
-    </>
-  ),
-  tiktok: <path d="M13.6 4V15A3.3 3.3 0 1 1 10.3 11.7M13.6 4C14 6.6 15.8 8.2 18.4 8.4" />,
-  x: <path d="M5 4.5H8.8L19 19.5H15.2ZM18.6 4.5L13.3 10.5M5.4 19.5L10.7 13.5" />,
-  youtube: (
-    <>
-      <rect x="3" y="6" width="18" height="12.4" rx="4" />
-      <path d="M10.4 9.6L14.6 12.2L10.4 14.8Z" />
-    </>
-  ),
-  dribbble: (
-    <>
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="M7.4 4.9C11 9 13.6 14 15 20.2M3.6 10.6C9 11 14 9.6 18 6.2M5.6 17.6C8.6 14 13 12.6 20.4 13.4" />
-    </>
-  ),
-}
-
 const CSS =
-  ".ssf{position:relative;isolation:isolate;overflow:hidden;overflow:clip;container-type:inline-size;display:flex;flex-direction:column;width:100%;box-sizing:border-box;padding:0 clamp(6px,.9cqw,12px) clamp(6px,.9cqw,12px);background:var(--ssf-paper);color:var(--ssf-ink);font-family:var(--ssf-sans);font-weight:500;-webkit-font-smoothing:antialiased}" +
+  // theme: frame, panel, text on the frame and tags, wordmark and panel text, nav starburst, font; height and the wordmark's height cap
+  ".ssf{--ssf-paper:#f5f9ef;--ssf-panel:#1a7a3a;--ssf-ink:#12351d;--ssf-cream:#ffffff;--ssf-accent:#B5F800;--ssf-sans:'Inter Tight', system-ui, sans-serif;--ssf-wmh:36svh;min-height:min(820px, 100svh);position:relative;isolation:isolate;overflow:hidden;overflow:clip;container-type:inline-size;display:flex;flex-direction:column;width:100%;box-sizing:border-box;padding:0 clamp(6px,.9cqw,12px) clamp(6px,.9cqw,12px);background:var(--ssf-paper);color:var(--ssf-ink);font-family:var(--ssf-sans);font-weight:500;-webkit-font-smoothing:antialiased}" +
   ":where(.ssf) *,:where(.ssf) *::before,:where(.ssf) *::after{box-sizing:border-box}" +
   ":where(.ssf) button{appearance:none;background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer}" +
   ":where(.ssf) a{color:inherit;text-decoration:none}" +
@@ -356,32 +238,12 @@ const CSS =
   ".ssf-map path{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-dasharray:var(--l,120px) var(--l,120px);stroke-dashoffset:0}" +
   ".ssf-map:hover path,.ssf-map:focus-visible path{animation:ssf-rewrite .7s cubic-bezier(.6,0,.3,1)}" +
   ".ssf-note{margin-top:clamp(12px,1.3cqw,18px);max-width:34ch;font-size:clamp(11px,.92cqw,13px);line-height:1.45;opacity:.82}" +
-  ".ssf-socials{display:flex;gap:clamp(8px,.9cqw,12px);margin-top:clamp(16px,2cqw,26px)}" +
-  ".ssf-soc{display:grid;place-items:center;width:clamp(34px,2.9cqw,40px);height:clamp(34px,2.9cqw,40px);border-radius:12px;color:var(--ssf-cream);box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--ssf-cream) 45%,transparent);transition:background .25s,color .25s,box-shadow .25s,transform .45s cubic-bezier(.2,1.6,.3,1)}" +
-  ".ssf-soc svg{width:58%;height:58%}" +
-  ".ssf-soc svg *{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}" +
-  ".ssf-soc .ssf-dot{stroke-width:2.8}" +
-  ".ssf-soc:hover,.ssf-soc:focus-visible{background:var(--ssf-cream);color:var(--ssf-panel);box-shadow:inset 0 0 0 1.5px var(--ssf-cream);transform:translateY(-3px) rotate(-8deg)}" +
   // the wordmark stage
   ".ssf-stage{position:relative;z-index:1;margin-top:auto;width:min(100%,calc(var(--ssf-wmh) * var(--ssf-ar)));align-self:center;padding:0 clamp(6px,.8cqw,12px)}" +
   ".ssf-stage-in{position:relative;container-type:inline-size}" +
   ".ssf-wm-btn{display:block;width:100%;border-radius:0 !important;cursor:pointer;-webkit-tap-highlight-color:transparent}" +
   ".ssf-wm{width:100%;height:auto;color:var(--ssf-cream)}" +
   ".ssf-wm path{fill:none;stroke:currentColor;stroke-width:" + STROKE + ";stroke-linecap:round;stroke-linejoin:round}" +
-  // stickers
-  ".ssf-st{position:absolute;z-index:3;translate:-50% -50%;touch-action:none;user-select:none;-webkit-user-select:none}" +
-  ".ssf-st-btn{display:block;width:100%;cursor:grab;rotate:calc(var(--r) + var(--tilt,0deg));transition:rotate .5s cubic-bezier(.2,1.4,.3,1)}" +
-  ".ssf-st.is-drag{z-index:9}" +
-  ".ssf-st.is-drag .ssf-st-btn{cursor:grabbing;transition:rotate .12s linear}" +
-  ".ssf-st-lift{display:block;transition:transform .35s cubic-bezier(.2,1.5,.3,1),filter .35s}" +
-  ".ssf-st-lift{filter:drop-shadow(0 1px .5px rgba(10,16,60,.28)) drop-shadow(0 4px 6px rgba(10,16,60,.18))}" +
-  ".ssf-st-btn:hover .ssf-st-lift,.ssf-st-btn:focus-visible .ssf-st-lift{transform:translateY(-4%) scale(1.06);filter:drop-shadow(0 2px 1px rgba(10,16,60,.2)) drop-shadow(0 14px 16px rgba(10,16,60,.3))}" +
-  ".ssf-st.is-drag .ssf-st-lift{transform:translateY(-7%) scale(1.12);filter:drop-shadow(0 2px 1px rgba(10,16,60,.16)) drop-shadow(0 22px 22px rgba(10,16,60,.34))}" +
-  ".ssf-st-slap{display:block}" +
-  ".ssf-st svg{width:100%;height:auto}" +
-  ".ssf-sheen{transform:translateX(-130%);transition:transform 0s}" +
-  ".ssf-st-btn:hover .ssf-sheen{transform:translateX(130%);transition:transform .9s cubic-bezier(.4,0,.2,1)}" +
-  ".ssf-ring{position:absolute;left:50%;top:50%;width:150%;aspect-ratio:1;translate:-50% -50%;border-radius:50%;border:2px solid var(--ssf-cream);opacity:0;pointer-events:none}" +
   // credits
   ".ssf-credits{position:absolute;z-index:6;right:clamp(10px,1.2cqw,16px);bottom:clamp(10px,1.2cqw,16px)}" +
   ".ssf-pill{display:block;padding:.3em .8em .34em;border-radius:999px;background:var(--ssf-ink);color:var(--ssf-paper);font-size:clamp(12px,1cqw,14px);font-weight:600;transition:transform .4s cubic-bezier(.2,1.6,.3,1),background .2s}" +
@@ -399,35 +261,26 @@ const CSS =
   "@media (prefers-reduced-motion: no-preference){" +
   ".ssf-panel{scale:calc(.9 + .1 * var(--ssf-sp,1));border-radius:calc(clamp(14px,1.8cqw,24px) + (1 - var(--ssf-sp,1)) * 60px)}" +
   ".ssf-stage-in{transform:translateY(calc((1 - var(--ssf-sp,1)) * 18%))}" +
-  ".ssf-st{transform:translate(calc(var(--ssf-px,0) * var(--d) * 9px),calc(var(--ssf-py,0) * var(--d) * 6px));transition:transform .7s cubic-bezier(.2,.8,.2,1)}" +
-  ".ssf-st.is-drag{transition:none}" +
-  ".ssf:not(.is-in) .ssf-top>*,.ssf:not(.is-in) .ssf-tag,.ssf:not(.is-in) .ssf-line>*,.ssf:not(.is-in) .ssf-map,.ssf:not(.is-in) .ssf-note,.ssf:not(.is-in) .ssf-soc,.ssf:not(.is-in) .ssf-pill{opacity:0}" +
+  ".ssf:not(.is-in) .ssf-top>*,.ssf:not(.is-in) .ssf-tag,.ssf:not(.is-in) .ssf-line>*,.ssf:not(.is-in) .ssf-map,.ssf:not(.is-in) .ssf-note,.ssf:not(.is-in) .ssf-pill{opacity:0}" +
   ".ssf.is-in .ssf-top>*{animation:ssf-fall .8s cubic-bezier(.2,1.3,.3,1) both}" +
   ".ssf.is-in .ssf-top>:nth-child(2){animation-delay:.08s}.ssf.is-in .ssf-top>:nth-child(3){animation-delay:.16s}" +
   ".ssf.is-in .ssf-panel{animation:ssf-grow 1.1s cubic-bezier(.7,0,.2,1) both}" +
   ".ssf.is-in .ssf-tag{animation:ssf-pop .7s cubic-bezier(.2,1.7,.3,1) both;animation-delay:calc(.45s + var(--c) * .1s)}" +
   ".ssf.is-in .ssf-line>*{animation:ssf-rise .8s cubic-bezier(.2,.9,.2,1) both;animation-delay:calc(.55s + var(--c) * .1s + var(--i) * .07s)}" +
   ".ssf.is-in .ssf-map,.ssf.is-in .ssf-note{animation:ssf-fade .7s ease both;animation-delay:calc(.85s + var(--c) * .1s)}" +
-  ".ssf.is-in .ssf-soc{animation:ssf-pop .6s cubic-bezier(.2,1.7,.3,1) both;animation-delay:calc(1s + var(--i) * .08s)}" +
   ".ssf.is-in .ssf-pill{animation:ssf-pop .6s cubic-bezier(.2,1.7,.3,1) both;animation-delay:var(--end)}" +
   ".ssf .ssf-wm path{stroke-dasharray:var(--l,3000px) calc(var(--l,3000px) + 8px);stroke-dashoffset:calc(var(--l,3000px) + 4px)}" +
   ".ssf:not(.is-in) .ssf-wm path{visibility:hidden}" +
   ".ssf.is-in .ssf-wm path{animation:ssf-write var(--dur) var(--at) cubic-bezier(.55,.1,.35,1) both}" +
-  ".ssf:not(.is-in) .ssf-st-slap{opacity:0}" +
-  ".ssf.is-in .ssf-st-slap{animation:ssf-slap .62s var(--at) cubic-bezier(.3,1.5,.4,1) both}" +
-  ".ssf.is-in .ssf-ring{animation:ssf-ring .7s var(--at) cubic-bezier(.2,.8,.2,1) both}" +
   ".ssf-logo:hover path{animation:ssf-rewrite 1.1s cubic-bezier(.55,.1,.35,1)}" +
   ".ssf-logo path{stroke-dasharray:var(--l,3000px) calc(var(--l,3000px) + 8px)}" +
-  ".ssf-st-btn:active .ssf-st-lift{transform:translateY(-6%) scale(1.1)}" +
   "}" +
   "@keyframes ssf-write{0%{stroke-dashoffset:calc(var(--l,3000px) + 4px);visibility:visible}100%{stroke-dashoffset:0;visibility:visible}}" +
   "@keyframes ssf-fall{from{opacity:0;transform:translateY(-14px) rotate(-6deg)}}" +
   "@keyframes ssf-grow{0%{clip-path:inset(30% 12% 0 12% round 80px);transform:translateY(40px)}100%{clip-path:inset(0 0 0 0 round 0);transform:none}}" +
   "@keyframes ssf-pop{0%{opacity:0;transform:scale(.4) rotate(-12deg)}100%{opacity:1;transform:none}}" +
   "@keyframes ssf-rise{from{opacity:1;transform:translateY(110%)}to{opacity:1;transform:none}}" +
-  "@keyframes ssf-fade{from{opacity:0;transform:translateY(8px)}}" +
-  "@keyframes ssf-slap{0%{opacity:0;transform:scale(2.1) rotate(24deg) translateY(-30%);filter:blur(1.5px)}55%{opacity:1;transform:scale(.9) rotate(-3deg);filter:none}78%{transform:scale(1.05) rotate(1deg)}100%{opacity:1;transform:none}}" +
-  "@keyframes ssf-ring{0%{opacity:0;transform:scale(.3)}40%{opacity:.75}100%{opacity:0;transform:scale(1)}}"
+  "@keyframes ssf-fade{from{opacity:0;transform:translateY(8px)}}"
 
 /** Stamps each path's real length into --l, for the draw-in. */
 const useStrokeLengths = (ref: React.RefObject<Element | null>, key: string) =>
@@ -437,252 +290,32 @@ const useStrokeLengths = (ref: React.RefObject<Element | null>, key: string) =>
     })
   }, [ref, key])
 
-/** A word in the script, scaled to fit a box: for sticker captions. */
-function ScriptText({ text, cx, cy, w, color, stroke = STROKE }: { text: string; cx: number; cy: number; w: number; color: string; stroke?: number }) {
-  const { main, extra, width, top } = React.useMemo(() => layoutScript(text), [text])
-  if (!width) return null
-  const s = w / (width + stroke)
-  const h = (-top + 1) * s
-  return (
-    <g transform={"translate(" + round(cx - (width * s) / 2) + " " + round(cy + h / 2 - s) + ") scale(" + round(s) + ")"}>
-      <path d={main + extra.join("")} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" />
-    </g>
-  )
-}
-
-const sparkle = (cx: number, cy: number, r: number) =>
-  "M" + cx + " " + (cy - r) + "Q" + cx + " " + cy + " " + (cx + r) + " " + cy + "Q" + cx + " " + cy + " " + cx + " " + (cy + r) + "Q" + cx + " " + cy + " " + (cx - r) + " " + cy + "Q" + cx + " " + cy + " " + cx + " " + (cy - r) + "Z"
-
-const BURST = starPath(13, 54, 39, 60, 60, 0.2, 4)
-const BOLT = "M70 8L26 66H55L44 112L94 48H64Z"
-const HEART = "M60 100C22 76 10 56 18 38C26 20 50 18 60 38C70 18 94 20 102 38C110 56 98 76 60 100Z"
-const BUBBLE = "M24 22H96A14 14 0 0 1 110 36V70A14 14 0 0 1 96 84H56L34 102L38 84H24A14 14 0 0 1 10 70V36A14 14 0 0 1 24 22Z"
-
-/** The silhouette (die-cut in white) and the art on top, in a 120 × 120 box. */
-const stickerArt = (kind: StickerKind, text?: string): { shape: React.ReactNode; art: React.ReactNode } => {
-  switch (kind) {
-    case "burst":
-      return {
-        shape: <path d={BURST} />,
-        art: (
-          <>
-            <path d={BURST} fill="#ff6a2b" />
-            <path d={starPath(13, 44, 33, 60, 60, 0.2, 4)} fill="#ff8a4c" />
-            <ScriptText text={text ?? "wow"} cx={60} cy={58} w={62} color="#1b1230" stroke={3.4} />
-          </>
-        ),
-      }
-    case "smiley":
-      return {
-        shape: <circle cx="60" cy="60" r="50" />,
-        art: (
-          <>
-            <circle cx="60" cy="60" r="50" fill="#9ab8ff" />
-            <circle cx="60" cy="60" r="40" fill="none" stroke="#fff" strokeWidth="3" opacity=".9" />
-            <ellipse cx="47" cy="50" rx="4" ry="7.5" fill="#fff" />
-            <ellipse cx="73" cy="50" rx="4" ry="7.5" fill="#fff" />
-            <path d="M36 66Q60 92 84 66M32 63L39 69M88 63L81 69" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" />
-          </>
-        ),
-      }
-    case "heart":
-      return {
-        shape: (
-          <>
-            <path d={HEART} />
-            <path d={sparkle(100, 20, 14)} />
-            <path d={sparkle(18, 92, 10)} />
-          </>
-        ),
-        art: (
-          <>
-            <path d={HEART} fill="#b0245e" />
-            <path d="M30 42Q32 30 45 29" fill="none" stroke="#fff" strokeWidth="5.5" strokeLinecap="round" opacity=".9" />
-            <path d={sparkle(100, 20, 14)} fill="#ffd0e3" />
-            <path d={sparkle(18, 92, 10)} fill="#ffd0e3" />
-          </>
-        ),
-      }
-    case "bubble":
-      return {
-        shape: <path d={BUBBLE} />,
-        art: (
-          <>
-            <path d={BUBBLE} fill="#ffb6e1" />
-            <ScriptText text={text ?? "hi!"} cx={60} cy={53} w={text ? 76 : 44} color="#8a1550" stroke={3.6} />
-          </>
-        ),
-      }
-    case "daisy": {
-      const petals = Array.from({ length: 9 }, (_, i) => (
-        <ellipse key={i} cx="60" cy="31" rx="13" ry="22" transform={"rotate(" + i * 40 + " 60 60)"} />
-      ))
-      return {
-        shape: <>{petals}</>,
-        art: (
-          <>
-            <g fill="#ffd23f">{petals}</g>
-            <circle cx="60" cy="60" r="19" fill="#ff6a2b" />
-            <circle cx="53.5" cy="57" r="2.6" fill="#1b1230" />
-            <circle cx="66.5" cy="57" r="2.6" fill="#1b1230" />
-            <path d="M53 65Q60 71 67 65" fill="none" stroke="#1b1230" strokeWidth="3" strokeLinecap="round" />
-          </>
-        ),
-      }
-    }
-    case "camera":
-      return {
-        shape: (
-          <>
-            <rect x="12" y="36" width="96" height="66" rx="16" />
-            <rect x="38" y="24" width="36" height="20" rx="6" />
-          </>
-        ),
-        art: (
-          <>
-            <rect x="12" y="36" width="96" height="66" rx="16" fill="#1d1c22" />
-            <rect x="38" y="24" width="36" height="20" rx="6" fill="#1d1c22" />
-            <circle cx="60" cy="70" r="24" fill="#fff" />
-            <circle cx="60" cy="70" r="17" fill="#1d1c22" />
-            <circle cx="60" cy="70" r="11" fill="#5b7cff" />
-            <circle cx="55" cy="65" r="4" fill="#fff" />
-            <rect x="86" y="46" width="12" height="7" rx="3" fill="#ffd23f" />
-            <path d="M22 50H30" stroke="#fff" strokeWidth="4" strokeLinecap="round" opacity=".5" />
-          </>
-        ),
-      }
-    case "bolt":
-    default:
-      return {
-        shape: <path d={BOLT} />,
-        art: (
-          <>
-            <path d={BOLT} fill="#ffd23f" />
-            <path d="M66 20L38 58" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" opacity=".75" />
-          </>
-        ),
-      }
-  }
-}
-
-function StickerSvg({ kind, text }: { kind: StickerKind; text?: string }) {
-  const id = "ssf" + React.useId().replace(/[^a-zA-Z0-9]/g, "")
-  const { shape, art } = stickerArt(kind, text)
-  return (
-    <svg viewBox="-6 -6 132 132" aria-hidden="true" focusable="false">
-      <defs>
-        <clipPath id={id + "c"}>{shape}</clipPath>
-        <linearGradient id={id + "g"} x1="0" x2="1" y1="0" y2="0">
-          <stop offset=".35" stopColor="#fff" stopOpacity="0" />
-          <stop offset=".5" stopColor="#fff" stopOpacity=".55" />
-          <stop offset=".65" stopColor="#fff" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <g fill="#fff" stroke="#fff" strokeWidth="11" strokeLinejoin="round">
-        {shape}
-      </g>
-      {art}
-      <g clipPath={"url(#" + id + "c)"}>
-        <g transform="rotate(20 60 60)">
-          <rect className="ssf-sheen" x="-30" y="-30" width="180" height="180" fill={"url(#" + id + "g)"} />
-        </g>
-      </g>
-    </svg>
-  )
-}
-
-const isExternal = (href?: string) => !!href && /^https?:/.test(href)
-const linkProps = (href?: string) => ({
-  href: href || "#",
-  target: isExternal(href) ? "_blank" : undefined,
-  rel: isExternal(href) ? "noopener noreferrer" : undefined,
-  onClick: (e: React.MouseEvent) => {
-    if (!href || href === "#") e.preventDefault()
-  },
-})
-
-type Placed = { x: number; y: number }
-
-export default function StickerSlapFooter({
-  wordmark = "sunny",
-  homeHref = "#",
-  navLabel = "work",
-  navHref = "#",
-  chatHref = "#",
-  chatLabel = "send us a voice note",
-  jobsLabel = "looking for a job?",
-  jobs = DEFAULT_JOBS,
-  officeLabel = "office",
-  officeLinkText,
-  officeHref,
-  address = ["17 bakery lane", "brooklyn, ny 11211"],
-  mapLabel = "Google Maps",
-  mapHref = "#",
-  contactLabel = "contact",
-  email = "hello@sunny.studio",
-  copiedLabel = "copied, talk soon!",
-  note = "*phone calls give us the jitters. texts and voice notes are lovely.",
-  socials = DEFAULT_SOCIALS,
-  stickers = DEFAULT_STICKERS,
-  credits = DEFAULT_CREDITS,
-  height = "100svh",
-  wordmarkMaxHeight = "50svh",
-  paper = "#f1ece4",
-  panel = "#4a6cf0",
-  ink = "#141414",
-  cream,
-  accent = "#ff6a2b",
-  fontSans = "'DM Sans', 'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
-  onStickerMove,
-  className = "",
-}: StickerSlapFooterProps) {
+/** Shared Xohari footer used on the landing, report, sign-in, and complaint pages. */
+export function Footer() {
+  const {
+    wordmark, homeHref, navLabel, navHref, chatHref, chatLabel, jobsLabel, jobs, officeLabel, officeLinkText, officeHref,
+    mapLabel, mapHref, contactLabel, email, copiedLabel, note, credits,
+  } = FOOTER
+  const { lang } = useLanguage()
+  const address = lang === "as" ? ["পৰিকলন বিজ্ঞান আৰু প্ৰয়োগ কেন্দ্ৰ (CCSA)", "ডিব্ৰুগড় বিশ্ববিদ্যালয়"] : FOOTER.address
   const rootRef = React.useRef<HTMLElement>(null)
-  const stageRef = React.useRef<HTMLDivElement>(null)
   const popRef = React.useRef<HTMLDivElement>(null)
   const [seen, setSeen] = React.useState(false)
   const [run, setRun] = React.useState(0)
   const [copied, setCopied] = React.useState(0)
   const [open, setOpen] = React.useState(false)
-  const [moved, setMoved] = React.useState<Record<number, Placed>>({})
-  const [order, setOrder] = React.useState<number[]>([])
-  const drag = React.useRef<{ i: number; id: number; sx: number; sy: number; px: number; py: number; lx: number; t: number; tilt: number; w: number; h: number; went: boolean } | null>(null)
 
   const word = React.useMemo(() => layoutScript(wordmark), [wordmark])
-  const small = word
   const pad = STROKE / 2 + 0.6
   const vbX = -1.4 - pad
   const vbY = word.top - pad
   const vbW = Math.max(word.width, 1) + 2.8 + pad * 2 - word.top * SLANT
   const vbH = word.bottom + pad - vbY
   const cutH = CUT - vbY
-  const smallVb = [-pad - 1, small.top - pad, Math.max(small.width, 1) + pad * 2 + 2 - small.top * SLANT, -small.top + pad * 2 + 1].map(round).join(" ")
+  const smallVb = [-pad - 1, word.top - pad, Math.max(word.width, 1) + pad * 2 + 2 - word.top * SLANT, -word.top + pad * 2 + 1].map(round).join(" ")
 
-  const spots = React.useMemo(() => stickerSpots(word, stickers.length, 3), [word, stickers.length])
   const drawDur = clamp(0.7 + word.width / 45, 1.1, 2.6)
   const writeAt = 1.05
-  const toPct = (s: Spot) => ({ x: ((s.x - s.y * SLANT - vbX) / vbW) * 100, y: ((s.y - vbY) / vbH) * 100 })
-
-  const items = stickers.map((spec, i) => {
-    const o = typeof spec === "string" ? { kind: spec } : spec
-    const spot = spots[i] ?? { x: 0, y: 0, size: 11, rotate: 0, depth: 1 }
-    const auto = toPct(spot)
-    const home = { x: o.x ?? auto.x, y: o.y ?? auto.y }
-    const xf = clamp((home.x / 100) * vbW + vbX, 0, word.width) / Math.max(word.width, 1)
-    return {
-      i,
-      kind: (o.kind ?? "burst") as StickerKind,
-      node: o.node,
-      text: o.text,
-      label: o.label ?? LABELS[(o.kind ?? "burst") as StickerKind],
-      home,
-      at: moved[i] ?? home,
-      size: o.size ?? (spot.size / vbW) * 100,
-      rotate: o.rotate ?? spot.rotate,
-      depth: spot.depth,
-      // slaps down the moment the pen passes under it
-      delay: writeAt + drawDur * Math.pow(xf, 0.92) + 0.08,
-    }
-  })
   const endAt = writeAt + drawDur + word.extra.length * 0.16 + 0.5
 
   useStrokeLengths(rootRef, wordmark + run)
@@ -756,10 +389,7 @@ export default function StickerSlapFooter({
     }
   }, [open])
 
-  const reduced = () => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-
   const copy = async () => {
-    if (!email) return
     try {
       await navigator.clipboard.writeText(email)
       setCopied((c) => c + 1)
@@ -768,251 +398,92 @@ export default function StickerSlapFooter({
     }
   }
 
-  const raise = (i: number) => setOrder((o) => [...o.filter((k) => k !== i), i])
+  // Write it again: the wordmark redraws.
+  const replay = () => setRun((r) => r + 1)
 
-  const putAt = (i: number, p: Placed, announce: boolean = true) => {
-    setMoved((m) => ({ ...m, [i]: p }))
-    if (announce) onStickerMove?.(i, round(p.x), round(p.y))
-  }
-
-  const wiggle = (el: Element | null, frames: Keyframe[], duration: number) => {
-    if (!reduced()) (el as HTMLElement | null)?.animate?.(frames, { duration, easing: "cubic-bezier(.3,1.4,.4,1)" })
-  }
-  const slapFrames: Keyframe[] = [{ transform: "scale(1.14)" }, { transform: "scale(.93,1.04)", offset: 0.4 }, { transform: "scale(1.02,.98)", offset: 0.7 }, { transform: "none" }]
-  const shakeFrames: Keyframe[] = [{ transform: "none" }, { transform: "rotate(-14deg) scale(1.1)", offset: 0.3 }, { transform: "rotate(9deg)", offset: 0.6 }, { transform: "none" }]
-
-  const onDown = (e: React.PointerEvent<HTMLButtonElement>, i: number) => {
-    if (e.button !== 0 || !stageRef.current) return
-    const r = stageRef.current.getBoundingClientRect()
-    const at = items[i].at
-    e.currentTarget.setPointerCapture(e.pointerId)
-    drag.current = { i, id: e.pointerId, sx: at.x, sy: at.y, px: e.clientX, py: e.clientY, lx: e.clientX, t: performance.now(), tilt: 0, w: r.width, h: r.height, went: false }
-    raise(i)
-  }
-  const onMove = (e: React.PointerEvent<HTMLButtonElement>) => {
-    const d = drag.current
-    if (!d || d.id !== e.pointerId) return
-    const dx = e.clientX - d.px
-    const dy = e.clientY - d.py
-    if (!d.went && Math.hypot(dx, dy) < 4) return
-    const host = e.currentTarget.parentElement
-    if (!host) return
-    if (!d.went) host.classList.add("is-drag")
-    d.went = true
-    const x = clamp(d.sx + (dx / d.w) * 100, 1, 99)
-    const y = clamp(d.sy + (dy / d.h) * 100, -70, 96)
-    host.style.left = x + "%"
-    host.style.top = y + "%"
-    // tilt with the throw: velocity, smoothed
-    const now = performance.now()
-    const v = (e.clientX - d.lx) / Math.max(1, now - d.t)
-    d.tilt = d.tilt * 0.75 + clamp(v * 22, -24, 24) * 0.25
-    d.lx = e.clientX
-    d.t = now
-    host.style.setProperty("--tilt", d.tilt.toFixed(2) + "deg")
-  }
-  const onUp = (e: React.PointerEvent<HTMLButtonElement>) => {
-    const d = drag.current
-    if (!d || d.id !== e.pointerId) return
-    drag.current = null
-    const host = e.currentTarget.parentElement
-    host?.classList.remove("is-drag")
-    host?.style.setProperty("--tilt", "0deg")
-    const lift = e.currentTarget.querySelector(".ssf-st-lift")
-    if (d.went && host) {
-      putAt(d.i, { x: parseFloat(host.style.left), y: parseFloat(host.style.top) })
-      wiggle(lift, slapFrames, 420)
-    } else wiggle(lift, shakeFrames, 520)
-  }
-  const onKey = (e: React.KeyboardEvent<HTMLButtonElement>, i: number) => {
-    const step = e.shiftKey ? 6 : 2
-    const at = items[i].at
-    const go: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }
-    if (go[e.key]) {
-      e.preventDefault()
-      raise(i)
-      putAt(i, { x: clamp(at.x + go[e.key][0], 1, 99), y: clamp(at.y + go[e.key][1], -70, 96) })
-    } else if (e.key === "Home" || e.key === "Escape") {
-      e.preventDefault()
-      goHome(i, e.currentTarget)
-    }
-  }
-  const goHome = (i: number, btn: HTMLElement) => {
-    setMoved((m) => {
-      const next = { ...m }
-      delete next[i]
-      return next
-    })
-    onStickerMove?.(i, round(items[i].home.x), round(items[i].home.y))
-    wiggle(btn.querySelector(".ssf-st-lift"), slapFrames, 420)
-  }
-
-  // Write it again: the wordmark redraws and every sticker slaps back home.
-  const replay = () => {
-    setMoved({})
-    setRun((r) => r + 1)
-  }
-
-  const style = {
-    "--ssf-paper": paper,
-    "--ssf-panel": panel,
-    "--ssf-ink": ink,
-    "--ssf-cream": cream ?? paper,
-    "--ssf-accent": accent,
-    "--ssf-sans": fontSans,
-    "--ssf-wmh": wordmarkMaxHeight,
-    "--ssf-ar": String(round(vbW / cutH)),
-    minHeight: height,
-  } as React.CSSProperties
-
-  const onPointer = (e: React.PointerEvent<HTMLElement>) => {
-    const el = rootRef.current
-    if (!el || e.pointerType !== "mouse") return
-    const r = el.getBoundingClientRect()
-    if (!r.width || !r.height) return
-    const px = (e.clientX - r.left) / r.width - 0.5
-    const py = (e.clientY - r.top) / r.height - 0.5
-    el.style.setProperty("--ssf-px", (px * 2).toFixed(3))
-    el.style.setProperty("--ssf-py", (py * 2).toFixed(3))
-  }
-  const onLeave = () => {
-    const el = rootRef.current
-    el?.style.setProperty("--ssf-px", "0")
-    el?.style.setProperty("--ssf-py", "0")
-  }
-
-  const cols: React.ReactNode[] = []
-  if (jobs.length)
-    cols.push(
-      <div className="ssf-col" key="jobs">
-        <h3 className="ssf-tag">{jobsLabel}</h3>
-        <ul className="ssf-big">
-          {jobs.map((j, i) => (
-            <li key={i} className="ssf-line" style={{ "--i": i } as React.CSSProperties}>
-              {j.href ? <a {...linkProps(j.href)}>{j.title}</a> : <span>{j.title}</span>}
-            </li>
-          ))}
-        </ul>
-      </div>,
-    )
-  if (address.length)
-    cols.push(
-      <div className="ssf-col" key="office">
-        <h3 className="ssf-tag">
-          {officeLabel}
-          {officeHref && officeLinkText && <> <a {...linkProps(officeHref)} style={{ textDecoration: 'underline', textDecorationColor: 'var(--ssf-accent)', textUnderlineOffset: '.12em' }}>{officeLinkText}</a></>}
-        </h3>
-        <address className="ssf-big" style={{ fontStyle: "normal" }}>
-          {address.map((l, i) => (
-            <span key={i} className="ssf-line" style={{ "--i": i } as React.CSSProperties}>
-              <span>{l}</span>
-            </span>
-          ))}
-        </address>
-        {mapLabel && (
-          <a className="ssf-map" {...linkProps(mapHref)}>
-            {mapLabel}
-            <svg viewBox="0 0 88 8" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-              <path d={SQUIGGLE} data-draw="" />
-            </svg>
-          </a>
-        )}
-      </div>,
-    )
-  if (email || chatHref || socials.length)
-    cols.push(
-      <div className="ssf-col" key="contact">
-        <h3 className="ssf-tag">{contactLabel}</h3>
-        <ul className="ssf-big">
-          {email && (
-            <li className="ssf-line" style={{ "--i": 0 } as React.CSSProperties}>
-              <button type="button" className={"ssf-copy" + (copied ? " is-copied" : "")} onClick={copy} title="Copy email address">
-                <span className="ssf-addr">{email}</span>
-                <span className="ssf-done" aria-hidden="true">
-                  {copiedLabel}
-                </span>
-              </button>
-            </li>
-          )}
-          {chatHref && chatLabel && (
-            <li className="ssf-line" style={{ "--i": 1 } as React.CSSProperties}>
-              <a {...linkProps(chatHref)}>
-                {chatLabel}
-                {note && <span className="ssf-ast">*</span>}
-              </a>
-            </li>
-          )}
-        </ul>
-        {note && <p className="ssf-note">{note}</p>}
-        {socials.length > 0 && (
-          <ul className="ssf-socials">
-            {socials.map((s, i) => (
-              <li key={i}>
-                <a className="ssf-soc" {...linkProps(s.href)} aria-label={s.label ?? s.kind} style={{ "--i": i } as React.CSSProperties}>
-                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    {ICONS[s.kind]}
-                  </svg>
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-        <span className="ssf-sr" role="status">
-          {copied ? "Email address copied" : ""}
-        </span>
-      </div>,
-    )
+  const style = { "--ssf-ar": String(round(vbW / cutH)) } as React.CSSProperties
 
   return (
-    <footer
-      id="footer"
-      ref={rootRef}
-      className={"ssf" + (seen ? " is-in" : "") + (className ? " " + className : "")}
-      style={style}
-      onPointerMove={onPointer}
-      onPointerLeave={onLeave}
-    >
+    <footer id="footer" ref={rootRef} className={"ssf" + (seen ? " is-in" : "")} style={style}>
       <style>{CSS}</style>
 
       <div className="ssf-top">
-        {navLabel ? (
-          <a className="ssf-nav" {...linkProps(navHref)}>
-            <svg viewBox="-50 -50 100 100" aria-hidden="true" focusable="false">
-              <path d={starPath(11, 48, 30, 0, 0, 0.3, 7)} fill="currentColor" />
-            </svg>
-            <span>{navLabel}</span>
-          </a>
-        ) : (
-          <span />
-        )}
-        <a className="ssf-logo" {...linkProps(homeHref)} aria-label={wordmark + ", home"}>
+        <a className="ssf-nav" href={navHref}>
+          <svg viewBox="-50 -50 100 100" aria-hidden="true" focusable="false">
+            <path d={starPath(11, 48, 30, 0, 0, 0.3, 7)} fill="currentColor" />
+          </svg>
+          <span>{navLabel}</span>
+        </a>
+        <a className="ssf-logo" href={homeHref} aria-label={wordmark + ", home"}>
           <svg viewBox={smallVb} aria-hidden="true" focusable="false">
-            <path d={small.main + small.extra.join("")} data-draw="" transform="skewX(-9)" />
+            <path d={word.main + word.extra.join("")} data-draw="" transform="skewX(-9)" />
           </svg>
         </a>
-        {chatHref ? (
-          <a className="ssf-chat" {...linkProps(chatHref)} aria-label={chatLabel || "Message us"}>
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M12 2.6A9.4 9.4 0 0 0 3.9 16.8L2.7 21.3L7.3 20.1A9.4 9.4 0 1 0 12 2.6Z" fill="currentColor" />
-              <path d="M8.6 7.6C9.2 7.2 9.7 7.4 10 8L10.6 9.5C10.8 10 10.5 10.4 10.1 10.8C10.8 12.2 11.8 13.2 13.2 13.9C13.6 13.5 14 13.2 14.5 13.4L16 14C16.6 14.3 16.8 14.8 16.4 15.4C15.7 16.4 14.6 16.8 13.4 16.3C10.6 15.2 8.8 13.4 7.7 10.6C7.2 9.4 7.6 8.3 8.6 7.6Z" fill="var(--ssf-paper)" />
-            </svg>
-          </a>
-        ) : (
-          <span />
-        )}
+        <a className="ssf-chat" href={chatHref} aria-label={chatLabel}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 2.6A9.4 9.4 0 0 0 3.9 16.8L2.7 21.3L7.3 20.1A9.4 9.4 0 1 0 12 2.6Z" fill="currentColor" />
+            <path d="M8.6 7.6C9.2 7.2 9.7 7.4 10 8L10.6 9.5C10.8 10 10.5 10.4 10.1 10.8C10.8 12.2 11.8 13.2 13.2 13.9C13.6 13.5 14 13.2 14.5 13.4L16 14C16.6 14.3 16.8 14.8 16.4 15.4C15.7 16.4 14.6 16.8 13.4 16.3C10.6 15.2 8.8 13.4 7.7 10.6C7.2 9.4 7.6 8.3 8.6 7.6Z" fill="var(--ssf-paper)" />
+          </svg>
+        </a>
       </div>
 
       <div className="ssf-panel">
-        {cols.length > 0 && (
-          <div className="ssf-cols" style={{ "--ssf-n": cols.length } as React.CSSProperties}>
-            {cols.map((c, k) => (
-              <React.Fragment key={k}>{React.cloneElement(c as React.ReactElement<{ style?: React.CSSProperties }>, { style: { "--c": k } as React.CSSProperties })}</React.Fragment>
-            ))}
+        <div className="ssf-cols">
+          <div className="ssf-col" style={{ "--c": 0 } as React.CSSProperties}>
+            <h3 className="ssf-tag">{jobsLabel}</h3>
+            <ul className="ssf-big">
+              {jobs.map((j, i) => (
+                <li key={i} className="ssf-line" style={{ "--i": i } as React.CSSProperties}>
+                  <a href={j.href}>{j.title}</a>
+                </li>
+              ))}
+            </ul>
           </div>
-        )}
+          <div className="ssf-col" style={{ "--c": 1 } as React.CSSProperties}>
+            <h3 className="ssf-tag">
+              {officeLabel} <a href={officeHref} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline', textDecorationColor: 'var(--ssf-accent)', textUnderlineOffset: '.12em' }}>{officeLinkText}</a>
+            </h3>
+            <address className="ssf-big" style={{ fontStyle: "normal" }}>
+              {address.map((l, i) => (
+                <span key={i} className="ssf-line" style={{ "--i": i } as React.CSSProperties}>
+                  <span>{l}</span>
+                </span>
+              ))}
+            </address>
+            <a className="ssf-map" href={mapHref}>
+              {mapLabel}
+              <svg viewBox="0 0 88 8" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                <path d={SQUIGGLE} data-draw="" />
+              </svg>
+            </a>
+          </div>
+          <div className="ssf-col" style={{ "--c": 2 } as React.CSSProperties}>
+            <h3 className="ssf-tag">{contactLabel}</h3>
+            <ul className="ssf-big">
+              <li className="ssf-line" style={{ "--i": 0 } as React.CSSProperties}>
+                <button type="button" className={"ssf-copy" + (copied ? " is-copied" : "")} onClick={copy} title="Copy email address">
+                  <span className="ssf-addr">{email}</span>
+                  <span className="ssf-done" aria-hidden="true">
+                    {copiedLabel}
+                  </span>
+                </button>
+              </li>
+              <li className="ssf-line" style={{ "--i": 1 } as React.CSSProperties}>
+                <a href={chatHref}>
+                  {chatLabel}
+                  {note && <span className="ssf-ast">*</span>}
+                </a>
+              </li>
+            </ul>
+            {note && <p className="ssf-note">{note}</p>}
+            <span className="ssf-sr" role="status">
+              {copied ? "Email address copied" : ""}
+            </span>
+          </div>
+        </div>
 
         <div className="ssf-stage">
-          <div className="ssf-stage-in" ref={stageRef} style={{ marginBottom: round(-((vbH - cutH) / vbW) * 100) + "%" }}>
+          <div className="ssf-stage-in" style={{ marginBottom: round(-((vbH - cutH) / vbW) * 100) + "%" }}>
             <button type="button" className="ssf-wm-btn" onClick={replay} aria-label={"Write " + wordmark + " again"}>
               <svg key={run} className="ssf-wm" viewBox={[vbX, vbY, vbW, vbH].map(round).join(" ")} aria-hidden="true" focusable="false">
                 <g transform={"skewX(-9)"}>
@@ -1023,69 +494,31 @@ export default function StickerSlapFooter({
                 </g>
               </svg>
             </button>
-
-            {items.map((s) => (
-              <div
-                key={s.i}
-                className="ssf-st"
-                style={
-                  {
-                    left: s.at.x + "%",
-                    top: s.at.y + "%",
-                    width: "max(" + round(s.size) + "cqw, 46px)",
-                    zIndex: 3 + Math.max(0, order.indexOf(s.i) + 1),
-                    "--r": s.rotate + "deg",
-                    "--d": s.depth,
-                    "--at": round(s.delay) + "s",
-                  } as React.CSSProperties
-                }
-              >
-                <button
-                  type="button"
-                  className="ssf-st-btn"
-                  aria-label={s.label + ". Drag, or use the arrow keys, to move it. Escape puts it back."}
-                  onPointerDown={(e) => onDown(e, s.i)}
-                  onPointerMove={onMove}
-                  onPointerUp={onUp}
-                  onPointerCancel={onUp}
-                  onDoubleClick={(e) => goHome(s.i, e.currentTarget)}
-                  onKeyDown={(e) => onKey(e, s.i)}
-                >
-                  <span key={run} className="ssf-st-slap">
-                    <span className="ssf-st-lift">{s.node ?? <StickerSvg kind={s.kind} text={s.text} />}</span>
-                  </span>
-                </button>
-                <span key={"r" + run} className="ssf-ring" aria-hidden="true" />
-              </div>
-            ))}
           </div>
         </div>
 
-        {credits.length > 0 && (
-          <div className="ssf-credits" ref={popRef}>
-            {open && (
-              <ul className="ssf-pop">
-                {credits.map((c, i) => (
-                  <li key={i}>
-                    <b>{c.role}</b>
-                    <strong>{c.name}</strong>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <button
-              type="button"
-              className="ssf-pill"
-              aria-expanded={open}
-              onClick={() => setOpen((o) => !o)}
-              style={{ "--end": round(endAt) + "s" } as React.CSSProperties}
-            >
-              credits
-            </button>
-          </div>
-        )}
+        <div className="ssf-credits" ref={popRef}>
+          {open && (
+            <ul className="ssf-pop">
+              {credits.map((c, i) => (
+                <li key={i}>
+                  <b>{c.role}</b>
+                  <strong>{c.name}</strong>
+                </li>
+              ))}
+            </ul>
+          )}
+          <button
+            type="button"
+            className="ssf-pill"
+            aria-expanded={open}
+            onClick={() => setOpen((o) => !o)}
+            style={{ "--end": round(endAt) + "s" } as React.CSSProperties}
+          >
+            credits
+          </button>
+        </div>
       </div>
     </footer>
   )
 }
-

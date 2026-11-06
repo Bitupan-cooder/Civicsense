@@ -39,13 +39,6 @@ export function StartupLoader() {
           className="startup-loader-mark"
           logo={CIVICSENSE_BRAND_MARK}
           label="Xohari"
-          look="light"
-          background="#f8fbf3"
-          logoColor="#1a7a3a"
-          logoScale={0.56}
-          finalScale={0.62}
-          loop={false}
-          tuning={{ halo: 0 }}
         />
       </div>,
     host,

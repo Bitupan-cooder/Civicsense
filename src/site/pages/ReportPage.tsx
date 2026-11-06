@@ -5,7 +5,7 @@ import { signOutStudent, switchStudentAuthTab, useStudentSession } from '../stud
 import { ReportSection } from '../sections/ReportSection';
 import { ShaderCanvas } from '../../components/ui/ShaderCanvas';
 import { SiteNav } from '../components/SiteNav';
-import { Footer } from '../sections/Footer';
+import { Footer } from '../../components/ui/sticker-slap-footer';
 import { ReportTrackerSection } from '../sections/ReportTrackerSection';
 
 /** /login: student sign-in / registration. Tracker appears here only when requested by a tracking link. */
@@ -95,7 +95,7 @@ function ReportPageLayout({ children }: { children: ReactNode }) {
       <header className="report-page-header">
         <SiteNav standalone />
       </header>
-      {children}
+      <main style={{ display: 'contents' }}>{children}</main>
       <Footer />
     </div>
   );

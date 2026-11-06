@@ -1,15 +1,19 @@
-// Markup converted 1:1 from the original admin.html (React migration, step 1).
-import { closeDocket, openIdCard, openReassign, openWorkflow, reviewIdCard, shortRef, useConsole, viewEvidenceAttachment } from '../console';
+// Complaint docket: everything about one complaint and its history, with the official's actions.
+// Two columns on desktop (story and handling | people, ID check and progress); one column on phones.
+import { useEffect, useState } from 'react';
+import { Building2, Clock, IdCard, Paperclip, UserRound, X } from 'lucide-react';
+import {
+  closeDocket, loadOfficialComplaints, openIdCard, openReassign, openWorkflow, postReply, reviewIdCard, routeByHand, shortRef,
+  useConsole, viewEvidenceAttachment, type OfficialComplaint,
+} from '../console';
 import { formatDate, formatRelative, unitName } from '../components/Queue';
-import { useState } from 'react';
 import { AiPanel, Replies, RouteTracker } from '../../RouteTracker';
 import { CATEGORIES, CATEGORY_LABELS, STATUS_NAMES } from '../../logic';
+import * as auth from '../../civicAuth';
 
 /** "in progress" → "In progress": sentence case, no shouting capitals. */
 const statusText = (s: string | null | undefined) => { const t = STATUS_NAMES[s || 'submitted']?.en ?? (s || '').replace(/_/g, ' '); return t.charAt(0).toUpperCase() + t.slice(1); };
-import { postReply, routeByHand, type OfficialComplaint } from '../console';
-import * as auth from '../../civicAuth';
-import { loadOfficialComplaints } from '../console';
+const deskText = (v: string) => (v === 'social_service' ? 'DUSU desk' : v === 'administration' ? 'Administration' : 'Department desk');
 
 /** Reply to the reporter (translated into both languages) or add an internal note for officials. */
 function ReplyBox({ complaintId }: { complaintId: string }) {
@@ -22,19 +26,20 @@ function ReplyBox({ complaintId }: { complaintId: string }) {
     setBusy(false);
   };
   return (
-    <div style={{ background: '#ffffff', border: '1px solid var(--line)', borderRadius: '12px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--olive)' }}>Reply or internal note</div>
-      <textarea rows={3} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Write in English or Assamese. Replies are translated so the reporter can read them in their language." style={{ width: '100%', padding: '10px 12px', border: '1.5px solid var(--line)', borderRadius: '8px', fontSize: '13px', fontFamily: 'inherit', boxSizing: 'border-box' }} />
-      {error && <div style={{ color: '#991b1b', fontSize: '12px', fontWeight: 600 }}>{error}</div>}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        <button type="button" className="btn" disabled={busy || body.trim().length < 2} onClick={() => send('public')} style={{ height: '32px', fontSize: '12px' }}>Reply to reporter</button>
-        <button type="button" className="btn-outline" disabled={busy || body.trim().length < 2} onClick={() => send('internal')} style={{ height: '32px', fontSize: '12px' }}>Add internal note</button>
+    <section className="docket-card docket-reply">
+      <h3 className="docket-label">Reply or internal note</h3>
+      <textarea rows={3} value={body} onChange={(e) => setBody(e.target.value)} aria-label="Reply or internal note"
+        placeholder="Write in English or Assamese. Replies are translated so the reporter can read them in their language." />
+      {error && <p className="docket-error" role="alert">{error}</p>}
+      <div className="docket-reply-actions">
+        <button type="button" className="btn-outline" disabled={busy || body.trim().length < 2} onClick={() => send('internal')}>Add internal note</button>
+        <button type="button" className="btn" disabled={busy || body.trim().length < 2} onClick={() => send('public')}>Reply to reporter</button>
       </div>
-    </div>
+    </section>
   );
 }
 
-/** AI analysis, route tracker and (administration) routing by hand from the review queue. */
+/** AI analysis, route tracker, replies and (administration) routing by hand from the review queue. */
 function DocketRouting({ d, isAdmin }: { d: OfficialComplaint; isAdmin: boolean }) {
   const routing = useConsole().routing[d.id];
   const [category, setCategory] = useState(routing?.ai_category || 'other');
@@ -45,6 +50,19 @@ function DocketRouting({ d, isAdmin }: { d: OfficialComplaint; isAdmin: boolean 
   const canRoute = isAdmin && (d.status === 'needs_review' || !routing.routes.length);
   return (
     <>
+      {canRoute && (
+        <section className="docket-card docket-route-now">
+          <strong>{d.status === 'needs_review' ? 'In the review queue.' : 'Not routed yet.'}</strong>
+          <label>Route as
+            <select value={category} onChange={(e) => setCategory(e.target.value)}>
+              {CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
+            </select>
+          </label>
+          <button type="button" className="btn" disabled={busy} onClick={async () => { setBusy(true); await routeByHand(d.id, category); setBusy(false); }}>
+            {busy ? 'Routing…' : 'Route complaint'}
+          </button>
+        </section>
+      )}
       <AiPanel routing={routing} />
       {isAdmin && !['closed', 'merged', 'rejected'].includes(d.status) && <form onSubmit={async (e) => {
         e.preventDefault(); setBusy(true); setEditError('');
@@ -60,19 +78,6 @@ function DocketRouting({ d, isAdmin }: { d: OfficialComplaint; isAdmin: boolean 
       <RouteTracker routes={routing.routes} status={d.status} />
       <Replies replies={routing.replies} lang="en" showInternal />
       <ReplyBox complaintId={d.id} />
-      {canRoute && (
-        <div style={{ background: '#fff7ed', border: '1px solid #fdba74', borderRadius: '12px', padding: '12px 14px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', fontSize: '12.5px' }}>
-          <strong style={{ color: '#9a3412' }}>{d.status === 'needs_review' ? 'In the review queue.' : 'Not routed yet.'}</strong>
-          <span>Route as</span>
-          <select className="form-input-pass" style={{ height: '32px', marginTop: 0, width: 'auto' }} value={category} onChange={(e) => setCategory(e.target.value)}>
-            {CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
-          </select>
-          <button type="button" className="btn" disabled={busy} style={{ height: '32px', fontSize: '12px' }}
-            onClick={async () => { setBusy(true); await routeByHand(d.id, category); setBusy(false); }}>
-            {busy ? 'Routing...' : 'Route complaint'}
-          </button>
-        </div>
-      )}
     </>
   );
 }
@@ -109,7 +114,30 @@ function AdminLifecycleChecklist({ complaint }: { complaint: OfficialComplaint }
           );
         })}
       </ol>
-      {status === 'rejected' && <p className="admin-check-alert">Complaint rejected. Review the official remarks below.</p>}
+      {status === 'rejected' && <p className="admin-check-alert">Complaint rejected. Review the official remarks in the history.</p>}
+    </section>
+  );
+}
+
+function History({ d }: { d: OfficialComplaint }) {
+  const items = [...(d.history || [])].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
+  return (
+    <section className="docket-card">
+      <h3 className="docket-label">Status history &amp; remarks</h3>
+      {items.length ? (
+        <ol className="docket-timeline">
+          {items.map((h, i) => (
+            <li key={i} data-status={h.status}>
+              <div className="docket-timeline-head">
+                <span className={'chip chip-' + h.status}>{statusText(h.status)}</span>
+                <time dateTime={h.created_at}>{formatDate(h.created_at)} · {formatRelative(h.created_at)}</time>
+              </div>
+              <div className="docket-timeline-actor">{h.actor ? h.actor.name + ' · ' + (h.actor.unit_name || h.actor.role) : 'Authorized official'}</div>
+              {h.remark && <p className="docket-timeline-remark">{h.remark}</p>}
+            </li>
+          ))}
+        </ol>
+      ) : <p className="docket-muted">No remarks logged yet. Only the initial submission is recorded.</p>}
     </section>
   );
 }
@@ -117,241 +145,96 @@ function AdminLifecycleChecklist({ complaint }: { complaint: OfficialComplaint }
 export function ComplaintDetailModal() {
   const s = useConsole();
   const d = s.complaints.find((c) => c.id === s.docketId) ?? null;
-  const active = !!d && !['resolved', 'rejected', 'closed', 'merged'].includes(d.status);
-  const shown = (on: boolean) => ({ display: on ? 'inline-flex' : 'none' });
-  const idStatus = d ? d.idCard?.status ?? 'pending' : null;
-  const nameHidden = !!d && !d.student && !!s.routing[d.id]?.hide_name_from_union;
-  const studentName = d?.student ? d.student.name : nameHidden ? "Name hidden (reporter's choice)" : 'Registered Student';
-  const studentEmail = d?.student ? d.student.email : 'No email';
+  const covered = !!(s.workflow || s.reassignId || s.idCard || s.confirm); // another dialog is open on top
+  useEffect(() => {
+    if (!d || covered) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeDocket(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [d, covered]);
+  if (!d) return null;
+
+  const isAdmin = s.profile?.role === 'administration';
+  const active = !['resolved', 'rejected', 'closed', 'merged'].includes(d.status);
+  const idStatus = d.idCard?.status ?? 'pending';
+  const nameHidden = !d.student && !!s.routing[d.id]?.hide_name_from_union;
+  const studentName = d.student ? d.student.name : nameHidden ? "Name hidden (reporter's choice)" : 'Registered student';
+  const studentEmail = d.student ? d.student.email : '';
+  const files = d.evidence || [];
+
   return (
-    <div className={d ? "modal-overlay" : "modal-overlay hidden"} id="complaintDetailModal">
-      {" "}
-      <div className="modal-box-large">
-        {" "}
-        <div className="modal-head">
-          {" "}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-            {" "}
-            <span className="ticket-id-tag" id="modalDocketId">
-              {d ? '#' + shortRef(d.id) : '#CS-0000'}
-            </span>
-            {" "}
-            <h2 style={{ fontSize: "17px", fontWeight: "700", color: "var(--ink)", letterSpacing: "-0.02em" }} id="modalDocketTitle">
-              {d ? d.title : 'Complaint Title'}
-            </h2>
-            {" "}
+    <div className="modal-overlay" id="complaintDetailModal">
+      <div className="docket" role="dialog" aria-modal="true" aria-labelledby="docketTitle">
+        <header className="docket-head">
+          <div className="docket-head-main">
+            <div className="docket-head-tags">
+              <span className="ticket-id-tag">#{shortRef(d.id)}</span>
+              <span className={'chip chip-' + d.status}>{statusText(d.status)}</span>
+              <span className={'chip chip-vis-' + (d.visibility === 'administration' ? 'admin' : d.visibility === 'social_service' ? 'social' : 'dept')}>{deskText(d.visibility)}</span>
+            </div>
+            <h2 id="docketTitle">{d.title}</h2>
+            <p className="docket-head-meta"><Clock aria-hidden="true" />Filed <time dateTime={d.created_at}>{formatDate(d.created_at)}</time> · {formatRelative(d.created_at)}</p>
           </div>
-          {" "}
-          <button type="button" onClick={() => closeDocket()} style={{ background: "none", border: "none", color: "#4a6142", fontSize: "22px", fontWeight: "700", cursor: "pointer", padding: "4px 8px" }}>
-            ×
-          </button>
-          {" "}
+          <button type="button" className="docket-close" aria-label="Close docket" onClick={() => closeDocket()}><X aria-hidden="true" /></button>
+        </header>
+
+        <div className="docket-body">
+          <div className="docket-main">
+            <section className="docket-card">
+              <h3 className="docket-label">Grievance narrative</h3>
+              <div className="docket-narrative">{d.description}</div>
+              <div className="docket-files">
+                {files.length ? files.map((ev, i) => (
+                  <button key={i} type="button" className="docket-file" onClick={() => viewEvidenceAttachment(d.id, ev.cloudinary_public_id)}>
+                    <Paperclip aria-hidden="true" />Attachment {i + 1}
+                  </button>
+                )) : <span className="docket-muted">No attachments.</span>}
+              </div>
+            </section>
+            <DocketRouting key={d.id} d={d} isAdmin={isAdmin} />
+            <History d={d} />
+          </div>
+
+          <aside className="docket-side">
+            <section className="docket-card docket-people">
+              <div>
+                <h3 className="docket-label"><UserRound aria-hidden="true" />Reporter</h3>
+                <strong>{studentName}</strong>
+                {studentEmail && <span>{studentEmail}</span>}
+              </div>
+              <div>
+                <h3 className="docket-label"><Building2 aria-hidden="true" />Assigned unit</h3>
+                <strong>{unitName(d, 'Target department', 'General Campus Desk')}</strong>
+                <span>Category: {d.category}</span>
+              </div>
+            </section>
+            <section className="docket-card docket-id">
+              <div className="docket-id-head">
+                <h3 className="docket-label"><IdCard aria-hidden="true" />Student ID card</h3>
+                <span className={'pill-id-' + idStatus}>{idStatus === 'verified' ? 'Verified' : idStatus === 'not_valid' ? 'Not valid' : 'Pending review'}</span>
+              </div>
+              <p className="docket-muted">Verify the student's enrolment before formally accepting the complaint.</p>
+              <button type="button" className="btn-outline" onClick={() => openIdCard(d.student_id, d.student ? d.student.name : 'Student', d.student ? d.student.email : '')}>View student ID</button>
+              <div className="docket-id-actions">
+                <button type="button" className="btn" onClick={() => reviewIdCard('verified', d.student_id)}>Mark verified</button>
+                <button type="button" className="btn-outline btn-red" onClick={() => reviewIdCard('not_valid', d.student_id)}>Not valid</button>
+              </div>
+            </section>
+            <AdminLifecycleChecklist complaint={d} />
+          </aside>
         </div>
-        {" "}
-        <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-          {" "}
-          {/* Status & Categorization Meta Bar */}
-          {" "}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap", background: "#ffffff", padding: "12px 16px", borderRadius: "12px", border: "1px solid var(--line)" }}>
-            {" "}
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-              {" "}
-              <span id="modalDocketStatus" className={d ? 'chip chip-' + d.status : 'chip'}>
-                {d ? statusText(d.status) : 'Status'}
-              </span>
-              {" "}
-              <span id="modalDocketVisibility" className={d ? 'chip chip-vis-' + (d.visibility === 'administration' ? 'admin' : d.visibility === 'social_service' ? 'social' : 'dept') : 'chip'}>
-                {d ? (d.visibility === 'social_service' ? 'DUSU desk' : d.visibility === 'administration' ? 'Administration' : 'Department desk') : 'Visibility'}
-              </span>
-              {" "}
-              <span id="modalDocketCategory" className="chip chip-category">
-                {d ? d.category : 'Category'}
-              </span>
-              {" "}
-            </div>
-            {" "}
-            <div style={{ fontSize: "12px", color: "#64748b" }} id="modalDocketDate">
-              {d ? 'Submitted: ' + formatDate(d.created_at) + ' (' + formatRelative(d.created_at) + ')' : 'Submitted: --'}
-            </div>
-            {" "}
+
+        <footer className="docket-foot">
+          <button type="button" className="btn-outline" onClick={() => closeDocket()}>Close</button>
+          <div className="docket-foot-actions">
+            {active && isAdmin && <button type="button" className="btn-outline" onClick={() => openReassign(d.id)}>Reassign unit</button>}
+            {active && <button type="button" className="btn-outline btn-red" onClick={() => openWorkflow(d.id, 'rejected')}>Reject</button>}
+            {(d.status === 'submitted' || d.status === 'under_verification') && <button type="button" className="btn" onClick={() => openWorkflow(d.id, 'accepted')}>Accept grievance</button>}
+            {(d.status === 'accepted' || d.status === 'in_progress') && <button type="button" className={d.status === 'accepted' ? 'btn' : 'btn-outline'} onClick={() => openWorkflow(d.id, 'in_progress')}>Update progress</button>}
+            {d.status === 'in_progress' && <button type="button" className="btn btn-blue" onClick={() => openWorkflow(d.id, 'resolved')}>Mark resolved</button>}
           </div>
-          {" "}
-          {/* Student & Assigned Unit Grid */}
-          {" "}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "14px" }}>
-            {" "}
-            <div style={{ background: "#ffffff", padding: "14px 18px", borderRadius: "14px", border: "1px solid var(--line)" }}>
-              {" "}
-              <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", marginBottom: "6px" }}>
-                Student Reporter
-              </div>
-              {" "}
-              <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--ink)" }} id="modalStudentName">
-                {d ? studentName : '--'}
-              </div>
-              {" "}
-              <div style={{ fontSize: "12.5px", color: "#4b5563", marginTop: "2px" }} id="modalStudentEmail">
-                {d ? studentEmail : '--'}
-              </div>
-              {" "}
-            </div>
-            {" "}
-            <div style={{ background: "#ffffff", padding: "14px 18px", borderRadius: "14px", border: "1px solid var(--line)" }}>
-              {" "}
-              <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", marginBottom: "6px" }}>
-                Assigned Redressal Unit
-              </div>
-              {" "}
-              <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--ink)" }} id="modalAssignedUnit">
-                {d ? unitName(d, 'Target Department', 'General Campus Desk') : '--'}
-              </div>
-              {" "}
-              <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }} id="modalUnitJurisdiction">
-                Jurisdiction verified
-              </div>
-              {" "}
-            </div>
-            {" "}
-          </div>
-          {" "}
-          {/* Student ID Card Section */}
-          {" "}
-          <div style={{ background: "#ffffff", padding: "16px 20px", borderRadius: "14px", border: "1.5px solid var(--line)" }}>
-            {" "}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px", flexWrap: "wrap", gap: "8px" }}>
-              {" "}
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                {" "}
-                <span style={{ fontSize: "12.5px", fontWeight: "700", color: "var(--ink)" }}>
-                  Student Institutional ID Card
-                </span>
-                {" "}
-                <span id="modalIdCardStatusBadge" className={'pill-id-' + (idStatus ?? 'pending')}>
-                  {idStatus === null ? 'Pending' : idStatus === 'verified' ? 'ID Verified' : idStatus === 'not_valid' ? 'ID Not Valid' : 'ID Pending Review'}
-                </span>
-                {" "}
-              </div>
-              {" "}
-              <button type="button" className="btn-outline" style={{ height: "30px", fontSize: "11.5px", padding: "0 12px" }} onClick={() => d && openIdCard(d.student_id, d.student ? d.student.name : 'Student', d.student ? d.student.email : '')}>
-                {" "}View Student ID Card{" "}
-              </button>
-              {" "}
-            </div>
-            {" "}
-            <p style={{ fontSize: "12px", color: "#4a6142", lineHeight: "1.45", marginBottom: "10px" }}>
-              {" "}Institutional enrollment verification required prior to formal acceptance.{" "}
-            </p>
-            {" "}
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-              {" "}
-              <button type="button" className="btn" style={{ height: "28px", fontSize: "11.5px", padding: "0 12px", background: "var(--olive)" }} onClick={() => d && reviewIdCard('verified', d.student_id)}>
-                Mark ID as Verified
-              </button>
-              {" "}
-              <button type="button" className="btn-outline btn-red" style={{ height: "28px", fontSize: "11.5px", padding: "0 12px" }} onClick={() => d && reviewIdCard('not_valid', d.student_id)}>
-                Mark ID as Not Valid
-              </button>
-              {" "}
-            </div>
-            {" "}
-          </div>
-          {" "}
-          {/* Description Box */}
-          {" "}
-          <div style={{ background: "#ffffff", padding: "16px 20px", borderRadius: "14px", border: "1px solid var(--line)" }}>
-            {" "}
-            <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", marginBottom: "8px" }}>
-              Grievance Narrative
-            </div>
-            {" "}
-            <div style={{ fontSize: "13.5px", color: "var(--ink)", lineHeight: "1.6", whiteSpace: "pre-wrap" }} id="modalDocketDescription">
-              {d ? d.description : '--'}
-            </div>
-            {" "}
-          </div>
-          {" "}
-          {d && <DocketRouting key={d.id} d={d} isAdmin={s.profile?.role === 'administration'} />}
-          {/* Evidence Attachments Box */}
-          {" "}
-          <div style={{ background: "#ffffff", padding: "16px 20px", borderRadius: "14px", border: "1px solid var(--line)" }} id="modalEvidenceSection">
-            {" "}
-            <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", marginBottom: "8px" }}>
-              Evidence Attachments (Authenticated Cloudinary)
-            </div>
-            {" "}
-            <div id="modalEvidenceList" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-              {!d ? (
-                <span style={{ fontSize: "12px", color: "#64748b" }}>
-                  No evidence files attached to this complaint.
-                </span>
-              ) : d.evidence?.length ? d.evidence.map((ev, i) => (
-                <button key={i} type="button" className="btn-outline" style={{ height: '30px', fontSize: '12px', padding: '0 12px' }} onClick={() => viewEvidenceAttachment(d.id, ev.cloudinary_public_id)}>View Attachment {i + 1}</button>
-              )) : <span style={{ fontSize: '12.5px', color: '#64748b' }}>No evidence files attached to this grievance.</span>}
-            </div>
-            {" "}
-          </div>
-          {" "}
-          {d && <AdminLifecycleChecklist complaint={d} />}
-          {/* Resolution History Timeline */}
-          {" "}
-          <div style={{ background: "#ffffff", padding: "16px 20px", borderRadius: "14px", border: "1px solid var(--line)" }}>
-            {" "}
-            <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--olive)", marginBottom: "8px" }}>
-              Status Timeline &amp; Remarks History
-            </div>
-            {" "}
-            <div className="timeline-list" id="modalTimelineList">
-              {!d ? (
-                <div style={{ fontSize: "12px", color: "#64748b" }}>
-                  No history entries available.
-                </div>
-              ) : d.history?.length ? d.history.map((h, i) => (
-                <div key={i} className="timeline-item">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
-                    <span className={'chip chip-' + h.status} style={{ fontSize: '11.5px' }}>{statusText(h.status)}</span>
-                    <span style={{ fontSize: '11.5px', color: '#64748b' }}>{formatDate(h.created_at)} ({formatRelative(h.created_at)})</span>
-                  </div>
-                  <div style={{ fontSize: '12.5px', color: 'var(--ink)', fontWeight: 600 }}>{h.actor ? h.actor.name + ' (' + (h.actor.unit_name || h.actor.role) + ')' : 'Authorized Official'}</div>
-                  {h.remark && <div style={{ fontSize: '12.5px', color: '#334155', background: '#FAF2EB', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line)', marginTop: '2px' }}>{h.remark}</div>}
-                </div>
-              )) : <div style={{ fontSize: '12.5px', color: '#64748b' }}>No previous remarks logged. Initial submission status recorded.</div>}
-              {" "}
-            </div>
-            {" "}
-          </div>
-          {" "}
-        </div>
-        {" "}
-        <div className="modal-foot" id="modalDocketActions">
-          {" "}
-          <button type="button" className="btn-outline" onClick={() => closeDocket()}>
-            Close
-          </button>
-          {" "}
-          <button type="button" className="btn-outline btn-red" id="modalActionRejectBtn" style={d ? shown(active) : undefined} onClick={() => d && openWorkflow(d.id, 'rejected')}>
-            Reject Grievance
-          </button>
-          {" "}
-          <button type="button" className="btn-outline" id="modalActionAcceptBtn" style={d ? shown(d.status === 'submitted' || d.status === 'under_verification') : undefined} onClick={() => d && openWorkflow(d.id, 'accepted')}>
-            Accept Grievance
-          </button>
-          {" "}
-          <button type="button" className="btn" id="modalActionProgressBtn" style={d ? shown(d.status === 'accepted' || d.status === 'in_progress') : undefined} onClick={() => d && openWorkflow(d.id, 'in_progress')}>
-            Update Progress
-          </button>
-          {" "}
-          <button type="button" className="btn btn-blue" id="modalActionResolveBtn" style={d ? shown(d.status === 'in_progress') : undefined} onClick={() => d && openWorkflow(d.id, 'resolved')}>
-            Mark Resolved
-          </button>
-          {" "}
-          <button type="button" className="btn-outline" id="modalActionReassignBtn" style={{ display: d && active && s.profile?.role === 'administration' ? 'inline-flex' : 'none', borderColor: "var(--blue)", color: "var(--blue)" }} onClick={() => d && openReassign(d.id)}>
-            Reassign Unit
-          </button>
-          {" "}
-        </div>
-        {" "}
+        </footer>
       </div>
-      {" "}
     </div>
   );
 }

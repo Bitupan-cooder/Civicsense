@@ -1,6 +1,6 @@
 // Dynamic parts of the workspace, rendered from ../console.ts. The markup reproduces what the old page
 // script built with innerHTML.
-import type { CSSProperties } from 'react';
+import { Building2, CircleCheck, CircleX, Clock, Hourglass, Inbox, MapPin, Paperclip, UserRound, Wrench } from 'lucide-react';
 import { categoryLabel, PriorityChip } from '../../RouteTracker';
 import {
   deleteOfficial, filteredComplaints, loadOfficialComplaints, openDocket, openEditOfficial, openIdCard, openReassign, openResetPassword,
@@ -60,24 +60,44 @@ export function UnitBreakdown({ part }: { part: 'total' | 'grid' }) {
     const name = (c.target_unit && (c.target_unit.unit_name || c.target_unit.name)) || 'Unassigned / General';
     counts[name] = (counts[name] || 0) + 1;
   });
-  if (part === 'total') return <>{'Total: ' + (shown ? complaints.filter(isActiveCase).length : 0) + ' Active Cases'}</>;
+  const total = complaints.filter(isActiveCase).length;
+  if (part === 'total') return <>{(shown ? total : 0) + ' active ' + (total === 1 ? 'case' : 'cases')}</>;
   if (!shown) return null;
-  const units = Object.keys(counts).sort();
-  if (!units.length) return <div style={{ fontSize: '12.5px', color: '#64748b', gridColumn: '1/-1' }}>No pending complaints assigned to department desks.</div>;
-  return <>{units.map((u) => <div key={u} className="unit-badge-card"><span className="unit-badge-name">{u}</span><span className="unit-badge-count">{counts[u]}</span></div>)}</>;
+  // busiest unit first; the bar is the unit's share of all active cases
+  const units = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
+  if (!units.length) return <p className="caseload-empty">No pending complaints assigned to department desks.</p>;
+  return <>{units.map((u) => (
+    <div key={u} className={u === 'Unassigned / General' ? 'caseload-unit is-unassigned' : 'caseload-unit'}>
+      <div className="caseload-unit-row"><span className="caseload-unit-name">{u}</span><span className="caseload-unit-count">{counts[u]}</span></div>
+      <div className="caseload-bar" aria-hidden="true"><i style={{ width: Math.round((counts[u] / total) * 100) + '%' }} /></div>
+      <span className="caseload-unit-share">{Math.round((counts[u] / total) * 100)}% of active cases</span>
+    </div>
+  ))}</>;
 }
 
 export function KpiCards() {
   const { complaints: all, loaded } = useConsole();
   if (!loaded) return null;
-  const kpis: [number, string, string][] = [
-    [all.length, 'Total Grievances in Queue', 'var(--olive)'],
-    [all.filter((c) => c.status === 'submitted' || c.status === 'under_verification').length, 'Awaiting Verification & Review', 'var(--amber)'],
-    [all.filter((c) => c.status === 'accepted' || c.status === 'in_progress').length, 'Under Active Remediation', 'var(--blue)'],
-    [all.filter((c) => c.status === 'resolved').length, 'Resolved & Signed Off', 'var(--green)'],
+  const total = all.length;
+  const share = (n: number) => (total ? Math.round((n / total) * 100) : 0);
+  const open = all.filter(isActiveCase).length;
+  const pct = (n: number) => ({ value: n, bar: share(n), note: share(n) + '% of queue' });
+  const kpis = [
+    { value: total, label: 'Total grievances in queue', note: open + ' still open', tone: 'total', icon: Inbox, bar: share(open) },
+    { ...pct(all.filter((c) => c.status === 'submitted' || c.status === 'under_verification' || c.status === 'needs_review').length), label: 'Awaiting verification & review', tone: 'waiting', icon: Hourglass },
+    { ...pct(all.filter((c) => c.status === 'accepted' || c.status === 'in_progress').length), label: 'Under active remediation', tone: 'active', icon: Wrench },
+    { ...pct(all.filter((c) => c.status === 'resolved').length), label: 'Resolved & signed off', tone: 'done', icon: CircleCheck },
   ];
-  return <>{kpis.map(([val, lbl, color]) => (
-    <div key={lbl} className="kpi-card" style={{ '--kpi-col': color } as CSSProperties}><div className="kpi-val">{val}</div><div className="kpi-lbl">{lbl}</div></div>
+  return <>{kpis.map(({ value, label, note, tone, icon: Icon, bar }) => (
+    <article key={label} className="kpi-card" data-tone={tone}>
+      <div className="kpi-head">
+        <span className="kpi-lbl">{label}</span>
+        <span className="kpi-icon" aria-hidden="true"><Icon /></span>
+      </div>
+      <div className="kpi-val">{value}</div>
+      <div className="kpi-bar" aria-hidden="true"><i style={{ width: bar + '%' }} /></div>
+      <div className="kpi-note">{note}</div>
+    </article>
   ))}</>;
 }
 
@@ -101,58 +121,67 @@ function TicketCard({ c, isAdmin }: { c: OfficialComplaint; isAdmin: boolean }) 
   const act = (status: string) => () => openWorkflow(c.id, status);
   let workflow;
   if (c.status === 'submitted' || c.status === 'under_verification') {
-    workflow = <><button type="button" className="btn" onClick={act('accepted')}>Accept Grievance</button>
-      <button type="button" className="btn-outline btn-red" onClick={act('rejected')}>Reject</button></>;
+    workflow = <><button type="button" className="btn-outline btn-red" onClick={act('rejected')}>Reject</button>
+      <button type="button" className="btn" onClick={act('accepted')}>Accept grievance</button></>;
   } else if (c.status === 'accepted') {
-    workflow = <><button type="button" className="btn" onClick={act('in_progress')}>Start Remediation</button>
-      <button type="button" className="btn-outline btn-red" onClick={act('rejected')}>Reject</button></>;
+    workflow = <><button type="button" className="btn-outline btn-red" onClick={act('rejected')}>Reject</button>
+      <button type="button" className="btn" onClick={act('in_progress')}>Start remediation</button></>;
   } else if (c.status === 'in_progress') {
-    workflow = <><button type="button" className="btn-outline" onClick={act('in_progress')}>Log Progress Remark</button>
-      <button type="button" className="btn btn-blue" onClick={act('resolved')}>Mark Resolved</button></>;
+    workflow = <><button type="button" className="btn-outline" onClick={act('in_progress')}>Log progress</button>
+      <button type="button" className="btn btn-blue" onClick={act('resolved')}>Mark resolved</button></>;
   } else if (c.status === 'resolved') {
-    workflow = <span style={{ fontSize: '12px', color: 'var(--olive)', fontWeight: 700 }}>Remediation Complete</span>;
+    workflow = <span className="ticket-outcome is-done"><CircleCheck aria-hidden="true" />Remediation complete</span>;
   } else if (c.status === 'rejected') {
-    workflow = <span style={{ fontSize: '12px', color: '#991b1b', fontWeight: 700 }}>Grievance Rejected</span>;
+    workflow = <span className="ticket-outcome is-rejected"><CircleX aria-hidden="true" />Grievance rejected</span>;
   }
+  const place = ai?.location_text;
 
   return (
-    <div className="ticket-card">
-      <div className="ticket-card-header">
-        <div className="ticket-title-row">
+    <article className="ticket-card" data-status={c.status}>
+      <header className="ticket-top">
+        <div className="ticket-top-left">
           <span className="ticket-id-tag">#{shortRef(c.id)}</span>
-          <h3 className="ticket-heading">{c.title}</h3>
+          {c.status === 'needs_review' ? <span className="chip chip-needs_review">Needs review</span> : statusChip}
         </div>
-        <div className="ticket-badges-group">
-          {c.status === 'needs_review'
-            ? <span className="chip chip-needs_review">Needs review</span>
-            : statusChip}
-          {/* the AI's category replaces the reporter's legacy one once the complaint is analysed */}
-          <span className="chip chip-category">{ai?.analysed_at ? categoryLabel(ai.ai_category) : c.category}</span>
-          {ai?.analysed_at && <PriorityChip priority={ai.priority} />}
-          {visChip}
-          {id === 'verified' ? <span className="pill-id-verified">ID Verified</span>
-            : id === 'not_valid' ? <span className="pill-id-not_valid">ID Not Valid</span>
-            : <span className="pill-id-pending">ID Pending Review</span>}
+        <span className="ticket-filed"><Clock aria-hidden="true" />Filed <time dateTime={c.created_at}>{formatDate(c.created_at)}</time> · {formatRelative(c.created_at)}</span>
+      </header>
+      <h3 className="ticket-heading">{c.title}</h3>
+      <div className="ticket-tags">
+        {/* the AI's category replaces the reporter's legacy one once the complaint is analysed */}
+        <span className="chip chip-category">{ai?.analysed_at ? categoryLabel(ai.ai_category) : c.category}</span>
+        {ai?.analysed_at && <PriorityChip priority={ai.priority} />}
+        {visChip}
+        {id === 'verified' ? <span className="pill-id-verified">ID verified</span>
+          : id === 'not_valid' ? <span className="pill-id-not_valid">ID not valid</span>
+          : <span className="pill-id-pending">ID pending review</span>}
+        {evidenceCount > 0 && <span className="ticket-evidence"><Paperclip aria-hidden="true" />{evidenceCount === 1 ? '1 attachment' : evidenceCount + ' attachments'}</span>}
+      </div>
+      <dl className="ticket-facts">
+        <div>
+          <dt><UserRound aria-hidden="true" />Reporter</dt>
+          <dd><strong>{studentName}</strong>{studentEmail && <span>{studentEmail}</span>}</dd>
         </div>
-      </div>
-      <div className="ticket-meta-row">
-        <span>Student <strong>{studentName}</strong>{studentEmail && <> ({studentEmail})</>}</span>
-        <span>Unit <strong>{unitName(c, 'Assigned Department', 'General Campus')}</strong></span>
-        <span>Filed <time dateTime={c.created_at}>{formatDate(c.created_at)}</time> ({formatRelative(c.created_at)})</span>
-        {evidenceCount > 0 && <span className="ticket-evidence">{evidenceCount === 1 ? '1 attachment' : evidenceCount + ' attachments'}</span>}
-      </div>
-      <p className="ticket-description">
-        {c.description}
-      </p>
-      <div className="ticket-actions-row">
-        <button type="button" className="btn" onClick={() => openDocket(c.id)}>Open Docket &amp; History</button>
-        <button type="button" className="btn-outline" onClick={() => openIdCard(c.student_id, studentName, studentEmail)}>View Student ID Card</button>
-        {isAdmin && isActiveCase(c) && (
-          <button type="button" className="btn-outline" onClick={() => openReassign(c.id)}>Reassign Unit</button>
-        )}
-        {workflow}
-      </div>
-    </div>
+        <div>
+          <dt><Building2 aria-hidden="true" />Assigned unit</dt>
+          <dd><strong>{unitName(c, 'Assigned Department', 'General Campus')}</strong></dd>
+        </div>
+        {place && <div>
+          <dt><MapPin aria-hidden="true" />Location</dt>
+          <dd><strong>{place}</strong></dd>
+        </div>}
+      </dl>
+      <p className="ticket-description">{c.description}</p>
+      <footer className="ticket-actions-row">
+        <div className="ticket-actions-main">
+          <button type="button" className="btn" onClick={() => openDocket(c.id)}>Open docket &amp; history</button>
+          <button type="button" className="btn-outline" onClick={() => openIdCard(c.student_id, studentName, studentEmail)}>View student ID</button>
+          {isAdmin && isActiveCase(c) && (
+            <button type="button" className="btn-outline" onClick={() => openReassign(c.id)}>Reassign unit</button>
+          )}
+        </div>
+        {workflow && <div className="ticket-actions-workflow">{workflow}</div>}
+      </footer>
+    </article>
   );
 }
 

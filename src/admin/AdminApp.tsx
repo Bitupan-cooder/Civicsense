@@ -9,6 +9,7 @@ import { ResetPasswordModal } from './modals/ResetPasswordModal';
 import { ComplaintDetailModal } from './modals/ComplaintDetailModal';
 import { IdCardModal } from './modals/IdCardModal';
 import { WorkflowActionModal } from './modals/WorkflowActionModal';
+import { ConfirmModal } from './modals/ConfirmModal';
 import { openDocket, useConsole } from './console';
 import { useEffect, type ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation, useSearchParams } from 'react-router-dom';
@@ -92,6 +93,8 @@ export function AdminApp() {
       <IdCardModal />
       {/* ══════════ ACTION REMARK / REASON PROMPT MODAL ══════════ */}
       <WorkflowActionModal />
+      {/* ══════════ CONFIRM CARD (LOG OUT, DEACTIVATE, DELETE) ══════════ */}
+      <ConfirmModal />
     </>
   );
 }

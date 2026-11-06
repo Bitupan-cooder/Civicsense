@@ -13,7 +13,6 @@
 # Production
 /build
 /dist
-bundle.html
 
 # Misc
 .DS_Store
@@ -43,3 +42,5 @@ powershell.cmd
 
 # Vercel build output and local project link
 .vercel
+
+.agents\

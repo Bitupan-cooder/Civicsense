@@ -1,5 +1,5 @@
 // Markup converted 1:1 from the original index.html (React migration, step 1).
-import manPlantingImg from '../../../Flat Assets/civic/man-planting.png';
+import manPlantingImg from '../../../Flat Assets/civic/man-planting.webp';
 
 export function Stats() {
   return (

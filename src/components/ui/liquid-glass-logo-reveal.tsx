@@ -2,93 +2,30 @@
 
 import * as React from "react"
 
-import { clsx } from "clsx"
-
 /*
- * 21st.dev Glass Reveal: the 21st.dev mark lingers big against the rim of a clear glass tile, the
- * glass bends it into colour at the corners, then lets go and leaves the mark.
+ * Glass reveal for the startup loader: the mark lingers big against the rim of a clear glass tile, the
+ * glass bends it into colour at the corners, then lets go and leaves the mark. Plays once.
  * Self-contained: the reveal engine is inlined below. One WebGL2 pass, no dependencies.
  * Shader and spring timeline ported from zanwei/glass-icon-reveal (MIT):
  * https://github.com/zanwei/glass-icon-reveal
+ * Only its light look is kept, with the CivicSense colours; the shader still has the unused icon-plate inputs.
  */
 
-type Look = "light" | "dark"
-
-interface GlassTuning {
-  /** How far the slab stands above the logo, so how hard the rim bends it */
-  opticalDepth: number
-  /** Colour split of everything the rim draws in */
-  dispersion: number
-  /** Soft colour glow inside the rim */
-  colorBleed: number
-  doubleBevel: number
-  bevelWidth: number
-  /** Superellipse exponent of the tile: 2 is a circle, ~5 an app icon */
-  corner: number
-  cornerPull: number
-  cornerWidth: number
-  cornerFocus: number
-  edgeSmear: number
-  stretch: number
-  tilt: number
-  /** Ball-lens bulge of the young droplet */
-  bulge: number
-  specular: number
-  halo: number
-  shadow: number
-  ripple: number
-  /** Droplet spring: 0 = no overshoot */
-  bounce: number
-  /** Droplet spring period, seconds */
-  response: number
-  startSize: number
-  startZoom: number
-  /** Seconds the logo takes to glide out of the droplet's magnification: the stretch where the rim bends it */
-  glide: number
-  /** Seconds the logo stays in glass */
-  present: number
-  drift: number
-  swell: number
-  focus: number
-  /** Soft band of light that crosses the glass while it holds the logo (0 = none) */
-  sheen: number
-  /** How far the light turns round the rim while the glass holds, radians */
-  lightTurn: number
-}
-
-interface Settings extends GlassTuning {
-  tileSize: number
-  logoScale: number
-  finalScale: number
-  logoOffset: [number, number]
-  iconPlate: boolean
-  keepPlate: boolean
-  originalColors: boolean
-  background: string
-  plateColor: string
-  logoColor: string
-  hold: number
-}
-
-const LIGHT: Settings = {
-  tileSize: 256, logoScale: 0.7, finalScale: 0.69, logoOffset: [0, 0], iconPlate: false, keepPlate: false, originalColors: false,
+const P = {
+  /** Largest tile size in px; it shrinks to fit the container */
+  tileSize: 256,
+  /** Logo half size relative to the tile's half size, and its size once the glass is gone (relative to that) */
+  logoScale: 0.56, finalScale: 0.62,
+  /** Backdrop (match the page: the canvas paints it) and logo colour */
+  background: "#f8fbf3", logoColor: "#1a7a3a",
+  // glass: slab height, colour split, glow, bevels, tile superellipse (2 circle, ~5 app icon), rim light
   opticalDepth: 1.1, dispersion: 1.7, colorBleed: 1.25, doubleBevel: 1, bevelWidth: 0.14, corner: 4.8,
   cornerPull: 2.1, cornerWidth: 2.2, cornerFocus: 0.58, edgeSmear: 2.85, stretch: 0, tilt: 0.35, bulge: 1,
   specular: 1, halo: 0, shadow: 1, ripple: 1,
+  // motion: droplet spring (bounce 0 = no overshoot, response = period s), zoom glide and time in glass (s)
   bounce: 0, response: 0.42, startSize: 0.2, startZoom: 2.6, glide: 2.3, present: 2.4, drift: 0.12, swell: 0.5, focus: 1,
+  /** Band of light crossing the glass, and how far the rim light turns (radians) */
   sheen: 1, lightTurn: 0.9,
-  hold: 1, background: "#e9e9eb", plateColor: "#ffffff", logoColor: "#0e1428",
-}
-
-const LOOKS: Record<Look, Settings> = {
-  light: LIGHT,
-  dark: {
-    ...LIGHT, logoScale: 0.72, finalScale: 1, iconPlate: true,
-    halo: 1, shadow: 0, ripple: 0.5, startZoom: 1.6, drift: 0.05,
-    opticalDepth: 0.75, bevelWidth: 0.22, dispersion: 0.9,
-    colorBleed: 0.45, corner: 5, cornerPull: 1.4, edgeSmear: 1.2, tilt: 0, cornerWidth: 1.2, cornerFocus: 0.4,
-    background: "#000000", plateColor: "#05070b", logoColor: "#ffffff",
-  },
 }
 
 /* ------------------------------------------------------------------ *
@@ -98,7 +35,6 @@ const TEX = 1024 // logo texture size
 const BOX = 0.75 // share of the texture the logo fills (the rest is room for the SDF)
 
 interface LogoData {
-  canvas: HTMLCanvasElement
   sdf: Float32Array
 }
 
@@ -248,8 +184,7 @@ function loadLogo(logo: string) {
   let job = logoCache.get(logo)
   if (!job) {
     job = loadImage(logoUrl(logo)).then((img) => {
-      const canvas = fitToTexture(img, img.naturalWidth || TEX, img.naturalHeight || TEX)
-      return { canvas, sdf: buildSdf(canvas) }
+      return { sdf: buildSdf(fitToTexture(img, img.naturalWidth || TEX, img.naturalHeight || TEX)) }
     })
     logoCache.set(logo, job)
     job.catch(() => logoCache.delete(logo))
@@ -271,8 +206,6 @@ out vec4 outColor;
 uniform vec2 uCenter;      // device px, GL coords
 uniform float uTile;       // tile size, device px
 uniform sampler2D uSdf;    // signed distance, texture units, + outside
-uniform sampler2D uCol;    // premultiplied colour, mipmapped
-uniform float uTexSize;
 uniform float uBoxFrac;
 
 uniform float uPlateScale; // plate size relative to the tile
@@ -281,7 +214,6 @@ uniform float uCornerN;    // final exponent, used by the ghost
 uniform float uOptics;     // 1 = full refraction, 0 = flat
 uniform float uPlateAlpha; // 1 = glass shown, 0 = bare logo
 uniform float uLogoHalf;   // logo half size in plate units (zoom included)
-uniform vec2 uLogoOff;     // logo centre, plate units
 uniform float uBold;       // stroke swell, in logo half-size units
 uniform float uBlur;       // edge softness, plate units
 uniform float uFrost;      // milky lift inside a young bubble
@@ -316,17 +248,12 @@ uniform float uDisp;
 uniform float uDouble;
 uniform float uBevelW;
 uniform float uSpec;
-uniform float uIconPlate;
-uniform float uUseColor;
-uniform float uLightScene; // 1 = light backdrop, 0 = dark
-uniform float uLightGlass; // the same for what the glass sits on (the plate, when there is one)
-uniform float uKeep;       // 1 = the glass settles into a flat plate instead of letting go of it
+uniform float uLightScene; // 1 = light backdrop, 0 = dark (also what the glass sits on)
 uniform float uSheen;      // strength of the light band crossing the face
 uniform float uSweep;      // where that band is, plate sizes along its diagonal
 uniform float uLightAng;   // how far the rim light has turned, radians
 
 uniform vec3 uBg;
-uniform vec3 uPlateCol;
 uniform vec3 uLogoCol;
 
 float px; // one device pixel in plate units
@@ -337,21 +264,11 @@ vec2 rot(vec2 v, float a) { float c = cos(a), s = sin(a); return vec2(c * v.x - 
 vec4 logoAt(vec2 q, float blur, float aa) {
   float L = uLogoHalf;
   float k = 0.5 * uBoxFrac / L;
-  vec2 uv = vec2(0.5 + (q.x - uLogoOff.x) * k, 0.5 - (q.y - uLogoOff.y) * k);
+  vec2 uv = vec2(0.5 + q.x * k, 0.5 - q.y * k);
   float d = texture(uSdf, uv).r / k;
   float w = 0.75 * aa + blur;
   float a = 1.0 - smoothstep(-w, w, d - uBold * L);
-  vec3 c = uLogoCol;
-  if (uUseColor > 0.5) {
-    float lod = log2(max(1.0, w * k * uTexSize));
-    vec4 c0 = textureLod(uCol, uv, lod);
-    vec4 c1 = textureLod(uCol, uv, lod + 3.0);
-    vec4 c2 = textureLod(uCol, uv, 7.0);
-    c = c2.rgb / max(c2.a, 1e-4);
-    c = mix(c, c1.rgb / max(c1.a, 1e-4), smoothstep(0.0, 0.06, c1.a));
-    c = mix(c, c0.rgb / max(c0.a, 1e-4), smoothstep(0.02, 0.3, c0.a));
-  }
-  return vec4(c, a);
+  return vec4(uLogoCol, a);
 }
 
 // Superellipse field. Returns signed distance (plate units, âˆ’ inside); g = 1 on the rim.
@@ -451,7 +368,7 @@ void main() {
   bg = mix(bg, haloCol, clamp(uHalo * (0.30 * exp(-outside / (0.025 * uPlateScale)) + 0.07 * exp(-outside / (0.12 * uPlateScale))), 0.0, 1.0) * step(0.0, sd));
 
   vec3 col = bg;
-  float soft = px + uBlur * 0.8 + 0.06 * uDissolve * (1.0 - uKeep) * uPlateScale;
+  float soft = px + uBlur * 0.8 + 0.06 * uDissolve * uPlateScale;
   if (sd < soft) {
     // Lighting surface: a superellipse quarter, flat toward the face and steep at the rim.
     float y1 = 1.0 - x;
@@ -467,8 +384,7 @@ void main() {
     vec2 gDome = -uDome * 2.0 * g * dg * step(g, 1.0);
     vec2 grad = -(db + dd) * nOut + gDome;
 
-    vec3 back = mix(uBg, uPlateCol, uIconPlate);
-    vec3 liftG = mix(back + vec3(0.06), mix(back, vec3(1.0), 0.55), uLightGlass);
+    vec3 liftG = mix(uBg + vec3(0.06), mix(uBg, vec3(1.0), 0.55), uLightScene);
     float rblur = uBlur + 0.05 * length(qc - p) + min(uGlow * uOptics * (1.0 - xf) * foot / px, 0.04);
 
     // Each wavelength refracts by its own index, so everything the edge draws in fans into colour
@@ -491,7 +407,7 @@ void main() {
       sp *= 1.0 + uFaceDisp * cf * faceOnly;
       vec4 l = logoAt(sp, rblur + 0.12 * streak + uFaceDisp * 0.5 * max(c, 0.0) * faceOnly, foot);
       vec3 w = spectrum(lam);
-      acc += mix(back, l.rgb, l.a) * w;
+      acc += mix(uBg, l.rgb, l.a) * w;
       wsum += w;
     }
     vec3 trans = acc / wsum;
@@ -499,12 +415,12 @@ void main() {
     trans = clamp(tl + (trans - tl) * (1.0 + uVivid * uOptics), 0.0, 1.0);
     // A young droplet is milky; the haze only ever lightens.
     float hazeLum = dot(trans, vec3(0.2126, 0.7152, 0.0722));
-    float hazeGate = mix(1.0 - smoothstep(0.25, 0.75, hazeLum), smoothstep(0.25, 0.75, hazeLum), uLightGlass);
+    float hazeGate = mix(1.0 - smoothstep(0.25, 0.75, hazeLum), smoothstep(0.25, 0.75, hazeLum), uLightScene);
     trans = mix(trans, liftG, uFrost * 0.45 * hazeGate);
 
     float glassAmt = pow(1.0 - uDissolve, 1.5);
     float lit = uSpec * glassAmt;
-    vec3 rimCol = mix(vec3(0.80, 0.87, 0.97), vec3(1.0), uLightGlass);
+    vec3 rimCol = mix(vec3(0.80, 0.87, 0.97), vec3(1.0), uLightScene);
 
     // Light backdrop: the thick edge glows softly white over a clear face, with a hairline that is
     // bright along the top and right and a thin dark silhouette down the left and bottom.
@@ -533,12 +449,12 @@ void main() {
     float spc = pow(max(dot(Nl, Hv), 0.0), 140.0) * 0.8 * smoothstep(0.0, 0.25, y1);
     vec3 darkGlass = trans * (1.0 - 0.25 * fres) + (rim + vec3(spc)) * lit;
     darkGlass = mix(darkGlass, rimCol, uDrop * 0.4 * uSpec * (1.0 - smoothstep(0.0, 0.1 * uPlateScale, s)));
-    vec3 glass = mix(darkGlass, lightGlass, uLightGlass);
+    vec3 glass = mix(darkGlass, lightGlass, uLightScene);
 
     // While the glass holds the logo a soft band of light crosses the face, brightest near the rim.
     float sweepD = dot(p / uPlateScale, normalize(vec2(0.8, 0.6))) - uSweep;
     float sheen = uSheen * glassAmt * exp(-sweepD * sweepD / 0.03) * (0.55 + 0.45 * (1.0 - x));
-    glass = mix(glass, vec3(1.0), sheen * mix(0.22, 0.42, uLightGlass));
+    glass = mix(glass, vec3(1.0), sheen * mix(0.22, 0.42, uLightScene));
 
     float cov = clamp(0.5 - sd / soft, 0.0, 1.0);
     col = mix(bg, glass, cov);
@@ -585,9 +501,7 @@ function createRenderer(canvas: HTMLCanvasElement) {
   }
 
   const sdfTex = gl.createTexture()
-  const colTex = gl.createTexture()
   gl.uniform1i(U.uSdf, 0)
-  gl.uniform1i(U.uCol, 1)
   let hasLogo = false
 
   const params = (filter: number) => {
@@ -603,14 +517,6 @@ function createRenderer(canvas: HTMLCanvasElement) {
     gl!.pixelStorei(gl!.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false)
     gl!.texImage2D(gl!.TEXTURE_2D, 0, gl!.R16F, TEX, TEX, 0, gl!.RED, gl!.FLOAT, logo.sdf)
     params(gl!.LINEAR)
-
-    gl!.activeTexture(gl!.TEXTURE1)
-    gl!.bindTexture(gl!.TEXTURE_2D, colTex)
-    gl!.pixelStorei(gl!.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
-    gl!.texImage2D(gl!.TEXTURE_2D, 0, gl!.RGBA8, gl!.RGBA, gl!.UNSIGNED_BYTE, logo.canvas)
-    gl!.pixelStorei(gl!.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false)
-    gl!.generateMipmap(gl!.TEXTURE_2D)
-    params(gl!.LINEAR_MIPMAP_LINEAR)
     hasLogo = true
   }
 
@@ -619,16 +525,13 @@ function createRenderer(canvas: HTMLCanvasElement) {
     gl!.viewport(0, 0, w, h)
     gl!.uniform2f(U.uCenter, w / 2, h / 2)
     gl!.uniform1f(U.uTile, tilePx)
-    gl!.uniform1f(U.uTexSize, TEX)
     gl!.uniform1f(U.uBoxFrac, BOX)
     for (const k in fr) {
       const v = fr[k as keyof Frame]
       if (typeof v === "number" && U[k]) gl!.uniform1f(U[k], v)
     }
     gl!.uniform3fv(U.uBg, fr.uBg)
-    gl!.uniform3fv(U.uPlateCol, fr.uPlateCol)
     gl!.uniform3fv(U.uLogoCol, fr.uLogoCol)
-    gl!.uniform2fv(U.uLogoOff, fr.uLogoOff)
     gl!.drawArrays(gl!.TRIANGLES, 0, 3)
   }
 
@@ -643,8 +546,7 @@ function createRenderer(canvas: HTMLCanvasElement) {
  * Spring timeline
  * ------------------------------------------------------------------ */
 const TAIL = 1.1 // from the glass letting go to everything at rest, seconds
-const OUTRO = 0.5 // loop only: the logo blurs away before the next reveal
-const endOf = (P: Settings) => P.present + TAIL
+const END = P.present + TAIL
 
 const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x)
 const mix = (a: number, b: number, t: number) => a + (b - a) * t
@@ -694,11 +596,11 @@ function timeToReach(level: number, response: number, damping: number) {
 
 // All motion lives here; the shader only sees the resulting numbers. The droplet grows on one spring,
 // spreads from circle to squircle as it lands, the logo glides out of its magnification and the glass
-// holds it while a band of light crosses the face and the rim light turns. Then the glass lets go: the
-// bare logo stays, or with keepPlate the glass settles into a flat icon plate.
-function frameAt(T: number, P: Settings, outro = 0) {
+// holds it while a band of light crosses the face and the rim light turns. Then the glass lets go and the
+// bare logo stays.
+const BG = hexToRgb(P.background)
+function frameAt(T: number) {
   const tx = P.present
-  const keep = P.keepPlate ? 1 : 0
   const damping = 1 - P.bounce
   const grow = spring(T + 0.01, P.response, damping)
   const tl = timeToReach(0.85, P.response, damping) - 0.01 // the droplet lands: the ripple leaves
@@ -714,36 +616,33 @@ function frameAt(T: number, P: Settings, outro = 0) {
   const exit = spring(T - tx, 0.95, 1)
   const release = spring(T - tx - 0.05, 0.65, 1)
   const dome = 0.15 * P.bulge * (1 - smooth(0.4, 0.95, grow))
-  const view = (1 + (P.startZoom - 1) * (1 - zoomIn)) * (1 - 0.045 * settle) * mix(1, P.finalScale, exit) * (1 - 0.06 * outro)
+  const view = (1 + (P.startZoom - 1) * (1 - zoomIn)) * (1 - 0.045 * settle) * mix(1, P.finalScale, exit)
   const bandW = mix(P.bevelWidth, Math.max(P.bevelWidth, 0.4), drop)
-  const plateScale = mix(P.startSize, 1, grow) * (1 + drift) * (1 + 0.14 * release * (1 - keep)) * (1 - keep * (0.03 * release + 0.06 * outro))
-  const bg = hexToRgb(P.background)
+  const plateScale = mix(P.startSize, 1, grow) * (1 + drift) * (1 + 0.14 * release)
   return {
     uPlateScale: plateScale,
     uShapeN: mix(2, P.corner, morph),
     uCornerN: P.corner,
     uOptics: 1 - smooth(0.55, 1, release),
-    uPlateAlpha: keep ? appear * (1 - outro) : appear * (1 - smooth(0.45, 1, release)),
+    uPlateAlpha: appear * (1 - smooth(0.45, 1, release)),
     uLogoHalf: P.logoScale * view,
-    uLogoOff: [P.logoOffset[0] * view, P.logoOffset[1] * view] as [number, number],
-    uKeep: keep,
     uSheen: P.sheen,
     uSweep: mix(-1.6, 1.6, smoother(0.9, tx - 0.1, T)),
     uLightAng: P.lightTurn * smoother(0.4, tx + 0.4, T),
     uBold: P.swell * 0.03 * (1 - zoomIn),
-    uBlur: P.focus * 0.05 * (1 - smooth(0.3, 0.95, grow)) + 0.03 * outro,
+    uBlur: P.focus * 0.05 * (1 - smooth(0.3, 0.95, grow)),
     uFrost: P.focus * (1 - smooth(0.5, 0.95, grow)),
     uPinch: 0.38 * P.stretch * smooth(0.1, 0.9, morph) * smooth(0.75, 0.97, zoomIn),
     uTilt: P.tilt,
     uDome: dome,
     uDrop: drop,
     uRim: 1 + 0.8 * drop,
-    uHalo: P.halo * (0.5 + 0.5 * drop) * (1 - keep * release),
-    uShadow: Math.max(P.shadow * smooth(0.45, 0.8, grow) * (1 - smooth(0, 0.6, morph)), 0.8 * P.shadow * keep * release),
+    uHalo: P.halo * (0.5 + 0.5 * drop),
+    uShadow: P.shadow * smooth(0.45, 0.8, grow) * (1 - smooth(0, 0.6, morph)),
     uGhost: smooth(0, 0.03, T) * (1 - smooth(0.04, 0.08, T)),
     uRipR: 1 + 0.9 * Math.max(0, T - tl),
     uRipA: P.ripple * smooth(tl, tl + 0.06, T) * Math.exp(-Math.max(0, T - tl) / 0.6),
-    uBare: (1 - keep) * smooth(tx - 0.25, tx, T) * (1 - outro),
+    uBare: smooth(tx - 0.25, tx, T),
     uReach: bandW * plateScale,
     uCornerPull: P.cornerPull,
     uStreak: P.edgeSmear,
@@ -763,12 +662,8 @@ function frameAt(T: number, P: Settings, outro = 0) {
     uDouble: P.doubleBevel,
     uBevelW: bandW * (1 - release),
     uSpec: P.specular,
-    uIconPlate: P.iconPlate ? 1 : 0,
-    uUseColor: P.originalColors ? 1 : 0,
-    uLightScene: luminance(bg) > 0.5 ? 1 : 0,
-    uLightGlass: luminance(P.iconPlate ? hexToRgb(P.plateColor) : bg) > 0.5 ? 1 : 0,
-    uBg: bg,
-    uPlateCol: hexToRgb(P.plateColor),
+    uLightScene: luminance(BG) > 0.5 ? 1 : 0,
+    uBg: BG,
     uLogoCol: hexToRgb(P.logoColor),
   }
 }
@@ -777,87 +672,21 @@ function frameAt(T: number, P: Settings, outro = 0) {
  * Component
  * ------------------------------------------------------------------ */
 export interface GlassIconRevealProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
-  /** SVG markup (`<svg â€¦>â€¦</svg>`) or an image URL. Only the shape is used unless `originalColors` is on */
+  /** SVG markup (`<svg …>…</svg>`) or an image URL. Only the shape is used */
   logo: string
-  /** Starting preset: light glass over a pale backdrop, or dark glass with an icon plate */
-  look?: Look
-  /** Backdrop colour (hex). Match it to the page: the canvas paints it */
-  background?: string
-  logoColor?: string
-  /** Colour of the tile behind the logo while `iconPlate` is on */
-  plateColor?: string
-  iconPlate?: boolean
-  /** End on the flat icon plate (an app icon, a badge) instead of the bare logo */
-  keepPlate?: boolean
-  /** Keep the logo's own colours instead of `logoColor` */
-  originalColors?: boolean
-  /** Largest tile size in px; it shrinks to fit the container */
-  tileSize?: number
-  /** Logo half size relative to the tile's half size */
-  logoScale?: number
-  /** Logo size once the glass is gone, relative to `logoScale` */
-  finalScale?: number
-  /** Shift of the logo's centre, in tile half sizes (y up) */
-  logoOffset?: [number, number]
-  loop?: boolean
-  /** Seconds the finished logo stays before the next loop */
-  hold?: number
-  speed?: number
-  /** Freeze the reveal at this many seconds instead of playing it (scroll-driven or static use).
-   * Past the reveal it runs on through the loop pause and the blur-out, so 0 â€¦ end + hold + 0.5 is
-   * one seamless loop */
-  time?: number
-  /** Fine-tune the glass and the motion */
-  tuning?: Partial<GlassTuning>
   /** Accessible name of the logo */
   label?: string
 }
 
-export function GlassIconReveal({
-  logo,
-  look = "light",
-  background,
-  logoColor,
-  plateColor,
-  iconPlate,
-  keepPlate,
-  originalColors,
-  tileSize,
-  logoScale,
-  finalScale,
-  logoOffset,
-  loop = true,
-  hold,
-  speed = 1,
-  time,
-  tuning,
-  label = "Logo",
-  className,
-  style,
-  onClick,
-  ...props
-}: GlassIconRevealProps) {
+export function GlassIconReveal({ logo, label = "Logo", className, style, onClick, ...props }: GlassIconRevealProps) {
   const wrapRef = React.useRef<HTMLDivElement>(null)
   const engineRef = React.useRef<ReturnType<typeof startEngine> | null>(null)
   const [fallback, setFallback] = React.useState(false)
 
-  // Objects and arrays go through JSON so inline literals don't restart the memo every render.
-  const tuningKey = JSON.stringify(tuning ?? {})
-  const offsetKey = logoOffset ? logoOffset.join(",") : ""
-  const settings = React.useMemo<Settings>(() => {
-    const own = { background, logoColor, plateColor, iconPlate, keepPlate, originalColors, tileSize, logoScale, finalScale, hold }
-    const set: Partial<Settings> = Object.fromEntries(Object.entries(own).filter(([, v]) => v !== undefined))
-    if (offsetKey) set.logoOffset = offsetKey.split(",").map(Number) as [number, number]
-    return { ...LOOKS[look], ...set, ...(JSON.parse(tuningKey) as Partial<GlassTuning>) }
-  }, [look, background, logoColor, plateColor, iconPlate, keepPlate, originalColors, tileSize, logoScale, finalScale, hold, offsetKey, tuningKey])
-
-  const live = React.useRef({ settings, loop, speed, time })
-  live.current = { settings, loop, speed, time }
-
   React.useEffect(() => {
     const wrap = wrapRef.current
     if (!wrap) return
-    const engine = startEngine(wrap, live)
+    const engine = startEngine(wrap)
     if (!engine) {
       setFallback(true)
       return
@@ -868,10 +697,6 @@ export function GlassIconReveal({
       engine.dispose()
     }
   }, [])
-
-  React.useEffect(() => {
-    engineRef.current?.invalidate()
-  }, [settings, loop, speed, time])
 
   React.useEffect(() => {
     let cancelled = false
@@ -894,8 +719,8 @@ export function GlassIconReveal({
       ref={wrapRef}
       role="img"
       aria-label={label}
-      className={clsx("relative isolate cursor-pointer overflow-hidden select-none", className)}
-      style={{ backgroundColor: settings.background, ...style }}
+      className={"relative isolate cursor-pointer overflow-hidden select-none" + (className ? " " + className : "")}
+      style={{ backgroundColor: P.background, ...style }}
       onClick={(e) => {
         engineRef.current?.replay()
         onClick?.(e)
@@ -907,11 +732,11 @@ export function GlassIconReveal({
           aria-hidden
           className="absolute inset-0 m-auto block"
           style={{
-            width: settings.tileSize * settings.logoScale * settings.finalScale * BOX,
-            height: settings.tileSize * settings.logoScale * settings.finalScale * BOX,
+            width: P.tileSize * P.logoScale * P.finalScale * BOX,
+            height: P.tileSize * P.logoScale * P.finalScale * BOX,
             maxWidth: "40%",
             maxHeight: "40%",
-            backgroundColor: settings.logoColor,
+            backgroundColor: P.logoColor,
             maskImage: `url("${fallbackUrl}")`,
             WebkitMaskImage: `url("${fallbackUrl}")`,
             maskSize: "contain",
@@ -929,10 +754,7 @@ export function GlassIconReveal({
 
 // Owns the canvas: a fresh one per mount (a lost context can never be revived on the same element),
 // drawn only while on screen and only when something changed.
-function startEngine(
-  wrap: HTMLDivElement,
-  live: React.RefObject<{ settings: Settings; loop: boolean; speed: number; time?: number }>,
-) {
+function startEngine(wrap: HTMLDivElement) {
   const canvas = document.createElement("canvas")
   canvas.setAttribute("aria-hidden", "true")
   canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block"
@@ -953,8 +775,6 @@ function startEngine(
   let logo: LogoData | null = null
   let time = reduceMotion ? 1.4 : 0 // a still frame with the glass on
   let playing = !reduceMotion
-  let pauseLeft = 0
-  let outro = 0
   let dirty = true
   let visible = false
   let lost = false
@@ -965,35 +785,13 @@ function startEngine(
     raf = 0
     const dt = Math.min(0.1, (now - last) / 1000)
     last = now
-    const { settings: P, loop, speed, time: fixed } = live.current!
-    const end = endOf(P)
-    if (fixed !== undefined) {
-      // Past the end, the frozen time runs on through the loop pause and the blur-out.
-      playing = false
-      time = fixed
-      outro = clamp01((fixed - end - Math.max(0.05, P.hold)) / OUTRO)
-    } else if (playing && logo) {
-      if (pauseLeft > 0) {
-        // Loop pause: hold the finished logo (nothing to redraw), then blur it away so the next
-        // reveal starts empty.
-        pauseLeft -= dt
-        const was = outro
-        outro = clamp01(1 - pauseLeft / OUTRO)
-        if (pauseLeft <= 0) {
-          pauseLeft = 0
-          outro = 0
-          time = 0
-        }
-        if (outro !== was || time === 0) dirty = true
-      } else {
-        time += dt * speed
-        if (time >= end) {
-          time = end
-          if (loop) pauseLeft = Math.max(0.05, P.hold) + OUTRO
-          else playing = false
-        }
-        dirty = true
+    if (playing && logo) {
+      time += dt
+      if (time >= END) {
+        time = END
+        playing = false
       }
+      dirty = true
     }
     if (dirty && logo && renderer && !lost) {
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
@@ -1006,7 +804,7 @@ function startEngine(
         canvas.height = h
       }
       const tile = Math.min(P.tileSize, Math.min(cw, ch) / 1.75)
-      renderer.render(frameAt(Math.min(time, end), P, outro), w, h, tile * dpr)
+      renderer.render(frameAt(Math.min(time, END)), w, h, tile * dpr)
       dirty = false
     }
     if (visible && playing && logo && !lost) raf = requestAnimationFrame(tick)
@@ -1058,8 +856,6 @@ function startEngine(
       if (!reduceMotion) {
         time = 0
         playing = true
-        pauseLeft = 0
-        outro = 0
       }
       dirty = true
       kick()
@@ -1067,12 +863,6 @@ function startEngine(
     replay() {
       time = 0
       playing = true
-      pauseLeft = 0
-      outro = 0
-      dirty = true
-      kick()
-    },
-    invalidate() {
       dirty = true
       kick()
     },

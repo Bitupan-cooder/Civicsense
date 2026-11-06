@@ -13,7 +13,7 @@ import { HowItWorks } from './sections/HowItWorks';
 import { Categories } from './sections/Categories';
 import { CallToAction } from './sections/CallToAction';
 import { StudentSignInSection } from './sections/StudentSignInSection';
-import { Footer } from './sections/Footer';
+import { Footer } from '../components/ui/sticker-slap-footer';
 import { TrackerModal } from './modals/TrackerModal';
 import { StudentAuthModal } from './modals/StudentAuthModal';
 import { ReuploadIdModal } from './modals/ReuploadIdModal';
@@ -96,6 +96,8 @@ const Landing = memo(function Landing() {
     <>
       <div className="backdrop" aria-hidden="true" />
       <div id="app">
+        {/* display: contents: a landmark only, no box, so the layout is unchanged */}
+        <main style={{ display: 'contents' }}>
         {/* ════════════ HERO ════════════ */}
         <Hero />
         {/* ════════════ STATS ════════════ */}
@@ -108,6 +110,7 @@ const Landing = memo(function Landing() {
         {/* ════════════ REPORT FORM ════════════ */}
         {/* ════════════ CTA ════════════ */}
         <CallToAction />
+        </main>
         {/* ════════════ FOOTER ════════════ */}
         <Footer />
       </div>

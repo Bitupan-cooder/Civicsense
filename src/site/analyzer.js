@@ -4,17 +4,6 @@ import { CAMPUS_LOCATIONS } from './demoData.js';
 
 /* ══════════ CIVICSENSE AI ANALYSIS ENGINE & WORKSPACE ══════════ */
 
-/* Helper: HTML entity escaping */
-export function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
 /* Helper: Assamese numerals to standard */
 function normalizeAssameseNumerals(str) {
   if (!str) return '';

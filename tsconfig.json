@@ -16,10 +16,9 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "allowJs": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*", "*"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "demo.tsx", "components/ui"]
+  "include": ["src"]
 }

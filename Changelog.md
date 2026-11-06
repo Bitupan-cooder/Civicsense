@@ -468,6 +468,203 @@ For the frontend teammate: every PRD screen now exists and is wired to the backe
   - It links 3 posts to its test accounts for the run, so it **refuses to run** once those posts (Head, General Secretary, Sports Secretary) are linked to real officials. Otherwise they would be notified about test complaints.
   - Run on 2026-11-02: **43 of 43 checks pass, 0 rows left.** Type-check, build and `npm test` (15 tests) pass.
 
+### 3.39 React Router 6.30.6, and a reload loop on tracking links for guests fixed (2026-11-07)
+
+- **React Router:** `react-router-dom` went from 6.28.0 to **6.30.6**. This fixes the two high-severity open-redirect advisories ([GHSA-2w69-qvjg-hvjx](https://github.com/advisories/GHSA-2w69-qvjg-hvjx), [GHSA-2j2x-hqr9-3h42](https://github.com/advisories/GHSA-2j2x-hqr9-3h42)).
+  - `npm audit` still lists 2 moderate ones, fixed only in 7.18+. Neither can be exploited here.
+  - [GHSA-wrjc-x8rr-h8h6](https://github.com/advisories/GHSA-wrjc-x8rr-h8h6) (backslash in `<Link>` / `navigate`): the only user-controlled path is `?next=` on `/login`, which is already limited to `/…` with no `//` and no `\`.
+  - [GHSA-337j-9hxr-rhxg](https://github.com/advisories/GHSA-337j-9hxr-rhxg) (SSR hydration): both apps render in the browser only.
+- **Bug found by the route check (older than the router update):** a guest opening a tracking link (`/complaints/<id>`, `/report?track=…`, `/?track=…`) got stuck in a full-page reload loop.
+  - The cause: `initTracker()` in [src/site/tracker.ts](src/site/tracker.ts) waits 250 ms and reloads to `/report/new?track=…`. A guest has already been sent to `/login` by then, so each reload started the cycle again (about 26 reloads in 15 s).
+  - The fix: the jump is skipped when the visitor is already on `/report/new`, where the tracker reads `?track=` itself. Old `/?track=` links still jump there.
+  - Now guests land once on sign-in with the tracker kept in `?next=`, and signed-in students land on the tracker.
+- **Route check:** 31 routes pass, for guest, student, administration and department.
+  - Covered: every student and admin route, the old redirects, unknown paths, admin-only pages for an officer, and the `?next=` guard against `//evil.example` and `/\evil.example`.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.38 Cleanup: CSS left over from the old cards, docket and stats (2026-11-07)
+
+Ponytail reviews of 3.34–3.37 applied. 214 lines of styles were removed for classes the console no longer renders or rules that are overridden:
+- [src/admin/admin.css](src/admin/admin.css): the old ticket header, title row, badge group and meta row; `.modal-box-large`; both admin timeline sets (the student tracker's timeline styles are in `site.css`); `.unit-badge-card`; the KPI top stripe.
+- [src/admin/console-redesign.css](src/admin/console-redesign.css): the matching overrides, the old `.signal-source` / `.signal-facts` rules, and the chip colour overrides that only existed to beat `[data-field]`.
+- The closed docket renders nothing instead of an empty hidden `<div>`.
+- A second pass removed 40 more lines: rules the new cards fully override.
+  - The old `.kpi-card` and `.ticket-card` boxes in both files.
+  - The unused `.ticket-card.sensitive` / `.escalated`.
+  - The old `#adminUnitBreakdownCard` border, the old `.kpi-lbl`, and the old ticket shadow pair.
+  - The 10-line `.ticket-description` block; its one surviving property, `overflow-wrap: anywhere`, moved to the new rule.
+- A third pass removed 40 more lines.
+  - The old `.kpi-val`, `.kpi-lbl` and `.ticket-heading` blocks and their size tweaks.
+  - The old `.ticket-card` box: only its `transition` line is left.
+  - The old hover border and shadow, and the three cards in a grouped border and shadow rule.
+  - The hover lift with its two cancelling `transform: none` rules; cards never moved on hover anyway.
+  - The old `.ticket-actions-row` gap.
+  - Computed styles of the card, heading, KPI number and label, and action row are unchanged.
+- A fourth pass made three small code cuts:
+  - The confirm card's `icon` is required (every caller passes one), so the fallback is gone.
+  - The KPI rows build their bar and "% of queue" note with a `pct()` spread instead of a fix-up loop, and the bar always renders.
+  - The two `.caseload-card` padding declarations are gone: admin.css's `#adminUnitBreakdownCard` `!important` padding (22 × 26 px) always won.
+  - KPI values, bars and notes, and the caseload padding, read the same in the browser at 1280 and 360 px.
+
+No visible change: screenshots of the queue, docket and signals match. All 22 admin states at 360, 768 and 1280 px show no overflow and no console errors. Type-check, build and `npm test` (53) pass.
+
+### 3.37 Group signal cards and queue stats redesigned (2026-11-07)
+
+- **Group signals** ([src/admin/pages/SignalsPage.tsx](src/admin/pages/SignalsPage.tsx)):
+  - Each signal is a card with a coloured left edge for its status: amber waiting, blue open, green acknowledged or converted, grey dismissed.
+  - **Top row:** a source line (platform badge in Telegram, Discord or Moodle colours, then the group name), the status chip and the time.
+  - **Body:** the summary as the title (with the ticket number once it became a complaint), the student's message in a "Tagged message" box, then one row with category, priority, number of students and place. Next comes a "Routed to" row of post chips, and the sensitive warning as a red banner.
+  - **Footer:** the note field on the left and the actions on the right (Dismiss, Acknowledge in group, Make official complaint). A converted signal shows "Open complaint" instead.
+  - New labels are in both languages: `signals.tagged`, `signals.routedTo`, `signals.openComplaint`.
+- **Queue stats** ([src/admin/components/Queue.tsx](src/admin/components/Queue.tsx), [AdminMain.tsx](src/admin/components/AdminMain.tsx)):
+  - **Departmental caseload:** busiest unit first. Each unit has its count, a bar for its share of active cases and the percentage. Unassigned cases get an amber bar.
+  - **KPI cards:** each has the label, a coloured icon, the number, a bar and a note: "N still open" on the total, and "% of queue" on the other three.
+  - The "awaiting verification & review" count now includes `needs_review` complaints.
+- **Checked:**
+  - Screenshots at 1440, 1280 and 360 px, including Assamese.
+  - All 22 admin states at 360, 768 and 1280 px: no overflow and no console errors.
+  - Build and `npm test` (53) pass.
+
+### 3.36 Complaint cards, docket redesign, and a confirm card instead of browser pop-ups (2026-11-07)
+
+- **Complaint cards** ([src/admin/components/Queue.tsx](src/admin/components/Queue.tsx)):
+  - A coloured left edge shows the status: amber for review, green for accepted or resolved, blue for in progress, red for rejected.
+  - The top row has the reference, the status and the filing time. Below it come the title and one row of tags: category, priority, desk, ID check and attachments.
+  - A facts strip has labelled cells: Reporter (name and email), Assigned unit, and Location when the AI found one.
+  - The description is cut to three lines; the full text is in the docket.
+  - The actions are split: docket, ID and reassign on the left; Reject or Accept, and Log progress or Mark resolved, on the right.
+- **Docket** ([src/admin/modals/ComplaintDetailModal.tsx](src/admin/modals/ComplaintDetailModal.tsx)):
+  - The header and footer stay in place, and only the middle scrolls, with no visible scrollbar.
+  - **Header:** reference, status, desk, title and filing time.
+  - **Desktop, left column:** narrative with attachments, routing by hand (review queue), AI analysis with the correction form, route tracker, replies, reply box, and status history as a timeline with coloured dots and remark bubbles.
+  - **Desktop, right column:** reporter and unit, ID card check, resolution checklist.
+  - Phones get one column. Esc closes the docket unless another dialog is open on top of it.
+  - The workflow logic is unchanged.
+- **Confirm card** ([src/admin/modals/ConfirmModal.tsx](src/admin/modals/ConfirmModal.tsx), `askConfirm` / `answerConfirm` in [src/admin/console.ts](src/admin/console.ts)):
+  - Log out, Deactivate / Activate, and Delete official now ask in a styled card instead of the browser's `confirm()` box. Deactivate and Delete use a red version.
+  - Risky actions start with Cancel focused. Esc or a click outside cancels.
+- **Checked:**
+  - Screenshots at 1440, 1366, 390 and 360 px.
+  - Confirm card: Cancel, Esc, click outside, confirm (logs out) and the red version.
+  - All 22 admin states at 360, 768 and 1280 px: no overflow, no cut-off dialogs and no console errors.
+  - Build and `npm test` (53) pass.
+
+### 3.35 Admin console: icon rail, full-height sidebar, spinner, toolbar and dropdowns (2026-11-07)
+
+- **Collapsible sidebar on desktop:** a button next to "Workspace" shrinks the sidebar to a 76 px icon rail and back. The choice is remembered per browser (`console-sidebar-rail` in localStorage).
+  - In the rail, page names show on hover and the review count is a small badge on the icon.
+  - Language and Log out become icon buttons, with their names kept for screen readers.
+  - The phone menu always shows the full sidebar.
+- **Full height:** the desktop sidebar now fills the window. It used to stop 68 px short, leaving a white strip under Log out.
+- **Loading:** switching pages shows a small spinner instead of "Loading…". The word is still read out by screen readers.
+- **Phones:** the top bar shows only the ☰ button, without the page name.
+- **Queue toolbar:**
+  - On wide screens the status pills, category, date and search sit on one row. When space runs out, the dropdowns and search move to a row of their own, and search fills it.
+  - Search used to drop below the dropdowns, in both languages.
+  - The search icon is centred in the box.
+- **Dropdowns:** every single-choice select in the console and its dialogs has the same look: a custom chevron, a 1.5 px border, a hover tint and a green focus ring. Multi-selects are unchanged.
+- **Review count:** the badge now sits at the right edge of its tab, which is where its CSS always meant it to go.
+- **Code:** [ConsoleNav.tsx](src/admin/pages/ConsoleNav.tsx), [console-redesign.css](src/admin/console-redesign.css), the toolbar class in [AdminMain.tsx](src/admin/components/AdminMain.tsx), and `nav.collapse` / `nav.expand` / `nav.logout` in both languages in [i18n.ts](src/i18n.ts).
+- **Checked:**
+  - Screenshots in English and Assamese at 1280 and 1920 px, the rail at 900 and 1280 px, the phone menu, the spinner, and the dropdowns in the create-official, reassign and docket dialogs and the routing editor.
+  - All 22 admin states at 360, 768 and 1280 px: no overflow and no console errors.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.34 Admin console: menu drawer on phones (2026-11-06)
+
+Below 700 px the console no longer shows a sideways-scrolling tab strip with Language and Log out on a second row. It shows one top bar with a ☰ button (it also showed the current page name until 3.35).
+
+- **The ☰ button** slides in the sidebar: every page the official can open (with the review count), the language toggle and Log out, styled as on desktop.
+- **Closing:** picking a page, tapping outside, pressing Esc or tapping ✕ closes it. Esc returns focus to the menu button.
+- **While open:** the page behind doesn't scroll, and focus moves to the first tab.
+- **Code:** [src/admin/pages/ConsoleNav.tsx](src/admin/pages/ConsoleNav.tsx) builds the tabs from one list and wraps them in `#consoleDrawer`. On desktop the wrapper uses `display: contents`, so the sidebar renders exactly as before. Styles are in [src/admin/console-redesign.css](src/admin/console-redesign.css), the old phone strip rules are removed, and `nav.menu` / `nav.closeMenu` are added in both languages.
+- **Checked:**
+  - Opening, closing, focus and scroll lock at 320, 360, 414 and 700 px, for an administrator and an officer.
+  - Desktop sidebar at 701, 900, 1024, 1280 and 1440 px: identical to the old one, apart from anti-aliasing noise on the "অসমীয়া" text.
+  - All 22 admin states at 320, 390 and 600 px: no overflow and no console errors.
+  - Build and `npm test` (53) pass.
+
+### 3.33 Mobile fit check: admin console fixed, student site already fine (2026-11-06)
+
+Every page and modal was checked at 320, 360, 390, 414, 600, 768 and 1024 px wide (188 page/width runs). Signed-in pages were tested in headless Edge with a fake backend: every Supabase and `/api` request was answered locally, so nothing reached the live project.
+
+| Problem (phones only) | Fix, in [src/admin/console-redesign.css](src/admin/console-redesign.css) |
+|---|---|
+| Below 700 px the admin sidebar becomes a top tab strip, but it was sized to all its tabs (~700 px). The Log out button was cut off on every admin page. | The strip spans the screen and Log out is visible. Replaced by the menu drawer in 3.34. |
+| A complaint title with a very long word (a pasted link or ID) pushed its card past the screen edge (queue, docket, review queue; also at 768 px). | The word breaks inside the card. Normal titles wrap exactly as before. |
+| At 320 px, "Student name (email)" in each queue card ran off the card. | It wraps inside the card. |
+| ID card check modal: "Mark ID as Not Valid" stuck out of the modal on phones. | The two buttons stack when they don't fit side by side. |
+
+- **Student site:** no overflow, cut-off modals or console errors on any page at any width. Covered: home, sign-in, sign-in modal, report form, my complaints, tracking, notifications and re-upload ID. No change was needed.
+- **After the fix:** 0 overflow, 0 cut-off dialogs and 0 console errors on all 22 admin states and 11 student states.
+- **Desktop unchanged:** 8 admin pages are pixel-identical at 1024, 1280 and 1440 px with and without the new rules. Build and `npm test` (53) pass.
+- **Not changed, to avoid visible changes:**
+  - Phone form fields use 13–15 px text, so iPhone Safari zooms in when a field is tapped. 16 px would stop that.
+  - A few text-link buttons are under 24 px tall. Lighthouse's target-size check passes because they are spaced apart.
+  - Some 10 px status labels on the student tracker.
+
+### 3.32 Images re-encoded as WebP, no visible change (2026-11-06)
+
+Lighthouse mobile: page weight **15.1 MB → 6.7 MB** (home) and 13.9 → 6.2 MB (sign-in); Performance 27 → 44 (home), 44 → 67 (sign-in).
+
+| Image | Change |
+|---|---|
+| Hero/How-it-works clouds (2 files, were on CloudFront, 3.4 MB each) | Downloaded, near-lossless WebP at the same 2688×1520 → `public/images/cloud-a.webp` (1.27 MB), `cloud-b.webp` (1.06 MB). Served locally now. |
+| `public/images/campus-autumn-artwork` (3.0 MB PNG) | Near-lossless WebP, same size: 1.44 MB. |
+| `public/images/dibrugarh-university-seal-sticker` (1.2 MB PNG) | Near-lossless WebP, same size: 0.58 MB. |
+| `Flat Assets/civic/` hero characters (5), how-it-works (4), man-planting | Near-lossless WebP, same size: 3.8 MB → 1.9 MB. |
+
+Same pixel dimensions everywhere (the seal was first resized, then kept full-size because downscaling changed edge antialiasing). Lossy WebP was rejected: up to 89/255 error on edges. Near-lossless: ≤ 6/255 per pixel vs the original. Checked with full-page screenshots of the old and new builds (`/`, `/login`, 412 px @2x and 1440 px, reduced motion, seeded `Math.random` for the decorative squares): max difference 6–9/255, PSNR 59–61 dB on the home page, identical on sign-in. Old PNGs removed (in git history). The JPEG photos were left alone (already compressed).
+
+### 3.31 Lighthouse (mobile) small fixes (2026-11-06)
+
+Lighthouse mobile, production build: Accessibility 95/94 → **100**, Best Practices 96/100 → **100**, SEO 92/91 → **100** (home / login). Performance unchanged (27–44; main causes: ~15 MB of images, intro-gated LCP, animation main-thread work — not addressed here).
+
+| File | Change |
+|---|---|
+| [site.css](src/site/site.css), [routes.css](src/site/pages/routes.css) | "Student Sign In" text on the lime button `#0036FF` → `#0032EB` (4.13 → 4.63:1). |
+| [sign-in-card.css](src/components/ui/sign-in-card.css) | "or check existing grievance" `#65845e` → `#5f7c58` (4.18 → 4.66:1). |
+| [i18n.ts](src/i18n.ts) | Language toggle: no `aria-label`, so its accessible name is the visible language name; the `title` keeps the description. |
+| [SiteApp.tsx](src/site/SiteApp.tsx), [ReportPage.tsx](src/site/pages/ReportPage.tsx) | `<main style="display: contents">` landmark around the page content (no box: layout identical). |
+| [sign-in-card-2.tsx](src/components/ui/sign-in-card-2.tsx) | Card title `<h3>` → `<h2>` (heading order); same computed style. |
+| `public/favicon.svg`, `index.html`, `admin.html` | Favicon (the leaf mark) — fixes the `/favicon.ico` 404. |
+| `public/robots.txt` | Added; disallows `/admin` and `/api/`. |
+
+Checked: layout boxes and page heights identical before/after on `/`, `/login`, `/report/new` at 412 and 1440 px; type-check passes.
+
+### 3.30 Cleanup: dead files, unused CSS and images (2026-11-06)
+
+No visual or behaviour change (checked below). About 1,700 lines and ~57 MB of images removed, `clsx` uninstalled.
+
+| File | Change |
+|---|---|
+| `src/site/campusMap.js`, `src/admin/components/AdminHeader.tsx` | Removed: nothing imported them (the landing-page map and the old console header were already gone). Also removed what only they used: `escapeHtml`, `fillReportDescription`, `getMapComplaints`, `setReportPlace`. |
+| [admin.css](src/admin/admin.css), [console-redesign.css](src/admin/console-redesign.css), [site.css](src/site/site.css), [routes.css](src/site/pages/routes.css), [workflow.css](src/workflow.css) | ~700 lines of rules whose classes/ids no code uses. Kept: classes built at runtime (`chip-*`, `pill-id-*`, `timeline-status-*`), Lenis and lucide classes, anything inside `:not()`/`:is()`. |
+| [vite.config.ts](vite.config.ts) | The build step that copied map-kit files (the kit is gone; every build warned). |
+| [sign-in-card-2.tsx](src/components/ui/sign-in-card-2.tsx) | Two `<AnimatePresence>` wrappers around plain `<span>`s (they animated nothing). |
+| `bento.tsx`, `liquid-glass-logo-reveal.tsx`, `package.json` | `clsx` replaced by string concatenation (same class strings); dependency removed. |
+| `public/flat-assets/`, `public/illustrations/`, 5 files in `public/images/`, 6 in `Flat Assets/civic/` | 300 image files nothing references (still in git history). |
+| [docs/FRONTEND.md](docs/FRONTEND.md) | Dropped the campus-map ID rules. |
+
+Checked: type-check, `npm test` (53 pass), build. Computed style of every element (with `::before`/`::after`) identical before/after on 50 page states at 1440 and 390 px: the student site pages and the signed-in console (queue, officials, audit, every modal, review/duplicates/signals/stats/system/routing, admin and department views, rendered from local test data). The animated landing page was compared with reduced motion; only its randomly placed squares/petals were excluded.
+
+Not changed: `framer-motion` (the bento reveal would need re-implementing; can't be proven identical). Still broken, separately: the officials' campus map (`ComplaintMap.tsx`) fetches `map-data.json` from the deleted map kit.
+
+### 3.29 Cleanup: dead code and repeated boilerplate removed (2026-11-06)
+
+No behaviour change except the first row. About 4,350 lines removed.
+
+| File | Change |
+|---|---|
+| [backend/api.ts](backend/api.ts) | One `requireAdmin()` replaces 16 copies of the administration check. **Eight routes now also refuse deactivated admin accounts** (create/edit/delete/reset officials, toggle-active, reassign, activity logs, stats); seven already did. 403 text is now "Administration role required." everywhere. One try/catch in `handleApiRequest` replaces 28 per-route `catch → 500 err.message` blocks; the two catches that clean up (needs-review fallback, signal conversion) stay. |
+| [src/components/ui/sticker-slap-footer.tsx](src/components/ui/sticker-slap-footer.tsx) | Stickers, drag/parallax, social icons and template defaults removed (the footer passed `stickers={[]}` and `socials={[]}`). Its 28 props are now one `FOOTER` constant in the file (the footer's text and links) plus CSS variables on the `.ssf` rule in the same file (its colours, font and height); it exports `Footer`, and `src/site/sections/Footer.tsx` is gone. `FOOTER.note` is the template's placeholder ("*phone calls give us the jitters…"), live since the footer was added. **Replace or remove it.** |
+| [src/components/ui/liquid-glass-logo-reveal.tsx](src/components/ui/liquid-glass-logo-reveal.tsx) | Only the startup loader's settings kept (dark look, loop, scrubbing, plate options, tuning merge removed), and the shader inputs those fed with constants (original colours and their texture, icon plate, keep plate, logo offset). Rendered frames are pixel-identical to before (glass on and settled). |
+| [src/uiTranslations.ts](src/uiTranslations.ts) | 16 entries that repeated the keyed dictionary exactly. 7 others translate the same English differently from `i18n.ts` (e.g. "Routing", "Cancel"); a native speaker should pick one wording. |
+| [src/site/demoData.js](src/site/demoData.js) | Unused localStorage seed complaints and `getComplaints()`. |
+| removed | Root `components/`, `lib/`, `demo.tsx`, `src/demo.tsx` (nothing imported them); 73 one-off image/ASCII scripts in `scripts/` (kept `vercel-output.mjs`); `npm run bundle` (its single-file bundle could not run). |
+
+Checked: type-check (app and backend), `npm test` (53 pass), build; English and Assamese page text identical to HEAD; footer screenshots identical at 1440 px and 390 px (production builds via `vite preview`).
+
 ### 3.28 Developer monitoring: model usage, reliability, errors, bot health (2026-11-04)
 
 New console page **System** (`/admin/system`, administration only, English only), for 7 or 30 days:

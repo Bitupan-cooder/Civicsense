@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import { clsx } from "clsx";
 import { motion, type Variants } from "framer-motion";
 import waterPlumbingPhoto from "../../../Flat Assets/civic/Water & Plumbing.jpeg";
 import sanitationPhoto from "../../../Flat Assets/civic/Sanitation & Grounds.jpeg";
@@ -64,7 +63,7 @@ export function BentoCard({
       whileHover="active"
       variants={bentoRevealVariants}
       onClick={handleClick}
-      className={clsx("bento-card cat-card", className)}
+      className={"bento-card cat-card" + (className ? " " + className : "")}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -98,7 +97,7 @@ export default function FUIBentoGridDark() {
     <div className="bento-container">
       <img
         className="university-seal-sticker"
-        src="/images/dibrugarh-university-seal-sticker.png"
+        src="/images/dibrugarh-university-seal-sticker.webp"
         alt="Dibrugarh University seal"
         loading="lazy"
       />

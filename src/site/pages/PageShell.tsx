@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../i18n';
 import { SiteNav } from '../components/SiteNav';
-import { Footer } from '../sections/Footer';
+import { Footer } from '../../components/ui/sticker-slap-footer';
 
 export function PageShell({ title, children }: { title: string; children: ReactNode }) {
   return (

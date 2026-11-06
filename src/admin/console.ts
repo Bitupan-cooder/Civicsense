@@ -86,20 +86,35 @@ export interface ConsoleState {
   resetOfficial: { id: string; name: string; email: string; unit: string } | null;
   /** Bumped whenever a form modal opens, so its fields start fresh (used as React key). */
   formKey: number;
+  /** Styled yes/no card in place of the browser's confirm() (see askConfirm). */
+  confirm: ConfirmRequest | null;
 }
+
+export interface ConfirmRequest { title: string; message: string; confirmLabel: string; danger?: boolean; icon: 'logout' | 'warning' | 'check'; resolve: (ok: boolean) => void }
 
 let state: ConsoleState = {
   auth: 'loading', gateRole: 'department', gateEmail: '', gatePassword: '', gateError: '', gateBusy: false, profile: null,
   complaints: [], routing: {}, loaded: false, loading: false, loadError: null, filter: 'all', category: 'all', date: 'all', search: '',
   section: 'complaints', officials: null, officialsError: null, logs: null, logsError: null, logFilter: 'all',
   docketId: null, idCard: null, workflow: null, reassignId: null, createOpen: false, credentials: null,
-  editOfficial: null, resetOfficial: null, formKey: 0,
+  editOfficial: null, resetOfficial: null, formKey: 0, confirm: null,
 };
 const listeners = new Set<() => void>();
 
 function update(patch: Partial<ConsoleState>): void {
   state = { ...state, ...patch };
   listeners.forEach((notify) => notify());
+}
+
+/** Asks in the console's own confirm card: true on the confirm button, false on Cancel, Esc or a click outside. */
+export function askConfirm(req: Omit<ConfirmRequest, 'resolve'>): Promise<boolean> {
+  state.confirm?.resolve(false);
+  return new Promise((resolve) => update({ confirm: { ...req, resolve } }));
+}
+export function answerConfirm(ok: boolean): void {
+  const c = state.confirm;
+  update({ confirm: null });
+  c?.resolve(ok);
 }
 
 export function useConsole(): ConsoleState {
@@ -177,7 +192,7 @@ export async function gateLogin(): Promise<void> {
 }
 
 export async function logoutAdmin(): Promise<void> {
-  if (!confirm('Log out of Official Redressal Workspace?')) return;
+  if (!(await askConfirm({ title: 'Log out?', message: 'You will leave the Official Redressal Workspace and need to sign in again to continue.', confirmLabel: 'Log out', icon: 'logout' }))) return;
   await auth.logout();
   update({ auth: 'gate', gateEmail: '', gatePassword: '', complaints: [], loaded: false, officials: null, logs: null, profile: null });
   showToast('Logged out of official console.', 'info');
@@ -396,7 +411,9 @@ export async function editOfficial(name: string, unit: string): Promise<void> {
 }
 
 export async function toggleOfficialStatus(id: string, isActive: boolean): Promise<void> {
-  if (!confirm('Are you sure you want to ' + (isActive ? 'deactivate' : 'activate') + ' this official account?')) return;
+  if (!(await askConfirm(isActive
+    ? { title: 'Deactivate this account?', message: 'The official will not be able to sign in until the account is activated again.', confirmLabel: 'Deactivate', danger: true, icon: 'warning' }
+    : { title: 'Activate this account?', message: 'The official will be able to sign in again.', confirmLabel: 'Activate', icon: 'check' }))) return;
   try {
     await auth.toggleOfficialActive(id, !isActive);
     showToast('Official account ' + (isActive ? 'deactivated' : 'activated') + ' successfully.', 'success');
@@ -420,7 +437,7 @@ export async function resetPassword(password: string): Promise<void> {
 }
 
 export async function deleteOfficial(id: string, name: string): Promise<void> {
-  if (!confirm('CAUTION: Permanently delete official profile and login access for ' + name + '?\n\nThis action cannot be undone.')) return;
+  if (!(await askConfirm({ title: 'Delete ' + name + '?', message: 'Their profile and login access are removed permanently. This cannot be undone.', confirmLabel: 'Delete account', danger: true, icon: 'warning' }))) return;
   try {
     await auth.deleteOfficialAccount(id);
     showToast('Official account permanently deleted.', 'success');

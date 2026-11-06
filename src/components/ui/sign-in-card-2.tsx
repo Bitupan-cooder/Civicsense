@@ -1,6 +1,5 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
 import { Mail, Lock, Eye, EyeClosed, ArrowRight, User, Upload, FileText } from 'lucide-react';
 import { submitStudentLogin, submitStudentSignup, switchStudentAuthTab, useStudentSession } from "@/site/studentSession";
 import { openTracker } from "@/site/tracker";
@@ -125,9 +124,9 @@ export function Component({ embedded = false, className = "", defaultTab = 'sign
               </svg>
             </div>
 
-            <h3 className="sic-title">
+            <h2 className="sic-title">
               {activeTab === 'signin' ? "Student Sign In Required to Lodge Complaints" : "Student Portal Access"}
-            </h3>
+            </h2>
 
             <p className="sic-subtitle">
               {activeTab === 'signin'
@@ -240,19 +239,17 @@ export function Component({ embedded = false, className = "", defaultTab = 'sign
                 disabled={isBusy}
                 className="sic-btn-primary"
               >
-                <AnimatePresence mode="wait">
-                  {isBusy ? (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                      <span className="sic-spinner" />
-                      <span>Signing in...</span>
-                    </span>
-                  ) : (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                      <span>Sign In with Student ID</span>
-                      <ArrowRight size={16} />
-                    </span>
-                  )}
-                </AnimatePresence>
+                {isBusy ? (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    <span className="sic-spinner" />
+                    <span>Signing in...</span>
+                  </span>
+                ) : (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    <span>Sign In with Student ID</span>
+                    <ArrowRight size={16} />
+                  </span>
+                )}
               </button>
 
               {/* Divider */}
@@ -386,19 +383,17 @@ export function Component({ embedded = false, className = "", defaultTab = 'sign
                 disabled={isBusy}
                 className="sic-btn-primary"
               >
-                <AnimatePresence mode="wait">
-                  {isBusy ? (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                      <span className="sic-spinner" />
-                      <span>Uploading ID card & creating account...</span>
-                    </span>
-                  ) : (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                      <span>Upload ID &amp; Create Student Account</span>
-                      <ArrowRight size={16} />
-                    </span>
-                  )}
-                </AnimatePresence>
+                {isBusy ? (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    <span className="sic-spinner" />
+                    <span>Uploading ID card & creating account...</span>
+                  </span>
+                ) : (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    <span>Upload ID &amp; Create Student Account</span>
+                    <ArrowRight size={16} />
+                  </span>
+                )}
               </button>
 
               {/* Switch back to sign-in */}

@@ -83,24 +83,17 @@ export function AdminMain() {
         {" "}
         {/* ADMINISTRATION UNIT BREAKDOWN CARD (VISIBLE IN ADMIN MODE) */}
         {" "}
-        <section id="adminUnitBreakdownCard" style={{ display: isAdmin ? "block" : "none", background: "#ffffff", border: "1.5px solid var(--line)", borderRadius: "var(--radius)", padding: "18px 22px", marginBottom: "20px", boxShadow: "0 4px 14px rgba(0,0,0,0.02)" }}>
-          {" "}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
-            {" "}
-            <h3 style={{ fontSize: "14px", fontWeight: "700", color: "var(--ink)", letterSpacing: "-0.02em" }}>
-              Departmental Caseload &amp; Jurisdiction Distribution
-            </h3>
-            {" "}
-            <span style={{ fontSize: "12px", color: "#4a6142", fontWeight: "600" }} id="unitBreakdownTotalText">
-              <UnitBreakdown part="total" />
-            </span>
-            {" "}
+        <section id="adminUnitBreakdownCard" className="caseload-card" style={{ display: isAdmin ? undefined : "none" }}>
+          <div className="caseload-head">
+            <div>
+              <h3>Departmental caseload</h3>
+              <p>Active complaints by assigned unit</p>
+            </div>
+            <span className="caseload-total" id="unitBreakdownTotalText"><UnitBreakdown part="total" /></span>
           </div>
-          {" "}
-          <div id="unitBreakdownGrid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "10px" }}>
+          <div id="unitBreakdownGrid" className="caseload-grid">
             <UnitBreakdown part="grid" />
           </div>
-          {" "}
         </section>
         {" "}
         {/* KPI METRICS ROW */}
@@ -125,7 +118,7 @@ export function AdminMain() {
           ))}
         </div>
           {" "}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+          <div className="toolbar-controls">
             {" "}
             <select id="categoryFilter" className="filter-select-pill" value={c.category} onChange={(e) => setQueueFilter({ category: e.target.value })}>
               <option value="all">

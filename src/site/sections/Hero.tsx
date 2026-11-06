@@ -1,9 +1,9 @@
 // Markup converted 1:1 from the original index.html (React migration, step 1).
-import char1RecyclingImg from '../../../Flat Assets/civic/char-1-recycling.png';
-import char2PlantingImg from '../../../Flat Assets/civic/char-2-planting.png';
-import char3MegaphoneImg from '../../../Flat Assets/civic/char-3-megaphone.png';
-import char4AuditorImg from '../../../Flat Assets/civic/char-4-auditor.png';
-import char5DispatchImg from '../../../Flat Assets/civic/char-5-dispatch.png';
+import char1RecyclingImg from '../../../Flat Assets/civic/char-1-recycling.webp';
+import char2PlantingImg from '../../../Flat Assets/civic/char-2-planting.webp';
+import char3MegaphoneImg from '../../../Flat Assets/civic/char-3-megaphone.webp';
+import char4AuditorImg from '../../../Flat Assets/civic/char-4-auditor.webp';
+import char5DispatchImg from '../../../Flat Assets/civic/char-5-dispatch.webp';
 import { SiteNav } from '../components/SiteNav';
 
 export function Hero() {
@@ -20,13 +20,13 @@ export function Hero() {
       {" "}
       <div className="cloud cloud-l" data-par="-60">
         {" "}
-        <img className="drift-a" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093216_44218665-b15e-4566-a2d4-2676ab03609d.png" alt="" />
+        <img className="drift-a" src="/images/cloud-a.webp" alt="" />
         {" "}
       </div>
       {" "}
       <div className="cloud cloud-r" data-par="-90">
         {" "}
-        <img className="drift-b" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261021_093215_0f37c0c3-f82c-485b-87dd-5a35b75a8782.png" alt="" />
+        <img className="drift-b" src="/images/cloud-b.webp" alt="" />
         {" "}
       </div>
       {" "}

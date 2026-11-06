@@ -118,6 +118,14 @@ async function getRequester(req: IncomingMessage) {
 
 type Requester = NonNullable<Awaited<ReturnType<typeof getRequester>>>;
 
+/** The signed-in, active administration account; otherwise sends 403 and returns null. */
+async function requireAdmin(req: IncomingMessage, res: ServerResponse): Promise<Requester | null> {
+  const requester = await getRequester(req);
+  if (requester?.profile?.is_active && requester.profile.role === "administration") return requester;
+  sendJson(res, 403, { error: "Administration role required." });
+  return null;
+}
+
 async function requesterCanAccess(requester: Requester, complaint: any): Promise<boolean> {
   const { user, profile } = requester;
   let targetUnitName: string | null = null;
@@ -627,7 +635,17 @@ async function requesterCanSeeStudent(requester: Requester, studentId: string): 
   return false;
 }
 
+/** Any route that throws answers 500 with the error message (and lands in error_logs via sendJson). */
 export async function handleApiRequest(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
+  try {
+    return await routeApiRequest(req, res);
+  } catch (err: any) {
+    if (res.headersSent) throw err;
+    return sendJson(res, 500, { error: err?.message || "Request failed" });
+  }
+}
+
+async function routeApiRequest(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
   const url = new URL(req.url || "", `http://${req.headers.host || "localhost"}`);
   const pathname = url.pathname;
 
@@ -656,12 +674,8 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     const cron = pathname === '/api/cron/escalations';
     if (cron) {
       if (!process.env.CRON_SECRET || req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) return sendJson(res, 401, { error: 'Invalid scheduler credentials.' });
-    } else {
-      const requester = await getRequester(req);
-      if (!requester?.profile?.is_active || requester.profile.role !== 'administration') return sendJson(res, 403, { error: 'Administration role required.' });
-    }
-    try { return sendJson(res, 200, await runMaintenance()); }
-    catch (err: any) { return sendJson(res, 500, { error: err.message }); }
+    } else if (!(await requireAdmin(req, res))) return true;
+    return sendJson(res, 200, await runMaintenance());
   }
 
   // Create privately first. If analysis fails, the saved complaint stays in administration review.
@@ -699,50 +713,42 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
 
   // AI ANALYSIS + ROUTING. Existing reports can be analysed; an admin can re-run it.
   if (pathname === "/api/complaints/analyse" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester?.profile?.is_active) return sendJson(res, 401, { error: "Authentication required" });
-      if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "AI routing is not set up yet (run backend/migrations/001_ai_routing_tracker.sql).", notInstalled: true });
+    const requester = await getRequester(req);
+    if (!requester?.profile?.is_active) return sendJson(res, 401, { error: "Authentication required" });
+    if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "AI routing is not set up yet (run backend/migrations/001_ai_routing_tracker.sql).", notInstalled: true });
 
-      const { complaintId, location, hideName } = await parseBody(req);
-      const { data: complaint } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
-      if (!complaint) return sendJson(res, 404, { error: "Complaint not found" });
-      const isOwner = complaint.student_id === requester.user.id;
-      const isAdmin = requester.profile.role === "administration";
-      if (!isOwner && !isAdmin) return sendJson(res, 403, { error: "Only the reporter or an administrator can analyse this complaint." });
+    const { complaintId, location, hideName } = await parseBody(req);
+    const { data: complaint } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
+    if (!complaint) return sendJson(res, 404, { error: "Complaint not found" });
+    const isOwner = complaint.student_id === requester.user.id;
+    const isAdmin = requester.profile.role === "administration";
+    if (!isOwner && !isAdmin) return sendJson(res, 403, { error: "Only the reporter or an administrator can analyse this complaint." });
 
-      if (complaint.analysed_at && !isAdmin) {
-        // already analysed: return the stored result instead of calling the AI again
-        return sendJson(res, 200, {
-          category: complaint.ai_category, priority: complaint.priority, is_sensitive: complaint.is_sensitive, location_text: complaint.location_text,
-          summary_en: complaint.summary_en, summary_as: complaint.summary_as, image_findings: complaint.image_findings, confidence: complaint.confidence,
-          language: complaint.input_language, source: complaint.ai_source, needs_review: complaint.status === "needs_review", review_reason: null,
-          routes: await routesWithPosts(complaint.id),
-        });
-      }
-      const loc = typeof location === "string" && location.length <= 200 ? location : null;
-      // the privacy choice is the reporter's own; an admin re-run keeps it
-      const hide = isOwner && typeof hideName === "boolean" ? hideName : null;
-      return sendJson(res, 200, await analyseAndRoute(complaint, loc, hide, requester.user.id));
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Analysis failed" });
+    if (complaint.analysed_at && !isAdmin) {
+      // already analysed: return the stored result instead of calling the AI again
+      return sendJson(res, 200, {
+        category: complaint.ai_category, priority: complaint.priority, is_sensitive: complaint.is_sensitive, location_text: complaint.location_text,
+        summary_en: complaint.summary_en, summary_as: complaint.summary_as, image_findings: complaint.image_findings, confidence: complaint.confidence,
+        language: complaint.input_language, source: complaint.ai_source, needs_review: complaint.status === "needs_review", review_reason: null,
+        routes: await routesWithPosts(complaint.id),
+      });
     }
+    const loc = typeof location === "string" && location.length <= 200 ? location : null;
+    // the privacy choice is the reporter's own; an admin re-run keeps it
+    const hide = isOwner && typeof hideName === "boolean" ? hideName : null;
+    return sendJson(res, 200, await analyseAndRoute(complaint, loc, hide, requester.user.id));
   }
 
   // ROUTE TRACKER: an official opened the complaint, so mark it seen for the posts they hold
   if (pathname === "/api/complaints/seen" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester?.profile?.is_active) return sendJson(res, 401, { error: "Authentication required" });
-      const { complaintId } = await parseBody(req);
-      const mine = typeof complaintId === "string" ? await myRoutes(requester, complaintId) : [];
-      if (!mine.length) return sendJson(res, 200, { marked: 0 });
-      const { data } = await supabaseAdmin.from("complaint_routes").update({ seen_at: new Date().toISOString() })
-        .in("id", mine.map((r) => r.id)).is("seen_at", null).select("id");
-      return sendJson(res, 200, { marked: data?.length || 0 });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to record view" });
-    }
+    const requester = await getRequester(req);
+    if (!requester?.profile?.is_active) return sendJson(res, 401, { error: "Authentication required" });
+    const { complaintId } = await parseBody(req);
+    const mine = typeof complaintId === "string" ? await myRoutes(requester, complaintId) : [];
+    if (!mine.length) return sendJson(res, 200, { marked: 0 });
+    const { data } = await supabaseAdmin.from("complaint_routes").update({ seen_at: new Date().toISOString() })
+      .in("id", mine.map((r) => r.id)).is("seen_at", null).select("id");
+    return sendJson(res, 200, { marked: data?.length || 0 });
   }
 
   // WHAT IS SWITCHED ON: the pages show the PRD features only once the migration has been run
@@ -752,216 +758,191 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
 
   // AGENT TAG: a signed-in student opens the link the bot sent privately, linking that chat account to theirs
   if (pathname === "/api/chat/link" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester?.profile?.is_active || requester.profile.role !== "student") return sendJson(res, 403, { error: "Sign in with an active student account to link it." });
-      if (!(await isSignalsInstalled())) return sendJson(res, 503, { error: "Group reporting is not set up yet.", notInstalled: true });
-      const link = readLinkToken((await parseBody(req)).token, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-      if (!link) return sendJson(res, 400, { error: "This link has expired or is not valid. Message the bot again for a new one." });
-      const { error } = await supabaseAdmin.from("chat_links").upsert({ platform: link.platform, external_user_id: link.userId, student_id: requester.user.id }, { onConflict: "platform,external_user_id" });
-      if (error) return sendJson(res, 500, { error: "Could not link the account: " + error.message });
-      await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: "chat_linked", target: `Linked a ${PLATFORM_NAMES[link.platform]} account` });
-      if (botConfigured(link.platform)) {
-        await sendDirectMessage(link.platform, link.userId, `Linked to CivicSense as ${requester.profile.name}. You can now tag me in campus groups to raise an issue.`).catch(() => {});
-      }
-      return sendJson(res, 200, { platform: link.platform });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Linking failed" });
+    const requester = await getRequester(req);
+    if (!requester?.profile?.is_active || requester.profile.role !== "student") return sendJson(res, 403, { error: "Sign in with an active student account to link it." });
+    if (!(await isSignalsInstalled())) return sendJson(res, 503, { error: "Group reporting is not set up yet.", notInstalled: true });
+    const link = readLinkToken((await parseBody(req)).token, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+    if (!link) return sendJson(res, 400, { error: "This link has expired or is not valid. Message the bot again for a new one." });
+    const { error } = await supabaseAdmin.from("chat_links").upsert({ platform: link.platform, external_user_id: link.userId, student_id: requester.user.id }, { onConflict: "platform,external_user_id" });
+    if (error) return sendJson(res, 500, { error: "Could not link the account: " + error.message });
+    await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: "chat_linked", target: `Linked a ${PLATFORM_NAMES[link.platform]} account` });
+    if (botConfigured(link.platform)) {
+      await sendDirectMessage(link.platform, link.userId, `Linked to CivicSense as ${requester.profile.name}. You can now tag me in campus groups to raise an issue.`).catch(() => {});
     }
+    return sendJson(res, 200, { platform: link.platform });
   }
 
   // AGENT TAG: a forum post forwarded by the Moodle plugin (moodle/local_civicsense), signed with MOODLE_SECRET.
   // Answers once the replies are posted in Moodle, so it also works as a serverless function.
   if (pathname === "/api/chat/moodle" && req.method === "POST") {
-    try {
-      const raw = await readBody(req);
-      if (!verifyMoodleSignature(raw, req.headers["x-civicsense-time"], req.headers["x-civicsense-signature"], process.env.MOODLE_SECRET || "")) {
-        botStatus.moodle.lastError = "Refused a post with a bad or expired signature (secret or clock mismatch?)";
-        return sendJson(res, 401, { error: "Bad or expired signature" });
-      }
-      const tag = moodleTag(JSON.parse(raw));
-      if (tag) await respondToTag(tag);
-      return sendJson(res, 200, { handled: !!tag });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed" });
+    const raw = await readBody(req);
+    if (!verifyMoodleSignature(raw, req.headers["x-civicsense-time"], req.headers["x-civicsense-signature"], process.env.MOODLE_SECRET || "")) {
+      botStatus.moodle.lastError = "Refused a post with a bad or expired signature (secret or clock mismatch?)";
+      return sendJson(res, 401, { error: "Bad or expired signature" });
     }
+    const tag = moodleTag(JSON.parse(raw));
+    if (tag) await respondToTag(tag);
+    return sendJson(res, 200, { handled: !!tag });
   }
 
   // AGENT TAG: signals for the console. Administration sees all; a post holder sees open ones routed to their post.
   if (pathname === "/api/signals" && req.method === "GET") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester?.profile?.is_active || requester.profile.role === "student") return sendJson(res, 403, { error: "Official role required" });
-      if (!(await isSignalsInstalled())) return sendJson(res, 503, { error: "Group signals are not set up yet.", notInstalled: true });
-      const isAdmin = requester.profile.role === "administration";
-      const authorityIds = await myAuthorityIds(requester);
-      if (!isAdmin && !authorityIds.length) return sendJson(res, 200, { signals: [] });
-      let query = supabaseAdmin.from("signals").select(SIGNAL_COLS + ", supporters:signal_supporters(count)")
-        .gte("created_at", daysAgo(30)).order("created_at", { ascending: false }).limit(200);
-      if (!isAdmin) query = query.overlaps("authority_ids", authorityIds).in("status", ["open", "acknowledged", "converted"]);
-      const { data, error } = await query;
-      if (error) return sendJson(res, 500, { error: error.message });
-      const { data: posts } = await supabaseAdmin.from("authorities").select("id, post_title");
-      const titles = new Map((posts || []).map((p: any) => [p.id, p.post_title]));
-      const signals = (data || []).map((s: any) => ({
-        ...s, supporters: s.supporters?.[0]?.count ?? 0, posts: s.authority_ids.map((id: string) => titles.get(id)).filter(Boolean),
-      }));
-      return sendJson(res, 200, { signals });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed" });
-    }
+    const requester = await getRequester(req);
+    if (!requester?.profile?.is_active || requester.profile.role === "student") return sendJson(res, 403, { error: "Official role required" });
+    if (!(await isSignalsInstalled())) return sendJson(res, 503, { error: "Group signals are not set up yet.", notInstalled: true });
+    const isAdmin = requester.profile.role === "administration";
+    const authorityIds = await myAuthorityIds(requester);
+    if (!isAdmin && !authorityIds.length) return sendJson(res, 200, { signals: [] });
+    let query = supabaseAdmin.from("signals").select(SIGNAL_COLS + ", supporters:signal_supporters(count)")
+      .gte("created_at", daysAgo(30)).order("created_at", { ascending: false }).limit(200);
+    if (!isAdmin) query = query.overlaps("authority_ids", authorityIds).in("status", ["open", "acknowledged", "converted"]);
+    const { data, error } = await query;
+    if (error) return sendJson(res, 500, { error: error.message });
+    const { data: posts } = await supabaseAdmin.from("authorities").select("id, post_title");
+    const titles = new Map((posts || []).map((p: any) => [p.id, p.post_title]));
+    const signals = (data || []).map((s: any) => ({
+      ...s, supporters: s.supporters?.[0]?.count ?? 0, posts: s.authority_ids.map((id: string) => titles.get(id)).filter(Boolean),
+    }));
+    return sendJson(res, 200, { signals });
   }
 
   // AGENT TAG: acknowledge (the bot answers in the group), convert to an official complaint, or dismiss
   if (pathname === "/api/signals/act" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester?.profile?.is_active || requester.profile.role === "student") return sendJson(res, 403, { error: "Official role required" });
-      if (!(await isSignalsInstalled())) return sendJson(res, 503, { error: "Group signals are not set up yet.", notInstalled: true });
-      const { signalId, action, note } = await parseBody(req);
-      const { data: s } = await supabaseAdmin.from("signals").select(SIGNAL_COLS).eq("id", signalId).maybeSingle();
-      if (!s) return sendJson(res, 404, { error: "Signal not found" });
-      const isAdmin = requester.profile.role === "administration";
-      const authorityIds = await myAuthorityIds(requester);
-      if (!signalVisibleTo(s, { isAdmin, authorityIds })) return sendJson(res, 403, { error: "This signal is not routed to your post." });
-      if (s.status === "converted" || s.status === "dismissed") return sendJson(res, 409, { error: "This signal was already handled." });
-      const remark = typeof note === "string" ? note.trim().normalize("NFC").slice(0, 500) : "";
-      const post = (await postTitles(s.authority_ids.filter((id: string) => authorityIds.includes(id))))[0]
-        || (isAdmin ? "the administration" : requester.profile.unit_name || requester.profile.name);
-      const now = new Date().toISOString();
-      const handled = { handled_by: requester.user.id, handled_note: remark || null, handled_at: now, updated_at: now };
-      const supporters = await supporterIds(s.id);
-      let chatText: string | null = null;
-      let complaintId: string | null = null;
+    const requester = await getRequester(req);
+    if (!requester?.profile?.is_active || requester.profile.role === "student") return sendJson(res, 403, { error: "Official role required" });
+    if (!(await isSignalsInstalled())) return sendJson(res, 503, { error: "Group signals are not set up yet.", notInstalled: true });
+    const { signalId, action, note } = await parseBody(req);
+    const { data: s } = await supabaseAdmin.from("signals").select(SIGNAL_COLS).eq("id", signalId).maybeSingle();
+    if (!s) return sendJson(res, 404, { error: "Signal not found" });
+    const isAdmin = requester.profile.role === "administration";
+    const authorityIds = await myAuthorityIds(requester);
+    if (!signalVisibleTo(s, { isAdmin, authorityIds })) return sendJson(res, 403, { error: "This signal is not routed to your post." });
+    if (s.status === "converted" || s.status === "dismissed") return sendJson(res, 409, { error: "This signal was already handled." });
+    const remark = typeof note === "string" ? note.trim().normalize("NFC").slice(0, 500) : "";
+    const post = (await postTitles(s.authority_ids.filter((id: string) => authorityIds.includes(id))))[0]
+      || (isAdmin ? "the administration" : requester.profile.unit_name || requester.profile.name);
+    const now = new Date().toISOString();
+    const handled = { handled_by: requester.user.id, handled_note: remark || null, handled_at: now, updated_at: now };
+    const supporters = await supporterIds(s.id);
+    let chatText: string | null = null;
+    let complaintId: string | null = null;
 
-      if (action === "acknowledge") {
-        const { error } = await supabaseAdmin.from("signals").update({ ...handled, status: "acknowledged" }).eq("id", s.id);
-        if (error) return sendJson(res, 500, { error: error.message });
-        chatText = `Seen by ${post}${remark ? `: ${remark}` : "."}`;
-        await notify(supporters, null, messages.signalAcknowledged(post));
-      } else if (action === "convert") {
-        if (!supporters.length) return sendJson(res, 409, { error: "No linked student raised this signal." });
-        // the first student who raised it becomes the reporter, so they can track, confirm or reopen it
-        const summary = (s.summary_en || s.text).trim();
-        const { data: complaint, error } = await supabaseAdmin.from("complaints").insert({
-          student_id: supporters[0], title: (summary.length >= 5 ? summary : `Issue: ${summary}`).slice(0, 200),
-          description: `${s.text}\n\nRaised in the ${PLATFORM_NAMES[s.platform as Platform]} group "${s.chat_title || s.chat_id}" by ${supporters.length} student${supporters.length === 1 ? "" : "s"}.`,
-          category: "Other", visibility: "administration", target_unit_id: null, status: "needs_review", hide_name_from_union: !!s.is_sensitive,
-        }).select().single();
-        if (error) return sendJson(res, 500, { error: "Could not create the complaint: " + error.message });
-        complaintId = complaint.id;
-        await supabaseAdmin.from("signals").update({ ...handled, status: "converted", complaint_id: complaint.id }).eq("id", s.id);
-        await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: complaint.id, status: "submitted", changed_by: requester.user.id, remark: `Created from a group signal by ${post}.` });
-        try { await analyseAndRoute(complaint, null, null, requester.user.id); }
-        catch (err: any) { console.error("[api] converted signal left in review:", err.message); }
-        await notify(supporters.slice(1), null, messages.signalConverted(ticketRef(complaint.id)));
-        chatText = `This is now official complaint ${ticketRef(complaint.id)}, opened by ${post}.`;
-      } else if (action === "dismiss") {
-        const { error } = await supabaseAdmin.from("signals").update({ ...handled, status: "dismissed" }).eq("id", s.id);
-        if (error) return sendJson(res, 500, { error: error.message });
-      } else {
-        return sendJson(res, 400, { error: "action must be acknowledge, convert or dismiss" });
-      }
-
-      await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: `signal_${action}`, target: `Signal ${s.id.slice(0, 8)} from "${s.chat_title || s.chat_id}": ${action}${complaintId ? ` as ${ticketRef(complaintId)}` : ""}` });
-      // sensitive signals never get a public answer
-      let posted = false;
-      if (chatText && !s.is_sensitive && botConfigured(s.platform)) {
-        posted = await sendChatMessage(s.platform, s.chat_id, chatText, s.message_id).then(() => true, (err) => { console.error("[api] chat reply failed:", err.message); return false; });
-      }
-      return sendJson(res, 200, { success: true, complaintId, posted });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed" });
+    if (action === "acknowledge") {
+      const { error } = await supabaseAdmin.from("signals").update({ ...handled, status: "acknowledged" }).eq("id", s.id);
+      if (error) return sendJson(res, 500, { error: error.message });
+      chatText = `Seen by ${post}${remark ? `: ${remark}` : "."}`;
+      await notify(supporters, null, messages.signalAcknowledged(post));
+    } else if (action === "convert") {
+      if (!supporters.length) return sendJson(res, 409, { error: "No linked student raised this signal." });
+      // the first student who raised it becomes the reporter, so they can track, confirm or reopen it
+      const summary = (s.summary_en || s.text).trim();
+      const { data: complaint, error } = await supabaseAdmin.from("complaints").insert({
+        student_id: supporters[0], title: (summary.length >= 5 ? summary : `Issue: ${summary}`).slice(0, 200),
+        description: `${s.text}\n\nRaised in the ${PLATFORM_NAMES[s.platform as Platform]} group "${s.chat_title || s.chat_id}" by ${supporters.length} student${supporters.length === 1 ? "" : "s"}.`,
+        category: "Other", visibility: "administration", target_unit_id: null, status: "needs_review", hide_name_from_union: !!s.is_sensitive,
+      }).select().single();
+      if (error) return sendJson(res, 500, { error: "Could not create the complaint: " + error.message });
+      complaintId = complaint.id;
+      await supabaseAdmin.from("signals").update({ ...handled, status: "converted", complaint_id: complaint.id }).eq("id", s.id);
+      await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: complaint.id, status: "submitted", changed_by: requester.user.id, remark: `Created from a group signal by ${post}.` });
+      try { await analyseAndRoute(complaint, null, null, requester.user.id); }
+      catch (err: any) { console.error("[api] converted signal left in review:", err.message); }
+      await notify(supporters.slice(1), null, messages.signalConverted(ticketRef(complaint.id)));
+      chatText = `This is now official complaint ${ticketRef(complaint.id)}, opened by ${post}.`;
+    } else if (action === "dismiss") {
+      const { error } = await supabaseAdmin.from("signals").update({ ...handled, status: "dismissed" }).eq("id", s.id);
+      if (error) return sendJson(res, 500, { error: error.message });
+    } else {
+      return sendJson(res, 400, { error: "action must be acknowledge, convert or dismiss" });
     }
+
+    await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: `signal_${action}`, target: `Signal ${s.id.slice(0, 8)} from "${s.chat_title || s.chat_id}": ${action}${complaintId ? ` as ${ticketRef(complaintId)}` : ""}` });
+    // sensitive signals never get a public answer
+    let posted = false;
+    if (chatText && !s.is_sensitive && botConfigured(s.platform)) {
+      posted = await sendChatMessage(s.platform, s.chat_id, chatText, s.message_id).then(() => true, (err) => { console.error("[api] chat reply failed:", err.message); return false; });
+    }
+    return sendJson(res, 200, { success: true, complaintId, posted });
   }
 
   // REPLIES AND INTERNAL NOTES (PRD): officials who can see the complaint; stored in both languages
   if (pathname === "/api/complaints/replies" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester?.profile?.is_active || requester.profile.role === "student") return sendJson(res, 403, { error: "Official role required" });
-      if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Replies are not set up yet.", notInstalled: true });
-      const { complaintId, body, visibility } = await parseBody(req);
-      const text = typeof body === "string" ? body.trim().normalize("NFC") : "";
-      if (text.length < 2 || text.length > 4000) return sendJson(res, 400, { error: "Write a reply of 2 to 4000 characters." });
-      if (visibility !== "public" && visibility !== "internal") return sendJson(res, 400, { error: "visibility must be public or internal" });
-      const { data: complaint } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
-      if (!complaint) return sendJson(res, 404, { error: "Complaint not found" });
-      if (!(await requesterCanAccess(requester, complaint))) return sendJson(res, 403, { error: "You cannot reply to this complaint." });
+    const requester = await getRequester(req);
+    if (!requester?.profile?.is_active || requester.profile.role === "student") return sendJson(res, 403, { error: "Official role required" });
+    if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Replies are not set up yet.", notInstalled: true });
+    const { complaintId, body, visibility } = await parseBody(req);
+    const text = typeof body === "string" ? body.trim().normalize("NFC") : "";
+    if (text.length < 2 || text.length > 4000) return sendJson(res, 400, { error: "Write a reply of 2 to 4000 characters." });
+    if (visibility !== "public" && visibility !== "internal") return sendJson(res, 400, { error: "visibility must be public or internal" });
+    const { data: complaint } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
+    if (!complaint) return sendJson(res, 404, { error: "Complaint not found" });
+    if (!(await requesterCanAccess(requester, complaint))) return sendJson(res, 403, { error: "You cannot reply to this complaint." });
 
-      const { translation, attempt } = await translateReply(text);
-      if (attempt) await saveAiLogs({ ...attempt, complaint_id: complaint.id });
-      const routesHere = await myRoutes(requester, complaint.id);
-      const { data: post } = routesHere.length
-        ? await supabaseAdmin.from("complaint_routes").select("authority_id, authority:authorities(post_title)").eq("id", routesHere[0].id).maybeSingle()
-        : { data: null };
-      const { data: reply, error } = await supabaseAdmin.from("complaint_replies").insert({
-        complaint_id: complaint.id, author_id: requester.user.id, authority_id: (post as any)?.authority_id ?? null, visibility,
-        body_original: text, body_language: translation.language, body_en: translation.en, body_as: translation.as,
-      }).select().single();
-      if (error) return sendJson(res, 500, { error: "Failed to save reply: " + error.message });
+    const { translation, attempt } = await translateReply(text);
+    if (attempt) await saveAiLogs({ ...attempt, complaint_id: complaint.id });
+    const routesHere = await myRoutes(requester, complaint.id);
+    const { data: post } = routesHere.length
+      ? await supabaseAdmin.from("complaint_routes").select("authority_id, authority:authorities(post_title)").eq("id", routesHere[0].id).maybeSingle()
+      : { data: null };
+    const { data: reply, error } = await supabaseAdmin.from("complaint_replies").insert({
+      complaint_id: complaint.id, author_id: requester.user.id, authority_id: (post as any)?.authority_id ?? null, visibility,
+      body_original: text, body_language: translation.language, body_en: translation.en, body_as: translation.as,
+    }).select().single();
+    if (error) return sendJson(res, 500, { error: "Failed to save reply: " + error.message });
 
-      const now = new Date().toISOString();
-      if (routesHere.length) {
-        const ids = routesHere.map((r) => r.id);
-        await supabaseAdmin.from("complaint_routes").update({ seen_at: now }).in("id", ids).is("seen_at", null);
-        if (visibility === "public") await supabaseAdmin.from("complaint_routes").update({ replied_at: now }).in("id", ids).is("replied_at", null);
-      }
-      if (visibility === "public") {
-        const from = (post as any)?.authority?.post_title || requester.profile.unit_name || requester.profile.name;
-        await notify([complaint.student_id, ...(await mergedReporterIds(complaint.id))], complaint.id, messages.newReply(ticketRef(complaint.id), from));
-      }
-      await supabaseAdmin.from("activity_log").insert({
-        actor_id: requester.user.id, action: visibility === "public" ? "complaint_reply" : "complaint_internal_note",
-        target: `${visibility === "public" ? "Replied on" : "Internal note on"} complaint #${complaint.id.slice(0, 8)}`,
-      });
-      return sendJson(res, 200, { reply, translated: !!(translation.en && translation.as) });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Reply failed" });
+    const now = new Date().toISOString();
+    if (routesHere.length) {
+      const ids = routesHere.map((r) => r.id);
+      await supabaseAdmin.from("complaint_routes").update({ seen_at: now }).in("id", ids).is("seen_at", null);
+      if (visibility === "public") await supabaseAdmin.from("complaint_routes").update({ replied_at: now }).in("id", ids).is("replied_at", null);
     }
+    if (visibility === "public") {
+      const from = (post as any)?.authority?.post_title || requester.profile.unit_name || requester.profile.name;
+      await notify([complaint.student_id, ...(await mergedReporterIds(complaint.id))], complaint.id, messages.newReply(ticketRef(complaint.id), from));
+    }
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: requester.user.id, action: visibility === "public" ? "complaint_reply" : "complaint_internal_note",
+      target: `${visibility === "public" ? "Replied on" : "Internal note on"} complaint #${complaint.id.slice(0, 8)}`,
+    });
+    return sendJson(res, 200, { reply, translated: !!(translation.en && translation.as) });
   }
 
   // REPORTER CONFIRMS OR REOPENS a resolved complaint (PRD step 7)
   if (pathname === "/api/complaints/confirm" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester?.profile?.is_active) return sendJson(res, 401, { error: "Authentication required" });
-      if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Not set up yet.", notInstalled: true });
-      const { complaintId, action, note } = await parseBody(req);
-      const { data: complaint } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
-      if (!complaint || complaint.student_id !== requester.user.id) return sendJson(res, 404, { error: "Complaint not found" });
-      if (complaint.status !== "resolved") return sendJson(res, 400, { error: "Only a resolved complaint can be confirmed or reopened." });
-      const remark = typeof note === "string" ? note.trim().slice(0, 1000) : "";
-      const now = new Date().toISOString();
-      const ref = ticketRef(complaint.id);
-      const { data: routeRows } = await supabaseAdmin.from("complaint_routes").select("authority_id, kind").eq("complaint_id", complaint.id);
-      const primaryHolders = await postHolderIds((routeRows || []).filter((r: any) => r.kind === "primary").map((r: any) => r.authority_id));
+    const requester = await getRequester(req);
+    if (!requester?.profile?.is_active) return sendJson(res, 401, { error: "Authentication required" });
+    if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Not set up yet.", notInstalled: true });
+    const { complaintId, action, note } = await parseBody(req);
+    const { data: complaint } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
+    if (!complaint || complaint.student_id !== requester.user.id) return sendJson(res, 404, { error: "Complaint not found" });
+    if (complaint.status !== "resolved") return sendJson(res, 400, { error: "Only a resolved complaint can be confirmed or reopened." });
+    const remark = typeof note === "string" ? note.trim().slice(0, 1000) : "";
+    const now = new Date().toISOString();
+    const ref = ticketRef(complaint.id);
+    const { data: routeRows } = await supabaseAdmin.from("complaint_routes").select("authority_id, kind").eq("complaint_id", complaint.id);
+    const primaryHolders = await postHolderIds((routeRows || []).filter((r: any) => r.kind === "primary").map((r: any) => r.authority_id));
 
-      if (action === "confirm") {
-        await supabaseAdmin.from("complaints").update({ status: "closed", closed_at: now, updated_at: now }).eq("id", complaint.id);
-        await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: complaint.id, status: "closed", remark: remark || "Reporter confirmed it is fixed.", changed_by: requester.user.id });
-        await notify(primaryHolders, complaint.id, messages.confirmed(ref));
-      } else if (action === "reopen") {
-        if (remark.length < 3) return sendJson(res, 400, { error: "Please say what is still wrong (at least 3 characters)." });
-        // PRD: back to the primary authority (routed); its resolved checkpoint is cleared
-        await supabaseAdmin.from("complaints").update({ status: "submitted", resolved_at: null, updated_at: now }).eq("id", complaint.id);
-        await supabaseAdmin.from("complaint_routes").update({ resolved_at: null }).eq("complaint_id", complaint.id);
-        await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: complaint.id, status: "submitted", remark: "Reopened by the reporter: " + remark, changed_by: requester.user.id });
-        await notify(primaryHolders, complaint.id, messages.reopened(ref));
-      } else {
-        return sendJson(res, 400, { error: "action must be confirm or reopen" });
-      }
-      await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: action === "confirm" ? "complaint_confirmed" : "complaint_reopened", target: `Reporter ${action === "confirm" ? "confirmed" : "reopened"} complaint #${complaint.id.slice(0, 8)}` });
-      return sendJson(res, 200, { success: true, status: action === "confirm" ? "closed" : "submitted" });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed" });
+    if (action === "confirm") {
+      await supabaseAdmin.from("complaints").update({ status: "closed", closed_at: now, updated_at: now }).eq("id", complaint.id);
+      await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: complaint.id, status: "closed", remark: remark || "Reporter confirmed it is fixed.", changed_by: requester.user.id });
+      await notify(primaryHolders, complaint.id, messages.confirmed(ref));
+    } else if (action === "reopen") {
+      if (remark.length < 3) return sendJson(res, 400, { error: "Please say what is still wrong (at least 3 characters)." });
+      // PRD: back to the primary authority (routed); its resolved checkpoint is cleared
+      await supabaseAdmin.from("complaints").update({ status: "submitted", resolved_at: null, updated_at: now }).eq("id", complaint.id);
+      await supabaseAdmin.from("complaint_routes").update({ resolved_at: null }).eq("complaint_id", complaint.id);
+      await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: complaint.id, status: "submitted", remark: "Reopened by the reporter: " + remark, changed_by: requester.user.id });
+      await notify(primaryHolders, complaint.id, messages.reopened(ref));
+    } else {
+      return sendJson(res, 400, { error: "action must be confirm or reopen" });
     }
+    await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: action === "confirm" ? "complaint_confirmed" : "complaint_reopened", target: `Reporter ${action === "confirm" ? "confirmed" : "reopened"} complaint #${complaint.id.slice(0, 8)}` });
+    return sendJson(res, 200, { success: true, status: action === "confirm" ? "closed" : "submitted" });
   }
 
   // POSSIBLE DUPLICATES (PRD admin dashboard): flagged pairs, newest first
   if (pathname === "/api/admin/duplicates" && req.method === "GET") {
-    const requester = await getRequester(req);
-    if (!requester?.profile?.is_active || requester.profile.role !== "administration") return sendJson(res, 403, { error: "Administration role required" });
+    if (!(await requireAdmin(req, res))) return true;
     if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Not set up yet.", notInstalled: true });
     const cols = "id, title, description, summary_en, summary_as, ai_category, location_text, status, created_at";
     const { data: flagged, error } = await supabaseAdmin.from("complaints").select(cols + ", possible_duplicate_of, duplicate_score")
@@ -977,42 +958,38 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
 
   // MERGE (admin confirms) or DISMISS a possible duplicate. Merged reporters then get the surviving complaint's updates.
   if ((pathname === "/api/admin/merge" || pathname === "/api/admin/dismiss-duplicate") && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester?.profile?.is_active || requester.profile.role !== "administration") return sendJson(res, 403, { error: "Administration role required" });
-      if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Not set up yet.", notInstalled: true });
-      const { complaintId, intoId } = await parseBody(req);
-      const { data: c } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
-      if (!c) return sendJson(res, 404, { error: "Complaint not found" });
-      const now = new Date().toISOString();
+    const requester = await requireAdmin(req, res);
+    if (!requester) return true;
+    if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Not set up yet.", notInstalled: true });
+    const { complaintId, intoId } = await parseBody(req);
+    const { data: c } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
+    if (!c) return sendJson(res, 404, { error: "Complaint not found" });
+    const now = new Date().toISOString();
 
-      if (pathname === "/api/admin/dismiss-duplicate") {
-        await supabaseAdmin.from("complaints").update({ possible_duplicate_of: null, duplicate_score: null, duplicate_dismissed: true, updated_at: now }).eq("id", c.id);
-        await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: "duplicate_dismissed", target: `Complaint #${c.id.slice(0, 8)} is not a duplicate` });
-        return sendJson(res, 200, { success: true });
-      }
-
-      const target = intoId || c.possible_duplicate_of;
-      if (!target || target === c.id) return sendJson(res, 400, { error: "Say which complaint to merge into." });
-      const { data: into } = await supabaseAdmin.from("complaints").select("id, status, duplicate_of").eq("id", target).maybeSingle();
-      if (!into) return sendJson(res, 404, { error: "Target complaint not found" });
-      if (into.status === "merged" || into.duplicate_of) return sendJson(res, 400, { error: "That complaint was itself merged; merge into the surviving one." });
-      await supabaseAdmin.from("complaints").update({ status: "merged", duplicate_of: into.id, possible_duplicate_of: null, updated_at: now }).eq("id", c.id);
-      // complaints already merged into this one follow it to the surviving complaint
-      await supabaseAdmin.from("complaints").update({ duplicate_of: into.id }).eq("duplicate_of", c.id);
-      await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: c.id, status: "merged", remark: `Merged into ${ticketRef(into.id)}`, changed_by: requester.user.id });
-      await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: "complaint_merged", target: `Complaint #${c.id.slice(0, 8)} merged into #${into.id.slice(0, 8)}` });
-      await notify([c.student_id], c.id, messages.statusChanged(ticketRef(c.id), "merged"));
-      return sendJson(res, 200, { success: true, mergedInto: into.id });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed" });
+    if (pathname === "/api/admin/dismiss-duplicate") {
+      await supabaseAdmin.from("complaints").update({ possible_duplicate_of: null, duplicate_score: null, duplicate_dismissed: true, updated_at: now }).eq("id", c.id);
+      await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: "duplicate_dismissed", target: `Complaint #${c.id.slice(0, 8)} is not a duplicate` });
+      return sendJson(res, 200, { success: true });
     }
+
+    const target = intoId || c.possible_duplicate_of;
+    if (!target || target === c.id) return sendJson(res, 400, { error: "Say which complaint to merge into." });
+    const { data: into } = await supabaseAdmin.from("complaints").select("id, status, duplicate_of").eq("id", target).maybeSingle();
+    if (!into) return sendJson(res, 404, { error: "Target complaint not found" });
+    if (into.status === "merged" || into.duplicate_of) return sendJson(res, 400, { error: "That complaint was itself merged; merge into the surviving one." });
+    await supabaseAdmin.from("complaints").update({ status: "merged", duplicate_of: into.id, possible_duplicate_of: null, updated_at: now }).eq("id", c.id);
+    // complaints already merged into this one follow it to the surviving complaint
+    await supabaseAdmin.from("complaints").update({ duplicate_of: into.id }).eq("duplicate_of", c.id);
+    await supabaseAdmin.from("complaint_status_history").insert({ complaint_id: c.id, status: "merged", remark: `Merged into ${ticketRef(into.id)}`, changed_by: requester.user.id });
+    await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: "complaint_merged", target: `Complaint #${c.id.slice(0, 8)} merged into #${into.id.slice(0, 8)}` });
+    await notify([c.student_id], c.id, messages.statusChanged(ticketRef(c.id), "merged"));
+    return sendJson(res, 200, { success: true, mergedInto: into.id });
   }
 
   // ROUTING EDITOR (PRD P1, /admin/routing): posts and rules
   if (pathname === '/api/admin/edit-analysis' && req.method === 'POST') {
-    const requester = await getRequester(req);
-    if (!requester?.profile?.is_active || requester.profile.role !== 'administration') return sendJson(res, 403, { error: 'Administration role required.' });
+    const requester = await requireAdmin(req, res);
+    if (!requester) return true;
     const { complaintId, category, priority } = await parseBody(req);
     if (!CATEGORIES.includes(category) || !Number.isInteger(priority) || priority < 1 || priority > 4) return sendJson(res, 400, { error: 'Choose a category and a priority from 1 to 4.' });
     const { data: c, error } = await supabaseAdmin.from('complaints').select('*').eq('id', complaintId).maybeSingle();
@@ -1034,919 +1011,824 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
   }
 
   if (pathname === "/api/admin/routing" && (req.method === "GET" || req.method === "PUT")) {
-    try {
-      const requester = await getRequester(req);
-      if (!requester?.profile?.is_active || requester.profile.role !== "administration") return sendJson(res, 403, { error: "Administration role required" });
-      if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Not set up yet.", notInstalled: true });
+    const requester = await requireAdmin(req, res);
+    if (!requester) return true;
+    if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Not set up yet.", notInstalled: true });
 
-      if (req.method === "PUT") {
-        const { authorities, rules } = await parseBody(req);
-        const errors: string[] = [];
-        const postRows = (Array.isArray(authorities) ? authorities : []).map((a: any) => {
-          if (!a.id || !a.post_title?.trim()) errors.push("Every post needs a title.");
-          if (a.email && !/^[^\s@]+@[^\s@]+$/.test(a.email)) errors.push(`Invalid email for ${a.post_title}.`);
-          return { id: a.id, post_title: String(a.post_title || "").trim(), person_name: a.person_name?.trim() || null, email: a.email?.trim().toLowerCase() || null, active: a.active !== false };
-        });
-        const ruleRows = (Array.isArray(rules) ? rules : []).map((r: any) => {
-          if (!CATEGORIES.includes(r.category)) errors.push("Unknown category: " + r.category);
-          if (!r.primary_authority_id) errors.push(`Category ${r.category} needs a primary post.`);
-          const hours = Number(r.response_hours);
-          if (!Number.isInteger(hours) || hours < 1 || hours > 2000) errors.push(`Response hours for ${r.category} must be 1 to 2000.`);
-          return {
-            category: r.category, primary_authority_id: r.primary_authority_id,
-            copy_authority_ids: (Array.isArray(r.copy_authority_ids) ? r.copy_authority_ids : []).filter((id: string) => id && id !== r.primary_authority_id),
-            escalate_to_id: r.escalate_to_id || null, response_hours: hours, active: r.active !== false,
-          };
-        });
-        if (errors.length) return sendJson(res, 400, { error: [...new Set(errors)].join(" ") });
-        for (const p of postRows) {
-          const { id, ...fields } = p;
-          const { error } = await supabaseAdmin.from("authorities").update(fields).eq("id", id);
-          if (error) return sendJson(res, 500, { error: "Failed to save post: " + error.message });
-        }
-        if (ruleRows.length) {
-          const { error } = await supabaseAdmin.from("routing_rules").upsert(ruleRows, { onConflict: "category" });
-          if (error) return sendJson(res, 500, { error: "Failed to save rules: " + error.message });
-        }
-        await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: "routing_edited", target: `Routing updated: ${postRows.length} posts, ${ruleRows.length} rules` });
+    if (req.method === "PUT") {
+      const { authorities, rules } = await parseBody(req);
+      const errors: string[] = [];
+      const postRows = (Array.isArray(authorities) ? authorities : []).map((a: any) => {
+        if (!a.id || !a.post_title?.trim()) errors.push("Every post needs a title.");
+        if (a.email && !/^[^\s@]+@[^\s@]+$/.test(a.email)) errors.push(`Invalid email for ${a.post_title}.`);
+        return { id: a.id, post_title: String(a.post_title || "").trim(), person_name: a.person_name?.trim() || null, email: a.email?.trim().toLowerCase() || null, active: a.active !== false };
+      });
+      const ruleRows = (Array.isArray(rules) ? rules : []).map((r: any) => {
+        if (!CATEGORIES.includes(r.category)) errors.push("Unknown category: " + r.category);
+        if (!r.primary_authority_id) errors.push(`Category ${r.category} needs a primary post.`);
+        const hours = Number(r.response_hours);
+        if (!Number.isInteger(hours) || hours < 1 || hours > 2000) errors.push(`Response hours for ${r.category} must be 1 to 2000.`);
+        return {
+          category: r.category, primary_authority_id: r.primary_authority_id,
+          copy_authority_ids: (Array.isArray(r.copy_authority_ids) ? r.copy_authority_ids : []).filter((id: string) => id && id !== r.primary_authority_id),
+          escalate_to_id: r.escalate_to_id || null, response_hours: hours, active: r.active !== false,
+        };
+      });
+      if (errors.length) return sendJson(res, 400, { error: [...new Set(errors)].join(" ") });
+      for (const p of postRows) {
+        const { id, ...fields } = p;
+        const { error } = await supabaseAdmin.from("authorities").update(fields).eq("id", id);
+        if (error) return sendJson(res, 500, { error: "Failed to save post: " + error.message });
       }
-
-      const [{ data: posts }, { data: ruleList }] = await Promise.all([
-        supabaseAdmin.from("authorities").select("id, post_key, post_title, person_name, level, is_union, email, active").order("level", { ascending: false }).order("post_title"),
-        supabaseAdmin.from("routing_rules").select("category, primary_authority_id, copy_authority_ids, escalate_to_id, response_hours, active").order("category"),
-      ]);
-      return sendJson(res, 200, { authorities: posts || [], rules: ruleList || [], categories: CATEGORIES });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed" });
+      if (ruleRows.length) {
+        const { error } = await supabaseAdmin.from("routing_rules").upsert(ruleRows, { onConflict: "category" });
+        if (error) return sendJson(res, 500, { error: "Failed to save rules: " + error.message });
+      }
+      await supabaseAdmin.from("activity_log").insert({ actor_id: requester.user.id, action: "routing_edited", target: `Routing updated: ${postRows.length} posts, ${ruleRows.length} rules` });
     }
+
+    const [{ data: posts }, { data: ruleList }] = await Promise.all([
+      supabaseAdmin.from("authorities").select("id, post_key, post_title, person_name, level, is_union, email, active").order("level", { ascending: false }).order("post_title"),
+      supabaseAdmin.from("routing_rules").select("category, primary_authority_id, copy_authority_ids, escalate_to_id, response_hours, active").order("category"),
+    ]);
+    return sendJson(res, 200, { authorities: posts || [], rules: ruleList || [], categories: CATEGORIES });
   }
 
   // REVIEW QUEUE: an administrator routes a needs_review complaint by hand, optionally correcting the category
   if (pathname === "/api/admin/route-complaint" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester?.profile?.is_active || requester.profile.role !== "administration") return sendJson(res, 403, { error: "Administration role required" });
-      if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "AI routing is not set up yet.", notInstalled: true });
-      const { complaintId, category } = await parseBody(req);
-      if (!CATEGORIES.includes(category)) return sendJson(res, 400, { error: "Unknown category: " + category });
-      const { data: complaint } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
-      if (!complaint) return sendJson(res, 404, { error: "Complaint not found" });
+    const requester = await requireAdmin(req, res);
+    if (!requester) return true;
+    if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "AI routing is not set up yet.", notInstalled: true });
+    const { complaintId, category } = await parseBody(req);
+    if (!CATEGORIES.includes(category)) return sendJson(res, 400, { error: "Unknown category: " + category });
+    const { data: complaint } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
+    if (!complaint) return sendJson(res, 404, { error: "Complaint not found" });
 
-      const headOnly = !!complaint.is_sensitive || (category === "safety" && complaint.priority === 1);
-      await insertRoutes(complaint.id, category, headOnly);
-      const edited = complaint.ai_category !== category;
-      await supabaseAdmin.from("complaints").update({
-        ai_category: category, human_edited: complaint.human_edited || edited,
-        ...(headOnly ? { visibility: "administration", target_unit_id: null } : {}),
-        ...(complaint.status === "needs_review" ? { status: "submitted" } : {}),
-        updated_at: new Date().toISOString(),
-      }).eq("id", complaint.id);
-      const routes = await routesWithPosts(complaint.id);
-      await supabaseAdmin.from("complaint_status_history").insert({
-        complaint_id: complaint.id, status: "submitted", changed_by: requester.user.id,
-        remark: `Routed by administration as ${category} to ${routes.map((r) => r.post_title).join(", ")}`,
-      });
-      await supabaseAdmin.from("activity_log").insert({
-        actor_id: requester.user.id, action: "complaint_routed",
-        target: `Complaint #${complaint.id.slice(0, 8)} routed by hand as ${category}${edited ? " (AI category corrected)" : ""}`,
-      });
-      await notify([complaint.student_id], complaint.id, messages.routedToReporter(ticketRef(complaint.id), routes.map((r) => r.post_title)));
-      const { data: rows } = await supabaseAdmin.from("complaint_routes").select("authority_id").eq("complaint_id", complaint.id);
-      await notifyRoutedPosts(complaint.id, (rows || []).map((x: any) => x.authority_id), requester.user.id);
-      return sendJson(res, 200, { success: true, routes });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Routing failed" });
-    }
+    const headOnly = !!complaint.is_sensitive || (category === "safety" && complaint.priority === 1);
+    await insertRoutes(complaint.id, category, headOnly);
+    const edited = complaint.ai_category !== category;
+    await supabaseAdmin.from("complaints").update({
+      ai_category: category, human_edited: complaint.human_edited || edited,
+      ...(headOnly ? { visibility: "administration", target_unit_id: null } : {}),
+      ...(complaint.status === "needs_review" ? { status: "submitted" } : {}),
+      updated_at: new Date().toISOString(),
+    }).eq("id", complaint.id);
+    const routes = await routesWithPosts(complaint.id);
+    await supabaseAdmin.from("complaint_status_history").insert({
+      complaint_id: complaint.id, status: "submitted", changed_by: requester.user.id,
+      remark: `Routed by administration as ${category} to ${routes.map((r) => r.post_title).join(", ")}`,
+    });
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: requester.user.id, action: "complaint_routed",
+      target: `Complaint #${complaint.id.slice(0, 8)} routed by hand as ${category}${edited ? " (AI category corrected)" : ""}`,
+    });
+    await notify([complaint.student_id], complaint.id, messages.routedToReporter(ticketRef(complaint.id), routes.map((r) => r.post_title)));
+    const { data: rows } = await supabaseAdmin.from("complaint_routes").select("authority_id").eq("complaint_id", complaint.id);
+    await notifyRoutedPosts(complaint.id, (rows || []).map((x: any) => x.authority_id), requester.user.id);
+    return sendJson(res, 200, { success: true, routes });
   }
 
   // 2. CLOUDINARY AUTHENTICATED UPLOAD SIGNATURE (signed-in users only)
   if (pathname === "/api/cloudinary/sign-upload" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester) {
-        return sendJson(res, 401, { error: "Authentication required" });
-      }
-      const body = await parseBody(req).catch(() => ({}));
-      const timestamp = Math.round(Date.now() / 1000);
-      const wantsEvidence = body && body.folder === "civicsense/complaint_evidence";
-      // A brand-new student has no profile row yet while uploading their ID card; evidence needs an active student.
-      if (wantsEvidence && (requester.profile?.role !== "student" || !requester.profile.is_active)) {
-        return sendJson(res, 403, { error: "Only active student accounts can upload complaint evidence" });
-      }
-      const folder = wantsEvidence ? `civicsense/complaint_evidence/${requester.user.id}` : "civicsense/id_cards";
-      const deliveryType = "authenticated";
-
-      const paramsToSign = {
-        folder,
-        timestamp,
-        type: deliveryType,
-      };
-
-      const signature = cloudinary.utils.api_sign_request(paramsToSign, API_SECRET);
-
-      return sendJson(res, 200, {
-        signature,
-        timestamp,
-        apiKey: API_KEY,
-        cloudName: CLOUD_NAME,
-        folder,
-        type: deliveryType,
-      });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to generate upload signature" });
+    const requester = await getRequester(req);
+    if (!requester) {
+      return sendJson(res, 401, { error: "Authentication required" });
     }
+    const body = await parseBody(req).catch(() => ({}));
+    const timestamp = Math.round(Date.now() / 1000);
+    const wantsEvidence = body && body.folder === "civicsense/complaint_evidence";
+    // A brand-new student has no profile row yet while uploading their ID card; evidence needs an active student.
+    if (wantsEvidence && (requester.profile?.role !== "student" || !requester.profile.is_active)) {
+      return sendJson(res, 403, { error: "Only active student accounts can upload complaint evidence" });
+    }
+    const folder = wantsEvidence ? `civicsense/complaint_evidence/${requester.user.id}` : "civicsense/id_cards";
+    const deliveryType = "authenticated";
+
+    const paramsToSign = {
+      folder,
+      timestamp,
+      type: deliveryType,
+    };
+
+    const signature = cloudinary.utils.api_sign_request(paramsToSign, API_SECRET);
+
+    return sendJson(res, 200, {
+      signature,
+      timestamp,
+      apiKey: API_KEY,
+      cloudName: CLOUD_NAME,
+      folder,
+      type: deliveryType,
+    });
   }
 
   // 3. DEPARTMENT UNITS LIST (READABLE BY AUTHENTICATED USERS & FORM)
   if (pathname === "/api/department-units" && req.method === "GET") {
-    try {
-      const { data, error } = await supabaseAdmin
-        .from("profiles")
-        .select("id, name, unit_name, role")
-        .in("role", ["department", "social_service"])
-        .eq("is_active", true)
-        .order("name", { ascending: true });
+    const { data, error } = await supabaseAdmin
+      .from("profiles")
+      .select("id, name, unit_name, role")
+      .in("role", ["department", "social_service"])
+      .eq("is_active", true)
+      .order("name", { ascending: true });
 
-      if (error) {
-        return sendJson(res, 500, { error: error.message });
-      }
-
-      return sendJson(res, 200, { units: data || [] });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to fetch department units" });
+    if (error) {
+      return sendJson(res, 500, { error: error.message });
     }
+
+    return sendJson(res, 200, { units: data || [] });
   }
 
   // 4. VIEW ID CARD (SHORT-LIVED SIGNED URL)
   if (pathname === "/api/id-card/view" && req.method === "GET") {
-    try {
-      const targetUserId = url.searchParams.get("userId");
-      if (!targetUserId) {
-        return sendJson(res, 400, { error: "Missing required parameter: userId" });
-      }
-
-      const requester = await getRequester(req);
-      if (!requester) {
-        return sendJson(res, 401, { error: "Authentication required" });
-      }
-
-      if (!requester.profile || !requester.profile.is_active) {
-        return sendJson(res, 403, { error: "Account inactive or unauthorized" });
-      }
-
-      if (!(await requesterCanSeeStudent(requester, targetUserId))) {
-        return sendJson(res, 403, {
-          error: "Forbidden: You are not authorized to view this student ID card.",
-        });
-      }
-
-      const { data: idCard, error: idCardErr } = await supabaseAdmin
-        .from("id_cards")
-        .select("cloudinary_public_id, status, reviewed_at")
-        .eq("user_id", targetUserId)
-        .maybeSingle();
-
-      if (idCardErr || !idCard) {
-        return sendJson(res, 404, { error: "No student ID card registered for this user." });
-      }
-
-      if (!API_SECRET || !API_KEY || !CLOUD_NAME) {
-        return sendJson(res, 500, {
-          error: "Cloudinary credentials not configured.",
-        });
-      }
-
-      const expiresAt = Math.round(Date.now() / 1000) + 10 * 60;
-      const signedUrl = cloudinary.utils.private_download_url(
-        idCard.cloudinary_public_id,
-        "jpg",
-        {
-          expires_at: expiresAt,
-          attachment: false,
-          type: "authenticated",
-        }
-      );
-
-      return sendJson(res, 200, {
-        signedUrl,
-        expiresAt,
-        status: idCard.status,
-      });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to generate signed viewing URL" });
+    const targetUserId = url.searchParams.get("userId");
+    if (!targetUserId) {
+      return sendJson(res, 400, { error: "Missing required parameter: userId" });
     }
+
+    const requester = await getRequester(req);
+    if (!requester) {
+      return sendJson(res, 401, { error: "Authentication required" });
+    }
+
+    if (!requester.profile || !requester.profile.is_active) {
+      return sendJson(res, 403, { error: "Account inactive or unauthorized" });
+    }
+
+    if (!(await requesterCanSeeStudent(requester, targetUserId))) {
+      return sendJson(res, 403, {
+        error: "Forbidden: You are not authorized to view this student ID card.",
+      });
+    }
+
+    const { data: idCard, error: idCardErr } = await supabaseAdmin
+      .from("id_cards")
+      .select("cloudinary_public_id, status, reviewed_at")
+      .eq("user_id", targetUserId)
+      .maybeSingle();
+
+    if (idCardErr || !idCard) {
+      return sendJson(res, 404, { error: "No student ID card registered for this user." });
+    }
+
+    if (!API_SECRET || !API_KEY || !CLOUD_NAME) {
+      return sendJson(res, 500, {
+        error: "Cloudinary credentials not configured.",
+      });
+    }
+
+    const expiresAt = Math.round(Date.now() / 1000) + 10 * 60;
+    const signedUrl = cloudinary.utils.private_download_url(
+      idCard.cloudinary_public_id,
+      "jpg",
+      {
+        expires_at: expiresAt,
+        attachment: false,
+        type: "authenticated",
+      }
+    );
+
+    return sendJson(res, 200, {
+      signedUrl,
+      expiresAt,
+      status: idCard.status,
+    });
   }
 
   // 5. VIEW COMPLAINT EVIDENCE (SHORT-LIVED SIGNED URL)
   if (pathname === "/api/complaint-evidence/view" && req.method === "GET") {
-    try {
-      const evidenceId = url.searchParams.get("evidenceId");
-      const publicId = url.searchParams.get("publicId");
-      const complaintId = url.searchParams.get("complaintId");
+    const evidenceId = url.searchParams.get("evidenceId");
+    const publicId = url.searchParams.get("publicId");
+    const complaintId = url.searchParams.get("complaintId");
 
-      if (!evidenceId && (!publicId || !complaintId)) {
-        return sendJson(res, 400, { error: "Missing required parameter: evidenceId or (complaintId and publicId)" });
-      }
-
-      const requester = await getRequester(req);
-      if (!requester) {
-        return sendJson(res, 401, { error: "Authentication required" });
-      }
-
-      if (!requester.profile || !requester.profile.is_active) {
-        return sendJson(res, 403, { error: "Account inactive or unauthorized" });
-      }
-
-      // Always resolve through complaint_evidence so a caller can't pair an accessible complaint with someone else's file.
-      let evQuery = supabaseAdmin.from("complaint_evidence").select("complaint_id, cloudinary_public_id");
-      evQuery = evidenceId
-        ? evQuery.eq("id", evidenceId)
-        : evQuery.eq("complaint_id", complaintId!).eq("cloudinary_public_id", publicId!);
-      const { data: evRow, error: evErr } = await evQuery.maybeSingle();
-
-      if (evErr || !evRow) {
-        return sendJson(res, 404, { error: "Evidence record not found" });
-      }
-      const targetComplaintId = evRow.complaint_id;
-      const targetPublicId = evRow.cloudinary_public_id;
-
-      const { data: compRow, error: compErr } = await supabaseAdmin
-        .from("complaints")
-        .select("id, student_id, visibility, target_unit_id")
-        .eq("id", targetComplaintId)
-        .maybeSingle();
-
-      if (compErr || !compRow) {
-        return sendJson(res, 404, { error: "Complaint not found" });
-      }
-
-      if (!(await requesterCanAccess(requester, compRow))) {
-        return sendJson(res, 403, { error: "Forbidden: Not authorized to view this complaint evidence" });
-      }
-
-      if (!API_SECRET || !API_KEY || !CLOUD_NAME) {
-        return sendJson(res, 500, { error: "Cloudinary credentials not configured." });
-      }
-
-      const expiresAt = Math.round(Date.now() / 1000) + 10 * 60;
-      const signedUrl = cloudinary.utils.private_download_url(
-        targetPublicId,
-        "jpg",
-        {
-          expires_at: expiresAt,
-          attachment: false,
-          type: "authenticated",
-        }
-      );
-
-      return sendJson(res, 200, {
-        signedUrl,
-        expiresAt,
-        publicId: targetPublicId,
-      });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to generate signed evidence URL" });
+    if (!evidenceId && (!publicId || !complaintId)) {
+      return sendJson(res, 400, { error: "Missing required parameter: evidenceId or (complaintId and publicId)" });
     }
+
+    const requester = await getRequester(req);
+    if (!requester) {
+      return sendJson(res, 401, { error: "Authentication required" });
+    }
+
+    if (!requester.profile || !requester.profile.is_active) {
+      return sendJson(res, 403, { error: "Account inactive or unauthorized" });
+    }
+
+    // Always resolve through complaint_evidence so a caller can't pair an accessible complaint with someone else's file.
+    let evQuery = supabaseAdmin.from("complaint_evidence").select("complaint_id, cloudinary_public_id");
+    evQuery = evidenceId
+      ? evQuery.eq("id", evidenceId)
+      : evQuery.eq("complaint_id", complaintId!).eq("cloudinary_public_id", publicId!);
+    const { data: evRow, error: evErr } = await evQuery.maybeSingle();
+
+    if (evErr || !evRow) {
+      return sendJson(res, 404, { error: "Evidence record not found" });
+    }
+    const targetComplaintId = evRow.complaint_id;
+    const targetPublicId = evRow.cloudinary_public_id;
+
+    const { data: compRow, error: compErr } = await supabaseAdmin
+      .from("complaints")
+      .select("id, student_id, visibility, target_unit_id")
+      .eq("id", targetComplaintId)
+      .maybeSingle();
+
+    if (compErr || !compRow) {
+      return sendJson(res, 404, { error: "Complaint not found" });
+    }
+
+    if (!(await requesterCanAccess(requester, compRow))) {
+      return sendJson(res, 403, { error: "Forbidden: Not authorized to view this complaint evidence" });
+    }
+
+    if (!API_SECRET || !API_KEY || !CLOUD_NAME) {
+      return sendJson(res, 500, { error: "Cloudinary credentials not configured." });
+    }
+
+    const expiresAt = Math.round(Date.now() / 1000) + 10 * 60;
+    const signedUrl = cloudinary.utils.private_download_url(
+      targetPublicId,
+      "jpg",
+      {
+        expires_at: expiresAt,
+        attachment: false,
+        type: "authenticated",
+      }
+    );
+
+    return sendJson(res, 200, {
+      signedUrl,
+      expiresAt,
+      publicId: targetPublicId,
+    });
   }
 
   // 6. COMPLAINT WORKFLOW STATUS UPDATE (DEPARTMENT / SOCIAL SERVICE / ADMIN)
   if (pathname === "/api/complaints/update-status" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester) {
-        return sendJson(res, 401, { error: "Authentication required" });
-      }
-
-      const { user, profile } = requester;
-      if (!profile || !profile.is_active || profile.role === "student") {
-        return sendJson(res, 403, { error: "Official redressal role required" });
-      }
-
-      const body = await parseBody(req);
-      const { complaintId, status, remark, idCardStatus } = body;
-
-      if (!complaintId) {
-        return sendJson(res, 400, { error: "Missing required parameter: complaintId" });
-      }
-
-      // Fetch complaint
-      const { data: complaint, error: compErr } = await supabaseAdmin
-        .from("complaints")
-        .select("*")
-        .eq("id", complaintId)
-        .maybeSingle();
-
-      if (compErr || !complaint) {
-        return sendJson(res, 404, { error: "Complaint not found" });
-      }
-
-      if (!(await requesterCanAccess(requester, complaint))) {
-        return sendJson(res, 403, { error: "Unauthorized: You do not have permission to update this grievance." });
-      }
-
-      if (['closed', 'merged', 'rejected'].includes(complaint.status)) return sendJson(res, 409, { error: 'This complaint is no longer active.' });
-
-      // Validate everything before writing anything
-      const validStatuses = ["submitted", "under_verification", "accepted", "in_progress", "resolved", "rejected"];
-      if (status) {
-        if (!validStatuses.includes(status)) {
-          return sendJson(res, 400, { error: "Invalid status value: " + status });
-        }
-        if (status === "rejected" && (!remark || remark.trim().length < 5)) {
-          return sendJson(res, 400, { error: "Rejection requires an explanatory remark (minimum 5 characters)." });
-        }
-        if (status === "resolved" && (!remark || remark.trim().length < 5)) {
-          return sendJson(res, 400, { error: "Resolution requires a closing note (minimum 5 characters)." });
-        }
-        if (status === "in_progress" && (!remark || remark.trim().length < 3)) {
-          return sendJson(res, 400, { error: "Progress update requires a remark (minimum 3 characters)." });
-        }
-      }
-
-      // PRD: only the primary authority (or an admin) may resolve. An official who sees the complaint only
-      // because they were copied on it cannot.
-      const routesHere = await myRoutes(requester, complaintId);
-      if (status === "resolved" && profile.role !== "administration") {
-        let ownTargetUnit: string | null = null;
-        if (complaint.target_unit_id && complaint.target_unit_id !== user.id) {
-          const { data: t } = await supabaseAdmin.from("profiles").select("unit_name").eq("id", complaint.target_unit_id).maybeSingle();
-          ownTargetUnit = t?.unit_name ?? null;
-        }
-        const viaVisibility = canAccessComplaint({ id: user.id, role: profile.role, unit_name: profile.unit_name }, complaint, ownTargetUnit);
-        const hasRoutes = (await routesWithPosts(complaintId)).length > 0;
-        if ((hasRoutes || !viaVisibility) && !routesHere.some((r) => r.kind === "primary")) {
-          return sendJson(res, 403, { error: "Only the primary authority or an administrator can mark this complaint resolved." });
-        }
-      }
-
-      // Optional: Verify ID card if requested
-      if (idCardStatus && (idCardStatus === "verified" || idCardStatus === "not_valid")) {
-        const { error: idErr } = await supabaseAdmin
-          .from("id_cards")
-          .update({
-            status: idCardStatus,
-            reviewed_by: user.id,
-            reviewed_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq("user_id", complaint.student_id);
-        if (idErr) {
-          return sendJson(res, 500, { error: "Failed to update ID card: " + idErr.message });
-        }
-
-        await supabaseAdmin.from("activity_log").insert({
-          actor_id: user.id,
-          action: "id_card_review",
-          target: `Marked student ID card as ${idCardStatus} for user ${complaint.student_id.slice(0, 8)}`,
-        });
-      }
-
-      // Update complaint status if provided
-      if (status) {
-        const { error: updErr } = await supabaseAdmin
-          .from("complaints")
-          .update({
-            status,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", complaintId);
-        if (updErr) {
-          return sendJson(res, 500, { error: "Failed to update complaint: " + updErr.message });
-        }
-
-        const { error: histErr } = await supabaseAdmin.from("complaint_status_history").insert({
-          complaint_id: complaintId,
-          status,
-          remark: remark ? remark.trim() : null,
-          changed_by: user.id,
-        });
-        if (histErr) {
-          return sendJson(res, 500, { error: "Status changed but history entry failed: " + histErr.message });
-        }
-
-        await supabaseAdmin.from("activity_log").insert({
-          actor_id: user.id,
-          action: "complaint_status_update",
-          target: `Updated complaint #${complaintId.slice(0, 8)} to ${status}: ${remark || "No note"}`,
-        });
-
-        // Route tracker: a remark counts as this post's reply; resolving completes its checkpoint
-        const now = new Date().toISOString();
-        if (routesHere.length) {
-          const ids = routesHere.map((r) => r.id);
-          await supabaseAdmin.from("complaint_routes").update({ seen_at: now }).in("id", ids).is("seen_at", null);
-          if (remark && remark.trim()) await supabaseAdmin.from("complaint_routes").update({ replied_at: now }).in("id", ids).is("replied_at", null);
-          if (status === "resolved") await supabaseAdmin.from("complaint_routes").update({ resolved_at: now }).in("id", ids).is("resolved_at", null);
-        }
-        if (status === "resolved" && (await isRoutingInstalled())) {
-          // an admin or the visibility-routed unit resolving also completes the primary checkpoint
-          await supabaseAdmin.from("complaint_routes").update({ resolved_at: now }).eq("complaint_id", complaintId).eq("kind", "primary").is("resolved_at", null);
-          await supabaseAdmin.from("complaints").update({ resolved_at: now }).eq("id", complaintId);
-        }
-        if (await isRoutingInstalled()) {
-          await notify([complaint.student_id, ...(await mergedReporterIds(complaintId))], complaintId, messages.statusChanged(ticketRef(complaintId), status));
-        }
-      }
-
-      return sendJson(res, 200, {
-        success: true,
-        complaintId,
-        newStatus: status || complaint.status,
-      });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to update complaint" });
+    const requester = await getRequester(req);
+    if (!requester) {
+      return sendJson(res, 401, { error: "Authentication required" });
     }
+
+    const { user, profile } = requester;
+    if (!profile || !profile.is_active || profile.role === "student") {
+      return sendJson(res, 403, { error: "Official redressal role required" });
+    }
+
+    const body = await parseBody(req);
+    const { complaintId, status, remark, idCardStatus } = body;
+
+    if (!complaintId) {
+      return sendJson(res, 400, { error: "Missing required parameter: complaintId" });
+    }
+
+    // Fetch complaint
+    const { data: complaint, error: compErr } = await supabaseAdmin
+      .from("complaints")
+      .select("*")
+      .eq("id", complaintId)
+      .maybeSingle();
+
+    if (compErr || !complaint) {
+      return sendJson(res, 404, { error: "Complaint not found" });
+    }
+
+    if (!(await requesterCanAccess(requester, complaint))) {
+      return sendJson(res, 403, { error: "Unauthorized: You do not have permission to update this grievance." });
+    }
+
+    if (['closed', 'merged', 'rejected'].includes(complaint.status)) return sendJson(res, 409, { error: 'This complaint is no longer active.' });
+
+    // Validate everything before writing anything
+    const validStatuses = ["submitted", "under_verification", "accepted", "in_progress", "resolved", "rejected"];
+    if (status) {
+      if (!validStatuses.includes(status)) {
+        return sendJson(res, 400, { error: "Invalid status value: " + status });
+      }
+      if (status === "rejected" && (!remark || remark.trim().length < 5)) {
+        return sendJson(res, 400, { error: "Rejection requires an explanatory remark (minimum 5 characters)." });
+      }
+      if (status === "resolved" && (!remark || remark.trim().length < 5)) {
+        return sendJson(res, 400, { error: "Resolution requires a closing note (minimum 5 characters)." });
+      }
+      if (status === "in_progress" && (!remark || remark.trim().length < 3)) {
+        return sendJson(res, 400, { error: "Progress update requires a remark (minimum 3 characters)." });
+      }
+    }
+
+    // PRD: only the primary authority (or an admin) may resolve. An official who sees the complaint only
+    // because they were copied on it cannot.
+    const routesHere = await myRoutes(requester, complaintId);
+    if (status === "resolved" && profile.role !== "administration") {
+      let ownTargetUnit: string | null = null;
+      if (complaint.target_unit_id && complaint.target_unit_id !== user.id) {
+        const { data: t } = await supabaseAdmin.from("profiles").select("unit_name").eq("id", complaint.target_unit_id).maybeSingle();
+        ownTargetUnit = t?.unit_name ?? null;
+      }
+      const viaVisibility = canAccessComplaint({ id: user.id, role: profile.role, unit_name: profile.unit_name }, complaint, ownTargetUnit);
+      const hasRoutes = (await routesWithPosts(complaintId)).length > 0;
+      if ((hasRoutes || !viaVisibility) && !routesHere.some((r) => r.kind === "primary")) {
+        return sendJson(res, 403, { error: "Only the primary authority or an administrator can mark this complaint resolved." });
+      }
+    }
+
+    // Optional: Verify ID card if requested
+    if (idCardStatus && (idCardStatus === "verified" || idCardStatus === "not_valid")) {
+      const { error: idErr } = await supabaseAdmin
+        .from("id_cards")
+        .update({
+          status: idCardStatus,
+          reviewed_by: user.id,
+          reviewed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", complaint.student_id);
+      if (idErr) {
+        return sendJson(res, 500, { error: "Failed to update ID card: " + idErr.message });
+      }
+
+      await supabaseAdmin.from("activity_log").insert({
+        actor_id: user.id,
+        action: "id_card_review",
+        target: `Marked student ID card as ${idCardStatus} for user ${complaint.student_id.slice(0, 8)}`,
+      });
+    }
+
+    // Update complaint status if provided
+    if (status) {
+      const { error: updErr } = await supabaseAdmin
+        .from("complaints")
+        .update({
+          status,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", complaintId);
+      if (updErr) {
+        return sendJson(res, 500, { error: "Failed to update complaint: " + updErr.message });
+      }
+
+      const { error: histErr } = await supabaseAdmin.from("complaint_status_history").insert({
+        complaint_id: complaintId,
+        status,
+        remark: remark ? remark.trim() : null,
+        changed_by: user.id,
+      });
+      if (histErr) {
+        return sendJson(res, 500, { error: "Status changed but history entry failed: " + histErr.message });
+      }
+
+      await supabaseAdmin.from("activity_log").insert({
+        actor_id: user.id,
+        action: "complaint_status_update",
+        target: `Updated complaint #${complaintId.slice(0, 8)} to ${status}: ${remark || "No note"}`,
+      });
+
+      // Route tracker: a remark counts as this post's reply; resolving completes its checkpoint
+      const now = new Date().toISOString();
+      if (routesHere.length) {
+        const ids = routesHere.map((r) => r.id);
+        await supabaseAdmin.from("complaint_routes").update({ seen_at: now }).in("id", ids).is("seen_at", null);
+        if (remark && remark.trim()) await supabaseAdmin.from("complaint_routes").update({ replied_at: now }).in("id", ids).is("replied_at", null);
+        if (status === "resolved") await supabaseAdmin.from("complaint_routes").update({ resolved_at: now }).in("id", ids).is("resolved_at", null);
+      }
+      if (status === "resolved" && (await isRoutingInstalled())) {
+        // an admin or the visibility-routed unit resolving also completes the primary checkpoint
+        await supabaseAdmin.from("complaint_routes").update({ resolved_at: now }).eq("complaint_id", complaintId).eq("kind", "primary").is("resolved_at", null);
+        await supabaseAdmin.from("complaints").update({ resolved_at: now }).eq("id", complaintId);
+      }
+      if (await isRoutingInstalled()) {
+        await notify([complaint.student_id, ...(await mergedReporterIds(complaintId))], complaintId, messages.statusChanged(ticketRef(complaintId), status));
+      }
+    }
+
+    return sendJson(res, 200, {
+      success: true,
+      complaintId,
+      newStatus: status || complaint.status,
+    });
   }
 
   // 6b. ID CARD REVIEW STANDALONE ROUTE
   if (pathname === "/api/id-card/review" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester || !requester.profile?.is_active || requester.profile.role === "student") {
-        return sendJson(res, 403, { error: "Official redressal role required" });
-      }
-
-      const body = await parseBody(req);
-      const { userId, status } = body;
-
-      if (!userId || !["verified", "not_valid"].includes(status)) {
-        return sendJson(res, 400, { error: "Missing or invalid parameters: userId, status (verified | not_valid)" });
-      }
-
-      if (!(await requesterCanSeeStudent(requester, userId))) {
-        return sendJson(res, 403, { error: "Unauthorized to review ID card for this user" });
-      }
-
-      const { error } = await supabaseAdmin
-        .from("id_cards")
-        .update({
-          status,
-          reviewed_by: requester.user.id,
-          reviewed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", userId);
-
-      if (error) {
-        return sendJson(res, 500, { error: error.message });
-      }
-
-      await supabaseAdmin.from("activity_log").insert({
-        actor_id: requester.user.id,
-        action: "id_card_review",
-        target: `Marked student ID card as ${status} for user ${userId.slice(0, 8)}`,
-      });
-
-      return sendJson(res, 200, { success: true, userId, status });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to review ID card" });
+    const requester = await getRequester(req);
+    if (!requester || !requester.profile?.is_active || requester.profile.role === "student") {
+      return sendJson(res, 403, { error: "Official redressal role required" });
     }
+
+    const body = await parseBody(req);
+    const { userId, status } = body;
+
+    if (!userId || !["verified", "not_valid"].includes(status)) {
+      return sendJson(res, 400, { error: "Missing or invalid parameters: userId, status (verified | not_valid)" });
+    }
+
+    if (!(await requesterCanSeeStudent(requester, userId))) {
+      return sendJson(res, 403, { error: "Unauthorized to review ID card for this user" });
+    }
+
+    const { error } = await supabaseAdmin
+      .from("id_cards")
+      .update({
+        status,
+        reviewed_by: requester.user.id,
+        reviewed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", userId);
+
+    if (error) {
+      return sendJson(res, 500, { error: error.message });
+    }
+
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: requester.user.id,
+      action: "id_card_review",
+      target: `Marked student ID card as ${status} for user ${userId.slice(0, 8)}`,
+    });
+
+    return sendJson(res, 200, { success: true, userId, status });
   }
 
   // 7. ADMIN USER PROVISIONING (CREATE DEPARTMENT / SOCIAL SERVICE ACCOUNTS)
   if (pathname === "/api/admin/create-official" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester || requester.profile?.role !== "administration") {
-        return sendJson(res, 403, { error: "Administration privileges required" });
-      }
+    const requester = await requireAdmin(req, res);
+    if (!requester) return true;
 
-      const body = await parseBody(req);
-      const { name, email, role, unitName, temporaryPassword } = body;
+    const body = await parseBody(req);
+    const { name, email, role, unitName, temporaryPassword } = body;
 
-      if (!name || !email || !role || !temporaryPassword) {
-        return sendJson(res, 400, { error: "Missing required fields: name, email, role, temporaryPassword" });
-      }
+    if (!name || !email || !role || !temporaryPassword) {
+      return sendJson(res, 400, { error: "Missing required fields: name, email, role, temporaryPassword" });
+    }
 
-      if (role !== "department" && role !== "social_service") {
-        return sendJson(res, 400, { error: "Can only provision department or social_service accounts" });
-      }
+    if (role !== "department" && role !== "social_service") {
+      return sendJson(res, 400, { error: "Can only provision department or social_service accounts" });
+    }
 
-      // Create Auth user with admin API
-      const { data: authUser, error: createAuthErr } = await supabaseAdmin.auth.admin.createUser({
-        email: email.trim().toLowerCase(),
-        password: temporaryPassword,
-        email_confirm: true,
-        user_metadata: { role, name, unit_name: unitName || null },
-      });
+    // Create Auth user with admin API
+    const { data: authUser, error: createAuthErr } = await supabaseAdmin.auth.admin.createUser({
+      email: email.trim().toLowerCase(),
+      password: temporaryPassword,
+      email_confirm: true,
+      user_metadata: { role, name, unit_name: unitName || null },
+    });
 
-      if (createAuthErr || !authUser.user) {
-        return sendJson(res, 400, { error: createAuthErr?.message || "Failed to create authentication user" });
-      }
+    if (createAuthErr || !authUser.user) {
+      return sendJson(res, 400, { error: createAuthErr?.message || "Failed to create authentication user" });
+    }
 
-      // Insert profile record
-      const { error: profileErr } = await supabaseAdmin.from("profiles").insert({
+    // Insert profile record
+    const { error: profileErr } = await supabaseAdmin.from("profiles").insert({
+      id: authUser.user.id,
+      role,
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      unit_name: unitName ? unitName.trim() : null,
+      must_change_password: true,
+      is_active: true,
+    });
+
+    if (profileErr) {
+      // Rollback created user on failure
+      await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
+      return sendJson(res, 500, { error: "Failed to create profile row: " + profileErr.message });
+    }
+
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: requester.user.id,
+      action: "official_account_created",
+      target: `Created ${role} account for ${name} (${email}) under ${unitName || "Central"}`,
+    });
+
+    return sendJson(res, 201, {
+      success: true,
+      user: {
         id: authUser.user.id,
-        role,
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        unit_name: unitName ? unitName.trim() : null,
-        must_change_password: true,
-        is_active: true,
-      });
-
-      if (profileErr) {
-        // Rollback created user on failure
-        await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
-        return sendJson(res, 500, { error: "Failed to create profile row: " + profileErr.message });
-      }
-
-      await supabaseAdmin.from("activity_log").insert({
-        actor_id: requester.user.id,
-        action: "official_account_created",
-        target: `Created ${role} account for ${name} (${email}) under ${unitName || "Central"}`,
-      });
-
-      return sendJson(res, 201, {
-        success: true,
-        user: {
-          id: authUser.user.id,
-          name: name.trim(),
-          email: email.trim().toLowerCase(),
-          role,
-          unitName: unitName || null,
-        },
-      });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to provision official account" });
-    }
+        role,
+        unitName: unitName || null,
+      },
+    });
   }
 
   // 7b. ADMIN LIST OFFICIALS
   if (pathname === "/api/admin/list-officials" && req.method === "GET") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester || requester.profile?.role !== "administration") {
-        return sendJson(res, 403, { error: "Administration privileges required" });
-      }
+    if (!(await requireAdmin(req, res))) return true;
 
-      const { data, error } = await supabaseAdmin
-        .from("profiles")
-        .select("id, name, email, role, unit_name, is_active, must_change_password, created_at, updated_at")
-        .in("role", ["department", "social_service"])
-        .order("name", { ascending: true });
+    const { data, error } = await supabaseAdmin
+      .from("profiles")
+      .select("id, name, email, role, unit_name, is_active, must_change_password, created_at, updated_at")
+      .in("role", ["department", "social_service"])
+      .order("name", { ascending: true });
 
-      if (error) {
-        return sendJson(res, 500, { error: error.message });
-      }
-
-      return sendJson(res, 200, { officials: data || [] });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to load officials" });
+    if (error) {
+      return sendJson(res, 500, { error: error.message });
     }
+
+    return sendJson(res, 200, { officials: data || [] });
   }
 
   // 7c. ADMIN EDIT OFFICIAL PROFILE
   if (pathname === "/api/admin/edit-official" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester || requester.profile?.role !== "administration") {
-        return sendJson(res, 403, { error: "Administration privileges required" });
-      }
+    const requester = await requireAdmin(req, res);
+    if (!requester) return true;
 
-      const body = await parseBody(req);
-      const { userId, name, unitName } = body;
+    const body = await parseBody(req);
+    const { userId, name, unitName } = body;
 
-      if (!userId || !name) {
-        return sendJson(res, 400, { error: "Missing required fields: userId, name" });
-      }
-      if (!(await isManagedOfficial(userId))) {
-        return sendJson(res, 400, { error: "Can only edit department or social_service accounts" });
-      }
-
-      const { error } = await supabaseAdmin
-        .from("profiles")
-        .update({
-          name: name.trim(),
-          unit_name: unitName ? unitName.trim() : null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userId);
-
-      if (error) {
-        return sendJson(res, 500, { error: error.message });
-      }
-
-      await supabaseAdmin.from("activity_log").insert({
-        actor_id: requester.user.id,
-        action: "official_profile_edited",
-        target: `Updated profile details for official ${userId.slice(0, 8)} (${name})`,
-      });
-
-      return sendJson(res, 200, { success: true, userId, name, unitName });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to edit official" });
+    if (!userId || !name) {
+      return sendJson(res, 400, { error: "Missing required fields: userId, name" });
     }
+    if (!(await isManagedOfficial(userId))) {
+      return sendJson(res, 400, { error: "Can only edit department or social_service accounts" });
+    }
+
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .update({
+        name: name.trim(),
+        unit_name: unitName ? unitName.trim() : null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId);
+
+    if (error) {
+      return sendJson(res, 500, { error: error.message });
+    }
+
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: requester.user.id,
+      action: "official_profile_edited",
+      target: `Updated profile details for official ${userId.slice(0, 8)} (${name})`,
+    });
+
+    return sendJson(res, 200, { success: true, userId, name, unitName });
   }
 
   // 7d. ADMIN DELETE OFFICIAL ACCOUNT
   if (pathname === "/api/admin/delete-official" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester || requester.profile?.role !== "administration") {
-        return sendJson(res, 403, { error: "Administration privileges required" });
-      }
+    if (!(await requireAdmin(req, res))) return true;
 
-      const body = await parseBody(req);
-      const { userId } = body;
+    const body = await parseBody(req);
+    const { userId } = body;
 
-      if (!userId) {
-        return sendJson(res, 400, { error: "Missing required field: userId" });
-      }
-
-      // Check target role
-      const { data: targetProfile } = await supabaseAdmin
-        .from("profiles")
-        .select("role, name, email")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (!targetProfile || (targetProfile.role !== "department" && targetProfile.role !== "social_service")) {
-        return sendJson(res, 400, { error: "Can only delete department or social_service accounts" });
-      }
-
-      return sendJson(res, 409, { error: "Use Deactivate instead. Deleting an official would erase their complaint and audit history." });
-
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to delete official account" });
+    if (!userId) {
+      return sendJson(res, 400, { error: "Missing required field: userId" });
     }
+
+    // Check target role
+    const { data: targetProfile } = await supabaseAdmin
+      .from("profiles")
+      .select("role, name, email")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (!targetProfile || (targetProfile.role !== "department" && targetProfile.role !== "social_service")) {
+      return sendJson(res, 400, { error: "Can only delete department or social_service accounts" });
+    }
+
+    return sendJson(res, 409, { error: "Use Deactivate instead. Deleting an official would erase their complaint and audit history." });
+
   }
 
   // 7e. ADMIN RESET OFFICIAL PASSWORD
   if (pathname === "/api/admin/reset-password" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester || requester.profile?.role !== "administration") {
-        return sendJson(res, 403, { error: "Administration privileges required" });
-      }
+    const requester = await requireAdmin(req, res);
+    if (!requester) return true;
 
-      const body = await parseBody(req);
-      const { userId, newTemporaryPassword } = body;
+    const body = await parseBody(req);
+    const { userId, newTemporaryPassword } = body;
 
-      if (!userId || !newTemporaryPassword || newTemporaryPassword.length < 6) {
-        return sendJson(res, 400, { error: "Missing or invalid parameters: userId, newTemporaryPassword (minimum 6 characters)" });
-      }
-      if (!(await isManagedOfficial(userId))) {
-        return sendJson(res, 400, { error: "Can only reset passwords of department or social_service accounts" });
-      }
-
-      const { error: resetErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-        password: newTemporaryPassword,
-      });
-
-      if (resetErr) {
-        return sendJson(res, 500, { error: resetErr.message });
-      }
-
-      await supabaseAdmin
-        .from("profiles")
-        .update({
-          must_change_password: true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userId);
-
-      await supabaseAdmin.from("activity_log").insert({
-        actor_id: requester.user.id,
-        action: "official_password_reset",
-        target: `Generated new temporary credentials for official ${userId.slice(0, 8)}`,
-      });
-
-      return sendJson(res, 200, { success: true, userId });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to reset official password" });
+    if (!userId || !newTemporaryPassword || newTemporaryPassword.length < 6) {
+      return sendJson(res, 400, { error: "Missing or invalid parameters: userId, newTemporaryPassword (minimum 6 characters)" });
     }
+    if (!(await isManagedOfficial(userId))) {
+      return sendJson(res, 400, { error: "Can only reset passwords of department or social_service accounts" });
+    }
+
+    const { error: resetErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      password: newTemporaryPassword,
+    });
+
+    if (resetErr) {
+      return sendJson(res, 500, { error: resetErr.message });
+    }
+
+    await supabaseAdmin
+      .from("profiles")
+      .update({
+        must_change_password: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId);
+
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: requester.user.id,
+      action: "official_password_reset",
+      target: `Generated new temporary credentials for official ${userId.slice(0, 8)}`,
+    });
+
+    return sendJson(res, 200, { success: true, userId });
   }
 
   // 7f. ADMIN AGGREGATED STATS (BY STATUS AND BY UNIT)
   // MONITORING (administration): model usage, reliability, pipeline, server errors, bot health. Page: /admin/system
   if (pathname === "/api/admin/system" && req.method === "GET") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester?.profile?.is_active || requester.profile.role !== "administration") return sendJson(res, 403, { error: "Administration privileges required" });
-      const days = url.searchParams.get("days") === "7" ? 7 : 30;
-      const since = daysAgo(days);
-      // ponytail: summarised in memory, capped at 20000 calls per window; move to SQL aggregates if usage outgrows it
-      const aiQuery = (cols: string) => supabaseAdmin.from("ai_logs").select(cols).gte("created_at", since).order("created_at", { ascending: false }).limit(20000);
-      let ai: any = await aiQuery("step, model, latency_ms, ok, error, created_at, input_tokens, output_tokens");
-      const tokensInstalled = !ai.error;
-      if (ai.error) ai = await aiQuery("step, model, latency_ms, ok, error, created_at"); // before migration 003
-      if (ai.error) return sendJson(res, 500, { error: ai.error.message });
-      const [complaints, signals, errors] = await Promise.all([
-        supabaseAdmin.from("complaints").select("status").gte("created_at", since).limit(20000),
-        supabaseAdmin.from("signals").select("status").gte("created_at", since).limit(20000),
-        supabaseAdmin.from("error_logs").select("method, route, status, message, created_at").gte("created_at", since).order("created_at", { ascending: false }).limit(1000),
-      ]);
-      return sendJson(res, 200, {
-        days,
-        gemini: !!process.env.GEMINI_API_KEY,
-        tokensInstalled,
-        ai: summariseAi(ai.data || [], days, { input: Number(process.env.GEMINI_PRICE_INPUT_PER_M) || 0, output: Number(process.env.GEMINI_PRICE_OUTPUT_PER_M) || 0 }),
-        complaints: tally(complaints.data, (c: any) => c.status),
-        signals: signals.error ? null : tally(signals.data, (s: any) => s.status),
-        errors: errors.error ? null : { total: errors.data.length, recent: errors.data.slice(0, 20) },
-        // in-memory state of THIS process: the listeners run where CHAT_BOTS=true (not in a Vercel function)
-        bots: (Object.keys(botStatus) as Platform[]).map((p) => ({
-          platform: p, configured: botConfigured(p), enabled: p === "moodle" ? !!process.env.MOODLE_SECRET : process.env.CHAT_BOTS === "true", ...botStatus[p],
-        })),
-      });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed" });
-    }
+    if (!(await requireAdmin(req, res))) return true;
+    const days = url.searchParams.get("days") === "7" ? 7 : 30;
+    const since = daysAgo(days);
+    // ponytail: summarised in memory, capped at 20000 calls per window; move to SQL aggregates if usage outgrows it
+    const aiQuery = (cols: string) => supabaseAdmin.from("ai_logs").select(cols).gte("created_at", since).order("created_at", { ascending: false }).limit(20000);
+    let ai: any = await aiQuery("step, model, latency_ms, ok, error, created_at, input_tokens, output_tokens");
+    const tokensInstalled = !ai.error;
+    if (ai.error) ai = await aiQuery("step, model, latency_ms, ok, error, created_at"); // before migration 003
+    if (ai.error) return sendJson(res, 500, { error: ai.error.message });
+    const [complaints, signals, errors] = await Promise.all([
+      supabaseAdmin.from("complaints").select("status").gte("created_at", since).limit(20000),
+      supabaseAdmin.from("signals").select("status").gte("created_at", since).limit(20000),
+      supabaseAdmin.from("error_logs").select("method, route, status, message, created_at").gte("created_at", since).order("created_at", { ascending: false }).limit(1000),
+    ]);
+    return sendJson(res, 200, {
+      days,
+      gemini: !!process.env.GEMINI_API_KEY,
+      tokensInstalled,
+      ai: summariseAi(ai.data || [], days, { input: Number(process.env.GEMINI_PRICE_INPUT_PER_M) || 0, output: Number(process.env.GEMINI_PRICE_OUTPUT_PER_M) || 0 }),
+      complaints: tally(complaints.data, (c: any) => c.status),
+      signals: signals.error ? null : tally(signals.data, (s: any) => s.status),
+      errors: errors.error ? null : { total: errors.data.length, recent: errors.data.slice(0, 20) },
+      // in-memory state of THIS process: the listeners run where CHAT_BOTS=true (not in a Vercel function)
+      bots: (Object.keys(botStatus) as Platform[]).map((p) => ({
+        platform: p, configured: botConfigured(p), enabled: p === "moodle" ? !!process.env.MOODLE_SECRET : process.env.CHAT_BOTS === "true", ...botStatus[p],
+      })),
+    });
   }
 
   if (pathname === "/api/admin/stats" && req.method === "GET") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester || requester.profile?.role !== "administration") {
-        return sendJson(res, 403, { error: "Administration privileges required" });
-      }
+    if (!(await requireAdmin(req, res))) return true;
 
-      const installed = await isRoutingInstalled();
-      const { data: complaints, error } = await supabaseAdmin
-        .from("complaints")
-        .select("id, status, category, created_at, target_unit_id, target_unit:profiles!target_unit_id(unit_name, name)"
-          + (installed ? ", ai_category, priority, location_id, location_text, resolved_at, closed_at, possible_duplicate_of, duplicate_dismissed" : ""));
+    const installed = await isRoutingInstalled();
+    const { data: complaints, error } = await supabaseAdmin
+      .from("complaints")
+      .select("id, status, category, created_at, target_unit_id, target_unit:profiles!target_unit_id(unit_name, name)"
+        + (installed ? ", ai_category, priority, location_id, location_text, resolved_at, closed_at, possible_duplicate_of, duplicate_dismissed" : ""));
 
-      if (error) {
-        return sendJson(res, 500, { error: error.message });
-      }
-
-      // PRD dashboard: counts by status, category and place, and the average resolution time
-      const count = (key: (c: any) => string | null | undefined) => {
-        const out: Record<string, number> = {};
-        for (const c of (complaints || []) as any[]) { const k = key(c) || "Unspecified"; out[k] = (out[k] || 0) + 1; }
-        return out;
-      };
-      const resolvedTimes = ((complaints || []) as any[])
-        .map((c) => ({ start: Date.parse(c.created_at), end: Date.parse(c.resolved_at || c.closed_at || "") }))
-        .filter((t) => t.end > t.start);
-      const prd = {
-        byStatusAll: count((c) => c.status),
-        byCategory: count((c) => c.ai_category || c.category),
-        byLocation: count((c) => c.location_text || c.location_id),
-        byPriority: installed ? count((c) => (c.priority ? "P" + c.priority : null)) : {},
-        averageResolutionHours: resolvedTimes.length
-          ? Math.round((resolvedTimes.reduce((s, t) => s + (t.end - t.start), 0) / resolvedTimes.length / 3600e3) * 10) / 10
-          : null,
-        resolvedCount: resolvedTimes.length,
-        needsReview: ((complaints || []) as any[]).filter((c) => c.status === "needs_review").length,
-        possibleDuplicates: ((complaints || []) as any[]).filter((c) => c.possible_duplicate_of && !c.duplicate_dismissed && c.status !== "merged").length,
-        prdInstalled: installed,
-      };
-
-      const byStatus: Record<string, number> = {
-        submitted: 0,
-        under_verification: 0,
-        accepted: 0,
-        in_progress: 0,
-        resolved: 0,
-        rejected: 0,
-      };
-
-      const byUnit: Record<string, number> = {};
-
-      (complaints || []).forEach((c: any) => {
-        if (c.status && byStatus[c.status] !== undefined) {
-          byStatus[c.status]++;
-        }
-        const unitName = (c.target_unit?.unit_name || c.target_unit?.name || "General / Unassigned");
-        byUnit[unitName] = (byUnit[unitName] || 0) + 1;
-      });
-
-      return sendJson(res, 200, {
-        total: (complaints || []).length,
-        byStatus,
-        byUnit,
-        ...prd,
-      });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to calculate stats" });
+    if (error) {
+      return sendJson(res, 500, { error: error.message });
     }
+
+    // PRD dashboard: counts by status, category and place, and the average resolution time
+    const count = (key: (c: any) => string | null | undefined) => {
+      const out: Record<string, number> = {};
+      for (const c of (complaints || []) as any[]) { const k = key(c) || "Unspecified"; out[k] = (out[k] || 0) + 1; }
+      return out;
+    };
+    const resolvedTimes = ((complaints || []) as any[])
+      .map((c) => ({ start: Date.parse(c.created_at), end: Date.parse(c.resolved_at || c.closed_at || "") }))
+      .filter((t) => t.end > t.start);
+    const prd = {
+      byStatusAll: count((c) => c.status),
+      byCategory: count((c) => c.ai_category || c.category),
+      byLocation: count((c) => c.location_text || c.location_id),
+      byPriority: installed ? count((c) => (c.priority ? "P" + c.priority : null)) : {},
+      averageResolutionHours: resolvedTimes.length
+        ? Math.round((resolvedTimes.reduce((s, t) => s + (t.end - t.start), 0) / resolvedTimes.length / 3600e3) * 10) / 10
+        : null,
+      resolvedCount: resolvedTimes.length,
+      needsReview: ((complaints || []) as any[]).filter((c) => c.status === "needs_review").length,
+      possibleDuplicates: ((complaints || []) as any[]).filter((c) => c.possible_duplicate_of && !c.duplicate_dismissed && c.status !== "merged").length,
+      prdInstalled: installed,
+    };
+
+    const byStatus: Record<string, number> = {
+      submitted: 0,
+      under_verification: 0,
+      accepted: 0,
+      in_progress: 0,
+      resolved: 0,
+      rejected: 0,
+    };
+
+    const byUnit: Record<string, number> = {};
+
+    (complaints || []).forEach((c: any) => {
+      if (c.status && byStatus[c.status] !== undefined) {
+        byStatus[c.status]++;
+      }
+      const unitName = (c.target_unit?.unit_name || c.target_unit?.name || "General / Unassigned");
+      byUnit[unitName] = (byUnit[unitName] || 0) + 1;
+    });
+
+    return sendJson(res, 200, {
+      total: (complaints || []).length,
+      byStatus,
+      byUnit,
+      ...prd,
+    });
   }
 
   // 8. ADMIN USER DEACTIVATION / ACTIVATION
   if (pathname === "/api/admin/toggle-active" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester || requester.profile?.role !== "administration") {
-        return sendJson(res, 403, { error: "Administration privileges required" });
-      }
+    const requester = await requireAdmin(req, res);
+    if (!requester) return true;
 
-      const body = await parseBody(req);
-      const { userId, isActive } = body;
+    const body = await parseBody(req);
+    const { userId, isActive } = body;
 
-      if (!userId || typeof isActive !== "boolean") {
-        return sendJson(res, 400, { error: "Missing required fields: userId, isActive" });
-      }
-      if (!(await isManagedOfficial(userId))) {
-        return sendJson(res, 400, { error: "Can only activate or deactivate department or social_service accounts" });
-      }
-
-      const { error } = await supabaseAdmin
-        .from("profiles")
-        .update({ is_active: isActive, updated_at: new Date().toISOString() })
-        .eq("id", userId);
-
-      if (error) {
-        return sendJson(res, 500, { error: error.message });
-      }
-
-      await supabaseAdmin.from("activity_log").insert({
-        actor_id: requester.user.id,
-        action: isActive ? "account_activated" : "account_deactivated",
-        target: `Set account ${userId.slice(0, 8)} status to ${isActive ? "Active" : "Inactive"}`,
-      });
-
-      return sendJson(res, 200, { success: true, userId, isActive });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to update account state" });
+    if (!userId || typeof isActive !== "boolean") {
+      return sendJson(res, 400, { error: "Missing required fields: userId, isActive" });
     }
+    if (!(await isManagedOfficial(userId))) {
+      return sendJson(res, 400, { error: "Can only activate or deactivate department or social_service accounts" });
+    }
+
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .update({ is_active: isActive, updated_at: new Date().toISOString() })
+      .eq("id", userId);
+
+    if (error) {
+      return sendJson(res, 500, { error: error.message });
+    }
+
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: requester.user.id,
+      action: isActive ? "account_activated" : "account_deactivated",
+      target: `Set account ${userId.slice(0, 8)} status to ${isActive ? "Active" : "Inactive"}`,
+    });
+
+    return sendJson(res, 200, { success: true, userId, isActive });
   }
 
   // 9. ADMIN REASSIGN COMPLAINT TO ANOTHER UNIT
   if (pathname === "/api/admin/reassign-complaint" && req.method === "POST") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester || requester.profile?.role !== "administration") {
-        return sendJson(res, 403, { error: "Administration privileges required" });
-      }
+    const requester = await requireAdmin(req, res);
+    if (!requester) return true;
 
-      const body = await parseBody(req);
-      const { complaintId, targetUnitId, remark } = body;
+    const body = await parseBody(req);
+    const { complaintId, targetUnitId, remark } = body;
 
-      if (!complaintId || !targetUnitId) {
-        return sendJson(res, 400, { error: "Missing required fields: complaintId, targetUnitId" });
-      }
-      const { data: target } = await supabaseAdmin.from("profiles").select("role").eq("id", targetUnitId).maybeSingle();
-      if (target?.role !== "department" && target?.role !== "social_service") {
-        return sendJson(res, 400, { error: "targetUnitId must be a department or social_service account" });
-      }
-      const { data: current } = await supabaseAdmin.from("complaints").select("is_sensitive").eq("id", complaintId).maybeSingle();
-      if (!current) return sendJson(res, 404, { error: "Complaint not found" });
-      // PRD: sensitive complaints (harassment, threats) stay with the Head / administration, never a union desk
-      if (current.is_sensitive && target.role === "social_service") {
-        return sendJson(res, 400, { error: "Sensitive complaints can't be sent to the DUSU desk. Reassign it to a department, or keep it with the administration." });
-      }
-
-      // Visibility decides who can read it (can_read_complaint / canAccessComplaint): a DUSU account reads
-      // social_service complaints, a department reads department complaints targeted to its unit.
-      const { error } = await supabaseAdmin
-        .from("complaints")
-        .update({
-          target_unit_id: targetUnitId,
-          visibility: target.role === "social_service" ? "social_service" : "department",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", complaintId);
-
-      if (error) {
-        return sendJson(res, 500, { error: error.message });
-      }
-
-      await supabaseAdmin.from("complaint_status_history").insert({
-        complaint_id: complaintId,
-        status: "in_progress",
-        remark: remark ? `Reassigned: ${remark}` : "Complaint reassigned to new department unit by Administration",
-        changed_by: requester.user.id,
-      });
-
-      await supabaseAdmin.from("activity_log").insert({
-        actor_id: requester.user.id,
-        action: "complaint_reassigned",
-        target: `Reassigned complaint #${complaintId.slice(0, 8)} to unit ${targetUnitId.slice(0, 8)}`,
-      });
-
-      return sendJson(res, 200, { success: true, complaintId, targetUnitId });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to reassign complaint" });
+    if (!complaintId || !targetUnitId) {
+      return sendJson(res, 400, { error: "Missing required fields: complaintId, targetUnitId" });
     }
+    const { data: target } = await supabaseAdmin.from("profiles").select("role").eq("id", targetUnitId).maybeSingle();
+    if (target?.role !== "department" && target?.role !== "social_service") {
+      return sendJson(res, 400, { error: "targetUnitId must be a department or social_service account" });
+    }
+    const { data: current } = await supabaseAdmin.from("complaints").select("is_sensitive").eq("id", complaintId).maybeSingle();
+    if (!current) return sendJson(res, 404, { error: "Complaint not found" });
+    // PRD: sensitive complaints (harassment, threats) stay with the Head / administration, never a union desk
+    if (current.is_sensitive && target.role === "social_service") {
+      return sendJson(res, 400, { error: "Sensitive complaints can't be sent to the DUSU desk. Reassign it to a department, or keep it with the administration." });
+    }
+
+    // Visibility decides who can read it (can_read_complaint / canAccessComplaint): a DUSU account reads
+    // social_service complaints, a department reads department complaints targeted to its unit.
+    const { error } = await supabaseAdmin
+      .from("complaints")
+      .update({
+        target_unit_id: targetUnitId,
+        visibility: target.role === "social_service" ? "social_service" : "department",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", complaintId);
+
+    if (error) {
+      return sendJson(res, 500, { error: error.message });
+    }
+
+    await supabaseAdmin.from("complaint_status_history").insert({
+      complaint_id: complaintId,
+      status: "in_progress",
+      remark: remark ? `Reassigned: ${remark}` : "Complaint reassigned to new department unit by Administration",
+      changed_by: requester.user.id,
+    });
+
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: requester.user.id,
+      action: "complaint_reassigned",
+      target: `Reassigned complaint #${complaintId.slice(0, 8)} to unit ${targetUnitId.slice(0, 8)}`,
+    });
+
+    return sendJson(res, 200, { success: true, complaintId, targetUnitId });
   }
 
   // 10. ACTIVITY LOG RETRIEVAL
   if (pathname === "/api/activity-logs" && req.method === "GET") {
-    try {
-      const requester = await getRequester(req);
-      if (!requester || requester.profile?.role !== "administration") {
-        return sendJson(res, 403, { error: "Administration privileges required" });
-      }
+    if (!(await requireAdmin(req, res))) return true;
 
-      const limit = Math.min(parseInt(url.searchParams.get("limit") || "50", 10), 200);
+    const limit = Math.min(parseInt(url.searchParams.get("limit") || "50", 10), 200);
 
-      const { data, error } = await supabaseAdmin
-        .from("activity_log")
-        .select("id, actor_id, action, target, created_at, actor:profiles!actor_id(name, email, role, unit_name)")
-        .order("created_at", { ascending: false })
-        .limit(limit);
+    const { data, error } = await supabaseAdmin
+      .from("activity_log")
+      .select("id, actor_id, action, target, created_at, actor:profiles!actor_id(name, email, role, unit_name)")
+      .order("created_at", { ascending: false })
+      .limit(limit);
 
-      if (error) {
-        return sendJson(res, 500, { error: error.message });
-      }
-
-      return sendJson(res, 200, { logs: data || [] });
-    } catch (err: any) {
-      return sendJson(res, 500, { error: err.message || "Failed to fetch activity logs" });
+    if (error) {
+      return sendJson(res, 500, { error: error.message });
     }
+
+    return sendJson(res, 200, { logs: data || [] });
   }
 
   return false;
