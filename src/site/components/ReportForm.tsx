@@ -64,7 +64,7 @@ export function ReportSuccessCard() {
       {" "}
       <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
         {" "}
-        <button className="btn" onClick={() => success && navigate(`/login?track=${encodeURIComponent(success.ticket)}#report-tracker`)}>
+        <button className="btn" onClick={() => success && navigate(`/report/new?track=${encodeURIComponent(success.ticket)}#report-tracker`)}>
           Track this report
         </button>
         {" "}

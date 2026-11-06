@@ -7,8 +7,9 @@
     "dev": "vite",
     "build": "tsc && tsc -p tsconfig.node.json && vite build",
     "preview": "vite preview",
+    "vercel-build": "npm run build && node scripts/vercel-output.mjs",
     "server": "node --experimental-strip-types backend/server.ts",
-    "test": "node --experimental-strip-types --test backend/access.test.ts backend/logic.test.ts backend/ai.test.ts backend/completion.test.ts backend/api.test.ts",
+    "test": "node --experimental-strip-types --test backend/access.test.ts backend/logic.test.ts backend/ai.test.ts backend/completion.test.ts backend/api.test.ts backend/chat.test.ts",
     "test:live": "node backend/live-test.mjs",
     "bundle": "tsc && vite build && node scripts/make-bundle.js",
     "audit:slop": "node .agents/skills/hallmark/scripts/sloplint.js"

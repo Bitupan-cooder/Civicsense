@@ -7,6 +7,7 @@ import { fileURLToPath, URL } from 'node:url';
 const env = loadEnv('development', process.cwd(), '');
 Object.assign(process.env, env);
 import { handleApiRequest } from './backend/api.ts';
+import { startChatBots } from './backend/chatbots.ts';
 
 const apiMiddleware = async (req: any, res: any, next: any) => {
   if (req.url?.startsWith('/api/')) {
@@ -45,10 +46,12 @@ const apiAndMapKitPlugin = () => ({
   configureServer(server: any) {
     server.middlewares.use(apiMiddleware);
     server.middlewares.use(pageRewrite);
+    startChatBots(); // only with CHAT_BOTS=true
   },
   configurePreviewServer(server: any) {
     server.middlewares.use(apiMiddleware);
     server.middlewares.use(pageRewrite);
+    startChatBots();
   },
   closeBundle() {
     for (const file of MAP_KIT_RUNTIME) {

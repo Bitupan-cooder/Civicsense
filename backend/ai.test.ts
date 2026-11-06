@@ -1,7 +1,7 @@
 // Gemini request/response handling and the fallback, with a fake fetch (no network).
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { understandComplaint } from "./ai.ts";
+import { tokenUsage, understandComplaint } from "./ai.ts";
 
 const reply = {
   language: "as", is_complaint: true, category: "water", priority: 2, is_sensitive: false, location_text: "Hostel 2",
@@ -77,4 +77,9 @@ test("embeddings: 768 numbers from Gemini, none without a key", async () => {
   assert.equal((await embedText("x", bad)).values, null, "wrong size is rejected");
   delete process.env.GEMINI_API_KEY;
   assert.deepEqual(await embedText("x"), { values: null, attempt: null });
+});
+
+test("token usage: thinking tokens count as output (Gemini bills them so); none reported means null", () => {
+  assert.deepEqual(tokenUsage({ usageMetadata: { promptTokenCount: 900, candidatesTokenCount: 120, thoughtsTokenCount: 300 } }), { input_tokens: 900, output_tokens: 420 });
+  assert.deepEqual(tokenUsage({ candidates: [] }), { input_tokens: null, output_tokens: null });
 });

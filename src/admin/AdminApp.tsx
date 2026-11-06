@@ -15,8 +15,10 @@ import { Navigate, Route, Routes, useLocation, useSearchParams } from 'react-rou
 import { ConsoleNav } from './pages/ConsoleNav';
 import { DuplicatesPage } from './pages/DuplicatesPage';
 import { ReviewQueuePage } from './pages/ReviewQueuePage';
+import { SignalsPage } from './pages/SignalsPage';
 import { RoutingEditorPage } from './pages/RoutingEditorPage';
 import { StatsPage } from './pages/StatsPage';
+import { SystemPage } from './pages/SystemPage';
 
 // Officials' routes: everyone's queue is /admin (officers see what is routed to them); /admin/* pages are admin-only.
 // The gate shows at whatever URL was opened, so signing in returns there (the PRD's ?next).
@@ -63,7 +65,10 @@ export function AdminApp() {
               <Route path="/admin" element={<AdminMain />} />
               <Route path="/admin/review" element={<AdminOnly><ReviewQueuePage /></AdminOnly>} />
               <Route path="/admin/duplicates" element={<AdminOnly><DuplicatesPage /></AdminOnly>} />
+              {/* every official: the API returns only the signals routed to their post */}
+              <Route path="/admin/signals" element={<SignalsPage />} />
               <Route path="/admin/stats" element={<AdminOnly><StatsPage /></AdminOnly>} />
+              <Route path="/admin/system" element={<AdminOnly><SystemPage /></AdminOnly>} />
               <Route path="/admin/routing" element={<AdminOnly><RoutingEditorPage /></AdminOnly>} />
               <Route path="*" element={<RoleHome />} />
             </Routes>

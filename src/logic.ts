@@ -177,6 +177,18 @@ export const messages = {
     en: `The reporter confirmed complaint ${ref} is fixed.`,
     as: `অভিযোগকাৰীয়ে অভিযোগ ${ref} সমাধান হোৱা বুলি নিশ্চিত কৰিছে।`,
   }),
+  signalRaised: (chat: string, summary: string, students: number): Message => ({
+    en: `Raised in the group "${chat}" (${students} student${students === 1 ? '' : 's'}): ${summary}`,
+    as: `"${chat}" গোটত ${students} জন ছাত্ৰ-ছাত্ৰীয়ে উত্থাপন কৰিছে: ${summary}`,
+  }),
+  signalAcknowledged: (post: string): Message => ({
+    en: `The issue you raised in a group was seen by ${post}.`,
+    as: `আপুনি গোটত উত্থাপন কৰা সমস্যাটো ${post}এ দেখিছে।`,
+  }),
+  signalConverted: (ref: string): Message => ({
+    en: `The issue you raised in a group is now official complaint ${ref}.`,
+    as: `আপুনি গোটত উত্থাপন কৰা সমস্যাটো এতিয়া আনুষ্ঠানিক অভিযোগ ${ref}।`,
+  }),
   autoClosed: (ref: string): Message => ({
     en: `Complaint ${ref} was closed automatically 7 days after it was resolved.`,
     as: `সমাধানৰ ৭ দিনৰ পিছত অভিযোগ ${ref} স্বয়ংক্ৰিয়ভাৱে বন্ধ কৰা হ'ল।`,

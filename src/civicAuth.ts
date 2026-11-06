@@ -147,6 +147,26 @@ export interface DuplicatePair {
   score: number | null;
 }
 
+/** GET /api/signals */
+export interface Signal {
+  id: string;
+  platform: 'telegram' | 'discord' | 'moodle';
+  chat_title: string | null;
+  text: string;
+  summary_en: string | null;
+  summary_as: string | null;
+  ai_category: string;
+  priority: number;
+  is_sensitive: boolean;
+  location_text: string | null;
+  status: 'pending' | 'open' | 'acknowledged' | 'converted' | 'dismissed';
+  complaint_id: string | null;
+  handled_note: string | null;
+  created_at: string;
+  supporters: number;
+  posts: string[];
+}
+
 export interface Authority {
   id: string;
   post_key: string;
@@ -650,7 +670,32 @@ export const fetchActivityLogs = async (limit: number) => (await getJson<{ logs?
 /** Dashboard statistics (PRD: by status, category, place; average resolution time). */
 export const fetchStats = () => getJson<Stats>('/api/admin/stats');
 export const runMaintenance = () => postJson<{ escalated: number }>('/api/admin/maintenance', {});
+
+/** Developer monitoring (/admin/system), shaped by summariseAi() in backend/system.ts. */
+export interface SystemReport {
+  days: number;
+  gemini: boolean;
+  tokensInstalled: boolean;
+  ai: {
+    calls: number; failed: number; inputTokens: number; outputTokens: number; cost: number | null; rulesCalls: number; rulesShare: number | null;
+    steps: { step: string; calls: number; failed: number; inputTokens: number; outputTokens: number; p50: number | null; p95: number | null }[];
+    models: { model: string; calls: number; inputTokens: number; outputTokens: number }[];
+    daily: { day: string; calls: number; failed: number; tokens: number }[];
+    recentFailures: { step: string; model: string | null; error: string | null; created_at: string }[];
+  };
+  complaints: Record<string, number>;
+  signals: Record<string, number> | null;
+  errors: { total: number; recent: { method: string | null; route: string; status: number; message: string | null; created_at: string }[] } | null;
+  bots: { platform: 'telegram' | 'discord' | 'moodle'; configured: boolean; enabled: boolean; connected: boolean | null; lastTagAt: string | null; lastError: string | null }[];
+}
+export const fetchSystem = (days: 7 | 30) => getJson<SystemReport>(`/api/admin/system?days=${days}`);
 export const editAnalysis = (complaintId: string, category: string, priority: number) => postJson('/api/admin/edit-analysis', { complaintId, category, priority });
+/** Agent tag: issues raised by tagging the bot in Telegram / Discord groups or Moodle forums. */
+export const fetchSignals = () => getJson<{ signals: Signal[] }>('/api/signals');
+export const actOnSignal = (signalId: string, action: 'acknowledge' | 'convert' | 'dismiss', note?: string) =>
+  postJson<{ complaintId: string | null; posted: boolean }>('/api/signals/act', { signalId, action, note: note || '' });
+/** Links the chat account from the bot's private link to the signed-in student. */
+export const linkChatAccount = (token: string) => postJson<{ platform: 'telegram' | 'discord' | 'moodle' }>('/api/chat/link', { token });
 /** Possible duplicate pairs. */
 export const fetchDuplicates = () => getJson<{ pairs: DuplicatePair[] }>('/api/admin/duplicates');
 export const mergeComplaint = (complaintId: string, intoId?: string | null) => postJson<{ mergedInto: string }>('/api/admin/merge', { complaintId, intoId: intoId || null });
@@ -665,7 +710,7 @@ export const routeComplaintByHand = (complaintId: string, category: string) =>
 // ── PRD AI analysis, routing, notifications ───────────────────
 // These never throw for "not set up yet" (migration 001 not run): callers then simply show nothing extra.
 
-let featuresPromise: Promise<{ routing: boolean; gemini: boolean }> | null = null;
+let featuresPromise: Promise<{ routing: boolean; gemini: boolean; signals?: boolean }> | null = null;
 /** Which PRD features the server has switched on. */
 export function fetchFeatures() {
   featuresPromise ??= fetch('/api/features')

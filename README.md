@@ -1,85 +1,141 @@
-# CivicSense — Campus Issue Reporting
+# Xohari — Smart Campus Redressal
 
-**Dibrugarh University** · Game of Codes | ANAZORI v16.0 (PS-04)
+**Dibrugarh University · Game of Codes, ANAZORI v16.0 · Problem statement PS-04**
 
-Students report campus problems (water, power, Wi-Fi, hostel, safety, labs) and track them to resolution. Department heads, the DUSU council and central administration work the complaints from an official console.
+Students report campus problems in **Assamese or English**. AI sorts, summarises, de-duplicates and routes each one to every office responsible. Officials resolve it from one console, and the student watches it travel like a parcel.
 
-## What's where
+> Codename in the repository: **CivicSense** (also the name of the chat bot).
+>
+> **Live demo:** _add the link once deployed ([docs/DEPLOY.md](docs/DEPLOY.md))_.
 
-| Path | What it is |
+---
+
+## The problem
+
+On campus, a broken tap, a dead Wi-Fi router or a harassment case usually ends up as:
+
+- a paper application that waits on someone's desk, or
+- a message in a WhatsApp group that everyone sees and nobody owns.
+
+Students don't know **who** is responsible, **whether** anyone saw it, or **when** it will be fixed. Officials, in turn, get scattered, duplicated, half-described reports, many of them in Assamese, with no priority order.
+
+## Our solution
+
+| For students | For officials |
 |---|---|
-| `src/site/` | Student site (React): landing page, sign-up with ID card, complaint form, campus map, status tracker. Sections in `sections/`, dialogs in `modals/`, state in `studentSession.ts`, `reportForm.ts` and `tracker.ts`. |
-| `src/site/campusMap.js`, `animations.js`, `analyzer.js`, `demoData.js` | Plain-JS modules the components import: the canvas campus map, the GSAP/Lenis scroll animations, the language/landmark detector, and local sample data. |
-| `docs/FRONTEND.md` | **For the frontend:** every route and screen, where its data comes from, and what not to break while styling. |
-| `src/admin/` | Official console (React): department, DUSU (social service) and administration logins. State and actions in `console.ts`. |
-| `src/toast.ts` | Toast notifications, shared by both pages. |
-| `index.html`, `admin.html` | Thin HTML shells: `<head>`, the campus-map-data `<script>` tags, and the React entry point. |
-| `src/civicAuth.ts` | Shared browser client (`import * as auth`): Supabase auth, complaints, uploads, calls to `/api/*`. |
-| `backend/api.ts` | Server API (`/api/*`): Cloudinary upload signing, signed file URLs, complaint workflow, admin account management. Uses the Supabase service-role key. |
-| `backend/access.ts` | Who-can-see-which-complaint rule used by the API. Mirrors `can_read_complaint()` in `schema.sql`; keep them in sync. |
-| `backend/schema.sql` | Database tables, Row Level Security policies and triggers. |
-| `Dibrugarh-University-Map-Kit/` | Campus map data and projection scripts loaded by `index.html`. |
+| Report in under a minute: text, photo or both, in Assamese or English | A queue that arrives **already sorted**: category, priority, bilingual summary |
+| Pick the place on a campus map | **Duplicates** flagged, even an Assamese report matching an English one |
+| A **route tracker** for each office: delivered → seen → replied → resolved | Replies are translated automatically into the student's language |
+| Live notifications; confirm the fix or reopen it | Statistics, routing editor, review queue for unclear cases |
+| Raise an issue straight from a **Telegram, Discord or Moodle** group by tagging the bot | Issues discussed in groups reach the right office **before** anyone files a complaint |
 
-## React migration (complete)
+## Key features
 
-The site moved from hand-written HTML pages with a 5,600-line inline script to React, **without changing how it looks or behaves** (apart from listed bug fixes). The CSS is unchanged in `src/site/site.css` and `src/admin/admin.css`. Each step was checked side by side against the original pages; see `Changelog.md` sections 3.7–3.12.
+1. **Bilingual AI analysis (Gemini 2.5 Flash).** One call reads the text and the photo. It returns the category, priority 1–4, a sensitive flag, the location, an English and Assamese summary, and a confidence score.
+2. **Safety rules in code, not in the prompt.** Code enforces priority floors (for example, exposed wires are always urgent) and never accepts invented details. Low-confidence results and non-complaints go to a human review queue instead of being routed. If Gemini is down, the built-in keyword rules take over, so the app never stops.
+3. **Cross-language duplicate detection.** Multilingual embeddings (pgvector) catch "হোষ্টেল ৩ ত পানী নাই" and "No water in Hostel 3" as the same issue. The admin merges them in one click.
+4. **Multi-recipient routing with a route tracker.** Each complaint goes to the post that owns the category, with the General Secretary copied. The student sees every recipient's checkpoints. Overdue complaints escalate automatically.
+5. **Privacy by design.**
+   - "Hide my name from the student union": union posts see the issue but not the reporter.
+   - Sensitive cases (harassment, threats) go to the Head only.
+   - Row Level Security in Postgres decides who can read what, not the frontend.
+6. **Agent tag: complaints from group chats.** A student tags the bot in a Telegram or Discord group, or writes `@CivicSense` in a Moodle forum post. The bot analyses the message and routes it as a *signal*. When another affected student replies "+1", it reaches the office. The official answers, and the bot replies in the group for everyone to see. Guardrails:
+   - The bot reads only messages meant for it.
+   - Only linked student accounts can report.
+   - Daily limits apply.
+   - Sensitive issues are never answered publicly.
+7. **Developer monitoring.** The console's System page shows:
+   - Gemini calls, tokens and estimated cost;
+   - latency and failure rates, and how often the fallback took over;
+   - server errors and chat-bot health.
 
-How it fits together:
+## How it works
 
-- Data-driven UI (sign-in state, dialogs, complaint form, tracker, official console) is React state: small stores (`useSyncExternalStore`) with actions, and components that render from them.
-- Code that draws or animates the page directly stays imperative, as ES modules: `campusMap.js` (canvas) and `animations.js` (GSAP, ScrollTrigger and Lenis from npm, pinned to the versions the page always used). `main.tsx` renders React synchronously, then starts these in the order and at the moment the old page script did.
-- `animations.js` changes some rendered elements directly (splits headings into words, adds decorations, sets inline transforms). Those components have no state, so React never re-renders them. Keep it that way, or move the animation for that element into the component.
-- `window` is only used for the campus map data globals from `Dibrugarh-University-Map-Kit/`.
+```mermaid
+flowchart LR
+  S[Student<br/>web form] --> API
+  G[Telegram / Discord bot<br/>Moodle plugin] -->|tag| API
+  API[Node API<br/>backend/api.ts] --> AI[Gemini<br/>analysis + embeddings]
+  AI --> R[Safety rules<br/>src/logic.ts]
+  R -->|clear| RT[Routing rules<br/>post + GS copied]
+  R -->|unclear| RQ[Admin review queue]
+  RT --> DB[(Supabase Postgres<br/>RLS, pgvector, Realtime)]
+  DB --> C[Official console]
+  DB -->|live notifications| S
+  C -->|reply, translated| S
+  C -->|acknowledge| G
+```
 
-## Setup
+## Demo walkthrough (3 minutes)
 
-Requires **Node 22.6+**.
+1. **Assamese report:** a student files "হোষ্টেল ৩ ত কালিৰ পৰা পানী নাই" with a photo. AI files it as *water*. The tracker shows *Head / Chairperson* and *General Secretary* (copied), both "delivered".
+2. **Cross-language duplicate:** a second student files "No water in Hostel 3 since yesterday". The console flags it as a possible duplicate, and the admin merges it.
+3. **Reply in the student's language:** the official replies in English. The student reads it in Assamese, and the tracker turns "replied".
+4. **Sensitive report:** a harassment report reaches the Head only. The union never sees the reporter.
+5. **Agent tag:** in a Telegram group, `@CivicSenseBot no Wi-Fi in the library`, then a second student replies "+1". The signal appears on the console. The official acknowledges it, and the bot answers in the group.
+6. **System page:** the AI calls, tokens and cost of the whole demo.
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, TypeScript, Vite; GSAP, Lenis and Framer Motion for motion; canvas campus map |
+| Backend | Node 22 API (`backend/api.ts`); a single bundled function on Vercel |
+| Database and auth | Supabase: Postgres with Row Level Security, Auth, Realtime, pgvector |
+| AI | Google Gemini 2.5 Flash (analysis, translation), `gemini-embedding-001` (duplicates); keyword-rule fallback |
+| Media | Cloudinary (signed uploads, private evidence files) |
+| Chat integrations | Telegram Bot API (long polling), Discord Gateway, Moodle plugin `local_civicsense` (PHP) with Moodle web services |
+| Quality | 53 automated tests (`npm test`) plus a 43-check live test against the real database (`npm run test:live`) |
+
+## Run it locally
+
+Requires **Node 22.6+** and a Supabase project.
 
 ```bash
 npm install
-cp .env.example .env.local   # then fill in your Supabase and Cloudinary keys
+cp .env.example .env.local   # fill in the Supabase and Cloudinary keys (Gemini optional)
+npm run dev                  # http://localhost:3000, admin console at /admin
 ```
 
-`.env.local` is git-ignored. Never put real keys in `.env.example` or in code.
+`.env.local` is git-ignored. Never put real keys in `.env.example` or in code. Without a complete `.env.local`, the pages still load, but every `/api/*` call returns "Server not configured".
 
-### Database (once, in the Supabase SQL editor)
+### Database setup (once, in the Supabase SQL Editor)
 
 1. Run `backend/schema.sql`.
-2. Create the admin login in **Supabase → Authentication → Users → Add user** with a strong password.
-3. Set `v_admin_email` in the last block of `schema.sql` to that email and run that block again to grant the administration role.
-4. Student registration expects **Confirm email** to be off (Authentication → Providers → Email).
-5. Run `backend/migrations/001_ai_routing_tracker.sql` (AI analysis, routing to posts, route tracker; see below). It is additive and safe to re-run. **If you run `schema.sql` again later, run the migration again afterwards**, because `schema.sql` recreates policies the migration widens.
+2. Create the admin login under **Authentication → Users → Add user**. Then set its email in `v_admin_email`, in the last block of `schema.sql`, and run that block again.
+3. Turn **Confirm email** off (Authentication → Providers → Email). Student sign-up needs it off.
+4. Run the migrations in order. Each one is additive and safe to re-run:
 
-### AI analysis and routing (PRD)
+   | Migration | Adds |
+   |---|---|
+   | `backend/migrations/001_ai_routing_tracker.sql` | AI analysis, routing to posts, route tracker, replies, notifications. **Run it again whenever you re-run `schema.sql`.** |
+   | `backend/migrations/002_chat_signals.sql` | Agent tag: chat account links, signals |
+   | `backend/migrations/003_observability.sql` | Token counts and the server-error log for the System page |
 
-After a student files a complaint, the server analyses it (`backend/ai.ts`), applies the PRD's code rules (`src/logic.ts`: priority floors, never-invent, review queue, sensitive routing), and routes it:
+5. Link posts to official accounts by email, so officials see what is routed to them:
 
-- **Gemini** does the analysis when `GEMINI_API_KEY` is set in `.env.local`. Without a key, or when the call fails, the built-in keyword rules do it. A failed Gemini call also sends the complaint to the review queue. Every attempt is logged in `ai_logs`.
-- **Routing** follows `routing_rules`: the post that owns the category, with the General Secretary copied. Sensitive complaints go to the Head / Chairperson only. Low-confidence results and non-complaints go to the administration's review queue (status `needs_review`, filter "Needs Review" in the console), to be routed by hand from the docket.
-- **Posts are linked to official accounts by email.** An official sees the complaints routed to their post once that post's email matches their login, in addition to what they see today. For example:
+   ```sql
+   update public.authorities set email = 'gs@dibru.ac.in' where post_key = 'general_secretary';
+   update public.authorities set email = 'admin@dibru.ac.in' where post_key = 'head';
+   ```
 
-  ```sql
-  update public.authorities set email = 'gs@dibru.ac.in' where post_key = 'general_secretary';
-  update public.authorities set email = 'admin@dibru.ac.in' where post_key = 'head';
-  ```
-- The **route tracker** (student tracker and admin docket) shows each recipient's checkpoints: delivered, seen (an official opened the docket), replied (an official recorded a remark) and resolved. Only the primary post or an administrator can mark a complaint resolved.
+### Optional features
 
-- **Privacy:** "Hide my name from the student union" on the report form. Union posts (and the DUSU role) then see the complaint but not the reporter (`can_see_reporter()` in the migration).
-- **Replies and internal notes** from the docket; replies are translated (Gemini) and the reporter reads them in their chosen language. **Notifications** (bell in the student nav and the console header) arrive live through Supabase Realtime.
-- **Confirm or reopen:** the reporter confirms a resolved complaint (closed) or reopens it; with no answer for 7 days it closes automatically.
+- **Gemini:** set `GEMINI_API_KEY`. Without it, the keyword rules analyse everything. To see an estimated cost on the System page, set `GEMINI_PRICE_INPUT_PER_M` and `GEMINI_PRICE_OUTPUT_PER_M` (US dollars per million tokens).
+- **Telegram:** create a bot with [@BotFather](https://t.me/BotFather) and set `TELEGRAM_BOT_TOKEN`. Keep the default privacy mode. `/report` always works; plain @mentions may need the bot to be a group admin.
+- **Discord:** create an application and bot in the [Developer Portal](https://discord.com/developers/applications) and set `DISCORD_BOT_TOKEN`. Invite the bot with the `bot` scope and the *Send Messages* and *Read Message History* permissions. It needs no privileged intents.
+- **For both bots:** set `PUBLIC_SITE_URL` (where students open their account link) and `CHAT_BOTS=true`. Set `CHAT_BOTS=true` in **one** process only. The bots need a long-running process (`npm run dev`, `preview` or `server`), not a Vercel function.
+- **Moodle:** install [`moodle/local/civicsense`](moodle/local/civicsense/README.md) on the Moodle site, then set `MOODLE_URL`, `MOODLE_TOKEN` and `MOODLE_SECRET`. Moodle pushes posts to CivicSense, so this works on Vercel too.
 
-Until the migration is run, none of this appears and the site works exactly as before.
-
-## Commands
+### Commands
 
 | Command | What it does |
 |---|---|
 | `npm run dev` | Dev server with the API at http://localhost:3000 |
-| `npm run build` | Type-checks, then builds `index.html` + `admin.html` into `dist/` |
+| `npm run build` | Type-checks, then builds `index.html` and `admin.html` into `dist/` |
 | `npm run preview` | Serves the production build **with** the API (needs `.env.local`) |
 | `npm run server` | API only, on port 3001 (no static files) |
 | `npm test` | Tests for the access rule, the PRD routing/safety rules (against its demo scenarios) and the AI module |
 | `npm run test:live -- <url>` | Live test of the database rules and the complaint flow against the real Supabase project, through a running dev server (default `http://localhost:3000`). Uses temporary `zz-migration-test-*` accounts and always deletes them again |
 
 Without a complete `.env.local` the pages still load, but every `/api/*` call returns a "Server not configured" error.
-hello

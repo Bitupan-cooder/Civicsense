@@ -32,6 +32,16 @@ export interface AiAttempt {
   ok: boolean;
   raw_output: string | null;
   error: string | null;
+  /** Gemini's own count; output includes thinking tokens (billed as output). Unset when the call reports none. */
+  input_tokens?: number | null;
+  output_tokens?: number | null;
+}
+
+/** Token counts from a generateContent response. */
+export function tokenUsage(response: any): { input_tokens: number | null; output_tokens: number | null } {
+  const u = response?.usageMetadata;
+  if (!u) return { input_tokens: null, output_tokens: null };
+  return { input_tokens: u.promptTokenCount ?? null, output_tokens: (u.candidatesTokenCount ?? 0) + (u.thoughtsTokenCount ?? 0) };
 }
 
 export interface UnderstandResult {
@@ -116,7 +126,7 @@ export function understandWithRules(input: ComplaintInput): Understanding {
   }, input.text);
 }
 
-export async function understandWithGemini(input: ComplaintInput, apiKey: string, fetchImpl: typeof fetch = fetch): Promise<{ understanding: Understanding; raw: string }> {
+export async function understandWithGemini(input: ComplaintInput, apiKey: string, fetchImpl: typeof fetch = fetch): Promise<{ understanding: Understanding; raw: string; usage: ReturnType<typeof tokenUsage> }> {
   const parts: object[] = [{ text: buildPrompt({ ...input, text: input.text.normalize("NFC") }) }];
   if (input.image) parts.push({ inline_data: { mime_type: input.image.mimeType, data: input.image.base64 } });
   const res = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL()}:generateContent`, {
@@ -130,11 +140,12 @@ export async function understandWithGemini(input: ComplaintInput, apiKey: string
   });
   const body = await res.text();
   if (!res.ok) throw new Error(`Gemini HTTP ${res.status}: ${body.slice(0, 300)}`);
-  const text = JSON.parse(body)?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || "").join("") || "";
+  const json = JSON.parse(body);
+  const text = json?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || "").join("") || "";
   if (!text) throw new Error("Gemini returned no content: " + body.slice(0, 300));
   const u = JSON.parse(text) as Understanding;
   for (const key of RESPONSE_SCHEMA.required) if (!(key in u)) throw new Error("Gemini output is missing " + key);
-  return { understanding: correctExplicitNetworkIssue(u, input.text), raw: text };
+  return { understanding: correctExplicitNetworkIssue(u, input.text), raw: text, usage: tokenUsage(json) };
 }
 
 export async function understandComplaint(input: ComplaintInput, fetchImpl: typeof fetch = fetch): Promise<UnderstandResult> {
@@ -144,8 +155,8 @@ export async function understandComplaint(input: ComplaintInput, fetchImpl: type
   if (apiKey) {
     const started = Date.now();
     try {
-      const { understanding, raw } = await understandWithGemini({ ...input, text: input.text }, apiKey, fetchImpl);
-      attempts.push({ step: "understanding", model: MODEL(), prompt_version: PROMPT_VERSION, latency_ms: Date.now() - started, ok: true, raw_output: raw, error: null });
+      const { understanding, raw, usage } = await understandWithGemini({ ...input, text: input.text }, apiKey, fetchImpl);
+      attempts.push({ step: "understanding", model: MODEL(), prompt_version: PROMPT_VERSION, latency_ms: Date.now() - started, ok: true, raw_output: raw, error: null, ...usage });
       return { understanding, source: "gemini", failed: false, attempts };
     } catch (err) {
       attempts.push({ step: "understanding", model: MODEL(), prompt_version: PROMPT_VERSION, latency_ms: Date.now() - started, ok: false, raw_output: null, error: String((err as Error).message || err) });
@@ -203,10 +214,11 @@ ${text.normalize("NFC")}
     });
     const body = await res.text();
     if (!res.ok) throw new Error(`Gemini HTTP ${res.status}: ${body.slice(0, 300)}`);
-    const raw = JSON.parse(body)?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || "").join("") || "";
+    const json = JSON.parse(body);
+    const raw = json?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || "").join("") || "";
     const t = JSON.parse(raw) as Translation;
     if (!t.en || !t.as) throw new Error("Gemini translation is incomplete: " + raw.slice(0, 200));
-    return { translation: t, attempt: { step: "translation", model: MODEL(), prompt_version: TRANSLATE_PROMPT_VERSION, latency_ms: Date.now() - started, ok: true, raw_output: raw, error: null } };
+    return { translation: t, attempt: { step: "translation", model: MODEL(), prompt_version: TRANSLATE_PROMPT_VERSION, latency_ms: Date.now() - started, ok: true, raw_output: raw, error: null, ...tokenUsage(json) } };
   } catch (err) {
     return {
       translation: translateWithoutAi(text),

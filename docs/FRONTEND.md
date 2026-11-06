@@ -30,6 +30,7 @@ Routing uses **React Router 6.28**. Links between pages inside one app use `<Lin
 | URL | File | Status | Data and actions |
 |---|---|---|---|
 | `/` | `SiteApp.tsx` → `Landing` (sections in `src/site/sections/`) | **styled** (existing) | unchanged; the report form, campus map and dialogs live here |
+| `/login?link=<token>` (any page) | `SiteApp.tsx` → `ChatLink` | renders nothing | Agent tag: the bot's private account-link link. Once a student is signed in, it calls `linkChatAccount(token)` → `POST /api/chat/link` and shows a toast. Keep `ChatLink` mounted. |
 | `/login`, `/login?mode=signup`, `?next=/path`, `?track=<id>`, `?view=mine` | `src/site/pages/ReportPage.tsx` → `ReportPage` | styled | Student sign-in / "Register with ID" card (`src/components/ui/sign-in-card-2.tsx`), then "Report an issue"; below it the tracker (`ReportTrackerSection`). `?mode=signup` opens Register, `?next` returns there after sign-in. The nav's "Student Sign In" button opens this page. |
 | `/report/new` | `src/site/pages/ReportPage.tsx` → `ReportFormPage` | styled | The report form. Signed out → `/login?next=/report/new`. |
 | `/report` | `SiteApp.tsx` → `ReportRedirect` | redirect | Old address: forwards to `/login` with its query and hash. |
@@ -44,8 +45,10 @@ Shared shell for the new student pages: `src/site/pages/PageShell.tsx` (header n
 |---|---|---|---|---|
 | `/admin` | everyone signed in to the console (officers see what is routed to their post; admins see all) | `src/admin/components/AdminMain.tsx` | **styled** (existing) | `console.ts` store. The old `/authority` redirects here. |
 | `/admin/review` | administration | `src/admin/pages/ReviewQueuePage.tsx` | styled (`src/admin/console-redesign.css`) | complaints with status `needs_review`; `routeByHand(id, category)` → `POST /api/admin/route-complaint` |
+| `/admin/signals` | every official (the API filters to their post); nav link only after migration 002 | `src/admin/pages/SignalsPage.tsx` | styled (shared card rules in `src/admin/console-redesign.css`) | `GET /api/signals`; `actOnSignal(id, action, note)` → `POST /api/signals/act` (acknowledge / convert / dismiss) |
 | `/admin/duplicates` | administration | `src/admin/pages/DuplicatesPage.tsx` | styled (`src/admin/console-redesign.css`) | `GET /api/admin/duplicates`; `mergeComplaint(id, intoId)` → `POST /api/admin/merge`; `dismissDuplicate(id)` → `POST /api/admin/dismiss-duplicate` |
 | `/admin/stats` | administration | `src/admin/pages/StatsPage.tsx` | styled (`src/admin/console-redesign.css`) | `GET /api/admin/stats`. The PRD suggests Recharts: every `byStatusAll` / `byCategory` / `byLocation` / `byPriority` object maps to chart data with `Object.entries(counts)`. |
+| `/admin/system` | administration | `src/admin/pages/SystemPage.tsx` (English only, a developer tool) | styled (`.analytics-*` and `.system-*` in `src/admin/console-redesign.css`) | `fetchSystem(7 \| 30)` → `GET /api/admin/system?days=` → `SystemReport`: model calls, tokens and cost, latency by step, keyword-rule fallback share, complaints and signals by status, server errors, bot health. Tokens and errors need migration 003. |
 | `/admin/routing` | administration | `src/admin/pages/RoutingEditorPage.tsx` | styled (`src/admin/console-redesign.css`) | `GET /api/admin/routing` → `{ authorities, rules, categories }`; save with `PUT /api/admin/routing` (the server validates and returns the saved config) |
 | `/map` | officers and administration | `src/admin/pages/CampusMapPage.tsx` | **new, unstyled, no map drawn yet** | builds `pins` (lat/lng, worst priority, complaints) from the store and `CAMPUS_LOCATION_COORDS`. **Draw the map here** (PRD: Leaflet + OpenStreetMap): one marker per pin, colour by `pin.priority`, clusters by `pin.complaints.length`. |
 | any other / `/admin.html` | | `AdminApp.tsx` → `RoleHome` | | sends the official to `/admin` after sign-in, keeping `?complaint=<id>` |
@@ -91,6 +94,7 @@ The client functions and their types are exports of `src/civicAuth.ts` (`import 
 | `markComplaintSeen(id)` | `POST /api/complaints/seen` | |
 | `routeComplaintByHand(id, category)` | `POST /api/admin/route-complaint` | `{ routes }` |
 | `fetchStats()` | `GET /api/admin/stats` | `Stats` |
+| `fetchSystem(days)` | `GET /api/admin/system?days=7\|30` | `SystemReport` |
 | `fetchDuplicates()`, `mergeComplaint(id, intoId)`, `dismissDuplicate(id)` | `/api/admin/duplicates`, `/merge`, `/dismiss-duplicate` | `{ pairs }` … |
 | `fetchRoutingConfig()`, `saveRoutingConfig(config)` | `GET` / `PUT /api/admin/routing` | `RoutingConfig` |
 | `fetchNotifications()`, `markNotificationsRead(ids)`, `subscribeNotifications(userId, cb)` | Supabase (RLS + Realtime) | `AppNotification[]` |
