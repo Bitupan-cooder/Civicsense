@@ -6,7 +6,7 @@ Students report campus problems in **Assamese or English**. AI sorts, summarises
 
 > Codename in the repository: **CivicSense** (also the name of the chat bot).
 >
-> **Live demo:** _add the link once deployed ([docs/DEPLOY.md](docs/DEPLOY.md))_
+> **Live demo:** _add the link once deployed ([docs/DEPLOY.md](docs/DEPLOY.md))_.
 
 ---
 
@@ -134,37 +134,8 @@ npm run dev                  # http://localhost:3000, admin console at /admin
 | `npm run dev` | Dev server with the API at http://localhost:3000 |
 | `npm run build` | Type-checks, then builds `index.html` and `admin.html` into `dist/` |
 | `npm run preview` | Serves the production build **with** the API (needs `.env.local`) |
-| `npm run server` | API only, on port 3001 |
-| `npm run vercel-build` | Production build for Vercel: the site plus the API as one function, in `.vercel/output/` ([docs/DEPLOY.md](docs/DEPLOY.md)) |
-| `npm test` | Access rules, PRD routing and safety rules, AI module, API, and the agent tag pipeline |
-| `npm run test:live -- <url>` | Live test of the database rules and the complaint flow through a running dev server. It uses temporary `zz-migration-test-*` accounts and always deletes them |
+| `npm run server` | API only, on port 3001 (no static files) |
+| `npm test` | Tests for the access rule, the PRD routing/safety rules (against its demo scenarios) and the AI module |
+| `npm run test:live -- <url>` | Live test of the database rules and the complaint flow against the real Supabase project, through a running dev server (default `http://localhost:3000`). Uses temporary `zz-migration-test-*` accounts and always deletes them again |
 
-## Project structure
-
-| Path | What it is |
-|---|---|
-| `src/site/` | Student site: landing page, sign-up with ID card, complaint form, campus map, tracker |
-| `src/admin/` | Official console: queue, docket, review queue, duplicates, group signals, statistics, routing editor, System page |
-| `src/logic.ts` | PRD rules shared by the browser and the server: priority floors, routing, statuses, bilingual messages |
-| `src/civicAuth.ts` | Browser client: Supabase auth, uploads, calls to `/api/*` |
-| `backend/api.ts` | Server API: complaint workflow, AI pipeline, routing, admin tools, agent tag, monitoring |
-| `backend/ai.ts` | Gemini analysis, translation, embeddings, and the keyword fallback |
-| `backend/chat.ts`, `backend/chatbots.ts` | Agent tag: parsing and sending for Telegram, Discord and Moodle; bot listeners |
-| `backend/schema.sql`, `backend/migrations/` | Tables, Row Level Security policies, triggers |
-| `moodle/local/civicsense/` | Moodle plugin for the agent tag |
-| `docs/FRONTEND.md` | Every route and screen, its data source, and what not to break while styling |
-| `docs/DEPLOY.md` | Vercel deployment and a custom domain |
-| `PRD-CivicSense.md`, `Changelog.md` | Product requirements, and the record of every change and open item |
-
-## Team
-
-| Member | GitHub |
-|---|---|
-| Bitupan | [@Bitupan-cooder](https://github.com/Bitupan-cooder) |
-| Abhinov Dutta | — |
-
-## What's next
-
-- Official WhatsApp support through Meta's Cloud API, once a verified business account is available.
-- Email and SMS notifications for students who don't open the site.
-- A rollout plan with the university's IT cell: Moodle plugin approval, and posts linked to real office-holders each term.
+Without a complete `.env.local` the pages still load, but every `/api/*` call returns a "Server not configured" error.
