@@ -79,8 +79,9 @@ export function NotificationBell({ userId, lang, onOpen, onLive }: Props) {
           </span>
         )}
       </button>
+      {/* data-lenis-prevent: the landing page's smooth scroll would otherwise take the wheel and scroll the page behind */}
       {open && (
-        <div role="dialog" aria-label="Notifications" style={{ position: 'absolute', top: '38px', right: 0, width: 'min(340px, calc(100vw - 32px))', maxHeight: '420px', overflowY: 'auto', background: '#ffffff', border: '1.5px solid var(--line)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(0,0,0,.12)', zIndex: 1000, textAlign: 'left' }}>
+        <div role="dialog" aria-label="Notifications" data-lenis-prevent style={{ position: 'absolute', top: '38px', right: 0, width: 'min(340px, calc(100vw - 32px))', maxHeight: '420px', overflowY: 'auto', overscrollBehavior: 'contain', scrollbarWidth: 'none', background: '#ffffff', border: '1.5px solid var(--line)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(0,0,0,.12)', zIndex: 1000, textAlign: 'left' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderBottom: '1px solid var(--line)', fontSize: '12px', fontWeight: 700, color: 'var(--ink)' }}>
             {lang === 'as' ? 'জাননী' : 'Notifications'}
             {unread.length > 0 && (

@@ -27,7 +27,7 @@ function reset() {
   tables = {
     profiles: [{ id: 'student-a', role: 'student', is_active: true, email: 'student@example.test', name: 'Student A' }, { id: 'student-b', role: 'student', is_active: true, email: 'b@example.test', name: 'Student B' }, { id: 'admin-a', role: 'administration', is_active: true, email: 'admin@example.test' }],
     complaints: [], complaint_routes: [], complaint_evidence: [], complaint_status_history: [], activity_log: [], ai_logs: [], notifications: [], complaint_replies: [],
-    chat_links: [], signals: [], signal_supporters: [], error_logs: [],
+    chat_links: [], signals: [], signal_supporters: [], error_logs: [], chat_tag_attempts: [],
     authorities: [{ id: 'head', post_key: 'head', post_title: 'Head', active: true, user_id: 'head-official' }, { id: 'sports', post_key: 'sports', post_title: 'Sports Secretary', active: true, user_id: 'sports-official' }, { id: 'gs', post_key: 'general_secretary', post_title: 'General Secretary', active: true }],
     routing_rules: [{ category: 'sports', primary_authority_id: 'sports', copy_authority_ids: ['gs'], active: true }, { category: 'other', primary_authority_id: 'head', copy_authority_ids: [], active: true }],
   };
@@ -52,7 +52,7 @@ globalThis.fetch = (async (input: string | URL | Request, init: any = {}) => {
   const method = init.method || 'GET';
   const body = init.body ? JSON.parse(String(init.body)) : null;
   const match = (row: any) => [...url.searchParams].every(([key, value]) => {
-    if (['select', 'order', 'limit', 'on_conflict', 'or'].includes(key)) return true;
+    if (['select', 'order', 'limit', 'offset', 'on_conflict', 'or'].includes(key)) return true;
     if (value.startsWith('eq.')) return String(row[key]) === value.slice(3);
     if (value.startsWith('neq.')) return String(row[key]) !== value.slice(4);
     if (value.startsWith('not.in.')) return !value.slice(8, -1).split(',').includes(String(row[key]));
@@ -66,7 +66,11 @@ globalThis.fetch = (async (input: string | URL | Request, init: any = {}) => {
     return json({ code: '23505', message: 'duplicate key value violates unique constraint' }, 409);
   }
   let result: any[] = [];
-  if (method === 'GET') result = tables[table].filter(match);
+  if (method === 'GET') {
+    // pages as PostgREST does (.range() sends offset and limit), so allRows() ends
+    const offset = Number(url.searchParams.get('offset') || 0), limit = url.searchParams.get('limit');
+    result = tables[table].filter(match).slice(offset, limit ? offset + Number(limit) : undefined);
+  }
   if (method === 'POST') {
     for (const row of Array.isArray(body) ? body : [body]) {
       const existing = table === 'complaint_routes' ? tables[table].find((r) => r.complaint_id === row.complaint_id && r.authority_id === row.authority_id) : null;
@@ -100,6 +104,38 @@ test('creation denies anonymous callers and rejects foreign evidence before writ
   assert.equal((await request('/api/complaints/create', { ...report, evidencePublicIds: ['civicsense/complaint_evidence/someone-else/file'] })).status, 400);
   assert.equal(writes.length, 0);
 });
+test('a student can file 6 complaints in 24 hours; a 7th, and its evidence upload, is refused', async () => {
+  reset();
+  for (let i = 0; i < 6; i++) assert.equal((await request('/api/complaints/create', report)).status, 201);
+  const seventh = await request('/api/complaints/create', report);
+  assert.equal(seventh.status, 429);
+  assert.match(seventh.body.error, /6 complaints in the last 24 hours/);
+  assert.equal(tables.complaints.length, 6, 'the refused one is not saved');
+  assert.equal((await request('/api/cloudinary/sign-upload', { folder: 'civicsense/complaint_evidence' })).status, 429, 'no evidence upload at the cap');
+  assert.equal((await request('/api/complaints/create', report, 'admin-token')).status, 403, 'officials cannot file at all');
+});
+
+test("evidence viewer signs only the complaint owner's own files, never an ID card or another account's folder", async () => {
+  reset();
+  const otherFolder = 'civicsense/complaint_evidence/11111111-2222-4333-8444-555555555555/';
+  const view = (complaintId: string, publicId: string, token = 'student-token') =>
+    request(`/api/complaint-evidence/view?complaintId=${complaintId}&publicId=${encodeURIComponent(publicId)}`, null, token, 'GET');
+  // the requester's own complaint, with evidence rows as a direct insert could have written them
+  tables.complaints.push({ id: 'c-mine', student_id: 'student-a', visibility: 'administration', status: 'submitted' });
+  tables.complaint_evidence.push(
+    { id: 'e1', complaint_id: 'c-mine', cloudinary_public_id: 'civicsense/id_cards/someone-elses-card' },
+    { id: 'e2', complaint_id: 'c-mine', cloudinary_public_id: otherFolder + 'their-photo' },
+    { id: 'e3', complaint_id: 'c-mine', cloudinary_public_id: 'civicsense/complaint_evidence/old-flat-upload' },
+  );
+  assert.equal((await view('c-mine', 'civicsense/id_cards/someone-elses-card')).status, 403);
+  assert.equal((await view('c-mine', otherFolder + 'their-photo')).status, 403);
+  assert.equal((await view('c-mine', 'civicsense/complaint_evidence/old-flat-upload')).status, 200, 'older uploads without a per-account folder stay viewable');
+  // that file on its real owner's complaint is signed (here for an administrator)
+  tables.complaints.push({ id: 'c-theirs', student_id: '11111111-2222-4333-8444-555555555555', visibility: 'administration', status: 'submitted' });
+  tables.complaint_evidence.push({ id: 'e4', complaint_id: 'c-theirs', cloudinary_public_id: otherFolder + 'their-photo' });
+  assert.equal((await view('c-theirs', otherFolder + 'their-photo', 'admin-token')).status, 200);
+});
+
 test('creation saves privacy before analysis and routes without legacy visibility exposure', async () => {
   reset();
   const response = await request('/api/complaints/create', report);
@@ -276,6 +312,14 @@ test('signals: too short or over the daily limit is refused before any AI call',
   const logsBefore = tables.ai_logs.length;
   assert.match((await handleTag(tag('109', 'Classroom 204 projector has been broken for a week.'))).public!, /daily limit/);
   assert.equal(tables.ai_logs.length, logsBefore);
+});
+
+test('signals: every tag attempt is counted in the database; the 11th in a day is ignored', async () => {
+  reset();
+  for (let i = 0; i < 10; i++) assert.ok((await handleTag(tag('555', 'The hostel 2 water tank has been leaking for days.'))).private, 'unlinked: a private link');
+  assert.deepEqual(await handleTag(tag('555', 'The hostel 2 water tank has been leaking for days.')), {});
+  assert.equal(tables.chat_tag_attempts.length, 11);
+  assert.ok(tables.chat_tag_attempts.every((a) => a.platform === 'telegram' && a.chat_user_id === '555'));
 });
 
 test('signals: students cannot list them; administration converts one into a routed complaint for the first reporter', async () => {

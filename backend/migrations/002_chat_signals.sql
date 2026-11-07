@@ -2,12 +2,14 @@
 -- Migration 002: Agent tag (issues raised in Telegram / Discord groups and Moodle forums)
 -- Run once in the Supabase SQL Editor, after 001. Safe to re-run. Additive only.
 -- Already ran it before Moodle was added? Run it again: the last block widens the platform checks.
+-- Already ran it before chat_tag_attempts was added (3.58)? Run it again: it adds that table.
 --
 -- Adds:
 --   * chat_links: a student's Telegram, Discord or Moodle account, linked once through a signed link the bot sends privately
 --   * signals: an issue raised by tagging the bot in a group, analysed and routed like a complaint but not one yet
 --   * signal_supporters: the linked students who raised or +1'd a signal (corroboration and rate limit)
--- All three are read and written only by the server (service role): RLS is on and there are no policies.
+--   * chat_tag_attempts: every tag of the bot, accepted or not, for the daily attempt limit per chat account
+-- All four are read and written only by the server (service role): RLS is on and there are no policies.
 -- ====================================================================
 
 create table if not exists public.chat_links (
@@ -58,6 +60,15 @@ create index if not exists signal_supporters_student_idx on public.signal_suppor
 alter table public.chat_links enable row level security;
 alter table public.signals enable row level security;
 alter table public.signal_supporters enable row level security;
+
+create table if not exists public.chat_tag_attempts (
+  id bigint generated always as identity primary key,
+  platform text not null check (platform in ('telegram', 'discord', 'moodle')),
+  chat_user_id text not null,
+  created_at timestamptz not null default timezone('utc'::text, now())
+);
+create index if not exists chat_tag_attempts_user_idx on public.chat_tag_attempts (platform, chat_user_id, created_at desc);
+alter table public.chat_tag_attempts enable row level security;
 
 -- platforms (Moodle added after the first release): replace the checks on tables created earlier
 alter table public.chat_links drop constraint if exists chat_links_platform_check;

@@ -732,17 +732,3 @@
       font-size: 12px;
     }
 
-    /* Shared notification island used by student and official headers. */
-    div[role="dialog"][aria-label="Notifications"] { position: fixed !important; top: 68px !important; right: clamp(12px, 4vw, 56px) !important; width: min(420px, calc(100vw - 24px)) !important; max-height: min(620px, calc(100vh - 84px)) !important; overflow-x: hidden !important; overflow-y: auto !important; box-sizing: border-box; border: 1px solid #e0f0d0 !important; border-radius: 22px !important; background: #fff !important; box-shadow: 0 22px 64px rgba(27,43,30,.2) !important; text-align: left; }
-    div[role="dialog"][aria-label="Notifications"] > div:first-child { position: sticky; top: 0; z-index: 2; min-height: 58px; padding: 12px 16px !important; background: rgba(255,255,255,.97); backdrop-filter: blur(12px); font-size: 14px !important; }
-    div[role="dialog"][aria-label="Notifications"] > button[lang] { position: relative; display: grid !important; grid-template-columns: minmax(0,1fr) auto; align-items: start; gap: 12px !important; min-width: 0; padding: 17px 18px 17px 48px !important; white-space: normal !important; overflow-wrap: anywhere; font-size: 14px !important; line-height: 1.55 !important; }
-    div[role="dialog"][aria-label="Notifications"] > button[lang] > span:first-child { min-width: 0; white-space: normal !important; overflow-wrap: anywhere; }
-    div[role="dialog"][aria-label="Notifications"] > button[lang] > span:last-child { padding-top: 2px; font-size: 11px !important; }
-    div[role="dialog"][aria-label="Notifications"] > button[lang]::before { position: absolute; top: 20px; left: 21px; z-index: 1; width: 10px; height: 10px; border: 2px solid #8b9a8d; border-radius: 50%; background: #fff; content: ""; }
-    div[role="dialog"][aria-label="Notifications"] > button[lang]::after { position: absolute; top: 32px; bottom: -1px; left: 26px; width: 1px; background: #e0f0d0; content: ""; }
-    div[role="dialog"][aria-label="Notifications"] > button[lang]:last-child::after { display: none; }
-    div[role="dialog"][aria-label="Notifications"] > button[lang][style*="#FAF2EB"]::before { border-color: #1a7a3a; background: #1a7a3a; box-shadow: 0 0 0 4px #d4f5c0; }
-    div[role="dialog"][aria-label="Notifications"] > button[lang]:hover { background: #FAF2EB !important; }
-    div[role="dialog"][aria-label="Notifications"] button:focus-visible { outline: 3px solid rgba(26,122,58,.35); outline-offset: -3px; }
-    @media (max-width: 600px) { div[role="dialog"][aria-label="Notifications"] { top: 62px !important; right: 12px !important; width: calc(100vw - 24px) !important; max-height: calc(100vh - 74px) !important; border-radius: 20px !important; } }
-  

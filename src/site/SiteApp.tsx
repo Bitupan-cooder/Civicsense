@@ -1,11 +1,11 @@
 // Student app routes (PRD "Pages"). The landing page (/) stays mounted, only hidden, while another route shows.
 import { memo, useEffect } from 'react';
-import { Navigate, Route, Routes, useLocation, useParams, useSearchParams } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useSearchParams } from 'react-router-dom';
 import * as auth from '../civicAuth';
 import { showToast } from '../toast';
 import { useStudentSession } from './studentSession';
 import { refreshAnimations } from './animations.js';
-import { ReportFormPage, ReportPage } from './pages/ReportPage';
+import { ReportFormPage, ReportPage, WelcomePage } from './pages/ReportPage';
 import './pages/routes.css';
 import { Hero } from './sections/Hero';
 import { Stats } from './sections/Stats';
@@ -14,7 +14,6 @@ import { Categories } from './sections/Categories';
 import { CallToAction } from './sections/CallToAction';
 import { StudentSignInSection } from './sections/StudentSignInSection';
 import { Footer } from '../components/ui/sticker-slap-footer';
-import { TrackerModal } from './modals/TrackerModal';
 import { StudentAuthModal } from './modals/StudentAuthModal';
 import { ReuploadIdModal } from './modals/ReuploadIdModal';
 import { StartupLoader } from './components/StartupLoader';
@@ -47,12 +46,8 @@ export function SiteApp() {
       <Routes>
         <Route path="/" element={null} />
         <Route path="/login" element={<ReportPage />} />
-        <Route path="/report" element={<ReportRedirect />} />
+        <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/report/new" element={<ReportFormPage />} />
-        {/* Tracking links reveal the tracker on /login; signed-in reporting keeps it below the form. */}
-        <Route path="/my" element={<Navigate to="/report/new?view=mine#report-tracker" replace />} />
-        <Route path="/complaints/:id" element={<ComplaintRedirect />} />
-        <Route path="/index.html" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
@@ -77,18 +72,6 @@ function ChatLink() {
     );
   }, [token, profile, setParams]);
   return null;
-}
-
-function ComplaintRedirect() {
-  const { id = '' } = useParams();
-  return <Navigate to={`/report/new?track=${encodeURIComponent(id)}#report-tracker`} replace />;
-}
-
-/** Old /report links keep working: tracker links (?track= / ?view=) go to the tracker on /report/new, the rest to /login. */
-function ReportRedirect() {
-  const { search, hash } = useLocation();
-  const target = /[?&](track|view)=/.test(search) ? '/report/new' : '/login';
-  return <Navigate to={`${target}${search}${hash}`} replace />;
 }
 
 const Landing = memo(function Landing() {
@@ -118,7 +101,6 @@ const Landing = memo(function Landing() {
       {/* ═══════════════════════════════════════
      COMPLAINT TRACKER & STUDENT DASHBOARD MODAL
 ═══════════════════════════════════════ */}
-      <TrackerModal />
       {/* ═══════════════════════════════════════
      STUDENT AUTHENTICATION MODAL (SIGN IN & SIGN UP WITH ID CARD)
 ═══════════════════════════════════════ */}

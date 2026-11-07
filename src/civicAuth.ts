@@ -4,6 +4,7 @@
  */
 import { createClient } from '@supabase/supabase-js';
 import { showToast } from './toast';
+import { allRows, chunks } from './logic';
 import type { ActivityLog, OfficialComplaint, Profile } from './admin/console';
 
 // backend/live-test.mjs reads SUPABASE_ANON_KEY from this file.
@@ -612,26 +613,26 @@ export const confirmComplaint = (complaintId: string, action: 'confirm' | 'reope
 export async function fetchOfficialComplaints(): Promise<OfficialComplaint[]> {
   if (!(await getSession())) throw new Error('Official login required to load redressal queue.');
 
-  const res = await client.from('complaints').select(`
+  const res = await allRows((from, to) => client.from('complaints').select(`
       id, student_id, title, description, category, visibility, target_unit_id, status, created_at, updated_at,
       student:profiles!student_id(id, name, email),
       target_unit:profiles!target_unit_id(id, name, unit_name),
       evidence:complaint_evidence(id, cloudinary_public_id, created_at),
       history:complaint_status_history(id, status, remark, created_at, changed_by, actor:profiles!changed_by(name, role, unit_name))
-    `).order('created_at', { ascending: false });
+    `).order('created_at', { ascending: false }).order('id').range(from, to));
   if (res.error) {
     console.error('Failed to load official complaints:', res.error);
-    throw new Error(res.error.message || 'Failed to retrieve grievances from database.');
+    throw new Error((res.error as Error).message || 'Failed to retrieve grievances from database.');
   }
 
   const complaints = (res.data || []) as unknown as OfficialComplaint[];
   // Attach each reporter's ID card.
   const studentIds = [...new Set(complaints.map((c) => c.student_id).filter(Boolean))];
   if (studentIds.length > 0) {
-    const cards = await client.from('id_cards')
-      .select('id, user_id, cloudinary_public_id, status, reviewed_by, reviewed_at').in('user_id', studentIds);
-    if (!cards.error && cards.data) {
-      const byUser = new Map(cards.data.map((card) => [card.user_id, card]));
+    const pages = await Promise.all(chunks(studentIds).map((ids) => client.from('id_cards')
+      .select('id, user_id, cloudinary_public_id, status, reviewed_by, reviewed_at').in('user_id', ids)));
+    if (!pages.some((p) => p.error)) {
+      const byUser = new Map(pages.flatMap((p) => p.data || []).map((card) => [card.user_id, card]));
       for (const c of complaints) c.idCard = byUser.get(c.student_id) || null;
     }
   }
@@ -750,6 +751,7 @@ export async function setPreferredLanguage(userId: string, lang: 'en' | 'as') {
 /** AI fields and route tracker rows for the given complaints, keyed by complaint id ({} when unavailable). */
 export async function fetchRouting(complaintIds: string[]): Promise<Record<string, Routing>> {
   if (!complaintIds?.length) return {};
+  if (complaintIds.length > 100) return Object.assign({}, ...(await Promise.all(chunks(complaintIds).map(fetchRouting)))); // ids travel in the URL
   const ai = await client.from('complaints')
     .select('id, location_id, duplicate_of, possible_duplicate_of, hide_name_from_union, ai_category, priority, is_sensitive, location_text, summary_en, summary_as, image_findings, confidence, ai_source, input_language, human_edited, analysed_at, resolved_at')
     .in('id', complaintIds);

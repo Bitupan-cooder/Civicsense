@@ -161,7 +161,7 @@ const FOOTER = {
     { title: "Home", href: "/" },
     { title: "Workflow", href: "/#how" },
     { title: "Categories", href: "/#categories" },
-    { title: "Track a complaint", href: "/report/new?view=mine#report-tracker" },
+    { title: "Track Complaint", href: "/report/new?view=mine#report-tracker" },
   ],
   officeLabel: "Associated with",
   officeLinkText: "Blitz",

@@ -2,30 +2,24 @@ import { Link } from 'react-router-dom';
 import { StudentNavButton, StudentNotifications } from './StudentAuthWidgets';
 import { BrandMark } from './BrandMark';
 import { LanguageToggle } from '../../i18n';
-import { signOutStudent, useStudentSession } from '../studentSession';
+import { useStudentSession } from '../studentSession';
 
 /** Shared navigation used by the index hero and standalone report routes. */
-export function SiteNav({ standalone = false, pageShell = false }: { standalone?: boolean; pageShell?: boolean }) {
+export function SiteNav({ standalone = false }: { standalone?: boolean }) {
   const home = standalone ? '/' : '#hero';
   const anchor = (id: string) => standalone ? `/#${id}` : `#${id}`;
-  const { profile } = useStudentSession();
+  // signed out it leads to sign-in and then the list; signed in it is the student's list
+  const signedIn = !!useStudentSession().profile;
 
   return (
-    <nav className={`nav${standalone ? ' report-page-nav' : ''}${pageShell ? ' page-shell-nav' : ''}`} aria-label="Main navigation">
+    <nav className={`nav${standalone ? ' report-page-nav' : ''}`} aria-label="Main navigation">
       {' '}
-      {standalone ? (
-        <Link className="brand" to="/" aria-label="Xohari home">
-          {' '}
-          <BrandMark />
-          {' '}Xohari{' '}
-        </Link>
-      ) : (
-        <a className="brand" href={home} aria-label="Xohari home">
-          {' '}
-          <BrandMark />
-          {' '}Xohari{' '}
-        </a>
-      )}
+      {/* a plain link on purpose: from another page, going home is a full page load that plays the startup loader */}
+      <a className="brand" href={home} aria-label="Xohari home">
+        {' '}
+        <BrandMark />
+        {' '}Xohari{' '}
+      </a>
       {' '}
       <div className="nav-links">
         {' '}
@@ -43,22 +37,11 @@ export function SiteNav({ standalone = false, pageShell = false }: { standalone?
         {' '}
         <StudentNotifications />
         <LanguageToggle />
-        {pageShell ? (
-          profile ? (
-            <button className="btn-outline nav-student-button" type="button" onClick={() => void signOutStudent()} aria-label="Sign out">
-              <span key={profile.id} className="nav-account-label">{profile.name}</span>
-            </button>
-          ) : (
-            <>
-              <Link className="btn-outline nav-track-link" to="/login">Sign In</Link>
-              <Link className="btn nav-student-button" to="/login?mode=signup">Sign Up</Link>
-            </>
-          )
-        ) : <StudentNavButton standalone={standalone} />}
+        <StudentNavButton />
         {' '}
-        <Link className="btn-outline nav-track-link" to="/report/new?view=track#report-tracker" aria-label="Track status">
-          <span className="nav-track-long">Track Status</span>
-          <span className="nav-track-short" aria-hidden="true">Track</span>
+        <Link className="btn-outline nav-track-link" to="/report/new?view=mine#report-tracker" aria-label={signedIn ? 'My complaints' : 'Track Complaint'}>
+          <span className="nav-track-long">{signedIn ? 'My complaints' : 'Track Complaint'}</span>
+          <span className="nav-track-short" aria-hidden="true">{signedIn ? 'Mine' : 'Track'}</span>
         </Link>
       </div>
       {' '}

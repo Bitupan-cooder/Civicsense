@@ -340,13 +340,8 @@ create policy complaints_select_policy on public.complaints
     public.can_read_complaint(student_id, visibility, target_unit_id)
   );
 
-create policy complaints_insert_policy on public.complaints
-  for insert
-  with check (
-    auth.uid() = student_id
-    and public.current_user_role() = 'student'
-    and status = 'submitted'
-  );
+-- no insert policy: complaints are created only by the server (POST /api/complaints/create, service role),
+-- which checks the daily cap, the evidence files, the AI analysis and the routing (migration 005)
 
 create policy complaints_update_policy on public.complaints
   for update
@@ -382,15 +377,8 @@ create policy complaint_evidence_select_policy on public.complaint_evidence
     )
   );
 
-create policy complaint_evidence_insert_policy on public.complaint_evidence
-  for insert
-  with check (
-    exists (
-      select 1 from public.complaints c
-      where c.id = complaint_evidence.complaint_id
-        and c.student_id = auth.uid()
-    )
-  );
+-- no insert policy: evidence rows are written only by the server, which accepts only files from the reporter's
+-- own upload folder (migration 005)
 
 create policy complaint_evidence_delete_policy on public.complaint_evidence
   for delete

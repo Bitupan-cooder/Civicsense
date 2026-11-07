@@ -7,7 +7,7 @@ import { validateSubmission } from "./submission.ts";
 import { deadlinePlan } from "./maintenance.ts";
 import { canAccessComplaint } from "./access.ts";
 import { campusPlaceNames, embedText, translateReply, understandComplaint } from "./ai.ts";
-import { applyRules, AUTO_CLOSE_DAYS, CATEGORIES, CATEGORY_LABELS, DUPLICATE_THRESHOLD, messages, routeComplaint, STATUS_NAMES, textSimilarity, ticketRef, type Message } from "../src/logic.ts";
+import { allRows, applyRules, AUTO_CLOSE_DAYS, CATEGORIES, CATEGORY_LABELS, DUPLICATE_THRESHOLD, messages, routeComplaint, STATUS_NAMES, textSimilarity, ticketRef, type Message } from "../src/logic.ts";
 import { summariseAi, tally } from "./system.ts";
 import { ATTEMPTS_PER_DAY, bestMatch, botStatus, initialSignalStatus, makeLinkToken, moodleTag, parseEmbedding, PLATFORM_NAMES, readLinkToken, sendChatMessage, sendDirectMessage, signalVisibleTo, SIGNAL_CORROBORATION, TAGS_PER_DAY, verifyMoodleSignature, type Platform, type Tag } from "./chat.ts";
 
@@ -212,7 +212,7 @@ export function runMaintenance(): Promise<{ escalated: number }> {
     if (missingEnv.length || !(await isRoutingInstalled())) throw new Error('Routing is not configured.');
     await autoCloseResolved();
     const [cases, config, posts] = await Promise.all([
-      supabaseAdmin.from('complaints').select('id, status, priority, is_sensitive, created_at, ai_category, student_id').in('status', ['submitted', 'under_verification', 'accepted', 'in_progress']),
+      allRows((from, to) => supabaseAdmin.from('complaints').select('id, status, priority, is_sensitive, created_at, ai_category, student_id').in('status', ['submitted', 'under_verification', 'accepted', 'in_progress']).order('id').range(from, to)),
       supabaseAdmin.from('routing_rules').select('*').eq('active', true),
       supabaseAdmin.from('authorities').select('id, post_key').eq('active', true),
     ]);
@@ -414,13 +414,19 @@ const siteUrl = () => (process.env.PUBLIC_SITE_URL || "http://localhost:3000").r
 const BOT_TOKENS: Record<Platform, string> = { telegram: "TELEGRAM_BOT_TOKEN", discord: "DISCORD_BOT_TOKEN", moodle: "MOODLE_TOKEN" };
 const botConfigured = (p: Platform) => !!process.env[BOT_TOKENS[p]];
 
-// ponytail: in-memory, resets on restart; the durable per-student limit is TAGS_PER_DAY in signal_supporters.
-const tagAttempts = new Map<string, number[]>();
-function tooManyAttempts(key: string): boolean {
-  const recent = (tagAttempts.get(key) || []).filter((t) => t > Date.now() - 86400e3);
-  recent.push(Date.now());
-  tagAttempts.set(key, recent);
-  return recent.length > ATTEMPTS_PER_DAY;
+/** Complaints a student may file in 24 hours (each one is an AI analysis when filed). */
+const COMPLAINTS_PER_DAY = 6;
+const COMPLAINT_LIMIT_MESSAGE = `You have filed ${COMPLAINTS_PER_DAY} complaints in the last 24 hours, the daily limit. Please try again tomorrow, or contact the administration if it is urgent.`;
+const complaintsToday = async (studentId: string): Promise<number> =>
+  (await supabaseAdmin.from("complaints").select("id").eq("student_id", studentId).gte("created_at", daysAgo(1)).limit(COMPLAINTS_PER_DAY + 1)).data?.length || 0;
+
+/** Any tag per chat account per day (ATTEMPTS_PER_DAY), counted in chat_tag_attempts (migration 002), so restarts and
+ *  separate server instances share it. A failed write must not silence the bot, so it then lets the tag through. */
+async function tooManyAttempts(platform: Platform, chatUserId: string): Promise<boolean> {
+  if ((await supabaseAdmin.from("chat_tag_attempts").insert({ platform, chat_user_id: chatUserId })).error) return false;
+  const { data } = await supabaseAdmin.from("chat_tag_attempts").select("id").eq("platform", platform).eq("chat_user_id", chatUserId)
+    .gte("created_at", daysAgo(1)).limit(ATTEMPTS_PER_DAY + 1);
+  return (data?.length || 0) > ATTEMPTS_PER_DAY;
 }
 
 function linkMessage(tag: Tag): string {
@@ -493,7 +499,7 @@ export async function handleTag(tag: Tag): Promise<TagResult> {
       ? `You're linked as ${student.name}. Tag me in a campus group to raise an issue, for example "@CivicSense no water in Hostel 3 since morning". Students who are also affected can reply to my answer with +1.`
       : linkMessage(tag) };
   }
-  if (tooManyAttempts(`${tag.platform}:${tag.userId}`)) return {};
+  if (await tooManyAttempts(tag.platform, tag.userId)) return {};
   if (!linked) {
     return {
       public: tag.platform === "telegram"
@@ -683,6 +689,7 @@ async function routeApiRequest(req: IncomingMessage, res: ServerResponse): Promi
     const requester = await getRequester(req);
     if (!requester?.profile?.is_active || requester.profile.role !== "student") return sendJson(res, 403, { error: "An active student account is required." });
     if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "Complaint routing is not configured. Run migration 001 before accepting reports." });
+    if ((await complaintsToday(requester.user.id)) >= COMPLAINTS_PER_DAY) return sendJson(res, 429, { error: COMPLAINT_LIMIT_MESSAGE });
     let input;
     try { input = validateSubmission(await parseBody(req), requester.user.id); }
     catch (err: any) { return sendJson(res, 400, { error: err.message }); }
@@ -709,34 +716,6 @@ async function routeApiRequest(req: IncomingMessage, res: ServerResponse): Promi
       await supabaseAdmin.from("complaint_routes").delete().eq("complaint_id", complaint.id);
       return sendJson(res, 201, { id: complaint.id, analysis: null, warning: "Your complaint is saved. Administration will review it because automatic routing is unavailable." });
     }
-  }
-
-  // AI ANALYSIS + ROUTING. Existing reports can be analysed; an admin can re-run it.
-  if (pathname === "/api/complaints/analyse" && req.method === "POST") {
-    const requester = await getRequester(req);
-    if (!requester?.profile?.is_active) return sendJson(res, 401, { error: "Authentication required" });
-    if (!(await isRoutingInstalled())) return sendJson(res, 503, { error: "AI routing is not set up yet (run backend/migrations/001_ai_routing_tracker.sql).", notInstalled: true });
-
-    const { complaintId, location, hideName } = await parseBody(req);
-    const { data: complaint } = await supabaseAdmin.from("complaints").select("*").eq("id", complaintId).maybeSingle();
-    if (!complaint) return sendJson(res, 404, { error: "Complaint not found" });
-    const isOwner = complaint.student_id === requester.user.id;
-    const isAdmin = requester.profile.role === "administration";
-    if (!isOwner && !isAdmin) return sendJson(res, 403, { error: "Only the reporter or an administrator can analyse this complaint." });
-
-    if (complaint.analysed_at && !isAdmin) {
-      // already analysed: return the stored result instead of calling the AI again
-      return sendJson(res, 200, {
-        category: complaint.ai_category, priority: complaint.priority, is_sensitive: complaint.is_sensitive, location_text: complaint.location_text,
-        summary_en: complaint.summary_en, summary_as: complaint.summary_as, image_findings: complaint.image_findings, confidence: complaint.confidence,
-        language: complaint.input_language, source: complaint.ai_source, needs_review: complaint.status === "needs_review", review_reason: null,
-        routes: await routesWithPosts(complaint.id),
-      });
-    }
-    const loc = typeof location === "string" && location.length <= 200 ? location : null;
-    // the privacy choice is the reporter's own; an admin re-run keeps it
-    const hide = isOwner && typeof hideName === "boolean" ? hideName : null;
-    return sendJson(res, 200, await analyseAndRoute(complaint, loc, hide, requester.user.id));
   }
 
   // ROUTE TRACKER: an official opened the complaint, so mark it seen for the posts they hold
@@ -1101,6 +1080,8 @@ async function routeApiRequest(req: IncomingMessage, res: ServerResponse): Promi
     if (wantsEvidence && (requester.profile?.role !== "student" || !requester.profile.is_active)) {
       return sendJson(res, 403, { error: "Only active student accounts can upload complaint evidence" });
     }
+    // evidence is uploaded before the complaint is filed: at the daily cap, refuse before any file goes to Cloudinary
+    if (wantsEvidence && (await complaintsToday(requester.user.id)) >= COMPLAINTS_PER_DAY) return sendJson(res, 429, { error: COMPLAINT_LIMIT_MESSAGE });
     const folder = wantsEvidence ? `civicsense/complaint_evidence/${requester.user.id}` : "civicsense/id_cards";
     const deliveryType = "authenticated";
 
@@ -1238,6 +1219,13 @@ async function routeApiRequest(req: IncomingMessage, res: ServerResponse): Promi
 
     if (!(await requesterCanAccess(requester, compRow))) {
       return sendJson(res, 403, { error: "Forbidden: Not authorized to view this complaint evidence" });
+    }
+    // The row must point at the complaint owner's own file. Rows written straight into the table (possible until
+    // migration 005) could name anyone's: never sign an ID card or another account's evidence folder.
+    // Older uploads without a per-account folder stay viewable.
+    const ownerFolder = /^civicsense\/complaint_evidence\/([0-9a-f-]{36})\//i.exec(targetPublicId)?.[1];
+    if (targetPublicId.startsWith("civicsense/id_cards") || (ownerFolder && ownerFolder !== compRow.student_id)) {
+      return sendJson(res, 403, { error: "Forbidden: this file does not belong to the complaint" });
     }
 
     if (!API_SECRET || !API_KEY || !CLOUD_NAME) {
@@ -1637,15 +1625,15 @@ async function routeApiRequest(req: IncomingMessage, res: ServerResponse): Promi
     if (!(await requireAdmin(req, res))) return true;
     const days = url.searchParams.get("days") === "7" ? 7 : 30;
     const since = daysAgo(days);
-    // ponytail: summarised in memory, capped at 20000 calls per window; move to SQL aggregates if usage outgrows it
-    const aiQuery = (cols: string) => supabaseAdmin.from("ai_logs").select(cols).gte("created_at", since).order("created_at", { ascending: false }).limit(20000);
+    // ponytail: summarised in memory over every row of the window (paged); move to SQL aggregates if usage outgrows it
+    const aiQuery = (cols: string) => allRows((from, to) => supabaseAdmin.from("ai_logs").select(cols).gte("created_at", since).order("created_at", { ascending: false }).order("id").range(from, to));
     let ai: any = await aiQuery("step, model, latency_ms, ok, error, created_at, input_tokens, output_tokens");
     const tokensInstalled = !ai.error;
     if (ai.error) ai = await aiQuery("step, model, latency_ms, ok, error, created_at"); // before migration 003
     if (ai.error) return sendJson(res, 500, { error: ai.error.message });
     const [complaints, signals, errors] = await Promise.all([
-      supabaseAdmin.from("complaints").select("status").gte("created_at", since).limit(20000),
-      supabaseAdmin.from("signals").select("status").gte("created_at", since).limit(20000),
+      allRows((from, to) => supabaseAdmin.from("complaints").select("status").gte("created_at", since).order("id").range(from, to)),
+      allRows((from, to) => supabaseAdmin.from("signals").select("status").gte("created_at", since).order("id").range(from, to)),
       supabaseAdmin.from("error_logs").select("method, route, status, message, created_at").gte("created_at", since).order("created_at", { ascending: false }).limit(1000),
     ]);
     return sendJson(res, 200, {
@@ -1667,13 +1655,14 @@ async function routeApiRequest(req: IncomingMessage, res: ServerResponse): Promi
     if (!(await requireAdmin(req, res))) return true;
 
     const installed = await isRoutingInstalled();
-    const { data: complaints, error } = await supabaseAdmin
+    const { data: complaints, error } = await allRows((from, to) => supabaseAdmin
       .from("complaints")
       .select("id, status, category, created_at, target_unit_id, target_unit:profiles!target_unit_id(unit_name, name)"
-        + (installed ? ", ai_category, priority, location_id, location_text, resolved_at, closed_at, possible_duplicate_of, duplicate_dismissed" : ""));
+        + (installed ? ", ai_category, priority, location_id, location_text, resolved_at, closed_at, possible_duplicate_of, duplicate_dismissed" : ""))
+      .order("id").range(from, to));
 
     if (error) {
-      return sendJson(res, 500, { error: error.message });
+      return sendJson(res, 500, { error: (error as Error).message });
     }
 
     // PRD dashboard: counts by status, category and place, and the average resolution time

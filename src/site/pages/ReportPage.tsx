@@ -1,23 +1,17 @@
 import { useEffect, type ReactNode } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ReportAuthGate } from '../components/ReportForm';
-import { signOutStudent, switchStudentAuthTab, useStudentSession } from '../studentSession';
+import { StudentWelcomeCard } from '../components/StudentAuthWidgets';
+import { markWelcomeSeen, switchStudentAuthTab, useStudentSession, welcomeSeen } from '../studentSession';
 import { ReportSection } from '../sections/ReportSection';
 import { ShaderCanvas } from '../../components/ui/ShaderCanvas';
 import { SiteNav } from '../components/SiteNav';
 import { Footer } from '../../components/ui/sticker-slap-footer';
 import { ReportTrackerSection } from '../sections/ReportTrackerSection';
+import { useTracker } from '../tracker';
 
-/** /login: student sign-in / registration. Tracker appears here only when requested by a tracking link. */
-export function ReportPage() {
-  const { profile } = useStudentSession();
-  const [params] = useSearchParams();
-  const mode = params.get('mode');
-  const next = params.get('next');
-  useEffect(() => { switchStudentAuthTab(mode === 'signup' ? 'signup' : 'signin'); }, [mode]);
-
-  // only same-site paths: never //host or backslash tricks
-  if (profile && next && next.startsWith('/') && !next.startsWith('//') && !next.includes('\\')) return <Navigate to={next} replace />;
+/** Page heading shared by /login and /welcome. */
+function EntryPage({ children }: { children: ReactNode }) {
   return (
     <ReportPageLayout>
       <section className="report-section report-entry-section">
@@ -28,27 +22,54 @@ export function ReportPage() {
             <br />
             <em style={{ color: 'var(--olive)', fontStyle: 'italic' }}>Campus Redressal &amp; Grievance Tracking.</em>
           </h1>
-          <p className="report-entry-description">
-            Sign in with your verified student account, or register with your student ID, to continue.
-          </p>
-          {profile === undefined ? (
-            <div className="report-entry-card" role="status">Checking your student account…</div>
-          ) : profile ? (
-            <div className="report-entry-card report-entry-ready">
-              <p>Signed in as <strong>{profile.name}</strong>. Your verified account is ready to submit a report.</p>
-              <div className="report-entry-actions">
-                <Link className="report-start-button" to="/report/new">Report an issue <span aria-hidden="true">→</span></Link>
-                <Link className="report-entry-track-button" to="/report/new?view=track#report-tracker">Track status</Link>
-                <button type="button" className="report-entry-logout" onClick={() => void signOutStudent()}>Log out</button>
-              </div>
-            </div>
-          ) : (
-            <ReportAuthGate />
-          )}
+          {children}
         </div>
       </section>
     </ReportPageLayout>
   );
+}
+
+const checking = <div className="report-entry-card" role="status">Checking your student account…</div>;
+
+/** /login: student sign-in / registration only. Once signed in, the student moves on to ?next= or /welcome. */
+export function ReportPage() {
+  const { profile } = useStudentSession();
+  const [params] = useSearchParams();
+  const mode = params.get('mode');
+  const next = params.get('next');
+  useEffect(() => { switchStudentAuthTab(mode === 'signup' ? 'signup' : 'signin'); }, [mode]);
+
+  // a chat-link token (?link=) is consumed by ChatLink first; it drops the param, and then the student moves on
+  // only same-site paths for ?next=: never //host or backslash tricks
+  if (profile && !params.has('link')) {
+    const safeNext = next && next.startsWith('/') && !next.startsWith('//') && !next.includes('\\') ? next : null;
+    return <Navigate to={safeNext ?? (welcomeSeen(profile.id) ? '/report/new' : '/welcome')} replace />;
+  }
+  return (
+    <EntryPage>
+      {profile !== null ? checking : (
+        <>
+          <p className="report-entry-description">
+            Sign in with your verified student account, or register with your student ID, to continue.
+          </p>
+          <ReportAuthGate />
+        </>
+      )}
+    </EntryPage>
+  );
+}
+
+/** /welcome: where a student lands after signing in or registering ("Welcome back" / "Welcome aboard").
+ *  Shown once per sign-in: it counts as seen when the student leaves it (a reload is not leaving), and coming back
+ *  afterwards (Back button, typed URL) goes to /report/new. */
+export function WelcomePage() {
+  const { profile } = useStudentSession();
+  // on leaving the route; StrictMode's dev-only remount runs this too, but the URL is still /welcome then
+  useEffect(() => () => { if (profile?.id && window.location.pathname !== '/welcome') markWelcomeSeen(profile.id); }, [profile?.id]);
+
+  if (profile === null) return <Navigate to="/login" replace />;
+  if (profile && welcomeSeen(profile.id)) return <Navigate to="/report/new" replace />;
+  return <EntryPage>{profile ? <div className="report-entry-welcome"><StudentWelcomeCard /></div> : checking}</EntryPage>;
 }
 
 export function ReportFormPage() {
@@ -71,7 +92,8 @@ export function ReportFormPage() {
 function ReportWorkspace() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const trackingView = params.get('view') === 'track' || params.get('view') === 'mine' || params.has('track');
+  const trackingView = params.get('view') === 'mine' || params.has('track');
+  const { mine, mineLoaded } = useTracker();
   return (
     <div className="report-workspace-layout">
       <aside className="report-workspace-sidebar" aria-label="Report workspace">
@@ -79,7 +101,9 @@ function ReportWorkspace() {
         <strong>Campus redressal</strong>
         <nav>
           <Link className={!trackingView ? 'is-current' : undefined} to="/report/new#report">Submit a report</Link>
-          <Link className={trackingView ? 'is-current' : undefined} to="/report/new?view=track#report-tracker">Track status</Link>
+          <Link className={trackingView ? 'is-current' : undefined} to="/report/new?view=mine#report-tracker">
+            My complaints{mineLoaded && <span className="report-workspace-count">{mine.length}</span>}
+          </Link>
         </nav>
         <p>Your report and its updates stay together here.</p>
       </aside>

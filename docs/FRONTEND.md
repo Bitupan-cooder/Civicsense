@@ -31,13 +31,11 @@ Routing uses **React Router 6.28**. Links between pages inside one app use `<Lin
 |---|---|---|---|
 | `/` | `SiteApp.tsx` → `Landing` (sections in `src/site/sections/`) | **styled** (existing) | unchanged; the report form, campus map and dialogs live here |
 | `/login?link=<token>` (any page) | `SiteApp.tsx` → `ChatLink` | renders nothing | Agent tag: the bot's private account-link link. Once a student is signed in, it calls `linkChatAccount(token)` → `POST /api/chat/link` and shows a toast. Keep `ChatLink` mounted. |
-| `/login`, `/login?mode=signup`, `?next=/path`, `?track=<id>`, `?view=mine` | `src/site/pages/ReportPage.tsx` → `ReportPage` | styled | Student sign-in / "Register with ID" card (`src/components/ui/sign-in-card-2.tsx`), then "Report an issue"; below it the tracker (`ReportTrackerSection`). `?mode=signup` opens Register, `?next` returns there after sign-in. The nav's "Student Sign In" button opens this page. |
-| `/report/new` | `src/site/pages/ReportPage.tsx` → `ReportFormPage` | styled | The report form. Signed out → `/login?next=/report/new`. |
-| `/report` | `SiteApp.tsx` → `ReportRedirect` | redirect | Old address: forwards to `/login` with its query and hash. |
-| `/my` | `SiteApp.tsx` | redirect | Removed page: "My complaints" is the tracker below the sign-in on `/login` and `/report/new`. Forwards to `/login?view=mine#report-tracker`. |
-| `/complaints/:id` (full id or `CS-XXXXXXXX`) | `SiteApp.tsx` → `ComplaintRedirect` | redirect | Forwards to `/login?track=<id>#report-tracker` (the tracker shows the complaint). `ComplaintPage.tsx` only supplies `ConfirmOrReopen` now. |
+| `/login`, `/login?mode=signup`, `?next=/path` | `src/site/pages/ReportPage.tsx` → `ReportPage` | styled | Sign-in / "Register with ID" card only (`src/components/ui/sign-in-card-2.tsx`). `?mode=signup` opens Register. Once signed in: `?next=` if given, else `/welcome` (or `/report/new` once the welcome has been seen). With `?link=` it waits for `ChatLink` first. |
+| `/welcome` | `src/site/pages/ReportPage.tsx` → `WelcomePage` | styled | Shown once per sign-in (`welcomeSeen` in `studentSession.ts`, per tab): "Welcome back" / "Welcome aboard" card with "Report an issue" and "Log out". Coming back after leaving goes to `/report/new`; a guest goes to `/login`. |
+| `/report/new`, `?view=mine`, `?track=<id>` | `src/site/pages/ReportPage.tsx` → `ReportFormPage` | styled | Student workspace. Plain: the report form. `?view=mine`: "My complaints" (`ReportTrackerSection`). `?track=<id>`: that complaint's details. Signed out → `/login?next=…`. |
 
-Shared shell for the new student pages: `src/site/pages/PageShell.tsx` (header nav, language toggle, notification bell) and `SignInRequired` ("Log in or sign up to continue", with `?next=` back to the page).
+Any other path (including the old `/report`, `/my`, `/complaints/:id` and `/index.html`) goes to `/`. Old `/?track=<id>` links are no longer forwarded.
 
 ### Officials' console
 
@@ -88,7 +86,6 @@ The client functions and their types are exports of `src/civicAuth.ts` (`import 
 |---|---|---|
 | `fetchFeatures()` | `GET /api/features` | `{ routing, gemini }` |
 | `fetchRouting(ids)` | Supabase (RLS) | `{ [id]: Routing }`: AI fields, `routes`, `replies`, `location_id`, `duplicate_of`, `hide_name_from_union` |
-| `analyseComplaint(id, place, hideName)` | `POST /api/complaints/analyse` | `Analysis` |
 | `postReply(id, body, 'public' \| 'internal')` | `POST /api/complaints/replies` | `{ translated }` |
 | `confirmComplaint(id, 'confirm' \| 'reopen', note)` | `POST /api/complaints/confirm` | `{ status }` |
 | `markComplaintSeen(id)` | `POST /api/complaints/seen` | |

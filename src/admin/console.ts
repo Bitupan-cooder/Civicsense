@@ -191,11 +191,27 @@ export async function gateLogin(): Promise<void> {
   }
 }
 
+let signingOut = false; // this tab's own log-out; other tabs' log-outs reach followOtherTabs as SIGNED_OUT too
+const leaveWorkspace = () => update({ auth: 'gate', gateEmail: '', gatePassword: '', complaints: [], loaded: false, officials: null, logs: null, profile: null });
+
 export async function logoutAdmin(): Promise<void> {
   if (!(await askConfirm({ title: 'Log out?', message: 'You will leave the Official Redressal Workspace and need to sign in again to continue.', confirmLabel: 'Log out', icon: 'logout' }))) return;
-  await auth.logout();
-  update({ auth: 'gate', gateEmail: '', gatePassword: '', complaints: [], loaded: false, officials: null, logs: null, profile: null });
+  signingOut = true;
+  try { await auth.logout(); } finally { signingOut = false; }
+  leaveWorkspace();
   showToast('Logged out of official console.', 'info');
+}
+
+/** Tabs of one browser share the sign-in (Supabase tells every tab when it changes): follow another tab's log-out
+ *  or sign-in. Runs inside Supabase's auth lock, so Supabase calls are deferred with setTimeout. */
+export function followOtherTabs(): void {
+  auth.getClient()?.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT' && state.auth === 'workspace' && !signingOut) {
+      setTimeout(() => { leaveWorkspace(); showToast('You were logged out in another tab.', 'info'); });
+    } else if (event === 'SIGNED_IN' && session?.user.id !== state.profile?.id && !state.gateBusy) {
+      setTimeout(() => void initAuth());
+    }
+  });
 }
 
 // ── COMPLAINT QUEUE ──

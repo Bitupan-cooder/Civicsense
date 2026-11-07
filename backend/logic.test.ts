@@ -1,7 +1,7 @@
 // The PRD's code rules, checked against its demo scenarios (A1, A2, E2, X1, X2, X5).
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { applyRules, normaliseDigits, priorityFloor, routeComplaint, type Understanding } from "../src/logic.ts";
+import { allRows, applyRules, chunks, normaliseDigits, priorityFloor, routeComplaint, type Understanding } from "../src/logic.ts";
 
 const base: Understanding = {
   language: "en", is_complaint: true, category: "water", priority: 3, is_sensitive: false, location_text: null,
@@ -60,4 +60,20 @@ test("word-overlap duplicates (fallback without embeddings)", async () => {
   assert.ok(textSimilarity(e3, "Boys hostel 2 bathroom has no water since monday") >= DUPLICATE_THRESHOLD.words, "same issue, reworded");
   assert.ok(textSimilarity(e3, "Exposed wires hanging near the canteen entrance.") < DUPLICATE_THRESHOLD.words, "different issue");
   assert.equal(textSimilarity("", e3), 0);
+});
+
+test("allRows keeps asking until a page is empty, even when the server caps pages below what was asked", async () => {
+  const rows = Array.from({ length: 1234 }, (_, i) => i);
+  const asked: [number, number][] = [];
+  const capped = (from: number, to: number) => { asked.push([from, to]); return Promise.resolve({ data: rows.slice(from, Math.min(to + 1, from + 500)), error: null }); };
+  const { data, error } = await allRows(capped);
+  assert.equal(error, null);
+  assert.deepEqual(data, rows);
+  assert.deepEqual(asked.map(([from]) => from), [0, 500, 1000, 1234]);
+});
+
+test("chunks splits ids into URL-sized groups", () => {
+  assert.deepEqual(chunks([1, 2, 3, 4, 5], 2), [[1, 2], [3, 4], [5]]);
+  assert.deepEqual(chunks([]), []);
+  assert.equal(chunks(Array.from({ length: 250 }, (_, i) => i)).length, 3);
 });

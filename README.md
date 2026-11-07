@@ -111,6 +111,7 @@ npm run dev                  # http://localhost:3000, admin console at /admin
    | `backend/migrations/001_ai_routing_tracker.sql` | AI analysis, routing to posts, route tracker, replies, notifications. **Run it again whenever you re-run `schema.sql`.** |
    | `backend/migrations/002_chat_signals.sql` | Agent tag: chat account links, signals |
    | `backend/migrations/003_observability.sql` | Token counts and the server-error log for the System page |
+   | `backend/migrations/005_server_only_writes.sql` | Removes the two old policies that let students write complaints and evidence straight into the tables; the server does all of it. **Run it again after any re-run of an older `schema.sql`.** |
 
 5. Link posts to official accounts by email, so officials see what is routed to them:
 

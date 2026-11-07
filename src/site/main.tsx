@@ -6,8 +6,7 @@ import { setLanguagePersister } from '../i18n';
 import { SiteApp } from './SiteApp';
 import { initAnimations } from './animations.js';
 import { initReportForm } from './reportForm';
-import { checkCurrentStudentSession, setReadingLanguage } from './studentSession';
-import { initTracker } from './tracker';
+import { checkCurrentStudentSession, followOtherTabs, setReadingLanguage } from './studentSession';
 import './site.css';
 import '../workflow.css';
 
@@ -25,5 +24,5 @@ window.addEventListener('civicsense:startup-complete', () => {
   document.body.classList.add('site-entered');
 }, { once: true });
 checkCurrentStudentSession();
+followOtherTabs();
 initReportForm();
-initTracker();

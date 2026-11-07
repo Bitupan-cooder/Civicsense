@@ -1,13 +1,14 @@
 // Complaint form, its sign-in gate and the success card, rendered from ../reportForm.ts.
 // These elements always stay mounted (only `display` changes): animations.js attaches GSAP reveal animations to them.
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Camera, FileText, ImagePlus, Info, Send, ShieldCheck, X } from 'lucide-react';
 import {
   addCameraPhoto, addEvidenceFiles, clearReportSuccess, LOCATION_OPTIONS, removeEvidenceFile, resetReportForm,
   setCustomLocation, setDescription, setField, setHideName, setLocation, setVisibility, submitReport, useReportForm, type FocusField, type Visibility,
 } from '../reportForm';
 import { openStudentAuth, useStudentSession } from '../studentSession';
-import { ReportAuthNotice } from './StudentAuthWidgets';
+import { ReportAuthNotice, useDismiss } from './StudentAuthWidgets';
 import type { Analysis } from '../../civicAuth';
 import { categoryLabel, PriorityChip } from '../../RouteTracker';
 import { useFeatures } from '../../NotificationBell';
@@ -107,161 +108,123 @@ export function ReportForm() {
   };
 
   return (
-    <form className="report-form reveal" id="reportForm" onSubmit={submit} style={shown ? SHOWN_AS_COLUMN : { display: "none" }}>
-      {" "}
-      {/* Student Auth Banner */}
-      {" "}
-      <div id="formStudentAuthNotice" style={{ background: "#FAF2EB", border: "1px solid #cbe3b8", borderRadius: "10px", padding: "12px 14px", fontSize: "12.5px", color: "#1a3010", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
-        {" "}
-        <ReportAuthNotice />
-        {" "}
+    <form className="report-form rf reveal" id="reportForm" onSubmit={submit} style={shown ? SHOWN_AS_COLUMN : { display: "none" }}>
+      {/* who is filing */}
+      <div id="formStudentAuthNotice" className="rf-identity">
+        <span className="rf-avatar" aria-hidden="true">{profile?.name?.trim().charAt(0).toUpperCase() || '?'}</span>
+        <div className="rf-identity-text"><ReportAuthNotice /></div>
       </div>
-      {" "}
-      {/* Title */}
-      {" "}
-      <div className="form-group full">
-        {" "}
-        <label className="form-label" htmlFor="fTitle">
-          Complaint Title *
-        </label>
-        {" "}
-        <input className="form-input" id="fTitle" type="text" required placeholder="Brief summary of the issue (e.g. Water shortage in Hostel 2, Broken switchboard in CCSA)"
-          ref={(el) => { fields.current.fTitle = el; }} value={form.title} onChange={(e) => setField('title', e.target.value)} />
-        {" "}
-        <span className="form-error" id="titleError" style={{ display: form.titleError ? "block" : "none" }}>
-          Please enter a complaint title (minimum 5 characters).
-        </span>
-        {" "}
-      </div>
-      {" "}
-      {/* Automatic analysis and routing */}
-      {" "}
-      <div className="form-row">
-        {" "}
-        <div className="form-group" style={{ flex: 1 }}>
-          <span className="form-label">Automatic category and routing</span>
-          <p style={{ fontSize: 13, lineHeight: 1.6 }}>Describe the issue in your own words. Xohari analyzes the report, assigns a category, and routes it to the responsible campus authority. Unclear or sensitive reports go to Administration for review.</p>
+
+      <fieldset className="rf-step">
+        <legend><span className="rf-step-num">1</span>What happened?</legend>
+        <div className="form-group full">
+          <label className="form-label" htmlFor="fTitle">Complaint title <span className="rf-req">*</span></label>
+          <input className="form-input" id="fTitle" type="text" required placeholder="e.g. Water shortage in Hostel 2"
+            ref={(el) => { fields.current.fTitle = el; }} value={form.title} onChange={(e) => setField('title', e.target.value)} />
+          <span className="rf-hint">A short summary of the problem.</span>
+          <span className="form-error" id="titleError" style={{ display: form.titleError ? "block" : "none" }}>
+            Please enter a complaint title (minimum 5 characters).
+          </span>
         </div>
-      </div>
-      {/* Description */}
-      {" "}
-      <div className="form-group full">
-        {" "}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", flexWrap: "wrap", gap: "8px" }}>
-          {" "}
-          <label className="form-label" htmlFor="fDesc" style={{ margin: "0" }}>
-            Detailed Description *
-          </label>
-          {" "}
-          <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-            {" "}
-            <span id="aiLangIndicator" style={{ fontSize: "11px", fontWeight: "600", color: "var(--olive)", background: "var(--pill)", padding: "3px 9px", borderRadius: "999px" }}>
-              {form.language ?? <>{" "}Assamese / English{" "}</>}
-            </span>
-            {" "}
+        <div className="form-group full">
+          <div className="rf-label-row">
+            <label className="form-label" htmlFor="fDesc">Detailed description <span className="rf-req">*</span></label>
+            <RoutingInfo />
+            <span id="aiLangIndicator" className="rf-lang">{form.language ?? 'Assamese / English'}</span>
           </div>
-          {" "}
+          <textarea className="form-textarea" id="fDesc" required minLength={8} rows={5} placeholder="What is wrong, exactly where, and since when…"
+            ref={(el) => { fields.current.fDesc = el; }} value={form.desc} onChange={(e) => setDescription(e.target.value)} />
+          <span className="rf-hint">Write in English or Assamese. The more specific, the faster it reaches the right office.</span>
+          <span className="form-error" id="descError" style={{ display: form.descError ? "block" : "none" }}>
+            Please describe the issue (minimum 8 characters).
+          </span>
         </div>
-        {" "}
-        <textarea className="form-textarea" id="fDesc" required minLength={8} rows={4} placeholder="Describe the grievance in detail: exact location, duration, and defect..."
-          ref={(el) => { fields.current.fDesc = el; }} value={form.desc} onChange={(e) => setDescription(e.target.value)} />
-        {" "}
-        <span className="form-error" id="descError" style={{ display: form.descError ? "block" : "none" }}>
-          Please describe the issue (minimum 8 characters).
-        </span>
-        {" "}
-      </div>
-      {" "}
-      {/* Location Row */}
-      {" "}
-      <div className="form-row">
-        {" "}
-        {/* Location */}
-        {" "}
-        <div className="form-group" style={{ flex: "1" }}>
-          {" "}
-          <label className="form-label" htmlFor="fLocation">
-            Campus Landmark (Optional Match)
-          </label>
-          {" "}
-          <select className="form-select" id="fLocation" value={form.location} onChange={(e) => setLocation(e.target.value)}>
-            {LOCATION_OPTIONS.map(({ value, label }) => (
-              <option key={value} value={value}>{label}</option>
+      </fieldset>
+
+      <fieldset className="rf-step">
+        <legend><span className="rf-step-num">2</span>Where is it? <span className="rf-optional">Optional</span></legend>
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label" htmlFor="fLocation">Campus landmark</label>
+            <select className="form-select" id="fLocation" value={form.location} onChange={(e) => setLocation(e.target.value)}>
+              {LOCATION_OPTIONS.map(({ value, label }) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group" id="customLocGroup" style={{ display: form.location === 'OTHER' ? undefined : "none" }}>
+            <label className="form-label" htmlFor="fCustomLoc">Exact location</label>
+            <input className="form-input" id="fCustomLoc" type="text" placeholder="e.g. Room 210, Chemistry Lab" value={form.customLoc} onChange={(e) => setCustomLocation(e.target.value)} />
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset className="rf-step">
+        <legend><span className="rf-step-num">3</span>Photos or files <span className="rf-optional">Optional</span></legend>
+        <div className="rf-drop">
+          <span className="rf-drop-icon" aria-hidden="true"><ImagePlus /></span>
+          <div className="rf-drop-text">
+            <strong>Add a photo of the problem</strong>
+            <span>Images or PDF, up to 5 MB each</span>
+          </div>
+          <div className="rf-drop-actions">
+            <input key={`files-${form.resetCount}`} type="file" id="fEvidenceFiles" className="rf-file-input" multiple accept="image/jpeg,image/png,image/webp,application/pdf" onChange={(e) => addEvidenceFiles(e.target.files)} />
+            <label className="btn-outline rf-pick" htmlFor="fEvidenceFiles"><FileText aria-hidden="true" />Choose files</label>
+            <button type="button" className="btn rf-pick" onClick={() => cameraInput.current?.click()}><Camera aria-hidden="true" />Take photo</button>
+            <input key={`camera-${form.resetCount}`} ref={cameraInput} type="file" id="fCameraCapture" accept="image/*" capture="environment" style={{ display: "none" }} onChange={(e) => addCameraPhoto(e.target.files)} />
+          </div>
+        </div>
+        {form.files.length > 0 && (
+          <ul id="evidenceFilesPreviewList" className="rf-files">
+            {form.files.map((f, idx) => (
+              <li key={idx}>
+                <FileText aria-hidden="true" />
+                <span className="rf-file-name">{f.name}</span>
+                <span className="rf-file-size">{sizeLabel(f.size)}</span>
+                <button type="button" aria-label={'Remove ' + f.name} onClick={() => removeEvidenceFile(idx)}><X aria-hidden="true" /></button>
+              </li>
             ))}
-          </select>
-          {" "}
-        </div>
-        {" "}
-        {/* Custom location */}
-        {" "}
-        <div className="form-group" id="customLocGroup" style={{ display: form.location === 'OTHER' ? "block" : "none", flex: "1" }}>
-          {" "}
-          <label className="form-label" htmlFor="fCustomLoc">
-            Specify Exact Location
-          </label>
-          {" "}
-          <input className="form-input" id="fCustomLoc" type="text" placeholder="e.g. Room 210, Chemistry Lab" value={form.customLoc} onChange={(e) => setCustomLocation(e.target.value)} />
-          {" "}
-        </div>
-        {" "}
-      </div>
-      {" "}
-      {/* Evidence File Uploads (Cloudinary Authenticated) */}
-      {" "}
-      <div className="form-group full">
-        {" "}
-        <label className="form-label" htmlFor="fEvidenceFiles">
-          Attach Evidence Files (Optional - Images or PDF, max 5 MB each)
-        </label>
-        {" "}
-        <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
-          {" "}
-          <input key={`files-${form.resetCount}`} type="file" id="fEvidenceFiles" multiple accept="image/jpeg,image/png,image/webp,application/pdf" className="form-input" style={{ padding: "8px", fontSize: "12px", flex: "1" }} onChange={(e) => addEvidenceFiles(e.target.files)} />
-          {" "}
-          <button type="button" className="btn" style={{ height: "38px", fontSize: "12px", padding: "0 14px", background: "var(--olive)", gap: "6px" }} onClick={() => cameraInput.current?.click()}>
-            {" "}Open Camera{" "}
-          </button>
-          {" "}
-          <input key={`camera-${form.resetCount}`} ref={cameraInput} type="file" id="fCameraCapture" accept="image/*" capture="environment" style={{ display: "none" }} onChange={(e) => addCameraPhoto(e.target.files)} />
-          {" "}
-        </div>
-        {" "}
-        <div id="evidenceFilesPreviewList" style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "6px" }}>
-          {form.files.map((f, idx) => (
-            <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#FAF2EB", padding: "6px 10px", borderRadius: "6px", border: "1px solid #e0f0d0", fontSize: "12px" }}>
-              <span><strong>{f.name}</strong> ({sizeLabel(f.size)})</span>
-              <button type="button" onClick={() => removeEvidenceFile(idx)} style={{ background: "none", border: "none", color: "#b91c1c", fontWeight: 700, cursor: "pointer", fontSize: "11px", padding: "2px 6px" }}>Remove</button>
-            </div>
-          ))}
-        </div>
-        {" "}
-      </div>
-      {" "}
+          </ul>
+        )}
+      </fieldset>
+
       {features.routing && (
-        <label style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '12.5px', color: '#1a3010', cursor: 'pointer', lineHeight: 1.45 }}>
-          <input type="checkbox" checked={form.hideName} onChange={(e) => setHideName(e.target.checked)} style={{ marginTop: '3px' }} />
-          <span><strong>Hide my name from the student union.</strong> Union posts will see your complaint but not your name or email; the Head / Chairperson and the administration still will.</span>
+        <label className="rf-privacy">
+          <input type="checkbox" checked={form.hideName} onChange={(e) => setHideName(e.target.checked)} />
+          <span className="rf-privacy-icon" aria-hidden="true"><ShieldCheck /></span>
+          <span><strong>Hide my name from the student union</strong>Union posts see the complaint but not your name or email. The Head / Chairperson and the administration still do.</span>
         </label>
       )}
-      {/* Submission Error Box */}
-      {" "}
-      <div id="submitError" style={{ display: form.submitError ? "block" : "none", padding: "10px 14px", borderRadius: "8px", fontSize: "12px", fontWeight: "600", background: "#fef0ee", border: "1px solid #f0b0a0", color: "#c03020", lineHeight: "1.4" }}>
+
+      <div id="submitError" className="rf-submit-error" role="alert" style={{ display: form.submitError ? undefined : "none" }}>
         {form.submitError}
       </div>
-      {" "}
-      <button className="btn" type="submit" id="submitBtn" disabled={form.submitting} style={{ height: "46px", fontSize: "14px", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginTop: "10px" }}>
-        {form.submitting ? 'Uploading evidence & registering complaint...' : (
-          <>
-            {" "}
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M22 2L11 13" />
-              <path d="M22 2l-7 20-4-9-9-4 20-7z" />
-            </svg>
-            {" "}Submit Complaint for Official Redressal{" "}
-          </>
-        )}
-      </button>
-      {" "}
+      <div className="rf-submit">
+        <button className="btn" type="submit" id="submitBtn" disabled={form.submitting}>
+          {form.submitting ? 'Uploading evidence & registering complaint…' : <><Send aria-hidden="true" />Submit complaint</>}
+        </button>
+        <p>You'll get a ticket ID to follow every update.</p>
+      </div>
     </form>
+  );
+}
+
+/** "How does routing work?": an info button beside the description label; opens on hover or tap, Esc / tapping away closes it. */
+function RoutingInfo() {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLSpanElement>(null);
+  useDismiss(box, open, () => setOpen(false)); // a tap elsewhere or Esc closes it (touch browsers don't always blur the button)
+  return (
+    <span ref={box} className={open ? 'rf-info is-open' : 'rf-info'} onMouseLeave={() => setOpen(false)}>
+      <button type="button" className="rf-info-btn" aria-label="How categories and routing work" aria-expanded={open} aria-controls="rfRoutingInfo"
+        onClick={() => setOpen((o) => !o)} onBlur={() => setOpen(false)}>
+        <Info aria-hidden="true" />
+      </button>
+      <span className="rf-info-pop" id="rfRoutingInfo">
+        <strong>Automatic category and routing</strong>
+        Describe the issue in your own words. Xohari analyzes the report, assigns a category, and routes it to the responsible
+        campus authority. Unclear or sensitive reports go to Administration for review.
+      </span>
+    </span>
   );
 }

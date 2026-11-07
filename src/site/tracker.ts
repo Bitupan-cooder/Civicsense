@@ -1,18 +1,11 @@
-// State and actions of the complaint tracker modal ("My Complaints" and "Track by Complaint ID").
+// State and actions of "My complaints" on /report/new: the student's list, its filters, and the ticket shown at ?track=<id>.
 import { useSyncExternalStore } from 'react';
 import type { Complaint, Routing } from '../civicAuth';
 import * as auth from '../civicAuth';
 import { showToast } from '../toast';
-import { isStudentSignedIn } from './studentSession';
-
-export type TrackerMode = 'my_complaints' | 'track_single';
+import { CATEGORY_LABELS, ticketRef, type Category } from '../logic';
 
 export interface TrackerState {
-  open: boolean;
-  mode: TrackerMode;
-  /** Demo IDs from the page's local sample data, shown as chips under the search. */
-  demoIds: string[];
-  query: string;
   searchError: string | null;
   result: Complaint | null;
   mine: Complaint[];
@@ -22,15 +15,13 @@ export interface TrackerState {
   mineError: string | null;
   filterText: string;
   filterStatus: string;
-  /** Complaint cards whose details drawer is open. */
-  expanded: string[];
   /** AI analysis and route tracker per complaint id (empty until migration 001 is run). */
   routing: Record<string, Routing>;
 }
 
 let state: TrackerState = {
-  open: false, mode: 'my_complaints', demoIds: [], query: '', searchError: null, result: null,
-  mine: [], mineLoaded: false, mineLoading: false, mineError: null, filterText: '', filterStatus: 'ALL', expanded: [], routing: {},
+  searchError: null, result: null,
+  mine: [], mineLoaded: false, mineLoading: false, mineError: null, filterText: '', filterStatus: 'ALL', routing: {},
 };
 const listeners = new Set<() => void>();
 let sessionGeneration = 0;
@@ -47,40 +38,18 @@ export function useTracker(): TrackerState {
   );
 }
 
-function demoIds(): string[] {
-  return state.mine.slice(0, 4).map((c) => 'CS-' + c.id.slice(0, 8).toUpperCase());
-}
-
 export function clearTrackerSession(): void {
   sessionGeneration++;
-  update({ mine: [], routing: {}, result: null, demoIds: [], mineLoaded: false, mineLoading: false, mineError: null });
-}
-
-export function openTracker(): void {
-  const view = isStudentSignedIn() ? 'mine' : 'track';
-  window.location.assign(`/report/new?view=${view}#report-tracker`);
-}
-
-export function closeTracker(): void {
-  update({ open: false });
-}
-
-export function switchTrackerMode(mode: TrackerMode): void {
-  update({ mode });
-}
-
-export function openTrackerWithId(id: string | null | undefined): void {
-  if (!id?.trim()) { openTracker(); return; }
-  window.location.assign(`/report/new?track=${encodeURIComponent(id.trim())}#report-tracker`);
+  update({ mine: [], routing: {}, result: null, mineLoaded: false, mineLoading: false, mineError: null });
 }
 
 export async function loadStudentComplaints(): Promise<void> {
   const generation = sessionGeneration;
-  update({ mineLoading: true, mineError: null, expanded: [] });
+  update({ mineLoading: true, mineError: null });
   try {
     const mine = (await auth.fetchStudentComplaints()) || [];
     if (generation !== sessionGeneration) return;
-    update({ mine, mineLoaded: true, mineLoading: false, demoIds: mine.slice(0, 4).map((c) => 'CS-' + c.id.slice(0, 8).toUpperCase()) });
+    update({ mine, mineLoaded: true, mineLoading: false });
     await loadRouting(mine.map((c) => c.id));
   } catch (err) {
     if (generation !== sessionGeneration) return;
@@ -97,11 +66,11 @@ async function loadRouting(ids: string[]): Promise<void> {
 }
 
 export function setFilterText(filterText: string): void {
-  update({ filterText, expanded: [] });
+  update({ filterText });
 }
 
 export function setFilterStatus(filterStatus: string): void {
-  update({ filterStatus, expanded: [] });
+  update({ filterStatus });
 }
 
 /** The student's complaints after the filter box and status filter (was filterStudentComplaints). */
@@ -110,26 +79,14 @@ export function filteredComplaints(s: TrackerState): Complaint[] {
   return s.mine.filter((c) => {
     if (s.filterStatus !== 'ALL' && c.status !== s.filterStatus) return false;
     if (!text) return true;
-    return c.id.toLowerCase().includes(text) || (c.title || '').toLowerCase().includes(text) || (c.category || '').toLowerCase().includes(text);
+    const ai = s.routing[c.id]?.ai_category as Category | undefined; // the category students see is the AI one
+    return [ticketRef(c.id), c.id, c.title, c.category, ai, ai && CATEGORY_LABELS[ai]].some((v) => (v || '').toLowerCase().includes(text));
   });
 }
 
-export function toggleComplaintDetail(id: string): void {
-  update({ expanded: state.expanded.includes(id) ? state.expanded.filter((x) => x !== id) : [...state.expanded, id] });
-}
-
-export function setTrackerQuery(query: string): void {
-  update({ query });
-}
-
-export function searchFor(id: string): void {
-  update({ query: id });
-  searchComplaint();
-}
-
-export async function searchComplaint(): Promise<void> {
+export async function searchFor(ticket: string): Promise<void> {
   const generation = sessionGeneration;
-  const id = state.query.trim();
+  const id = ticket.trim();
   if (!id) {
     update({ searchError: 'Please enter a valid Complaint ID.', result: null });
     return;
@@ -157,19 +114,6 @@ export async function viewEvidenceFile(complaintId: string, publicId: string): P
   } catch (err) {
     showToast((err as Error).message || 'Access denied to evidence file.', 'error');
   }
-}
-
-/** Startup (was buildDemoIds at load and the ?track= handler on DOMContentLoaded). */
-export function initTracker(): void {
-  update({ demoIds: demoIds() });
-  const openFromUrl = () => {
-    const trackId = new URLSearchParams(window.location.search).get('track');
-    // old /?track= links jump to the tracker; on /report/new the tracker reads ?track= itself, and a reload
-    // there would race the guest redirect to /login (reload loop)
-    if (trackId && window.location.pathname !== '/report/new') setTimeout(() => openTrackerWithId(trackId), 250);
-  };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', openFromUrl);
-  else openFromUrl();
 }
 
 /** Reporter confirms a resolved complaint is fixed (closed) or reopens it with a note (PRD step 7). */

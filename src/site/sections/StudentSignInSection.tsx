@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { signOutStudent, useStudentSession } from '../studentSession';
+import { useStudentSession } from '../studentSession';
+import { StudentWelcomeCard } from '../components/StudentAuthWidgets';
 import { loadStudentComplaints, useTracker } from '../tracker';
 import { ticketRef } from '../../logic';
 import { LayeredText } from '../../components/ui/layered-text';
@@ -46,16 +47,17 @@ export function StudentSignInSection() {
         <div className="student-portal-layout">
           <LayeredText className="student-portal-art" />
           <div className="student-portal-content">
-            <div className="student-signin-card student-signin-ready">
-              <div>
-                <h2>{profile ? `Welcome back, ${profile.name}.` : 'Have an issue on campus?'}</h2>
-                <p>{profile ? 'Your student account is ready to submit a report.' : 'Tell us what happened. We’ll guide you through signing in and submitting your report.'}</p>
+            {profile ? <StudentWelcomeCard /> : (
+              <div className="student-signin-card student-signin-ready">
+                <div>
+                  <h2>Have an issue on campus?</h2>
+                  <p>Tell us what happened. We’ll guide you through signing in and submitting your report.</p>
+                </div>
+                <div className="student-signin-actions">
+                  <Link className="student-signin-report-button" to="/report/new">Report here <span aria-hidden="true">→</span></Link>
+                </div>
               </div>
-              <div className="student-signin-actions">
-                <Link className="student-signin-report-button" to="/login">Report here <span aria-hidden="true">→</span></Link>
-                {profile && <button type="button" className="student-signout-button" onClick={() => void signOutStudent()}>Log out</button>}
-              </div>
-            </div>
+            )}
           </div>
         </div>
         {profile && <section className="index-confirmed-replies" aria-labelledby="index-confirmed-replies-title">

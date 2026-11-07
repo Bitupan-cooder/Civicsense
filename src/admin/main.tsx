@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import * as auth from '../civicAuth';
 import { setLanguagePersister } from '../i18n';
 import { AdminApp } from './AdminApp';
-import { getSignedInOfficialId, initAuth } from './console';
+import { followOtherTabs, getSignedInOfficialId, initAuth } from './console';
 import './admin.css';
 import '../workflow.css';
 import './console-redesign.css'; // last: the hallmark redesign of the signed-in console
@@ -16,3 +16,4 @@ createRoot(document.getElementById('root')!).render(<StrictMode><BrowserRouter><
 // The session check started on DOMContentLoaded in the old page script; keep that moment.
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => initAuth());
 else initAuth();
+followOtherTabs();

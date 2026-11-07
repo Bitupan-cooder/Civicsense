@@ -468,6 +468,412 @@ For the frontend teammate: every PRD screen now exists and is wired to the backe
   - It links 3 posts to its test accounts for the run, so it **refuses to run** once those posts (Head, General Secretary, Sports Secretary) are linked to real officials. Otherwise they would be notified about test complaints.
   - Run on 2026-11-02: **43 of 43 checks pass, 0 rows left.** Type-check, build and `npm test` (15 tests) pass.
 
+### 3.60 Complaints and evidence are written only by the server (2026-11-08)
+
+- **The gap:** two policies from the first schema still let a signed-in student write rows straight into the tables, around the server.
+  - **`complaints_insert_policy`:** complaints with any visibility, so they could be aimed at a department desk or DUSU past the review queue. These skipped the 6-a-day cap and the analysis.
+  - **`complaint_evidence_insert_policy`:** evidence rows naming any Cloudinary file. The evidence viewer only checked "is this your complaint?", so it could sign a link to another student's photo or ID card if its id was known.
+- **(a) Server check, effective now** ([backend/api.ts](backend/api.ts) `/api/complaint-evidence/view`): the viewer refuses an `civicsense/id_cards/…` file and a file in another account's `civicsense/complaint_evidence/<id>/` folder.
+  - Older uploads without a per-account folder stay viewable, so no real evidence is locked out.
+- **(b) Migration** [005_server_only_writes.sql](backend/migrations/005_server_only_writes.sql): drops the two policies. Nothing in the site uses them; the server writes with the service role.
+  - [schema.sql](backend/schema.sql) no longer creates them. Its "drop if exists" lines stay.
+  - **Applied on the live database** by the user on 2026-11-08: both policies are gone.
+- **(c) Live test** ([backend/live-test.mjs](backend/live-test.mjs)): it now files complaints like the site does (`POST /api/complaints/create`). The visibility tests write bare rows with the service role.
+  - The old "forged AI fields" check became "a student's direct insert is refused (005), or at least gets no forged AI fields". It passes before and after 005 and prints a note while 005 is missing.
+  - **Live run after 005** (2026-11-08): everything that depends on today's changes passed. Filing through the API, direct inserts refused, routing, notifications, privacy, replies, resolve/reopen and the admin pages all passed.
+  - Three checks expected one exact AI answer and now accept what is valid: P2 or P3 for the football-ground case, "official can't tamper" compared with the stored priority, and "human edited" only when the admin picks a different category than the AI. Failing checks now print the values they saw.
+  - A later run hit a Gemini failure, most likely the free-tier rate limit after 4 runs in about 10 minutes. The server correctly fell back to keyword rules and sent the complaint to review, which cascaded into later checks. Run it once more when the quota has recovered.
+- **Unchanged:**
+  - ~~The cap check on `/api/complaints/analyse` (3.58)~~: removed together with the route (follow-up below).
+  - The students' own "submitted" history row policy: low risk, on their own complaint only.
+- **Follow-up simplicity review:** removed `POST /api/complaints/analyse`, which nothing called any more.
+  - The site analyses while filing (`/api/complaints/create`), the admin corrects through `/api/admin/route-complaint`, and the live test moved off it.
+  - Its 3.58 cap check guarded against direct inserts, which 005 now blocks.
+  - The live test's direct-insert check is now strict: refused.
+  - The stale `analyseComplaint` row in [docs/FRONTEND.md](docs/FRONTEND.md) is gone.
+- **Test:** [api.test.ts](backend/api.test.ts) checks the evidence viewer.
+  - Refused: an ID card, or another account's file, attached to the requester's own complaint.
+  - Allowed: an older flat upload, and the real owner's file for an administrator.
+- Type-check, build and `npm test` (58) pass.
+
+### 3.59 Lists past 1,000 rows and long id lists: no more silent gaps (2026-11-08)
+
+- **The problem:** the admin queue and the Stats / System pages asked for everything in one request.
+  - **Silent cap:** Supabase returns at most "Max rows" (1,000 by default) per request, silently. Past 1,000 complaints, older ones would have vanished from the queue and from the totals.
+  - **Long URLs:** the queue's routing data (AI panel, route tracker, "Waiting on") was requested with every complaint id in one URL, which grows past what servers accept at a few hundred complaints.
+- **New shared helpers** in [src/logic.ts](src/logic.ts):
+  - `allRows(page)` fetches every row page by page, continuing from wherever the previous page ended, until a page comes back empty. It works whatever the project's "Max rows" setting is.
+  - `chunks(ids)` splits id lists into groups of 100.
+- **Used in:**
+  - **Admin queue** ([civicAuth.ts](src/civicAuth.ts)): `fetchOfficialComplaints` uses `allRows`. The reporters' ID-card lookup and `fetchRouting` go 100 ids at a time; `fetchRouting` splits itself and merges the parts.
+  - **Server** ([backend/api.ts](backend/api.ts)): `/api/admin/stats`, the System page (`ai_logs`, complaints and signals in the window, which used `.limit(20000)` and were capped at 1,000 anyway) and the deadline job's open cases.
+- **"Load more" was deliberately not added:** the queue's KPI cards, departmental caseload, filters and search are computed from the full list in the browser, so paging the screen would make them wrong. The whole list now loads in pages instead, with no UI change.
+  - **Ceiling:** at several thousand complaints the download itself gets heavy. Then move the filters and counts to the server and page the screen.
+- **Tests:**
+  - [backend/logic.test.ts](backend/logic.test.ts): `allRows` against a server capping pages at 500, and `chunks`.
+  - The API test's fake database now honours `offset`/`limit`.
+  - In the browser on a fake backend: the queue loads, `fetchRouting` with 250 ids makes 3 requests and merges them, and the Stats / System pages render.
+  - Type-check, build and `npm test` (57) pass.
+
+### 3.58 Server-side limit: 6 complaints per student per 24 hours (2026-11-07)
+
+- [backend/api.ts](backend/api.ts): `COMPLAINTS_PER_DAY = 6`, counted from the `complaints` table (`student_id`, `created_at` in the last 24 hours). It needs no new service and survives restarts and multiple server instances. It is checked in three places:
+  - **`POST /api/complaints/create`:** the 7th complaint gets 429 and is not saved. The form shows "You have filed 6 complaints in the last 24 hours, the daily limit…".
+  - **`POST /api/cloudinary/sign-upload` (evidence):** the form uploads files before filing, so at the cap nothing goes to Cloudinary.
+  - **`POST /api/complaints/analyse` (a student's first analysis):** the old student insert policy still lets a signed-in student insert rows straight into `complaints`. Those rows can't then run up Gemini calls.
+    - The check is "more than 6", because the complaint being analysed already counts. That keeps `backend/live-test.mjs` working: its first student files exactly 6 the old way.
+- **Chat bots:** the "10 tag attempts per chat account per day" limit moves from server memory to a new table, `chat_tag_attempts`, added to [002_chat_signals.sql](backend/migrations/002_chat_signals.sql) (server-only, RLS on with no policies). Moved there from a separate 004 migration on 2026-11-08.
+  - The bots can't run without 002, so the table always comes with them; no separate migration and no in-memory fallback.
+  - If 002 was already run on a database, run it again to add the table.
+- **Tests** ([api.test.ts](backend/api.test.ts)):
+  - **Complaints:** 6 complaints are filed, and the 7th is refused and not saved. The evidence upload is refused at the cap, and analysing a directly inserted 7th row is refused with no AI call. Officials cannot file.
+  - **Chat tags:** 11 tag attempts are all stored, and the 11th is ignored.
+- Still open:
+  - **Direct database inserts:** a student can still insert complaint rows directly with no AI, so no cost. Closing that means dropping `complaints_insert_policy` and moving `backend/live-test.mjs` to `/api/complaints/create`.
+  - **Supabase Auth's own sign-in rate limits:** worth checking in the dashboard (Authentication → Rate Limits).
+- Type-check, build and `npm test` (55) pass.
+
+### 3.57 Tabs of one browser follow each other's sign-in and sign-out (2026-11-07)
+
+- All tabs of a browser share one Supabase sign-in, but a tab only noticed a change on reload. Now each app listens to Supabase's `onAuthStateChange`, which supabase-js already broadcasts to every tab.
+- **Student site** ([studentSession.ts](src/site/studentSession.ts) `followOtherTabs`, started in [main.tsx](src/site/main.tsx)):
+  - Logging out in one tab signs the others out, with "You signed out in another tab." A tab on `/report/new` goes to `/login`.
+  - Signing in in one tab brings the others back. A tab waiting on `/login?next=…` moves on to its page.
+- **Admin console** ([console.ts](src/admin/console.ts) `followOtherTabs`, started in [admin/main.tsx](src/admin/main.tsx)):
+  - Logging out in one tab returns the others to the sign-in gate, with "You were logged out in another tab."
+  - A sign-in elsewhere re-runs the session check.
+- **Own changes vs other tabs:** a tab ignores its own sign-in (`loginBusy` / `signupBusy` / `gateBusy`) and its own log-out (`signingOut`), so it keeps its usual message.
+  - Supabase calls are deferred with `setTimeout`, because the listener runs inside Supabase's auth lock.
+- Checked on a fake backend, with a same-origin iframe as the "other tab" (same storage and broadcast channel):
+  - **Student:** logout in one tab moves the other to `/login` with the message; sign-in brings the other back to My complaints.
+  - **Admin:** logout in one tab moves the other to the gate with the message, and the tab that logged out shows its own message.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.56 Notifications card scrolls itself, not the landing page (2026-11-07)
+
+- **The bug:** on the landing page, scrolling the mouse wheel over the open notifications card scrolled the page behind it.
+  - The cause: the landing page's smooth scrolling (Lenis) takes over every wheel event unless the scrolled element opts out.
+- [NotificationBell.tsx](src/NotificationBell.tsx): the card now has `data-lenis-prevent`, Lenis's opt-out, and `overscroll-behavior: contain`, so scrolling past its end doesn't move the page either.
+- Checked with real wheel events over a card with 12 notifications:
+  - **Landing page:** before the fix the page moved 480 px and the card 0. Now the card moves 480 px and the page 0.
+  - **`/report/new`:** unaffected before and after.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.55 One nav link to the complaint list, named for the reader (2026-11-07)
+
+- [SiteNav.tsx](src/site/components/SiteNav.tsx): the nav button to `/report/new?view=mine` is labelled by sign-in state.
+  - **Signed out:** **Track Complaint** ("Track" on small phones). It leads to sign-in, then the list.
+  - **Signed in:** **My complaints** ("Mine" on small phones).
+  - Its aria-label follows the same rule.
+- [StudentAuthWidgets.tsx](src/site/components/StudentAuthWidgets.tsx): the nav name menu no longer repeats "My complaints". It shows who is signed in and **Log out**.
+- [sticker-slap-footer.tsx](src/components/ui/sticker-slap-footer.tsx): the footer link "Track a complaint" is now **Track Complaint**, matching the landing CTA.
+- [uiTranslations.ts](src/uiTranslations.ts):
+  - Added "Mine" (মোৰ).
+  - Removed "Track Status" and "Track a complaint", which no longer render.
+  - "My complaints" and "Track Complaint" already had Assamese.
+- Checked on a fake backend:
+  - At 1280 and 360, signed out and signed in, the nav shows the right label.
+  - The name menu has only "Log out".
+  - In Assamese the nav shows "মোৰ অভিযোগসমূহ".
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.54 Report form: the language pill no longer calls English "Mixed" (2026-11-07)
+
+- [analyzer.js](src/site/analyzer.js) `detectLanguage`: romanised-Assamese markers (pani, nai, ase, char…) now match whole words only.
+  - Before, plain English like "Please fix…" (contains "ase"), "case" or "charger" showed "Mixed / Romanised Assamese".
+  - The pill is a hint on the form only. The complaint's real language comes from the server-side AI analysis.
+- Checked on samples:
+
+| Typed | Pill |
+|---|---|
+| "হোষ্টেলত পানী নাই" | Assamese |
+| Assamese with "Wi-Fi" | Mixed |
+| "Hostel t pani nai…" | Mixed |
+| "Please fix the fan…" | English (was Mixed) |
+| "charger" | English (was Mixed) |
+| "case" | English (was Mixed) |
+
+- Follow-up simplicity review:
+  - The markers are one regex literal (`ROMANISED_ASSAMESE`), built once instead of on every keystroke. The redundant "t pani" marker is gone, since whole-word "pani" covers it.
+  - `ReportAuthNotice` dropped its signed-out and loading lines. The report form only shows for a signed-in student.
+  - Removed the dead Assamese entries "Read in" and "Sign Out", which belonged to the widgets removed in 3.53.
+- Type-check, build and `npm test` (53) pass.
+
+### 3.53 Assamese for the redesigned student pages (2026-11-07)
+
+- [uiTranslations.ts](src/uiTranslations.ts): 43 new Assamese entries.
+  - **Report form:** step titles, labels, hints, placeholders, file buttons, the privacy card, Submit, and the ⓘ label.
+  - **Ticket details:** route checkpoints (Delivered / Seen / Replied), "Route tracker", "AI analysis" and its labels, "Waiting on: Reporter confirmation".
+  - **Student ID labels:** Verified / Not Valid / Pending, Re-upload.
+  - **Location options:** "Auto-Detect…", "Other (specify below)".
+  - **Prefixes for text that ends in a value:** "Sent to: ", "Waiting on: ", "Photo: ", "Remove ".
+  - Written without a native speaker. They need a review.
+- **Text areas:** the translator now also handles their placeholder and aria-label. It still never touches the typed text.
+  - Before, the whole text area was skipped, so the description box's placeholder stayed in English.
+- [StudentAuthWidgets.tsx](src/site/components/StudentAuthWidgets.tsx): removed `TrackerAuthStatus` and `ReadingLanguageSwitch`. Only the deleted tracker modal used them.
+- Checked in Assamese on a fake backend: the form and a resolved ticket.
+  - The only English left is data (names, dates, what the student wrote, official remarks), the detected-language pill and the "· 82% confident" note.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.52 Simplicity review applied (2026-11-07)
+
+- [uiTranslations.ts](src/uiTranslations.ts): removed 39 Assamese entries for text that no longer renders.
+  - They covered the old form labels, the old tracker search, the CTA ticket-ID box, the sign-in card's two "Track…" buttons, and the deleted tracker modal.
+  - Each was first checked to appear nowhere in `src/`, `index.html` or `admin.html`, admin console included.
+- [tracker.ts](src/site/tracker.ts): `searchFor(id)` now does the lookup itself. The `query` field and the separate `searchComplaint` were removed.
+- [StudentAuthWidgets.tsx](src/site/components/StudentAuthWidgets.tsx):
+  - **Nav button:** `StudentNavButton` lost its unused `label` and `standalone` props and its `id="navStudentBtn"`, which nothing read.
+  - **Shared `useDismiss(ref, open, close)` hook:** a click outside or Esc closes a popover. The nav account menu and the report form's routing ⓘ both use it. The ⓘ lost its own Esc handler; it keeps `onBlur` for keyboard users.
+- [ReportTrackerSection.tsx](src/site/sections/ReportTrackerSection.tsx):
+  - `StatusChecklist` and `ConfirmOrReopen`, which had one caller each, are now local functions. Their two files were deleted.
+  - `TicketDetails` no longer checks for a signed-in student. The page only renders for one.
+- [sign-in-card.css](src/components/ui/sign-in-card.css): `.sic-meta-row` dropped `justify-content: space-between`. It has one child now.
+- Checked on a fake backend:
+  - The routing ⓘ opens, closes on an outside tap and closes on Esc.
+  - The nav menu opens, closes on Esc and on an outside click, and "My complaints" opens without a reload.
+  - The My complaints flow: search, status chips, opening a ticket, Back, ID search and Enter.
+  - A resolved ticket shows the banner, "Is it fixed?", replies, "Who's handling it", the AI panel and the checklist.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.51 Old links removed; notifications card without a scrollbar (2026-11-07)
+
+- **Old links:** nothing creates these any more. The bots link only to `/report/new`, and the site is not deployed yet, so there are no outside bookmarks. Removed:
+  - **Routes:** `/report` (`ReportRedirect`), `/my`, `/complaints/:id` (`ComplaintRedirect`) and `/index.html` in [SiteApp.tsx](src/site/SiteApp.tsx). Any of them now lands on `/` through the catch-all route.
+  - **Old ticket links:** `initTracker`, which forwarded `/?track=<id>` with a full page load, removed from [tracker.ts](src/site/tracker.ts) and [main.tsx](src/site/main.tsx).
+  - **Old lookup view:** `?view=track` is no longer treated as "My complaints" ([ReportPage.tsx](src/site/pages/ReportPage.tsx)). Only `?view=mine` and `?track=<id>` are created now.
+- **Code those links kept alive:**
+  - Deleted `src/site/pages/ComplaintPage.tsx`, the old unstyled complaint page.
+  - Its "Is it fixed?" box moved to [ConfirmOrReopen.tsx](src/site/components/ConfirmOrReopen.tsx).
+  - Deleted `src/site/pages/PageShell.tsx`.
+  - [SiteNav.tsx](src/site/components/SiteNav.tsx) lost its `pageShell` variant.
+  - [routes.css](src/site/pages/routes.css) lost 44 `[data-page]` / `.page-shell-nav` lines.
+- **Kept:** the `complaint.*`, `nav.*` and `my.*` keys in `i18n.ts`. Their values also act as the Assamese dictionary for on-screen text, e.g. "My complaints".
+- **Notifications card** ([NotificationBell.tsx](src/NotificationBell.tsx)): it scrolls without a visible scrollbar (`scrollbar-width: none`, plus a `::-webkit-scrollbar` rule in `routes.css` for older Safari). The admin console does not show the bell.
+- [admin.css](src/admin/admin.css): removed the 12 notification-card rules. The console never shows the bell, and `admin.css` is loaded only by the console, so they styled nothing. Their comment had called them shared with the student site.
+- [docs/FRONTEND.md](docs/FRONTEND.md): the route table now lists `/login`, `/welcome` and `/report/new` (`?view=mine`, `?track=`). It notes that any other path goes to `/`.
+- Checked:
+  - The removed links all land on the landing page.
+  - `/report/new?view=mine`, `/welcome` and a signed-in `/login` still work.
+  - The student notifications card reports `scrollbar-width: none`.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.50 Log out back on /welcome; the Xohari logo plays the loader on the way home (2026-11-07)
+
+- [StudentAuthWidgets.tsx](src/site/components/StudentAuthWidgets.tsx) `StudentWelcomeCard`:
+  - On `/welcome`, the card shows **Report an issue →** and **Log out**. Log out goes to the landing page, like the nav name menu.
+  - The landing page's card keeps only **Report here →**.
+  - The `.student-signout-button` CSS is restored.
+- [SiteNav.tsx](src/site/components/SiteNav.tsx): the nav's "Xohari" logo is now a plain `<a href="/">` on route pages instead of a router `<Link>`.
+  - Going home from `/login`, `/welcome` or `/report/new` is now a full page load, so the startup loader plays, followed by the landing intro.
+  - On the landing page itself the logo still scrolls to the top (`#hero`).
+  - The two branches collapsed into one tag.
+- Checked on a fake backend:
+  - Clicking "Xohari" on `/report/new` reloads to `/`. The loader is up 1.2 s later and hidden by 4.7 s.
+  - The landing card shows only "Report here →", and the `/welcome` card shows "Report an issue →" and "Log out".
+  - Log out on `/welcome` goes to `/` signed out.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.49 Welcome card: one button, and a reload keeps /welcome (2026-11-07)
+
+- **Reloading `/welcome` keeps the card.**
+  - `WelcomePage` now marks the welcome as seen only when the student leaves the route. Its effect cleanup checks that the URL is no longer `/welcome`, which also ignores React StrictMode's dev-only remount.
+  - A reload is not leaving, so the card stays.
+  - Coming back after leaving (Back button, typed URL) still goes to `/report/new`.
+- **One button per card:**
+  - `/welcome` shows only **Report an issue →**.
+  - The landing page's card shows only **Report here →**.
+  - The **Log out** button is gone from both. Signing out stays in the nav name menu.
+  - Removed the now-unused `.student-signout-button` CSS.
+- Checked in one tab on a fake backend:
+  - Sign in shows `/welcome`, and reloading it still shows the card, with "Report an issue →" as its only button.
+  - "Report an issue" opens the form, and Back goes to the landing page.
+  - `/welcome` and `/login` then go to the form, including on a reload.
+  - The landing card shows only "Report here →".
+  - Logging out and signing in again shows `/welcome` once more.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.48 /welcome is shown once per sign-in (2026-11-07)
+
+- [studentSession.ts](src/site/studentSession.ts) remembers, in `sessionStorage` for that tab, which student was shown `/welcome` (`welcomeSeen` / `markWelcomeSeen`).
+  - Signing in, registering and signing out clear it.
+- [ReportPage.tsx](src/site/pages/ReportPage.tsx):
+  - `WelcomePage` marks the visit on its first showing.
+  - Coming back to `/welcome` afterwards goes to `/report/new`. That covers a typed URL, the Back button and a reload.
+  - A ref keeps React StrictMode's second effect run in development from counting as a return visit.
+  - A signed-in `/login` goes to `/report/new` once the welcome has been seen, otherwise to `/welcome`.
+- "Report here" on `/welcome` replaces the history entry ([StudentAuthWidgets.tsx](src/site/components/StudentAuthWidgets.tsx)), so Back from the form returns to the page before sign-in.
+- Checked in one tab on a fake backend, step by step:
+  - Signing in shows `/welcome`, and "Report here" opens the form.
+  - Back goes to the landing page.
+  - Opening `/welcome` again, opening `/login`, and reloading `/welcome` all go to the form.
+  - Logging out, then signing in again, shows `/welcome` once more.
+  - Registering shows "Welcome aboard" on `/welcome`.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.47 Welcome card on its own route: /welcome (2026-11-07)
+
+- `/login` now only signs in or registers. It no longer re-renders into the welcome card.
+  - Once signed in, the student goes to `?next=` when there is one, otherwise to **`/welcome`**.
+  - A signed-in visit to `/login` does the same.
+- **New `/welcome` route** ([ReportPage.tsx](src/site/pages/ReportPage.tsx) `WelcomePage`, registered in [SiteApp.tsx](src/site/SiteApp.tsx)):
+  - It has the same heading as `/login` and the shared welcome card: "Welcome back" for returning students, "Welcome aboard" right after registering.
+  - A guest is sent to `/login`. Logging out there also leads to `/login`.
+  - Both pages share an `EntryPage` wrapper for the heading.
+- **Chat linking:** the bots send `/login?link=<token>`. `/login` waits until `ChatLink` has used and removed the token, then moves on, so linking a Telegram, Discord or Moodle account still works.
+- Checked:
+  - On a fake backend: signing in and registering land on `/welcome` with the right greeting at 1280 and 360.
+  - A signed-in `/login` goes to `/welcome`, `/login?next=…` goes to `next`, and `/login?link=…` goes to `/welcome` after the link is handled.
+  - A guest on `/welcome` goes to `/login`. Log out on `/welcome` goes to `/login`, and "Report here" opens the form.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.46 /login after sign-in: the landing page's welcome card (2026-11-07)
+
+- Before, a signed-in student on `/login` saw a plain "Signed in as …" card with three buttons. Now `/login` shows the same welcome card as the landing page's sign-in section: **Report here →** and **Log out**.
+  - [StudentWelcomeCard](src/site/components/StudentAuthWidgets.tsx) is now one component, used by both pages.
+  - The "Sign in with your verified student account…" line is hidden once signed in.
+- **Returning student:** "Welcome back, <name>." and "Your student account is ready to submit a report."
+- **Newly registered student:** "Welcome aboard, <name>." and "Your account is created and your student ID is being verified. You can already submit a report."
+  - That is true: creating a complaint is not blocked while the ID card is pending.
+  - [studentSession.ts](src/site/studentSession.ts) has a new `justRegistered` flag. Registering sets it; signing in or out clears it. It is kept in memory only, so a reload greets the student with "Welcome back".
+- Removed the old card's CSS from [routes.css](src/site/pages/routes.css): `.report-entry-ready`, `.report-entry-actions`, `.report-start-button`, `.report-entry-track-button` and `.report-entry-logout`.
+- Assamese text added for the new greeting and sentence.
+- Checked:
+  - On a fake backend at 1280 and 360, signing in on `/login` shows "Welcome back" and registering shows "Welcome aboard". This used a fake student registration including the ID upload.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.45 Student-site flow fixes from landing to logout (2026-11-07)
+
+Found by clicking every entry point as a guest and as a signed-in student (13 journeys).
+
+1. **Sign-in card:** removed "Track with Ticket ID", "Track Registered Grievance" and the "or check existing grievance" divider from [sign-in-card-2.tsx](src/components/ui/sign-in-card-2.tsx).
+   - For a guest, both buttons reloaded the page back onto the same sign-in form.
+   - Their CSS was removed from [sign-in-card.css](src/components/ui/sign-in-card.css).
+2. **"Report here" (landing sign-in section) and CTA "File a Report Now":** they now link to `/report/new` instead of `/login`.
+   - A signed-in student goes straight to the form.
+   - A guest signs in and then lands on the form (`/login?next=/report/new`), not on the "Signed in as…" card.
+3. **CTA "Already filed? [Complaint ID] Track" box:** removed from [CallToAction.tsx](src/site/sections/CallToAction.tsx), with its `.track-form` CSS.
+   - Students can only open their own complaints, so any other ID ended in "No complaint record found".
+   - "Track Complaint" next to it opens the student's list.
+4. **Logging out from the nav menu** now lands on the landing page.
+   - Before, it went to `/login?next=/report/new`, which looked like an expired session.
+5. **Dead tracker modal:**
+   - Deleted `src/site/modals/TrackerModal.tsx` (473 lines). Nothing opened it any more.
+   - Its progress checklist moved to [StatusChecklist.tsx](src/site/components/StatusChecklist.tsx). Its merged-complaint line now says "Updates continue there." instead of pointing at a link.
+   - [tracker.ts](src/site/tracker.ts) lost the modal-only state and functions:
+     - `open`, `mode`, `demoIds` and `expanded`
+     - `openTracker`, `closeTracker`, `switchTrackerMode`, `openTrackerWithId`, `toggleComplaintDetail` and `setTrackerQuery`
+   - `initTracker` now only forwards old `/?track=` links.
+   - [studentSession.ts](src/site/studentSession.ts) lost the unused `isStudentSignedIn`.
+   - [site.css](src/site/site.css) lost 23 rules that only the modal used.
+6. Removed a leftover comment from the old nav click handler.
+
+- Checked:
+  - The journey script again: every entry point lands where intended with no page reload, the two Track buttons and the CTA ID box are gone, and logout lands on the landing page.
+  - Screenshots of the CTA card and the sign-in card.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.44 My complaints: no dead-end ticket lookups (2026-11-07)
+
+- Students can only read their own complaints. This is enforced by row-level security on `complaints` and the tables linked to it, by the server's `requesterCanAccess`, and by `backend/access.test.ts`. So looking up a ticket ID that is not in the list always ended in "No complaint record found".
+- [src/site/sections/ReportTrackerSection.tsx](src/site/sections/ReportTrackerSection.tsx):
+  - **Search box:** it only filters your list now. Enter opens the complaint when one match is left.
+    - Removed the ID lookup fallback and the "Look up this ticket ID" button (`LOOKS_LIKE_ID`, `lookUp`, `.tr-lookup`).
+  - **Merged complaints:** the note is plain text, "This report was merged with ticket **CS-…**. Updates continue there, and you'll be notified."
+    - Before, it linked to the other ticket, which the student cannot open.
+    - The server already notifies merged reporters about replies, status changes and auto-close (`mergedReporterIds`).
+- Assamese text added for the new sentence.
+- Checked:
+  - A scripted flow: a search with no match shows the message with no button and Enter stays on the list; Enter with one match opens it.
+  - A screenshot of a merged complaint.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.43 Nav account menu instead of a full-page jump (2026-11-07)
+
+- **Before:**
+  - Clicking "Student: <name>" in the nav reloaded the whole page into "My complaints", through `window.location.assign`.
+  - In the page-shell nav variant, clicking the name signed out at once.
+- **Now:** [StudentAuthWidgets.tsx](src/site/components/StudentAuthWidgets.tsx) `StudentNavButton` opens a small menu.
+  - The menu shows the name and email, **My complaints** (a router link, no reload) and **Log out**.
+  - Esc or a click elsewhere closes it.
+  - Signed out, the button still goes to `/login`, now without a reload.
+  - [SiteNav.tsx](src/site/components/SiteNav.tsx): the page-shell variant uses the same menu.
+- Removed `handleNavStudentClick` from [studentSession.ts](src/site/studentSession.ts).
+- Menu styles: a `.nav-account-*` block at the end of [routes.css](src/site/pages/routes.css).
+- Checked at 1280 on `/report/new` and `/`, and at 360:
+  - The menu opens with `aria-expanded` set, and Esc and an outside click close it.
+  - "My complaints" opens the list with no page reload.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.42 "My complaints": one clear list, and Back works (2026-11-07)
+
+- **The problem:**
+  - "Track status" hid two views: your list at `?view=mine`, reached only by clicking your name, and an ID search at `?view=track`. Nothing let you switch between them.
+  - Opening a complaint swapped the list away with no way back, and the browser's Back button left the page.
+  - Every row said "Other" (the stored category, not the AI one), and dates read "4/11/2026".
+- [src/site/sections/ReportTrackerSection.tsx](src/site/sections/ReportTrackerSection.tsx): the URL now decides what is shown.
+  - `?track=<id>` shows that ticket's details, with an **"← All my complaints"** button.
+  - Anything else shows the list.
+  - Back, forward and shared links work. Old `?view=track` links land on the list.
+- **The list:**
+  - **Search box:** filters as you type, by title, ticket ID (`CS-1A2B…`), category or AI category.
+    - Enter opens the complaint when one row is left.
+    - A ticket ID that isn't yours can still be looked up with Enter or "Look up this ticket ID", so the ID search is kept.
+  - **Status chips:** with counts. On phones they scroll in one row.
+  - **Rows:** coloured by status, like the details header. Each row shows the ticket ID, status, title, the AI category, "7 Nov 2026" and "Waiting on: …" where it applies.
+  - **Heading:** "My complaints" instead of "Stay close to every update."
+- [ReportPage.tsx](src/site/pages/ReportPage.tsx): the sidebar tab is now **My complaints**, with a count. The "Track status" links in the nav and on `/login` lead to it.
+- [tracker.ts](src/site/tracker.ts): `filteredComplaints` also matches the ticket ID and the AI category.
+- [routes.css](src/site/pages/routes.css):
+  - 27 lines removed for the old list, search box and "recent tickets" chips.
+  - A `.tr-*` list block added.
+  - The status tone is shared by rows and the details header.
+- Assamese text added for the new labels.
+- Checked:
+  - A scripted flow at 1280: an old `?view=track` link shows the list, search and status chip filter, opening a row changes the URL, Back returns to the full list, an ID-only search, a lookup of an unknown ID (shows the error), and "All my complaints".
+  - Screenshots at 1280 and 360, and 360 in Assamese.
+  - The overflow audit at 320 to 1024 px for the list and the details: no overflow.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.41 Ticket details in "Track status" redesigned (2026-11-07)
+
+- [src/site/sections/ReportTrackerSection.tsx](src/site/sections/ReportTrackerSection.tsx): a looked-up ticket was one long page of oversized text. It is now cards:
+  - **Header:** ticket ID, status chip, title and chips for the filed date, category and place. The left edge is coloured by status.
+  - **"Waiting on" banner:** says who has the complaint now and what happens next. When the office marks it fixed, the banner asks the student to confirm, and the **"Is it fixed?"** card sits right under it.
+  - **Two columns:**
+    - The side column holds **Complaint progress** (the 5-step checklist from the tracker modal, now exported and reused). Under it, **Show full history** opens every status change as a dot timeline. It is a collapsed `<details>` because the checklist already shows the latest entry for each step.
+    - The main column holds **What you wrote** with evidence chips, then **Replies**, **Who's handling it** and **AI analysis** as cards.
+  - **Who's handling it** is the route tracker reduced for students:
+    - It shows only the office that must resolve the complaint. Copied posts stay in the admin docket.
+    - Its own "Waiting on" line is hidden, since the banner says it.
+    - The PRD lists the route tracker as a reporter feature (P0), so it stays.
+    - `RouteTracker` got an optional `title`. The admin docket keeps "Route tracker".
+  - On phones, progress comes first.
+- [routes.css](src/site/pages/routes.css): the old flat-page overrides for the result were removed, including the forced 15–18 px text and the unused evidence and waiting classes. They are replaced by a `.tr-*` card block.
+  - The shared AiPanel, RouteTracker and Replies components are unchanged, so the admin docket is unaffected.
+- [uiTranslations.ts](src/uiTranslations.ts): Assamese text for the two new banner lines, "Who's handling it" and "Show full history".
+- Checked:
+  - Screenshots for in-progress and resolved tickets at 1280, and at 360 in English and Assamese.
+  - The overflow audit at 320 to 1024 px: no overflow.
+  - Type-check, build and `npm test` (53) pass.
+
+### 3.40 Complaint form on /report/new redesigned (2026-11-07)
+
+- [src/site/components/ReportForm.tsx](src/site/components/ReportForm.tsx): the form now reads as three numbered steps.
+  - **1 What happened?** Title and description, each with a short hint under the field.
+  - **2 Where is it?** The campus landmark, marked Optional.
+  - **3 Photos or files.** A drop area with "Choose files" and "Take photo" buttons. Added files show as rows with a remove (×) button.
+  - The signed-in student strip has an initial avatar, the "hide my name" option is a card with a shield icon, and the submit row says a ticket ID follows.
+- **"Automatic category and routing"** is no longer a block of text in the form. It opens from an ⓘ button beside "Detailed description".
+  - It opens on hover or tap, and closes on Esc or a tap elsewhere.
+  - The button carries `aria-expanded` / `aria-controls`.
+- Every field ID, handler and the GSAP `reveal` class are unchanged.
+- Styles: a `#reportForm` block at the end of [src/site/pages/routes.css](src/site/pages/routes.css).
+- Checked:
+  - Screenshots at 1280 and 360.
+  - The tooltip opening and closing.
+  - The overflow audit at 320 to 1024 px: no overflow.
+  - Type-check, build and `npm test` (53) pass.
+
 ### 3.39 React Router 6.30.6, and a reload loop on tracking links for guests fixed (2026-11-07)
 
 - **React Router:** `react-router-dom` went from 6.28.0 to **6.30.6**. This fixes the two high-severity open-redirect advisories ([GHSA-2w69-qvjg-hvjx](https://github.com/advisories/GHSA-2w69-qvjg-hvjx), [GHSA-2j2x-hqr9-3h42](https://github.com/advisories/GHSA-2j2x-hqr9-3h42)).
@@ -1004,8 +1410,9 @@ Most of these became outdated when the app moved to `index.html` + Supabase.
 | Supabase advisor: the helper functions (`can_read_complaint`, `is_routed_to_me`, `can_see_reporter`, `current_user_role`, …) are callable through `/rest/v1/rpc` (3.16). Low risk: they answer only about the caller. | Probably leave as is. Don't simply `revoke execute … from anon`: the policies call these functions as `anon` too, so logged-out reads would then error instead of returning nothing. Test first if you change it. |
 | Supabase advisor: `protect_complaint_ai_fields` / `protect_complaint_duplicate_fields` have no fixed `search_path`. | Fixed in the migration file (3.17). ⏳ **Still to run on the live database:** the two `alter function` lines in 3.17. |
 | Supabase advisor: leaked-password protection is off. | Supabase → Authentication → Passwords → turn it on. |
-| ⏳ Agent tag (3.24) is built but not live: migration 002 is not applied, and no bots exist yet. | Run `backend/migrations/002_chat_signals.sql`, create the bots, set the env vars (README → "Agent tag"), then test once in a real group. |
-| ⏳ Agent tag in Moodle (3.27) is built but untested on a real Moodle. **If 002 was already run before 3.27, run it again** (it widens the platform check). | Install the plugin on a test Moodle (steps in its README), set the three `MOODLE_*` env vars, post `@CivicSense …` in a forum, and run cron. |
+| ✅ Direct student writes (3.60) are blocked: migration 005 is applied on the live database (checked 2026-11-08). | Run `npm run test:live` once to confirm the whole flow. |
+| ✅ Agent tag (3.24): migration 002 is applied on the live database, with `chat_tag_attempts` (3.58). Checked 2026-11-08: all four tables exist. | Nothing to run. |
+| ⏳ Agent tag in Moodle (3.27) is built but untested on a real Moodle. The live platform checks allow 'moodle' (widened 2026-11-08). | Install the plugin on a test Moodle (steps in its README), set the three `MOODLE_*` env vars, post `@CivicSense …` in a forum, and run cron. |
 | ⏳ Monitoring (3.28): token counts and server errors start once migration 003 runs. `error_logs` has no automatic clean-up. | Run `backend/migrations/003_observability.sql`. Later, prune rows older than 30 days in the maintenance job if the table grows. |
 | Agent tag runs only in a long-running process (polling/Gateway). Moodle (3.27) doesn't have this limit. | If the app moves to Vercel functions, switch to a Telegram webhook and Discord interactions; `handleTag()` stays the same. |
 

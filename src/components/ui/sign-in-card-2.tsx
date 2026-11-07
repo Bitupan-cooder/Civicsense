@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Mail, Lock, Eye, EyeClosed, ArrowRight, User, Upload, FileText } from 'lucide-react';
 import { submitStudentLogin, submitStudentSignup, switchStudentAuthTab, useStudentSession } from "@/site/studentSession";
-import { openTracker } from "@/site/tracker";
 import "./sign-in-card.css";
 
 export interface SignInCardProps {
@@ -223,14 +222,6 @@ export function Component({ embedded = false, className = "", defaultTab = 'sign
                   />
                   <span>Remember account</span>
                 </label>
-
-                <button
-                  type="button"
-                  onClick={() => openTracker()}
-                  className="sic-link-btn"
-                >
-                  Track with Ticket ID
-                </button>
               </div>
 
               {/* Primary Submit Button */}
@@ -250,22 +241,6 @@ export function Component({ embedded = false, className = "", defaultTab = 'sign
                     <ArrowRight size={16} />
                   </span>
                 )}
-              </button>
-
-              {/* Divider */}
-              <div className="sic-divider">
-                <div className="sic-divider-line" />
-                <span className="sic-divider-text">or check existing grievance</span>
-                <div className="sic-divider-line" />
-              </div>
-
-              {/* Secondary Action: Track Registered Grievance */}
-              <button
-                type="button"
-                onClick={() => openTracker()}
-                className="sic-btn-secondary"
-              >
-                Track Registered Grievance
               </button>
 
               {/* Register Prompt */}

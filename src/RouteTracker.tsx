@@ -54,13 +54,13 @@ export function AiPanel({ routing }: { routing: Routing }) {
 const CHECKPOINTS: [keyof ComplaintRoute, string][] = [['delivered_at', 'Delivered'], ['seen_at', 'Seen'], ['replied_at', 'Replied'], ['resolved_at', 'Resolved']];
 
 /** Each recipient with its four checkpoints, and who the complaint is waiting on. */
-export function RouteTracker({ routes, status, stepper = false }: { routes: ComplaintRoute[]; status: string | null; stepper?: boolean }) {
+export function RouteTracker({ routes, status, stepper = false, title = 'Route tracker' }: { routes: ComplaintRoute[]; status: string | null; stepper?: boolean; title?: string }) {
   if (!routes.length) return null;
   const waiting = waitingOn(routes, status || '');
   return (
     <div className="route-tracker-panel" style={BOX}>
       <div style={{ ...LABEL, display: 'flex', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
-        <span>Route tracker</span>
+        <span>{title}</span>
         <span style={{ fontWeight: 600, textTransform: 'none', color: waiting ? '#b45309' : 'var(--olive)' }}>
           {waiting ? 'Waiting on: ' + waiting : 'Route complete'}
         </span>

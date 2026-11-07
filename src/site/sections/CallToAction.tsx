@@ -1,8 +1,7 @@
 // Markup converted 1:1 from the original index.html (React migration, step 1).
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export function CallToAction() {
-  const navigate = useNavigate();
   return (
     <section className="cta" id="cta">
       <div className="sq-field" data-count="14" aria-hidden="true" />
@@ -20,26 +19,12 @@ export function CallToAction() {
           Direct reporting to campus authorities. Your ticket is tracked openly from submission until the resolution is verified.
         </p>
         <div className="cta-btns">
-          <Link className="btn reveal" to="/login" style={{ fontSize: "14px", height: "44px", padding: "0 26px" }}>
+          <Link className="btn reveal" to="/report/new" style={{ fontSize: "14px", height: "44px", padding: "0 26px" }}>
             File a Report Now
           </Link>
           <Link className="btn-outline reveal" to="/report/new?view=mine#report-tracker">
             Track Complaint
           </Link>
-        </div>
-        <div className="track-form reveal">
-          <p>
-            Already filed? Track your complaint:
-          </p>
-          <div className="track-input-row">
-            <input className="track-input" id="ctaTrackInput" type="text" placeholder="Complaint ID (e.g. CS-8921)" />
-            <button className="btn" onClick={() => {
-              const id = (document.getElementById('ctaTrackInput') as HTMLInputElement).value.trim();
-              if (id) navigate(`/report/new?track=${encodeURIComponent(id)}#report-tracker`);
-            }}>
-              Track
-            </button>
-          </div>
         </div>
         <p className="reveal" style={{ marginTop: "18px", fontSize: "11.5px", color: "#2a3820" }}>
           Emergency? Call Security:{" "}

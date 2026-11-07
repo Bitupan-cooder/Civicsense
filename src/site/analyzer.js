@@ -12,17 +12,14 @@ function normalizeAssameseNumerals(str) {
 }
 
 /* Helper: Language detection */
+// romanised Assamese words, whole words only ("ase" must not match inside "please", "char" inside "charger")
+var ROMANISED_ASSAMESE = /\b(pani|nai|ase|solua|jola|bhal|khowa|nohoi|kotha|kori|etiya|bohut|dibo|hobo|dui|tini|char|lora|suwali|r bathroom|dhori|bhangile)\b/i;
 function detectLanguage(text) {
   var hasAssamese = /[\u0980-\u09FF]/.test(text);
   var hasLatin = /[a-zA-Z]/.test(text);
   if (hasAssamese && !hasLatin) return 'as';
   if (!hasAssamese && hasLatin) {
-    var lower = text.toLowerCase();
-    var romMarkers = ['pani', 'nai', 'ase', 'solua', 'jola', 'bhal', 'khowa', 'nohoi', 'kotha', 'kori', 'etiya', 'bohut', 'dibo', 'hobo', 'dui', 'tini', 'char', 'lora', 'suwali', 'r bathroom', 't pani', 'dhori', 'bhangile'];
-    for (var i = 0; i < romMarkers.length; i++) {
-      if (lower.indexOf(romMarkers[i]) !== -1) return 'mixed';
-    }
-    return 'en';
+    return ROMANISED_ASSAMESE.test(text) ? 'mixed' : 'en';
   }
   return 'mixed';
 }

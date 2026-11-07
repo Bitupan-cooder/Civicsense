@@ -220,3 +220,21 @@ export function textSimilarity(a: string, b: string): number {
   for (const w of x) if (y.has(w)) both++;
   return both / (x.size + y.size - both);
 }
+
+// ── Large result sets ──
+
+/** Every row of a Supabase query. Supabase returns at most "Max rows" per request (1000 by default), silently, so
+ *  ask page by page, each from where the last one ended, until a page comes back empty. `page` must order by a unique key. */
+export async function allRows<T>(page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>): Promise<{ data: T[]; error: unknown }> {
+  const data: T[] = [];
+  for (;;) {
+    const res = await page(data.length, data.length + 999);
+    if (res.error) return { data, error: res.error };
+    if (!res.data?.length) return { data, error: null };
+    data.push(...res.data);
+  }
+}
+
+/** Splits ids into groups of 100: an `.in()` filter travels in the URL, which must stay short. */
+export const chunks = <T>(items: T[], size = 100): T[][] =>
+  Array.from({ length: Math.ceil(items.length / size) }, (_, i) => items.slice(i * size, (i + 1) * size));
