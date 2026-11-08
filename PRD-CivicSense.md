@@ -1,4 +1,4 @@
-# PRD-CivicSense
+# PRD-Xohari
 
 October 31, 2026 · Revision 2 (cleaned up; see "Revision notes" at the end)
 
