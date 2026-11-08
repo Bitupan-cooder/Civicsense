@@ -282,12 +282,15 @@ const CSS =
   "@keyframes ssf-rise{from{opacity:1;transform:translateY(110%)}to{opacity:1;transform:none}}" +
   "@keyframes ssf-fade{from{opacity:0;transform:translateY(8px)}}"
 
-/** Stamps each path's real length into --l, for the draw-in. */
+/** Stamps each path's real length into --l, for the draw-in. Runs only once the footer is on screen (empty key
+ *  before): measuring forces the page's first full style calculation, which on a phone stalled page loads for seconds
+ *  when done while React was still mounting. All lengths are read before any style is written. */
 const useStrokeLengths = (ref: React.RefObject<Element | null>, key: string) =>
   React.useEffect(() => {
-    ref.current?.querySelectorAll<SVGPathElement>("path[data-draw]").forEach((p) => {
-      p.style.setProperty("--l", Math.ceil(p.getTotalLength()) + 1 + "px")
-    })
+    if (!key) return
+    const paths = [...(ref.current?.querySelectorAll<SVGPathElement>("path[data-draw]") ?? [])]
+    const lengths = paths.map((p) => Math.ceil(p.getTotalLength()) + 1)
+    paths.forEach((p, i) => p.style.setProperty("--l", lengths[i] + "px"))
   }, [ref, key])
 
 /** Shared Xohari footer used on the landing, report, sign-in, and complaint pages. */
@@ -318,7 +321,7 @@ export function Footer() {
   const writeAt = 1.05
   const endAt = writeAt + drawDur + word.extra.length * 0.16 + 0.5
 
-  useStrokeLengths(rootRef, wordmark + run)
+  useStrokeLengths(rootRef, seen ? wordmark + run : "")
 
   // The storyboard plays once, the first time a fifth of it is on screen.
   React.useEffect(() => {

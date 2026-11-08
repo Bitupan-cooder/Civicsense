@@ -42,7 +42,7 @@ Copy the values from your `.env.local` (after rotating the keys). All of these a
 | `CLOUDINARY_API_KEY` | yes | |
 | `CLOUDINARY_API_SECRET` | yes | the new secret after rotation |
 | `GEMINI_API_KEY` | recommended | without it, complaints are analysed by the keyword rules |
-| `GEMINI_MODEL` | optional | default `gemini-2.5-flash` |
+| `GEMINI_MODELS` | optional | model fallback chain, default `gemini-2.5-flash,gemini-2.5-flash-lite` (the next is tried on a quota or Google-side error) |
 | `CRON_SECRET` | recommended | any long random string. Vercel's cron sends it automatically; without it the escalation cron is refused |
 | `PUBLIC_SITE_URL` | after step 3 | `https://yourdomain.tld` (used in links the chat bot sends) |
 | `TELEGRAM_BOT_TOKEN`, `DISCORD_BOT_TOKEN` | if you use the bots | the website sends the "linked" direct message and posts officials' updates back into the group. The bots themselves run elsewhere (section 5) |

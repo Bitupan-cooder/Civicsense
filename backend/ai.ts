@@ -7,7 +7,39 @@ import { analyzeComplaint } from "../src/site/analyzer.js";
 import { CAMPUS_LOCATIONS } from "../src/site/demoData.js";
 
 export const PROMPT_VERSION = "understand-v2";
-const MODEL = () => process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
+/**
+ * Model fallback chain, first choice first. Free-tier quotas are per model, so when one is out of quota the next one
+ * usually still answers. Set GEMINI_MODELS (comma-separated) to change it; one model means no fallback model.
+ * After the last model the keyword rules take over, as before. Embeddings never fall back: vectors from different
+ * models can't be compared, which would break duplicate detection.
+ */
+export const geminiModels = (): string[] =>
+  (process.env.GEMINI_MODELS || "gemini-2.5-flash,gemini-2.5-flash-lite").split(",").map((m) => m.trim()).filter(Boolean);
+
+/** Only quota (429) and Google-side (5xx) errors are worth another model; a bad request or bad key fails on every model. */
+const worthNextModel = (err: unknown) => /^Gemini HTTP (429|5\d\d)\b/.test(String((err as Error)?.message ?? err));
+
+/** Runs one Gemini request per model until one succeeds. Every try is returned as an attempt for ai_logs. */
+async function withModels<T>(
+  step: AiAttempt["step"], promptVersion: string,
+  run: (model: string) => Promise<{ value: T; raw: string; usage: ReturnType<typeof tokenUsage> }>,
+): Promise<{ value: T | null; attempts: AiAttempt[] }> {
+  const attempts: AiAttempt[] = [];
+  for (const model of geminiModels()) {
+    const started = Date.now();
+    const base = { step, model, prompt_version: promptVersion };
+    try {
+      const { value, raw, usage } = await run(model);
+      attempts.push({ ...base, latency_ms: Date.now() - started, ok: true, raw_output: raw, error: null, ...usage });
+      return { value, attempts };
+    } catch (err) {
+      attempts.push({ ...base, latency_ms: Date.now() - started, ok: false, raw_output: null, error: String((err as Error).message || err) });
+      if (!worthNextModel(err)) break;
+    }
+  }
+  return { value: null, attempts };
+}
 
 /** Explicit network language wins over a sports guess from the word "net". */
 function correctExplicitNetworkIssue(u: Understanding, text: string): Understanding {
@@ -126,26 +158,29 @@ export function understandWithRules(input: ComplaintInput): Understanding {
   }, input.text);
 }
 
-export async function understandWithGemini(input: ComplaintInput, apiKey: string, fetchImpl: typeof fetch = fetch): Promise<{ understanding: Understanding; raw: string; usage: ReturnType<typeof tokenUsage> }> {
-  const parts: object[] = [{ text: buildPrompt({ ...input, text: input.text.normalize("NFC") }) }];
-  if (input.image) parts.push({ inline_data: { mime_type: input.image.mimeType, data: input.image.base64 } });
-  const res = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL()}:generateContent`, {
+/** One generateContent call. Throws "Gemini HTTP <status>: …" (what withModels() checks) or on an empty answer. */
+async function generate(model: string, apiKey: string, fetchImpl: typeof fetch, parts: object[], generationConfig: object) {
+  const res = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-    body: JSON.stringify({
-      contents: [{ role: "user", parts }],
-      generationConfig: { responseMimeType: "application/json", responseSchema: RESPONSE_SCHEMA, temperature: 0.2 },
-    }),
+    body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig }),
     signal: AbortSignal.timeout(30000),
   });
   const body = await res.text();
   if (!res.ok) throw new Error(`Gemini HTTP ${res.status}: ${body.slice(0, 300)}`);
   const json = JSON.parse(body);
-  const text = json?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || "").join("") || "";
-  if (!text) throw new Error("Gemini returned no content: " + body.slice(0, 300));
-  const u = JSON.parse(text) as Understanding;
+  const raw = json?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || "").join("") || "";
+  if (!raw) throw new Error("Gemini returned no content: " + body.slice(0, 300));
+  return { raw, usage: tokenUsage(json) };
+}
+
+export async function understandWithGemini(input: ComplaintInput, apiKey: string, fetchImpl: typeof fetch, model: string) {
+  const parts: object[] = [{ text: buildPrompt({ ...input, text: input.text.normalize("NFC") }) }];
+  if (input.image) parts.push({ inline_data: { mime_type: input.image.mimeType, data: input.image.base64 } });
+  const { raw, usage } = await generate(model, apiKey, fetchImpl, parts, { responseMimeType: "application/json", responseSchema: RESPONSE_SCHEMA, temperature: 0.2 });
+  const u = JSON.parse(raw) as Understanding;
   for (const key of RESPONSE_SCHEMA.required) if (!(key in u)) throw new Error("Gemini output is missing " + key);
-  return { understanding: correctExplicitNetworkIssue(u, input.text), raw: text, usage: tokenUsage(json) };
+  return { value: correctExplicitNetworkIssue(u, input.text), raw, usage };
 }
 
 export async function understandComplaint(input: ComplaintInput, fetchImpl: typeof fetch = fetch): Promise<UnderstandResult> {
@@ -153,14 +188,9 @@ export async function understandComplaint(input: ComplaintInput, fetchImpl: type
   const attempts: AiAttempt[] = [];
   const text = normaliseDigits(input.text);
   if (apiKey) {
-    const started = Date.now();
-    try {
-      const { understanding, raw, usage } = await understandWithGemini({ ...input, text: input.text }, apiKey, fetchImpl);
-      attempts.push({ step: "understanding", model: MODEL(), prompt_version: PROMPT_VERSION, latency_ms: Date.now() - started, ok: true, raw_output: raw, error: null, ...usage });
-      return { understanding, source: "gemini", failed: false, attempts };
-    } catch (err) {
-      attempts.push({ step: "understanding", model: MODEL(), prompt_version: PROMPT_VERSION, latency_ms: Date.now() - started, ok: false, raw_output: null, error: String((err as Error).message || err) });
-    }
+    const gemini = await withModels("understanding", PROMPT_VERSION, (model) => understandWithGemini(input, apiKey, fetchImpl, model));
+    attempts.push(...gemini.attempts);
+    if (gemini.value) return { understanding: gemini.value, source: "gemini", failed: false, attempts };
   }
   const started = Date.now();
   const understanding = understandWithRules({ ...input, text });
@@ -184,16 +214,16 @@ export function translateWithoutAi(text: string): Translation {
   return { language, en: language === "as" ? null : text, as: language === "as" ? text : null };
 }
 
-export async function translateReply(text: string, fetchImpl: typeof fetch = fetch): Promise<{ translation: Translation; attempt: AiAttempt | null }> {
+/** Without a key, or when every model fails, the original is kept in its language's slot. attempts go to ai_logs. */
+export async function translateReply(text: string, fetchImpl: typeof fetch = fetch): Promise<{ translation: Translation; attempts: AiAttempt[] }> {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return { translation: translateWithoutAi(text), attempt: null };
-  const started = Date.now();
-  try {
-    const res = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL()}:generateContent`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text:
+  if (!apiKey) return { translation: translateWithoutAi(text), attempts: [] };
+  const { value, attempts } = await withModels("translation", TRANSLATE_PROMPT_VERSION, (model) => translateWithGemini(text, apiKey, fetchImpl, model));
+  return { translation: value ?? translateWithoutAi(text), attempts };
+}
+
+async function translateWithGemini(text: string, apiKey: string, fetchImpl: typeof fetch, model: string) {
+  const { raw, usage } = await generate(model, apiKey, fetchImpl, [{ text:
 `Translate this reply from a university official to a student. Return JSON with:
 - language: "as" (Assamese script), "en" (English) or "mixed" (romanised Assamese or a mix)
 - en: the reply in plain English
@@ -203,28 +233,14 @@ Keep names, numbers, room and hostel numbers exactly. Do not add anything.
 Reply:
 """
 ${text.normalize("NFC")}
-"""` }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: { type: "OBJECT", properties: { language: { type: "STRING", enum: ["as", "en", "mixed"] }, en: { type: "STRING" }, as: { type: "STRING" } }, required: ["language", "en", "as"] },
-          temperature: 0.1,
-        },
-      }),
-      signal: AbortSignal.timeout(30000),
-    });
-    const body = await res.text();
-    if (!res.ok) throw new Error(`Gemini HTTP ${res.status}: ${body.slice(0, 300)}`);
-    const json = JSON.parse(body);
-    const raw = json?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || "").join("") || "";
-    const t = JSON.parse(raw) as Translation;
-    if (!t.en || !t.as) throw new Error("Gemini translation is incomplete: " + raw.slice(0, 200));
-    return { translation: t, attempt: { step: "translation", model: MODEL(), prompt_version: TRANSLATE_PROMPT_VERSION, latency_ms: Date.now() - started, ok: true, raw_output: raw, error: null, ...tokenUsage(json) } };
-  } catch (err) {
-    return {
-      translation: translateWithoutAi(text),
-      attempt: { step: "translation", model: MODEL(), prompt_version: TRANSLATE_PROMPT_VERSION, latency_ms: Date.now() - started, ok: false, raw_output: null, error: String((err as Error).message || err) },
-    };
-  }
+"""` }], {
+    responseMimeType: "application/json",
+    responseSchema: { type: "OBJECT", properties: { language: { type: "STRING", enum: ["as", "en", "mixed"] }, en: { type: "STRING" }, as: { type: "STRING" } }, required: ["language", "en", "as"] },
+    temperature: 0.1,
+  });
+  const t = JSON.parse(raw) as Translation;
+  if (!t.en || !t.as) throw new Error("Gemini translation is incomplete: " + raw.slice(0, 200));
+  return { value: t, raw, usage };
 }
 
 // ── Embeddings for duplicate detection (PRD "AI design" 4): English summary + original text, multilingual model ──

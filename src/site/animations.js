@@ -5,6 +5,18 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 
+/* Endless ambient loops (grid squares, glass tiles, floating characters) rewrite inline styles every frame, which keeps
+   a phone's CPU busy even when their section is scrolled away or another page hides the landing. Each loop is tied to
+   its section and runs only while that section is on screen; it resumes where it stopped. */
+var loopsBySection = new WeakMap();
+var loopObserver = new IntersectionObserver(function (entries) {
+  entries.forEach(function (e) { (loopsBySection.get(e.target) || []).forEach(function (t) { if (e.isIntersecting) t.resume(); else t.pause(); }); });
+});
+function loopWhileVisible(section, tween) {
+  var list = loopsBySection.get(section);
+  if (list) list.push(tween); else { loopsBySection.set(section, [tween]); loopObserver.observe(section); }
+}
+
 export function initAnimations() {
   if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
     document.body.classList.remove('intro');
@@ -28,7 +40,7 @@ export function initAnimations() {
 
   document.querySelectorAll('.sq-field').forEach(function (f) {
     var count = parseInt(f.dataset.count) || 16;
-    for (var i = 0; i < count; i++) { var sq = document.createElement('div'); sq.className = 'grid-sq'; sq.style.cssText = 'width:46px;height:46px;left:' + (Math.floor(Math.random() * 30) * 48 - 10) + 'px;top:' + (Math.floor(Math.random() * 6) * 48 + 6) + 'px;'; f.appendChild(sq); if (!reduce) gsap.to(sq, { opacity: 0, duration: 1.2, repeat: -1, yoyo: true, delay: Math.random() * 4, repeatDelay: Math.random() * 3, ease: 'sine.inOut' }); }
+    for (var i = 0; i < count; i++) { var sq = document.createElement('div'); sq.className = 'grid-sq'; sq.style.cssText = 'width:46px;height:46px;left:' + (Math.floor(Math.random() * 30) * 48 - 10) + 'px;top:' + (Math.floor(Math.random() * 6) * 48 + 6) + 'px;'; f.appendChild(sq); if (!reduce) loopWhileVisible(f, gsap.to(sq, { opacity: 0, duration: 1.2, repeat: -1, yoyo: true, delay: Math.random() * 4, repeatDelay: Math.random() * 3, ease: 'sine.inOut' })); }
   });
 
   var gp = [[3, 64], [3, 71], [6.5, 71], [10, 71], [3, 78], [-1, 70], [44, 56], [48, 52], [52, 55], [86, 58], [86, 67], [82, 70], [88, 72], [86, 78]];
@@ -37,7 +49,7 @@ export function initAnimations() {
     if (isMobile && i % 2 !== 0) return;
     var isC = p[0] > 40 && p[0] < 60; var sz = isC ? 'clamp(28px,3.4vw,44px)' : 'clamp(36px,5.4vw,74px)';
     var sq = document.createElement('div'); sq.className = 'glass'; sq.style.cssText = 'left:' + p[0] + '%;top:' + p[1] + '%;width:' + sz + ';aspect-ratio:1;';
-    hg.appendChild(sq); if (!reduce) gsap.to(sq, { opacity: .15, duration: .9, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: Math.random() * 3, repeatDelay: 1 + Math.random() * 3 });
+    hg.appendChild(sq); if (!reduce) loopWhileVisible(hg, gsap.to(sq, { opacity: .15, duration: .9, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: Math.random() * 3, repeatDelay: 1 + Math.random() * 3 }));
   });
 
   /* Petals */
@@ -203,7 +215,7 @@ export function initAnimations() {
       var dur = 2.4 + idx * 0.35;
       var rotZ = (idx % 2 === 0) ? 1.4 : -1.4;
 
-      gsap.to(wrap, {
+      loopWhileVisible(stageEl, gsap.to(wrap, {
         y: floatY,
         rotationZ: rotZ,
         duration: dur,
@@ -211,10 +223,10 @@ export function initAnimations() {
         yoyo: true,
         ease: 'sine.inOut',
         delay: idx * 0.18
-      });
+      }));
 
       if (shadow) {
-        gsap.to(shadow, {
+        loopWhileVisible(stageEl, gsap.to(shadow, {
           scale: 0.88,
           opacity: 0.4,
           duration: dur,
@@ -222,18 +234,18 @@ export function initAnimations() {
           yoyo: true,
           ease: 'sine.inOut',
           delay: idx * 0.18
-        });
+        }));
       }
 
       if (ring) {
-        gsap.to(ring, {
+        loopWhileVisible(stageEl, gsap.to(ring, {
           scale: 0.94,
           duration: dur,
           repeat: -1,
           yoyo: true,
           ease: 'sine.inOut',
           delay: idx * 0.18
-        });
+        }));
       }
     });
   }

@@ -29,7 +29,7 @@ test("uses Gemini when a key is set, with a JSON schema and the image inline", a
   assert.equal(r.attempts[0].ok, true);
 });
 
-test("a failed Gemini call falls back to the keyword rules and is flagged for review", async () => {
+test("when every model is out of quota, the keyword rules answer and the complaint is flagged for review", async () => {
   process.env.GEMINI_API_KEY = "test-key";
   const failing = (async () => new Response("quota exceeded", { status: 429 })) as typeof fetch;
   const r = await understandComplaint({ text: "No water in the Boys Hostel 2 bathroom since Monday." }, failing);
@@ -37,8 +37,43 @@ test("a failed Gemini call falls back to the keyword rules and is flagged for re
   assert.equal(r.failed, true);
   // the keyword rules say "hostel" here (more hostel words than water words); Gemini is expected to say "water"
   assert.ok(["water", "hostel"].includes(r.understanding.category));
-  assert.deepEqual(r.attempts.map((a) => a.ok), [false, true]);
+  assert.deepEqual(r.attempts.map((a) => [a.model, a.ok]), [["gemini-2.5-flash", false], ["gemini-2.5-flash-lite", false], ["keyword-rules", true]]);
   assert.match(r.attempts[0].error!, /429/);
+});
+
+test("model chain: a quota or server error moves to the next model; other errors and embeddings don't", async () => {
+  process.env.GEMINI_API_KEY = "test-key";
+  const urls: string[] = [];
+  const firstOutOfQuota = (status: number) => (async (url: string) => {
+    urls.push(url);
+    return url.includes("/gemini-2.5-flash:") ? new Response("busy", { status })
+      : new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(reply) }] } }] }), { status: 200 });
+  }) as typeof fetch;
+
+  const r = await understandComplaint({ text: "২ নম্বৰ হোষ্টেলৰ বাথৰুমত পানী নাই" }, firstOutOfQuota(429));
+  assert.equal(r.source, "gemini");
+  assert.equal(r.failed, false, "answered by the fallback model: no review needed");
+  assert.deepEqual(r.attempts.map((a) => [a.model, a.ok]), [["gemini-2.5-flash", false], ["gemini-2.5-flash-lite", true]]);
+  assert.equal((await understandComplaint({ text: "x hostel water" }, firstOutOfQuota(503))).source, "gemini");
+
+  urls.length = 0;
+  const bad = await understandComplaint({ text: "No water in Hostel 2" }, firstOutOfQuota(400));
+  assert.equal(bad.source, "rules", "a bad request would fail on every model");
+  assert.equal(urls.length, 1);
+
+  const { translateReply } = await import("./ai.ts");
+  const out = { language: "en", en: "Fixed today.", as: "আজিয়েই ঠিক কৰা হ'ব।" };
+  const t = await translateReply("Fixed today.", (async (url: string) => url.includes("/gemini-2.5-flash:")
+    ? new Response("quota", { status: 429 })
+    : new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(out) }] } }] }), { status: 200 })) as typeof fetch);
+  assert.deepEqual(t.translation, out);
+  assert.deepEqual(t.attempts.map((a) => a.model), ["gemini-2.5-flash", "gemini-2.5-flash-lite"]);
+
+  process.env.GEMINI_MODELS = "model-a, model-b";
+  urls.length = 0;
+  await understandComplaint({ text: "No water in Hostel 2" }, (async (url: string) => { urls.push(url); return new Response("quota", { status: 429 }); }) as typeof fetch);
+  assert.deepEqual(urls.map((u) => u.match(/models\/([^:]+):/)![1]), ["model-a", "model-b"]);
+  delete process.env.GEMINI_MODELS;
 });
 
 test("without a key, only the keyword rules run", async () => {
@@ -57,12 +92,12 @@ test("reply translation: both languages from Gemini, original kept without a key
   const ok = (async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(out) }] } }] }), { status: 200 })) as typeof fetch;
   const r = await translateReply("Plumber assigned, it will be fixed today.", ok);
   assert.deepEqual(r.translation, out, "X4");
-  assert.equal(r.attempt?.step, "translation");
+  assert.deepEqual(r.attempts.map((a) => [a.step, a.ok]), [["translation", true]]);
 
   delete process.env.GEMINI_API_KEY;
   const as = await translateReply("প্লাম্বাৰ আজিয়েই আহিব।");
   assert.deepEqual(as.translation, { language: "as", en: null, as: "প্লাম্বাৰ আজিয়েই আহিব।" });
-  assert.equal(as.attempt, null);
+  assert.deepEqual(as.attempts, []);
 });
 
 test("embeddings: 768 numbers from Gemini, none without a key", async () => {

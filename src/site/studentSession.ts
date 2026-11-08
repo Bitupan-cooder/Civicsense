@@ -54,7 +54,7 @@ let sessionVersion = 0;
 
 export function setStudentSession(profile: StudentProfile | null, idCardStatus?: string): void {
   sessionVersion++;
-  if (state.profile?.id !== profile?.id) clearTrackerSession();
+  if (state.profile && state.profile.id !== profile?.id) clearTrackerSession(); // a signed-out store holds nothing to clear
   update({ profile, idCardStatus });
   if (profile?.preferred_language) setLanguage(profile.preferred_language, { save: false });
 }
@@ -66,9 +66,11 @@ export async function checkCurrentStudentSession(): Promise<void> {
     if (!sb) return;
     const session = (await sb.auth.getSession()).data?.session;
     if (session?.user) {
-      const res = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+      const [res, card] = await Promise.all([ // both only need the user id
+        sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle(),
+        sb.from('id_cards').select('status').eq('user_id', session.user.id).maybeSingle(),
+      ]);
       if (res.data && res.data.role === 'student') {
-        const card = await sb.from('id_cards').select('status').eq('user_id', session.user.id).maybeSingle();
         if (sessionVersion === startedAt) setStudentSession(res.data, card.data ? card.data.status : 'pending');
       } else if (sessionVersion === startedAt) setStudentSession(null);
     } else if (sessionVersion === startedAt) {
@@ -133,9 +135,9 @@ export async function submitStudentLogin(email: string, password: string): Promi
     update({ loginBusy: false, authOpen: false, justRegistered: false });
     resetWelcome();
     showToast('Signed in as ' + res.profile.name, 'success');
+    loadStudentComplaints(); // alongside the ID-card status, not after it
     const card = await auth.getClient().from('id_cards').select('status').eq('user_id', res.profile.id).maybeSingle();
     setStudentSession(res.profile, card.data ? card.data.status : 'pending');
-    loadStudentComplaints();
     return true;
   } catch (err) {
     update({ loginBusy: false, loginError: (err as Error).message || 'Login failed.' });

@@ -1,6 +1,8 @@
 ﻿"use client"
 
 import * as React from "react"
+import { sdfFromAlpha, TEX } from "./logo-sdf"
+import SdfWorker from "./logo-sdf.worker?worker&inline" // inlined: no extra request before the reveal can start
 
 /*
  * Glass reveal for the startup loader: the mark lingers big against the rim of a clear glass tile, the
@@ -31,7 +33,6 @@ const P = {
 /* ------------------------------------------------------------------ *
  * Logo â†’ texture + signed distance field
  * ------------------------------------------------------------------ */
-const TEX = 1024 // logo texture size
 const BOX = 0.75 // share of the texture the logo fills (the rest is room for the SDF)
 
 interface LogoData {
@@ -120,61 +121,21 @@ function fitToTexture(source: CanvasImageSource, sw: number, sh: number) {
   return out
 }
 
-// Signed distance field from alpha (TinySDF method): + outside, âˆ’ inside, in texture units.
-function buildSdf(canvas: HTMLCanvasElement) {
-  const n = TEX * TEX
+// The logo's signed distance field (logo-sdf.ts). The math runs in a worker so the page stays responsive; same function on the page if a worker can't start.
+function buildSdf(canvas: HTMLCanvasElement): Promise<Float32Array> {
   const alpha = canvas.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, TEX, TEX).data
-  const INF = 1e20
-  const outer = new Float64Array(n)
-  const inner = new Float64Array(n)
-  for (let i = 0; i < n; i++) {
-    const a = alpha[i * 4 + 3] / 255
-    if (a >= 1) { outer[i] = 0; inner[i] = INF }
-    else if (a <= 0) { outer[i] = INF; inner[i] = 0 }
-    else {
-      const dd = 0.5 - a
-      outer[i] = dd > 0 ? dd * dd : 0
-      inner[i] = dd < 0 ? dd * dd : 0
-    }
+  const onPage = () => sdfFromAlpha(alpha)
+  let worker: Worker
+  try {
+    worker = new SdfWorker()
+  } catch {
+    return Promise.resolve(onPage())
   }
-  const f = new Float64Array(TEX)
-  const z = new Float64Array(TEX + 1)
-  const v = new Uint16Array(TEX)
-  edt(outer, f, v, z, INF)
-  edt(inner, f, v, z, INF)
-  const sdf = new Float32Array(n)
-  for (let i = 0; i < n; i++) sdf[i] = (Math.sqrt(outer[i]) - Math.sqrt(inner[i])) / TEX
-  return sdf
-}
-
-function edt(grid: Float64Array, f: Float64Array, v: Uint16Array, z: Float64Array, INF: number) {
-  for (let x = 0; x < TEX; x++) edt1d(grid, x, TEX, f, v, z, INF)
-  for (let y = 0; y < TEX; y++) edt1d(grid, y * TEX, 1, f, v, z, INF)
-}
-
-function edt1d(grid: Float64Array, offset: number, stride: number, f: Float64Array, v: Uint16Array, z: Float64Array, INF: number) {
-  v[0] = 0
-  z[0] = -INF
-  z[1] = INF
-  f[0] = grid[offset]
-  for (let q = 1, k = 0, s = 0; q < TEX; q++) {
-    f[q] = grid[offset + q * stride]
-    const q2 = q * q
-    do {
-      const r = v[k]
-      s = (f[q] - f[r] + q2 - r * r) / (q - r) / 2
-    } while (s <= z[k] && --k > -1)
-    k++
-    v[k] = q
-    z[k] = s
-    z[k + 1] = INF
-  }
-  for (let q = 0, k = 0; q < TEX; q++) {
-    while (z[k + 1] < q) k++
-    const r = v[k]
-    const qr = q - r
-    grid[offset + q * stride] = f[r] + qr * qr
-  }
+  return new Promise<Float32Array>((resolve) => {
+    worker.onmessage = (e: MessageEvent<Float32Array>) => resolve(e.data)
+    worker.onerror = () => resolve(onPage())
+    worker.postMessage(alpha)
+  }).finally(() => worker.terminate())
 }
 
 // One SDF per logo for the whole page: building it takes ~100 ms, remounts and twins reuse it.
@@ -183,9 +144,9 @@ const logoCache = new Map<string, Promise<LogoData>>()
 function loadLogo(logo: string) {
   let job = logoCache.get(logo)
   if (!job) {
-    job = loadImage(logoUrl(logo)).then((img) => {
-      return { sdf: buildSdf(fitToTexture(img, img.naturalWidth || TEX, img.naturalHeight || TEX)) }
-    })
+    job = loadImage(logoUrl(logo))
+      .then((img) => buildSdf(fitToTexture(img, img.naturalWidth || TEX, img.naturalHeight || TEX)))
+      .then((sdf) => ({ sdf }))
     logoCache.set(logo, job)
     job.catch(() => logoCache.delete(logo))
   }

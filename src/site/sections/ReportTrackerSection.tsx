@@ -1,6 +1,6 @@
 // "My complaints" on /report/new: the student's list (search + status filter), and one ticket's details at ?track=<id>.
 // The page is behind sign-in (ReportFormPage sends guests to /login), so a student is always signed in here.
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Complaint } from '../../civicAuth';
 import { STATUS_NAMES, ticketRef, waitingOn } from '../../logic';
@@ -20,7 +20,9 @@ export function ReportTrackerSection() {
   const [searchParams] = useSearchParams();
   const requestedId = searchParams.get('track');
   const locale = lang === 'as' ? 'as-IN' : 'en-IN';
-  const day = (ts: string) => new Date(ts).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+  // one formatter per language: building one per date is slow on phones
+  const dayFormat = useMemo(() => new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' }), [locale]);
+  const day = (ts: string) => dayFormat.format(new Date(ts));
   const open = (id: string) => navigate(`/report/new?track=${encodeURIComponent(id)}#report-tracker`);
 
   useEffect(() => {

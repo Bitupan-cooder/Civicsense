@@ -61,6 +61,7 @@ function logServerError(req: IncomingMessage | undefined, status: number, messag
 /** Writes AI attempts; before migration 003 the token columns don't exist, so it retries without them. */
 async function saveAiLogs(rows: object | object[]): Promise<void> {
   const list = (Array.isArray(rows) ? rows : [rows]) as Record<string, unknown>[];
+  if (!list.length) return;
   const { error } = await supabaseAdmin.from("ai_logs").insert(list);
   if (error && /input_tokens|output_tokens/.test(error.message)) {
     await supabaseAdmin.from("ai_logs").insert(list.map(({ input_tokens, output_tokens, ...r }) => r));
@@ -857,8 +858,8 @@ async function routeApiRequest(req: IncomingMessage, res: ServerResponse): Promi
     if (!complaint) return sendJson(res, 404, { error: "Complaint not found" });
     if (!(await requesterCanAccess(requester, complaint))) return sendJson(res, 403, { error: "You cannot reply to this complaint." });
 
-    const { translation, attempt } = await translateReply(text);
-    if (attempt) await saveAiLogs({ ...attempt, complaint_id: complaint.id });
+    const { translation, attempts } = await translateReply(text);
+    await saveAiLogs(attempts.map((a) => ({ ...a, complaint_id: complaint.id })));
     const routesHere = await myRoutes(requester, complaint.id);
     const { data: post } = routesHere.length
       ? await supabaseAdmin.from("complaint_routes").select("authority_id, authority:authorities(post_title)").eq("id", routesHere[0].id).maybeSingle()

@@ -92,7 +92,7 @@ export function NotificationBell({ userId, lang, onOpen, onLive }: Props) {
           </div>
           {items.length === 0 && <div style={{ padding: '18px 12px', fontSize: '12.5px', color: '#64748b' }}>{lang === 'as' ? 'কোনো জাননী নাই।' : 'No notifications yet.'}</div>}
           {items.map((n) => (
-            <button key={n.id} type="button" lang={lang} onClick={() => { markRead([n.id]); setOpen(false); if (n.complaint_id) onOpen(n.complaint_id); }}
+            <button key={n.id} type="button" lang={lang} data-unread={n.read ? undefined : ""} onClick={() => { markRead([n.id]); setOpen(false); if (n.complaint_id) onOpen(n.complaint_id); }}
               style={{ display: 'flex', gap: '8px', width: '100%', textAlign: 'left', padding: '10px 12px', border: 'none', borderBottom: '1px solid #f1f5f9', background: n.read ? '#ffffff' : '#FAF2EB', cursor: 'pointer', fontSize: '12.5px', color: 'var(--ink)', lineHeight: 1.45 }}>
               <span style={{ flex: 1 }}>{text(n)}</span>
               <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>{ago(n.created_at)}</span>

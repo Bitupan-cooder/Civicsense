@@ -468,6 +468,91 @@ For the frontend teammate: every PRD screen now exists and is wired to the backe
   - It links 3 posts to its test accounts for the run, so it **refuses to run** once those posts (Head, General Secretary, Sports Secretary) are linked to real officials. Otherwise they would be notified about test complaints.
   - Run on 2026-11-02: **43 of 43 checks pass, 0 rows left.** Type-check, build and `npm test` (15 tests) pass.
 
+### 3.65 Link-preview image: 1200x630 JPEG, 162 KB (2026-11-09)
+
+- The `og:image` was `og-xohari.png`: 2.0 MB and 1732x908. Preview checkers flagged both, and WhatsApp often skips preview images much over about 300 KB.
+- **Now:** `public/images/og-xohari.jpg`, exactly 1200x630, JPEG quality 90, 162 KB.
+  - Same picture, scaled down with a 1 px crop at each side; the source had nearly the same shape.
+  - Encoded in headless Edge (canvas, two-step high-quality downscale), with no new tools added.
+  - No visible change in the text, outlines or paper texture.
+- [index.html](index.html):
+  - `og:image`, `og:image:secure_url` and `twitter:image` point to the JPEG, and `og:image:type` is `image/jpeg`.
+  - Added `og:image:width`/`og:image:height` (1200/630).
+  - The old PNG is removed; it is still in git history.
+- The new file name makes platforms fetch the new image. For links already shared, re-scrape once with Facebook's Sharing Debugger or LinkedIn's Post Inspector after deploying.
+- Build passes.
+
+### 3.64 Gemini model fallback chain (2026-11-09)
+
+When a Gemini model is out of quota, the next model in the chain is tried before the keyword rules. On demo day, a burst of reports on a free-tier key no longer sends every complaint to the review queue.
+
+- **Chain:** `GEMINI_MODELS`, first choice first. The default is `gemini-2.5-flash,gemini-2.5-flash-lite`. Free-tier quotas are counted per model, so the second model usually still answers. `GEMINI_MODEL` (one model) is replaced by `GEMINI_MODELS`; a list of one model means no fallback.
+- **When it moves on:** only for 429 (quota) and 5xx (Google-side) errors. A bad request or a bad key would fail on every model, so it goes straight to the keyword rules, as before.
+- **Covers** complaint and tag analysis and reply translation. **Not embeddings:** vectors from different models can't be compared, so switching would break duplicate detection.
+- **A complaint answered by the fallback model counts as analysed by Gemini.** It is not flagged for review.
+- **Logging:** every try is logged in `ai_logs` with its model, so the System page shows how often the fallback was used ("Calls by model"). The estimated cost uses one price pair, so it overstates the cost of calls the cheaper fallback model answered.
+- **Changed:**
+  - [backend/ai.ts](backend/ai.ts): `geminiModels()` and `withModels()`, plus `generate()`, the one Gemini request both analysis and translation use. The translation request moved into `translateWithGemini()`, and `translateReply()` now returns `attempts` (a list).
+  - [backend/api.ts](backend/api.ts): the reply route logs every attempt, and `saveAiLogs()` skips an empty list.
+- **Verified:** `npm test` passes (59). The new test covers: the first model at quota and the second answers; a 503 moves on; a 400 does not; translation falls back; a custom `GEMINI_MODELS` order is used. Both type checks pass.
+
+### 3.63 Landing animations pause off screen (2026-11-09)
+
+- [src/site/animations.js](src/site/animations.js): the five endless GSAP loops are tied to their section. They run only while it is on screen, and resume where they stopped.
+  - The loops: fading grid squares per `.sq-field`, glass tiles in `#heroGlass`, and the floating characters, shadows and rings on the character stage.
+  - `loopWhileVisible(section, tween)` uses one shared `IntersectionObserver`.
+  - Nothing changes visually: a loop pauses only when nobody can see it.
+- **Found on the way:** after a visit to the landing page, its loops kept running invisibly on every other page, because the landing stays mounted but hidden. That was about 2,800 style writes a second. Now 0.
+- **Measured** at phone size with a 4x slower CPU, before vs after:
+
+| | Before | After |
+|---|---|---|
+| Landing, top (hero on screen) | 2,411 writes/s, 393 ms/s busy | 1,903, 362 (unchanged: visible) |
+| Landing, scrolled to the middle | 2,721, 322 ms/s | 485, 116 ms/s |
+| Another page, landing hidden | 2,824, 84 ms/s | 0, 53 ms/s |
+
+- Type-check, build and `npm test` (58) pass.
+
+### 3.62 Freeze check on desktop and phone; notifications card alignment and unread dots (2026-11-08)
+
+- **Freeze check:** every student and admin page at 1280 px, and at 390 px with a 4x slower CPU, on the production build.
+  - No page hangs, and there are no JavaScript errors or React warnings.
+  - My test browser renders WebGL in software ("Microsoft Basic Render Driver"), which made the startup logo and shader backgrounds look like multi-second freezes. Measured with WebGL off:
+    - **Longest block while loading:** 0.2-0.3 s on desktop, about 1 s once on the slow phone.
+    - **Busy while idle:** nothing on every page except the landing page.
+  - **Landing page, still open:** never-ending GSAP loops in `src/site/animations.js` keep a slow phone's CPU about 45% busy while nobody touches it, about 2% on desktop. They are the fading `.grid-sq` squares (about 960 style writes/s) and the bobbing hero characters, shadows and rings. Not changed: it is the frontend teammate's animation code, and options are listed for a decision.
+  - **Startup loader:** the other session's uncommitted worker-based version measures the same as the committed one.
+- **Small fixes found on the way:**
+  - [sticker-slap-footer.tsx](src/components/ui/sticker-slap-footer.tsx) measures its drawn paths only once the footer is on screen, and reads every length before writing any. The hidden landing's second footer never measures at all.
+  - [ReportTrackerSection.tsx](src/site/sections/ReportTrackerSection.tsx) reuses one date formatter per language instead of one per date.
+- **Notifications card on phones:** it was 4-6 px from the left edge but 18-20 px from the right, past the nav's own left edge.
+  - The cause: the nav is centred with `transform` and has a backdrop blur, so the card's `position: fixed` measures from the nav, not the screen.
+  - [site.css](src/site/site.css): at 600 px and below, the card now spans the nav exactly (`left: 0; right: 0; width: auto`). 360 px: 6/6 px; 390 px: 8/8 px. Tablet and desktop are unchanged.
+- **Unread dots:** unread notifications never showed their filled green dot.
+  - The CSS looked for `#FAF2EB` in the inline style, but browsers store it as `rgb(250, 242, 235)`.
+  - [NotificationBell.tsx](src/NotificationBell.tsx) marks unread rows with `data-unread`, and site.css selects that instead.
+- Type-check, build and `npm test` (58) pass.
+
+### 3.61 Faster sign-in and complaint loading: requests side by side (2026-11-08)
+
+- **Before:** from "Sign in" to My complaints with status lines took 8 server round trips, one after another. On mobile data that is several seconds. Reopening the site took 2 trips in a row before it knew who was signed in.
+- **Now:**
+  - [civicAuth.ts](src/civicAuth.ts): the "user_login" activity-log write runs in the background; nothing needs its answer.
+  - [civicAuth.ts](src/civicAuth.ts) `fetchRouting`: the AI analysis, routes and replies are fetched at the same time.
+  - [studentSession.ts](src/site/studentSession.ts) `submitStudentLogin`: the complaints start loading alongside the ID-card status, not after it.
+    - To allow that, `setStudentSession` clears the complaint store only when switching away from a signed-in student. A signed-out store holds nothing to clear.
+  - [studentSession.ts](src/site/studentSession.ts) `checkCurrentStudentSession` (reopening the site): profile and ID card at the same time.
+- **Measured** on a fake backend with 300 ms per request (about mobile data), before vs after:
+
+| | Before | After |
+|---|---|---|
+| Sign in → welcome card | 2.6 s | 2.1 s |
+| Sign in → My complaints with status lines | 5.2 s | 2.8 s |
+| Reload → signed in | 1.8 s | 1.2 s |
+
+- **Unchanged:** sign-in, the welcome page and its once-per-sign-in rule, logout, cross-tab sign-out and the admin console. All re-checked.
+- Type-check, build and `npm test` (58) pass.
+
 ### 3.60 Complaints and evidence are written only by the server (2026-11-08)
 
 - **The gap:** two policies from the first schema still let a signed-in student write rows straight into the tables, around the server.
@@ -1410,10 +1495,10 @@ Most of these became outdated when the app moved to `index.html` + Supabase.
 | Supabase advisor: the helper functions (`can_read_complaint`, `is_routed_to_me`, `can_see_reporter`, `current_user_role`, …) are callable through `/rest/v1/rpc` (3.16). Low risk: they answer only about the caller. | Probably leave as is. Don't simply `revoke execute … from anon`: the policies call these functions as `anon` too, so logged-out reads would then error instead of returning nothing. Test first if you change it. |
 | Supabase advisor: `protect_complaint_ai_fields` / `protect_complaint_duplicate_fields` have no fixed `search_path`. | Fixed in the migration file (3.17). ⏳ **Still to run on the live database:** the two `alter function` lines in 3.17. |
 | Supabase advisor: leaked-password protection is off. | Supabase → Authentication → Passwords → turn it on. |
-| ✅ Direct student writes (3.60) are blocked: migration 005 is applied on the live database (checked 2026-11-08). | Run `npm run test:live` once to confirm the whole flow. |
+| ✅ Direct student writes (3.60) are blocked: migration 005 is applied on the live database (checked 2026-11-08). Live test on 2026-11-09: all 44 checks passed, 0 test rows left. | Nothing to run. |
 | ✅ Agent tag (3.24): migration 002 is applied on the live database, with `chat_tag_attempts` (3.58). Checked 2026-11-08: all four tables exist. | Nothing to run. |
 | ⏳ Agent tag in Moodle (3.27) is built but untested on a real Moodle. The live platform checks allow 'moodle' (widened 2026-11-08). | Install the plugin on a test Moodle (steps in its README), set the three `MOODLE_*` env vars, post `@CivicSense …` in a forum, and run cron. |
-| ⏳ Monitoring (3.28): token counts and server errors start once migration 003 runs. `error_logs` has no automatic clean-up. | Run `backend/migrations/003_observability.sql`. Later, prune rows older than 30 days in the maintenance job if the table grows. |
+| ⏳ Monitoring (3.28): migration 003 is applied (2026-11-09, per the user). The estimated cost stays empty until `GEMINI_PRICE_INPUT_PER_M` / `GEMINI_PRICE_OUTPUT_PER_M` are set; `error_logs` has no automatic clean-up.|
 | Agent tag runs only in a long-running process (polling/Gateway). Moodle (3.27) doesn't have this limit. | If the app moves to Vercel functions, switch to a Telegram webhook and Discord interactions; `handleTag()` stays the same. |
 
 ---

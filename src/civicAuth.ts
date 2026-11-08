@@ -304,7 +304,7 @@ export async function login(email: string, password: string, expectedRoles: stri
   }
 
   clearRateLimit(normalizedEmail);
-  await logActivity(user.id, 'user_login', profile.role + ' login via ' + window.location.pathname);
+  void logActivity(user.id, 'user_login', profile.role + ' login via ' + window.location.pathname); // in the background
   return { user, profile, session: auth.data.session };
 }
 
@@ -593,9 +593,12 @@ export async function fetchComplaintById(complaintId: string): Promise<Complaint
 }
 
 export async function fetchDepartmentUnits(): Promise<DepartmentUnit[]> {
-  const res = await client.from('profiles').select('id, name, unit_name, role')
-    .in('role', ['department', 'social_service']).eq('is_active', true).order('name', { ascending: true });
-  if (!res.error && res.data && res.data.length > 0) return res.data;
+  // RLS hides officials from anonymous visitors, so only a signed-in user's query can return rows
+  if (await getSession()) {
+    const res = await client.from('profiles').select('id, name, unit_name, role')
+      .in('role', ['department', 'social_service']).eq('is_active', true).order('name', { ascending: true });
+    if (!res.error && res.data && res.data.length > 0) return res.data;
+  }
 
   const fallback = await fetch('/api/department-units');
   return fallback.ok ? (await fallback.json()).units || [] : [];
@@ -752,17 +755,20 @@ export async function setPreferredLanguage(userId: string, lang: 'en' | 'as') {
 export async function fetchRouting(complaintIds: string[]): Promise<Record<string, Routing>> {
   if (!complaintIds?.length) return {};
   if (complaintIds.length > 100) return Object.assign({}, ...(await Promise.all(chunks(complaintIds).map(fetchRouting)))); // ids travel in the URL
-  const ai = await client.from('complaints')
-    .select('id, location_id, duplicate_of, possible_duplicate_of, hide_name_from_union, ai_category, priority, is_sensitive, location_text, summary_en, summary_as, image_findings, confidence, ai_source, input_language, human_edited, analysed_at, resolved_at')
-    .in('id', complaintIds);
+  // three independent queries, sent together
+  const [ai, routes, replies] = await Promise.all([
+    client.from('complaints')
+      .select('id, location_id, duplicate_of, possible_duplicate_of, hide_name_from_union, ai_category, priority, is_sensitive, location_text, summary_en, summary_as, image_findings, confidence, ai_source, input_language, human_edited, analysed_at, resolved_at')
+      .in('id', complaintIds),
+    client.from('complaint_routes')
+      .select('complaint_id, kind, delivered_at, seen_at, replied_at, resolved_at, authority:authorities(post_title, person_name)')
+      .in('complaint_id', complaintIds),
+    client.from('complaint_replies')
+      .select('id, complaint_id, visibility, body_original, body_language, body_en, body_as, created_at, author:profiles(name), authority:authorities(post_title)')
+      .in('complaint_id', complaintIds)
+      .order('created_at', { ascending: true }),
+  ]);
   if (ai.error) return {};
-  const routes = await client.from('complaint_routes')
-    .select('complaint_id, kind, delivered_at, seen_at, replied_at, resolved_at, authority:authorities(post_title, person_name)')
-    .in('complaint_id', complaintIds);
-  const replies = await client.from('complaint_replies')
-    .select('id, complaint_id, visibility, body_original, body_language, body_en, body_as, created_at, author:profiles(name), authority:authorities(post_title)')
-    .in('complaint_id', complaintIds)
-    .order('created_at', { ascending: true });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   type Row = any; // untyped client: embedded relations come back as objects

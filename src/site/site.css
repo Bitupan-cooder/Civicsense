@@ -237,10 +237,11 @@ div[role="dialog"][aria-label="Notifications"]>button[lang]>span:last-child{padd
 div[role="dialog"][aria-label="Notifications"]>button[lang]::before{position:absolute;top:20px;left:21px;width:10px;height:10px;border:2px solid #8b9a8d;border-radius:50%;background:#fff;content:"";z-index:1;}
 div[role="dialog"][aria-label="Notifications"]>button[lang]::after{position:absolute;top:32px;bottom:-1px;left:26px;width:1px;background:#e0f0d0;content:"";}
 div[role="dialog"][aria-label="Notifications"]>button[lang]:last-child::after{display:none;}
-div[role="dialog"][aria-label="Notifications"]>button[lang][style*="#FAF2EB"]::before{border-color:#1a7a3a;background:#1a7a3a;box-shadow:0 0 0 4px #d4f5c0;}
+div[role="dialog"][aria-label="Notifications"]>button[lang][data-unread]::before{border-color:#1a7a3a;background:#1a7a3a;box-shadow:0 0 0 4px #d4f5c0;}
 div[role="dialog"][aria-label="Notifications"]>button[lang]:hover{background:#FAF2EB!important;}
 div[role="dialog"][aria-label="Notifications"] button:focus-visible{outline:3px solid rgba(26,122,58,.35);outline-offset:-3px;}
-@media(max-width:600px){div[role="dialog"][aria-label="Notifications"]{top:62px!important;right:12px!important;width:calc(100vw - 24px)!important;max-height:calc(100vh - 74px)!important;border-radius:20px!important;}}
+/* the nav is centred with transform (and has a backdrop blur), so this fixed card is positioned against the nav, not the screen: on phones, span the nav exactly */
+@media(max-width:600px){div[role="dialog"][aria-label="Notifications"]{top:62px!important;left:0!important;right:0!important;width:auto!important;max-height:calc(100vh - 74px)!important;border-radius:20px!important;}}
 
 /* Restore the CivicSense green palette on focus and tracker controls. */
 .hero-backdrop-title{color:#8abe05;text-shadow:0 4px 30px rgba(138,190,5,.16),0 1px 4px rgba(0,0,0,.04)}
@@ -252,7 +253,7 @@ div[role="dialog"][aria-label="Notifications"] button:focus-visible{outline:3px 
 .form-input:focus,.form-select:focus,.form-textarea:focus,.track-input:focus{border-color:var(--olive);box-shadow:0 0 0 3px rgba(26,122,58,.13)}
 .student-status-checklist li.is-complete:not(:last-child)::after,.student-status-checklist li.is-current:not(:last-child)::after{background:#1EA854}
 .student-status-checklist li.is-complete .student-status-check-icon{border-color:#1EA854;background:#1EA854}
-div[role="dialog"][aria-label="Notifications"]>button[lang][style*="#FAF2EB"]::before{border-color:#1a7a3a;background:#1a7a3a;box-shadow:0 0 0 4px #d4f5c0}
+div[role="dialog"][aria-label="Notifications"]>button[lang][data-unread]::before{border-color:#1a7a3a;background:#1a7a3a;box-shadow:0 0 0 4px #d4f5c0}
 #formStudentAuthNotice{background:#FAF2EB!important;border-color:#e0f0d0!important;color:#1a3010!important}
 .status-pill.resolved,.timeline-item.timeline-status-resolved::before,.timeline-item.timeline-status-closed::before{color:#1a7a3a}
 
