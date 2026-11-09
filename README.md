@@ -243,7 +243,7 @@ Never commit real keys. The Supabase service-role key and the Cloudinary and Gem
 
 ## License
 
-Released under the [MIT License](LICENSE).
+Released under the [MIT License](LICENSE)..
 
 ## Acknowledgements
 
