@@ -239,12 +239,12 @@ drop policy if exists complaint_status_history_insert_policy on public.complaint
 create policy complaint_status_history_insert_policy on public.complaint_status_history
   for insert
   with check (
-    changed_by = auth.uid()
+    changed_by = (select auth.uid())
     and exists (
       select 1 from public.complaints c
       where c.id = complaint_status_history.complaint_id
         and (
-          (c.student_id = auth.uid() and complaint_status_history.status = 'submitted')
+          (c.student_id = (select auth.uid()) and complaint_status_history.status = 'submitted')
           or public.current_user_role() = 'administration'
           or (
             public.current_user_role() in ('department', 'social_service')
@@ -258,7 +258,7 @@ drop policy if exists id_cards_select_policy on public.id_cards;
 create policy id_cards_select_policy on public.id_cards
   for select
   using (
-    user_id = auth.uid()
+    user_id = (select auth.uid())
     or public.current_user_role() = 'administration'
     or (
       public.current_user_role() in ('department', 'social_service')
@@ -274,9 +274,9 @@ drop policy if exists profiles_select_policy on public.profiles;
 create policy profiles_select_policy on public.profiles
   for select
   using (
-    id = auth.uid()
+    id = (select auth.uid())
     or public.current_user_role() = 'administration'
-    or (auth.uid() is not null and role in ('department', 'social_service') and is_active = true)
+    or ((select auth.uid()) is not null and role in ('department', 'social_service') and is_active = true)
     or exists (
       select 1 from public.complaints c
       where c.student_id = profiles.id
@@ -292,11 +292,11 @@ alter table public.ai_logs enable row level security;
 
 drop policy if exists authorities_select_policy on public.authorities;
 create policy authorities_select_policy on public.authorities
-  for select using (auth.uid() is not null);
+  for select using ((select auth.uid()) is not null);
 
 drop policy if exists routing_rules_select_policy on public.routing_rules;
 create policy routing_rules_select_policy on public.routing_rules
-  for select using (auth.uid() is not null);
+  for select using ((select auth.uid()) is not null);
 
 drop policy if exists complaint_routes_select_policy on public.complaint_routes;
 create policy complaint_routes_select_policy on public.complaint_routes
@@ -405,7 +405,7 @@ create policy complaint_replies_select_policy on public.complaint_replies
       select 1 from public.complaints c
       where c.id = complaint_replies.complaint_id
         and (
-          (c.student_id = auth.uid() and complaint_replies.visibility = 'public')
+          (c.student_id = (select auth.uid()) and complaint_replies.visibility = 'public')
           or (public.current_user_role() <> 'student'
               and (public.can_read_complaint(c.student_id, c.visibility, c.target_unit_id) or public.is_routed_to_me(c.id)))
         )
@@ -415,11 +415,11 @@ create policy complaint_replies_select_policy on public.complaint_replies
 -- Each user reads and marks read only their own notifications (the server creates them)
 drop policy if exists notifications_select_policy on public.notifications;
 create policy notifications_select_policy on public.notifications
-  for select using (user_id = auth.uid());
+  for select using (user_id = (select auth.uid()));
 
 drop policy if exists notifications_update_policy on public.notifications;
 create policy notifications_update_policy on public.notifications
-  for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+  for update using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 
 -- Live updates (PRD: Supabase Realtime): new notifications reach the browser without reloading
 do $$

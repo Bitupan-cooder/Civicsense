@@ -25,7 +25,6 @@ Students report campus problems in Assamese or English. AI sorts, summarises, de
 
 - [Why Xohari](#why-xohari)
 - [Features](#features)
-- [How it works](#how-it-works)
 - [Tech stack](#tech-stack)
 - [Getting started](#getting-started)
 - [Configuration](#configuration)
@@ -73,23 +72,6 @@ Students don't know **who** is responsible, **whether** anyone saw it, or **when
   - Sensitive issues are never answered publicly.
 - **Developer monitoring.** The console's System page shows Gemini calls, tokens and estimated cost; latency, failure rates and how often the fallback took over; server errors and chat-bot health.
 
-## How it works
-
-```mermaid
-flowchart LR
-  S[Student<br/>web form] --> API
-  G[Telegram / Discord bot<br/>Moodle plugin] -->|tag| API
-  API[Node API<br/>backend/api.ts] --> AI[Gemini<br/>analysis + embeddings]
-  AI --> R[Safety rules<br/>src/logic.ts]
-  R -->|clear| RT[Routing rules<br/>post + GS copied]
-  R -->|unclear| RQ[Admin review queue]
-  RT --> DB[(Supabase Postgres<br/>RLS, pgvector, Realtime)]
-  DB --> C[Official console]
-  DB -->|live notifications| S
-  C -->|reply, translated| S
-  C -->|acknowledge| G
-```
-
 ## Tech stack
 
 | Layer | Technology |
@@ -134,6 +116,7 @@ cp .env.example .env.local   # then fill in your keys, see Configuration
    | `backend/migrations/002_chat_signals.sql` | Agent tag: chat account links, signals |
    | `backend/migrations/003_observability.sql` | Token counts and the server-error log for the System page |
    | `backend/migrations/005_server_only_writes.sql` | Removes the old policies that let students write complaints and evidence straight into the tables; the server does all writes. **Run it again after any re-run of an older `schema.sql`.** |
+   | `backend/migrations/006_advisor_fixes.sql` | Supabase advisor fixes: faster RLS policies, foreign-key indexes, trigger functions removed from the API |
 
 5. Link posts to official accounts by email, so officials see what is routed to them:
 

@@ -44,3 +44,6 @@ powershell.cmd
 .vercel
 
 .agents\
+.claude/
+skills-lock.json
+video/

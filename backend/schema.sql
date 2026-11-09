@@ -241,10 +241,10 @@ drop policy if exists activity_log_insert_policy on public.activity_log;
 create policy profiles_select_policy on public.profiles
   for select
   using (
-    id = auth.uid()
+    id = (select auth.uid())
     or public.current_user_role() = 'administration'
     -- signed-in users only: anonymous visitors must not list officials' names and emails
-    or (auth.uid() is not null and role in ('department', 'social_service') and is_active = true)
+    or ((select auth.uid()) is not null and role in ('department', 'social_service') and is_active = true)
     or exists (
       select 1 from public.complaints c
       where c.student_id = profiles.id
@@ -255,18 +255,18 @@ create policy profiles_select_policy on public.profiles
 create policy profiles_insert_policy on public.profiles
   for insert
   with check (
-    (id = auth.uid() and role = 'student')
+    (id = (select auth.uid()) and role = 'student')
     or public.current_user_role() = 'administration'
   );
 
 create policy profiles_update_policy on public.profiles
   for update
   using (
-    id = auth.uid()
+    id = (select auth.uid())
     or public.current_user_role() = 'administration'
   )
   with check (
-    id = auth.uid()
+    id = (select auth.uid())
     or public.current_user_role() = 'administration'
   );
 
@@ -280,7 +280,7 @@ create policy profiles_delete_policy on public.profiles
 create policy id_cards_select_policy on public.id_cards
   for select
   using (
-    user_id = auth.uid()
+    user_id = (select auth.uid())
     or public.current_user_role() = 'administration'
     or (
       public.current_user_role() in ('department', 'social_service')
@@ -295,14 +295,14 @@ create policy id_cards_select_policy on public.id_cards
 create policy id_cards_insert_policy on public.id_cards
   for insert
   with check (
-    user_id = auth.uid()
+    user_id = (select auth.uid())
     and public.current_user_role() = 'student'
   );
 
 create policy id_cards_update_policy on public.id_cards
   for update
   using (
-    (user_id = auth.uid() and status = 'not_valid')
+    (user_id = (select auth.uid()) and status = 'not_valid')
     or public.current_user_role() = 'administration'
     or (
       -- officials may only review ID cards of students whose complaints they can read
@@ -315,7 +315,7 @@ create policy id_cards_update_policy on public.id_cards
     )
   )
   with check (
-    (user_id = auth.uid() and status = 'pending' and reviewed_by is null)
+    (user_id = (select auth.uid()) and status = 'pending' and reviewed_by is null)
     or public.current_user_role() = 'administration'
     or (
       public.current_user_role() in ('department', 'social_service')
@@ -400,13 +400,13 @@ create policy complaint_status_history_select_policy on public.complaint_status_
 create policy complaint_status_history_insert_policy on public.complaint_status_history
   for insert
   with check (
-    changed_by = auth.uid()
+    changed_by = (select auth.uid())
     and exists (
       select 1 from public.complaints c
       where c.id = complaint_status_history.complaint_id
         and (
           -- students may only log the initial submission, never fake progress or resolution
-          (c.student_id = auth.uid() and complaint_status_history.status = 'submitted')
+          (c.student_id = (select auth.uid()) and complaint_status_history.status = 'submitted')
           or public.current_user_role() = 'administration'
           or (
             public.current_user_role() in ('department', 'social_service')
@@ -421,13 +421,13 @@ create policy activity_log_select_policy on public.activity_log
   for select
   using (
     public.current_user_role() = 'administration'
-    or actor_id = auth.uid()
+    or actor_id = (select auth.uid())
   );
 
 create policy activity_log_insert_policy on public.activity_log
   for insert
   with check (
-    actor_id = auth.uid()
+    actor_id = (select auth.uid())
     and public.current_user_is_active() = true
   );
 
