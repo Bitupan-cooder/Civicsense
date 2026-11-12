@@ -15,13 +15,11 @@ Students report campus problems in Assamese or English. AI sorts, summarises, de
 
 [**Live site**](https://xohari.me) · [Deployment guide](docs/DEPLOY.md) · [Frontend guide](docs/FRONTEND.md) · [Report a bug](https://github.com/Bitupan-cooder/Civicsense/issues) · [Request a feature](https://github.com/Bitupan-cooder/Civicsense/issues)
 
-<br>
-
-<a href="docs/media/xohari-promo.mp4"><img src="docs/media/xohari-promo-poster.jpg" alt="Xohari product film: Report Fearlessly. Every campus issue deserves a verified resolution." width="720"></a>
-
-▶ **[Watch the 63-second product film](docs/media/xohari-promo.mp4)** (MP4, 1080p, with sound)
-
 </div>
+
+https://github.com/user-attachments/assets/a226da23-807c-4439-ba91-b85803263d2a
+
+<div align="center"><sub>The 63-second Xohari product film (sound on).</sub></div>
 
 ---
 
