@@ -43,7 +43,6 @@ powershell.cmd
 # Vercel build output and local project link
 .vercel
 
-.agents\
 .claude/
 skills-lock.json
 video/
